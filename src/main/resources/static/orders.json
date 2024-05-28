@@ -1,0 +1,6 @@
+{
+  "object" : "Order",
+  "required" : ["orderelements.json", "codestores.json", "customers.json", "codestores.json"],
+  "data" : [
+  ]
+}

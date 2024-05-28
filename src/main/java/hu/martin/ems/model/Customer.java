@@ -4,26 +4,28 @@ import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
 
 @Entity
 @Getter
 @Setter
-public class Employee extends BaseEntity {
-
+public class Customer extends BaseEntity {
     @Column(nullable = false)
     private String firstName;
+    
     @Column(nullable = false)
     private String lastName;
+    
     @ManyToOne
-    @JoinColumn(name = "role_role_id")
-    private Role role;
-    @Column(nullable = false)
-    private Integer salary;
-
+    @JoinColumn(name = "address_address_id")
+    private Address address;
+    
     @Transient
     private String name;
-
-    public String getName(){
-        return this.firstName + " " + this.lastName;
+    
+    public String getName() {
+        return firstName + " " + lastName;
     }
+    
 }

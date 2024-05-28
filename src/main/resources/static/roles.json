@@ -1,0 +1,8 @@
+{
+  "object": "Role",
+  "required": [],
+  "data": [
+    {"name": "Martin", "deleted": 0},
+    {"name": "Robi", "deleted": 0}
+  ]
+}

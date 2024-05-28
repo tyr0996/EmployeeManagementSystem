@@ -1,0 +1,8 @@
+{
+  "object" : "Address",
+  "required" : ["codestores.json", "cities.json", "codestores.json"],
+  "data" : [
+    {"deleted" : 0, "countryCode_codestore_id" : {"refClass": "CodeStore", "filter": {"linkName" : "Hungary"}}, "city_city_id" : {"refClass": "City", "filter": {"name" : "Kistótfalu"}}, "streetName" : "Dózsa György", "houseNumber" : "2", "streetType_codestore_id" : {"refClass": "CodeStore", "filter": {"name" : "Street"}}},
+    {"deleted" : 0, "countryCode_codestore_id" : {"refClass": "CodeStore", "filter": {"linkName" : "Hungary"}}, "city_city_id" : {"refClass": "City", "filter": {"name" : "Szilsárkány"}}, "streetName" : "Kossuth Lajos", "houseNumber" : "64/b", "streetType_codestore_id" : {"refClass": "CodeStore", "filter": {"name" : "Street"}}}
+  ]
+}
