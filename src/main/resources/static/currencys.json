@@ -1,0 +1,9 @@
+{
+  "object": "Currency",
+  "required": [
+    "codestores.json",
+    "localdates.json"
+  ],
+  "data": [
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "object": "Supplier",
+  "required": [
+    "addresss.json"
+  ],
+  "data": [
+    {
+      "deleted": 0,
+      "name": "Szállító1",
+      "address_address_id": {
+        "refClass": "Address",
+        "filter": {
+          "id": 1
+        }
+      }
+    },
+    {
+      "deleted": 0,
+      "name": "Szállító2",
+      "address_address_id": {
+        "refClass": "Address",
+        "filter": {
+          "id": 2
+        }
+      }
+    }
+  ]
+}
