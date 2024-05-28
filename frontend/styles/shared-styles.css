@@ -1,0 +1,11 @@
+.menu-layout {
+    background-color: #f7f7f7;
+    padding: 10px;
+    border-right: 1px solid #ddd;
+}
+
+.content-layout {
+    padding: 20px;
+    flex-grow: 1;
+    overflow: auto;
+}

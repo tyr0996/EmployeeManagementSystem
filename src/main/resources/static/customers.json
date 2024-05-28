@@ -1,0 +1,32 @@
+{
+  "object": "Customer",
+  "required": [
+    "addresss.json"
+  ],
+  "data": [
+    {
+      "deleted": 0,
+      "firstName": "Erdei",
+      "lastName": "Róbert",
+      "emailAddress": "robert.emailcime@gmail.com",
+      "address_address_id": {
+        "refClass": "Address",
+        "filter": {
+          "id": 1
+        }
+      }
+    },
+    {
+      "deleted": 0,
+      "firstName": "Gálber",
+      "lastName": "Martin",
+      "emailAddress": "martin.emailcime@gmail.com",
+      "address_address_id": {
+        "refClass": "Address",
+        "filter": {
+          "id": 2
+        }
+      }
+    }
+  ]
+}
