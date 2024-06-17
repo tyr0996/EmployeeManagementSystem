@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Table(name = "orders")
 public class Order extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "state_codestore_id")

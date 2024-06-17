@@ -112,6 +112,10 @@ public class DataProvider {
         List<String> required;
 
         protected String toSQL(){
+            switch (object) {
+                case "order" : object = "orders"; break;
+                default: break;
+            }
             if(data.size() > 0){
                 List<String> res = new ArrayList<>();
                 List<String> keys = data.get(0).keySet().stream().toList();

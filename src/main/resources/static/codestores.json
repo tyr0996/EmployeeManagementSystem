@@ -6,8 +6,9 @@
     {"deleted" : 0, "parentcodestore_codestore_id" : null, "name" : "Amount units", "deletable" : false, "linkname" : "Amount units"},
     {"deleted" : 0, "parentcodestore_codestore_id" : null, "name" : "Order states", "deletable" : false, "linkname" : "Order states"},
     {"deleted" : 0, "parentcodestore_codestore_id" : null, "name" : "Tax keys", "deletable" : false, "linkname" : "Tax keys"},
-    {"deleted" : 0, "parentcodestore_codestore_id" : null, "name" : "Street types", "deletable" : false, "linkname" : "Street Types"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : null, "name" : "Street types", "deletable" : false, "linkname" : "Street types"},
     {"deleted" : 0, "parentcodestore_codestore_id" : null, "name" : "Countries", "deletable" : false, "linkname" : "Countries"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : null, "name" : "Payment types", "deletable" : false, "linkname" : "Payment types"},
 
     {"deleted" : 0, "parentcodestore_codestore_id" : 1, "name" : "RUB", "deletable" : false, "linkname" : "RUB"},
     {"deleted" : 0, "parentcodestore_codestore_id" : 1, "name" : "AFN", "deletable" : false, "linkname" : "AFN"},
@@ -490,6 +491,17 @@
     {"deleted" : 0, "parentcodestore_codestore_id" : 6, "name" : "Yemen, Rep.", "deletable" : false, "linkname" : "Yemen, Rep."},
     {"deleted" : 0, "parentcodestore_codestore_id" : 6, "name" : "South Africa", "deletable" : false, "linkname" : "South Africa"},
     {"deleted" : 0, "parentcodestore_codestore_id" : 6, "name" : "Zambia", "deletable" : false, "linkname" : "Zambia"},
-    {"deleted" : 0, "parentcodestore_codestore_id" : 6, "name" : "Zimbabwe", "deletable" : false, "linkname" : "Zimbabwe"}
+    {"deleted" : 0, "parentcodestore_codestore_id" : 6, "name" : "Zimbabwe", "deletable" : false, "linkname" : "Zimbabwe"},
+    
+    {"deleted" : 0, "parentcodestore_codestore_id" : 7, "name" : "Credit Card", "deletable" : false, "linkname" : "Credit Card"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : 7, "name" : "Debit Card", "deletable" : false, "linkname" : "Debit Card"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : 7, "name" : "PayPal", "deletable" : false, "linkname" : "PayPal"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : 7, "name" : "Bank Transfer", "deletable" : false, "linkname" : "Bank Transfer"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : 7, "name" : "Cryptocurrency", "deletable" : false, "linkname" : "Cryptocurrency"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : 7, "name" : "Cash", "deletable" : false, "linkname" : "Cash"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : 7, "name" : "Mobile Payment", "deletable" : false, "linkname" : "Mobile Payment"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : 7, "name" : "Cheque", "deletable" : false, "linkname" : "Cheque"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : 7, "name" : "Prepaid Card", "deletable" : false, "linkname" : "Prepaid Card"},
+    {"deleted" : 0, "parentcodestore_codestore_id" : 7, "name" : "Gift Card", "deletable" : false, "linkname" : "Gift Card"}
   ]
 }

@@ -33,7 +33,7 @@ public class CityList extends VerticalLayout {
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
         this.grid.removeColumnByKey("deleted");
-        this.grid.removeColumnByKey("Id");
+        this.grid.removeColumnByKey("id");
 
         //region Options column
         this.grid.addComponentColumn(city -> {

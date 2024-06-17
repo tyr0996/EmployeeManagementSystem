@@ -2,6 +2,7 @@ package hu.martin.ems.core.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,10 @@ public abstract class BaseEntity {
     private Long deleted;
 
     private static final ObjectMapper om = new ObjectMapper();
+
+    static {
+        om.registerModule(new JavaTimeModule());
+    }
 
     @Override
     public String toString() {

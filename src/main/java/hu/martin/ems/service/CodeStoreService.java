@@ -19,4 +19,7 @@ public class CodeStoreService extends BaseService<CodeStore, CodeStoreRepository
     public List<CodeStore> getChildren(Long parentCodeStoreId){
         return this.repo.getChildren(parentCodeStoreId);
     }
+
+    public CodeStore findByName(String name) { return this.repo.findByName(name);
+    }
 }

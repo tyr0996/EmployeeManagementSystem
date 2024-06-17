@@ -16,4 +16,8 @@ public interface CodeStoreRepository extends BaseRepository<CodeStore, Long> {
     @Query("SELECT cs FROM CodeStore cs " +
             "WHERE cs.parentCodeStore.id = :codeStoreId")
     List<CodeStore> getChildren(@Param("codeStoreId") Long codeStoreId);
+
+    @Query("SELECT cs FROM CodeStore cs " +
+            "WHERE cs.name ilike :name")
+    CodeStore findByName(@Param("name") String name);
 }

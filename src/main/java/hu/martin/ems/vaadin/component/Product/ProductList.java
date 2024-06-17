@@ -51,6 +51,7 @@ public class ProductList extends VerticalLayout {
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
         this.grid.removeColumnByKey("id");
+        this.grid.removeColumnByKey("deleted");
 
         //region Options column
         this.grid.addComponentColumn(product -> {

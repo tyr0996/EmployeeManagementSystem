@@ -32,6 +32,8 @@ public class AddressList extends VerticalLayout {
         List<AddressVO> data = addresss.stream().map(AddressVO::new).toList();
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
+        this.grid.removeColumnByKey("id");
+        this.grid.removeColumnByKey("deleted");
 
         //region Options column
         this.grid.addComponentColumn(address -> {

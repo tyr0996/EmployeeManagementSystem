@@ -14,7 +14,7 @@ import hu.martin.ems.vaadin.MainView;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Route(value = "order/list", layout = MainView.class)
@@ -33,6 +33,8 @@ public class OrderList extends VerticalLayout {
         List<OrderVO> data = orders.stream().map(OrderVO::new).toList();
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
+        this.grid.removeColumnByKey("id");
+        this.grid.removeColumnByKey("deleted");
 
         //region Options column
         this.grid.addComponentColumn(order -> {
@@ -94,14 +96,14 @@ public class OrderList extends VerticalLayout {
         private String state;
         private String customer;
         private String paymentType;
-        private LocalDateTime timeOfOrder;
+        private String timeOfOrder;
 
         public OrderVO(Order order) {
             this.original = order;
             this.id = order.getId();
             this.deleted = order.getDeleted();
             this.state = original.getState().getName();
-            this.timeOfOrder = original.getTimeOfOrder();
+            this.timeOfOrder = original.getTimeOfOrder().format(DateTimeFormatter.ofPattern("yyyy. MM. dd. HH:mm:ss"));
             this.customer = original.getCustomer().getName();
             this.paymentType = original.getPaymentType().getName();
         }

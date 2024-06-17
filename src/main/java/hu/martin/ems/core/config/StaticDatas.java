@@ -7,4 +7,5 @@ public final class StaticDatas {
     public static final Long TAXKEYS_CODESTORE_ID = 4L;
     public static final Long STREET_TYPES_CODESTORE_ID = 5L;
     public static final Long COUNTRIES_CODESTORE_ID = 6L;
+    public static final Long PAYMENT_TYPES_CODESTORE_ID = 7L;
 }
