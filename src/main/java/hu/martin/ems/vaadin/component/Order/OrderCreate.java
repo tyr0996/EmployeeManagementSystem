@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Route(value = "order/create", layout = MainView.class)
 public class OrderCreate extends VerticalLayout {
@@ -61,7 +62,7 @@ public class OrderCreate extends VerticalLayout {
 
         customers.addValueChangeListener(event -> {
             if(event.getValue() != null){
-                grid.setItems(orderElementService.getByCustomer(event.getValue()).stream().map(OrderElementVO::new).toList());
+                grid.setItems(orderElementService.getByCustomer(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList()));
             }
             else{
                 grid.setItems(new ArrayList<>());
@@ -73,6 +74,12 @@ public class OrderCreate extends VerticalLayout {
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         paymentTypes.setItems(paymentTypeFilter, codeStoreService.getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID));
         paymentTypes.setItemLabelGenerator(CodeStore::getName);
+
+        ComboBox<CodeStore> currencies = new ComboBox<>("Currency");
+        ComboBox.ItemFilter<CodeStore> currencyFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        currencies.setItems(currencyFilter, codeStoreService.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID));
+        currencies.setItemLabelGenerator(CodeStore::getName);
         
         Button saveButton = new Button("Create order");
 
@@ -83,6 +90,7 @@ public class OrderCreate extends VerticalLayout {
             order.setCustomer(customers.getValue());
             order.setPaymentType(paymentTypes.getValue());
             order.setDeleted(0L);
+            order.setCurrency(currencies.getValue());
             this.orderService.saveOrUpdate(order);
             grid.getSelectedItems().stream().forEach(v -> {
                 OrderElement oe = v.original;
@@ -96,7 +104,7 @@ public class OrderCreate extends VerticalLayout {
 
         formLayout.add(customers);
         FormLayout formLayout1 = new FormLayout();
-        formLayout1.add(paymentTypes);
+        formLayout1.add(currencies, paymentTypes);
         formLayout1.add(saveButton);
         add(formLayout, grid, formLayout1);
     }

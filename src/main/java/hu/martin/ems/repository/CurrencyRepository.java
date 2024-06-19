@@ -1,19 +1,17 @@
 package hu.martin.ems.repository;
 
 import hu.martin.ems.core.repository.BaseRepository;
-import hu.martin.ems.model.Order;
-import hu.martin.ems.model.OrderElement;
+import hu.martin.ems.model.Currency;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @Repository
 @Transactional
-public interface OrderRepository extends BaseRepository<Order, Long> {
-    @Query("SELECT oe FROM OrderElement oe WHERE " +
-            "oe.order.id = :orderId")
-    List<OrderElement> getOrderElements(@Param("orderId") Long orderId);
+public interface CurrencyRepository extends BaseRepository<Currency, Long> {
+    @Query("SELECT c FROM Currency c WHERE c.validDate = :date")
+    Currency findByDate(@Param("date") LocalDate date);
 }

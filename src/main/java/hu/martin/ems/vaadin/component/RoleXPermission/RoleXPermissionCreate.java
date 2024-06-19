@@ -17,6 +17,7 @@ import hu.martin.ems.service.RoleXPermissionService;
 import hu.martin.ems.vaadin.MainView;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Route(value = "role_x_permission/create", layout = MainView.class)
 public class RoleXPermissionCreate extends VerticalLayout {
@@ -63,7 +64,7 @@ public class RoleXPermissionCreate extends VerticalLayout {
 
         saveButton.addClickListener(event -> {
             Role r = roles.getValue();
-            List<Permission> permission = permissions.getValue().stream().toList();
+            List<Permission> permission = permissions.getValue().stream().collect(Collectors.toList());
             permission.forEach(p -> {
                 RoleXPermission rxp = new RoleXPermission();
                 rxp.setRole(r);

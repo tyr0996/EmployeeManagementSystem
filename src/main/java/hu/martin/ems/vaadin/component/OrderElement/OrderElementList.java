@@ -15,6 +15,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Route(value = "orderElement/list", layout = MainView.class)
 public class OrderElementList extends VerticalLayout {
@@ -29,7 +30,7 @@ public class OrderElementList extends VerticalLayout {
 
         this.grid = new Grid<>(OrderElementVO.class);
         List<OrderElement> orderElements = orderElementService.findAll(false);
-        List<OrderElementVO> data = orderElements.stream().map(OrderElementVO::new).toList();
+        List<OrderElementVO> data = orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
         this.grid.removeColumnByKey("id");
@@ -84,7 +85,7 @@ public class OrderElementList extends VerticalLayout {
 
     private void updateGridItems() {
         List<OrderElement> orderElements = this.orderElementService.findAll(showDeleted);
-        this.grid.setItems(orderElements.stream().map(OrderElementVO::new).toList());
+        this.grid.setItems(orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList()));
     }
 
     @Getter

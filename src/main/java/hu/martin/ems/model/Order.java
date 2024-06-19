@@ -30,6 +30,10 @@ public class Order extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "paymentType_codestore_id")
     private CodeStore paymentType;
+
+    @ManyToOne
+    @JoinColumn(name = "currency_codestore_id")
+    private CodeStore currency;
     
     @Transient
     private String name;

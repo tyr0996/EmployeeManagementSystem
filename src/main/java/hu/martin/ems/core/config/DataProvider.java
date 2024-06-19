@@ -47,7 +47,7 @@ public class DataProvider {
         List<File> files = Files.walk(directory)
              .filter(Files::isRegularFile)
              .filter(path -> path.toString().toLowerCase().endsWith(".json"))
-             .map(Path::toFile).toList();
+             .map(Path::toFile).collect(Collectors.toList());
         files.stream().filter(v -> !loaded.contains(v)).forEach(v -> loadRequiredJsonAndSave(files, v));
     }
 
@@ -65,7 +65,7 @@ public class DataProvider {
 
                 List<File> requiredFiles = allFiles.stream()
                         .filter(file -> required.contains(file.getName()))
-                        .toList();
+                        .collect(Collectors.toList());
                 requiredFiles.forEach(v -> loadRequiredJsonAndSave(allFiles, v));
                 saveJsonToDatabase(jsonFile);
             } catch (JsonMappingException e) {
@@ -113,14 +113,14 @@ public class DataProvider {
 
         protected String toSQL(){
             switch (object) {
-                case "order" : object = "orders"; break;
+                case "Order" : object = "orders"; break;
                 default: break;
             }
             if(data.size() > 0){
                 List<String> res = new ArrayList<>();
-                List<String> keys = data.get(0).keySet().stream().toList();
+                List<String> keys = new ArrayList<>(data.get(0).keySet());
                 String fieldNames = String.join(", ", keys);
-                String baseSql = "INSERT INTO %s (%s) VALUES ".formatted(object, fieldNames);
+                String baseSql = "INSERT INTO " + object + " (" + fieldNames + ") VALUES ";
                 for(Map<String, Object> obj : data){
                     List<String> valuesList = new ArrayList<>();
                     for (String key : keys) {
@@ -136,7 +136,7 @@ public class DataProvider {
                     String values = String.join(", ", valuesList);
                     res.add("(" + values + ")");
                 }
-                return baseSql + String.join(", ", res).replace(":", "\\u003A");
+                return baseSql + String.join(", ", res);
             }
             else{
                 return "";
@@ -146,11 +146,15 @@ public class DataProvider {
 
         private static String generateSelectSQLQuerry(LinkedHashMap<String, Object> reference, String columnName) {
             String refClass = (String) reference.get("refClass");
+            switch (refClass) {
+                case "Order" : refClass = "orders"; break;
+                default: break;
+            }
             @SuppressWarnings("unchecked")
             LinkedHashMap<String, Object> filter = (LinkedHashMap<String, Object>) reference.get("filter");
             String sql = "(SELECT id as " + columnName + " FROM " + refClass + " WHERE ";
 
-            sql += filter.entrySet().stream().map(v -> v.getKey() + " = '" + v.getValue() + "'").collect(Collectors.joining(" AND "));
+            sql += filter.entrySet().stream().map(v -> v.getKey() + " " + (v.getValue() instanceof String ? "ilike" : "=") + " '" + v.getValue() + "'").collect(Collectors.joining(" AND "));
 
             return sql + " LIMIT 1)";
         }

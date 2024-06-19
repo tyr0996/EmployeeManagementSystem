@@ -31,6 +31,7 @@ import hu.martin.ems.vaadin.component.Role.RoleList;
 import hu.martin.ems.vaadin.component.RoleXPermission.RoleXPermissionCreate;
 import hu.martin.ems.vaadin.component.Supplier.SupplierCreate;
 import hu.martin.ems.vaadin.component.Supplier.SupplierList;
+import hu.martin.ems.vaadin.component.Currency.CurrencyList;
 
 @Route("")
 @CssImport("./styles/shared-styles.css")
@@ -56,6 +57,7 @@ public class MainView extends HorizontalLayout implements RouterLayout {
         addMenu(menuLayout, "Admin", "Supplier", SupplierCreate.class, SupplierList.class);
         addMenu(menuLayout, "Orders", "OrderElement", OrderElementCreate.class, OrderElementList.class);
         addMenu(menuLayout, "Orders", "Order", OrderCreate.class, OrderList.class);
+        addMenu(menuLayout, "Admin", "Currency", null, CurrencyList.class);
 
         // Hozzáadva a meglévő kinézethez
         addClassName("main-view");

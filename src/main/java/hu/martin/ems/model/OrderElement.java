@@ -48,7 +48,7 @@ public class OrderElement extends BaseEntity {
     private String name;
     
     public String getName() {
-        return ""; //TODO implement getName
+        return this.product.getName();
     }
     
 }
