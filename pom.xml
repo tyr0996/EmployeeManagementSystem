@@ -17,6 +17,13 @@
         <java.version>21</java.version>
         <vaadin.version>24.3.12</vaadin.version>
     </properties>
+    <repositories>
+        <repository>
+            <id>QoppaSoftware</id>
+            <name>Qoppa Software</name>
+            <url>https://download.qoppa.com/maven</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -73,6 +80,18 @@
             <artifactId>spring-tx</artifactId>
             <version>6.1.6</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>4.1.1</version>
+        </dependency>
+        <!--
+        <dependency>
+            <groupId>com.qoppa</groupId>
+            <artifactId>jOfficeConvert</artifactId>
+            <version>2021R1.08</version>
+        </dependency>
+        -->
     </dependencies>
     <dependencyManagement>
         <dependencies>
