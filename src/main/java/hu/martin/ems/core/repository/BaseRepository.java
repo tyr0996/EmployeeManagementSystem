@@ -7,8 +7,6 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface BaseRepository<T, ID> extends Repository<T, ID> {
-    List<T> customSaveAll(List<T> entities);
-
     List<T> customFindAll(Boolean withDeleted);
 
     void customDelete(T entity);

@@ -24,16 +24,12 @@ public class AddressCreate extends VerticalLayout {
 
     public static Address a;
     private final AddressService addressService;
-    private final CodeStoreService codeStoreService;
-    private final CityService cityService;
 
     @Autowired
     public AddressCreate(AddressService addressService,
                          CodeStoreService codeStoreService,
                          CityService cityService) {
         this.addressService = addressService;
-        this.codeStoreService = codeStoreService;
-        this.cityService = cityService;
         FormLayout formLayout = new FormLayout();
 
         ComboBox<CodeStore> countryCodes = new ComboBox<>("Country code");

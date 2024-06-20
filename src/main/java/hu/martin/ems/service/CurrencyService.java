@@ -1,6 +1,7 @@
 package hu.martin.ems.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.martin.ems.core.apiresponse.CurrencyAPI;
 import hu.martin.ems.core.apiresponse.CurrencyResponse;
@@ -44,7 +45,7 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
             String json = om.writeValueAsString(response);
             CurrencyAPI c = om.readValue(json, CurrencyAPI.class);
             LinkedHashMap<String, Double> map = om.convertValue(c.getRates(), LinkedHashMap.class);
-            map.forEach((k, v) -> map.replace(k, Double.valueOf(new DecimalFormat("#0.000").format((1.0 / v)))));
+            map.forEach((k, v) -> map.replace(k, Double.valueOf(new DecimalFormat("#0.000").format((1.0 / v)).replace(",", "."))));
             c.setRates(om.convertValue(map, CurrencyResponse.class));
 
             Currency currency = new Currency();
@@ -61,7 +62,7 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     public Double convert(LocalDate date, String from, String to, Double amount) {
         Currency c = this.repo.findByDate(date);
         if (c != null) {
-            LinkedHashMap<String, Double> map = null;
+            LinkedHashMap<String, Double> map;
             try {
                 map = om.readValue(c.getRateJson(), LinkedHashMap.class);
                 Double f = map.get(from.toUpperCase());
@@ -81,7 +82,12 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     public Double get(LocalDate date, String currency) {
         Currency c = this.repo.findByDate(date);
         if (c != null) {
-            LinkedHashMap<String, Double> map = om.convertValue(c.getRateJson(), LinkedHashMap.class);
+            LinkedHashMap<String, Double> map = null;
+            try {
+                map = om.readValue(c.getRateJson(), new TypeReference<>() {});
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
             return map.get(currency);
         } else {
             throw new NullPointerException("Nincs árfolyam az adott dátumhoz elmentve!");

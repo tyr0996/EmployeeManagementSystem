@@ -12,7 +12,12 @@ public class OrderDM extends AbstractDM {
 
     public OrderDM(Order o) {
         super("Order.odt");
-        this.total = ""; //TODO
+        this.total = "0.0 " + o.getCurrency().getName();
         this.timeOfOrder = o.getTimeOfOrder().format(DateTimeFormatter.ofPattern("yyyy. MM. dd. HH:mm:ss"));
+    }
+
+    public void addToTotalGross(Double amount){
+        String[] price = this.total.split(" ");
+        this.total = Double.valueOf(amount + Double.parseDouble(price[0])) + " " + price[1];
     }
 }

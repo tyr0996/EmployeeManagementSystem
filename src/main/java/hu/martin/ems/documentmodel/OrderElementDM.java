@@ -19,11 +19,18 @@ public class OrderElementDM extends AbstractDM {
         this.product = oe.getProduct().getName();
         this.amount = oe.getUnit().toString();
         this.amountUnit = oe.getProduct().getAmountUnit().getName();
-        this.unitNetPrice = ""; //TODO
-        this.netPrice = ""; //TODO
+        this.unitNetPrice = null;
+        this.netPrice = null;
         this.taxKey = oe.getTaxKey().getName() + "%";
-        this.tax = ""; //TODO
-        this.grossPrice = ""; //TODO
+        this.tax = null;
+        this.grossPrice = null;
+    }
 
+    public OrderElementDM extend(Double unitNetPrice, Double netPrice, Double tax, Double grossPrice, String currency){
+        this.unitNetPrice = unitNetPrice.toString() + " " + currency;
+        this.netPrice = netPrice.toString() + " " + currency;
+        this.tax = tax.toString() + " " + currency;
+        this.grossPrice = grossPrice.toString() + " " + currency;
+        return this;
     }
 }

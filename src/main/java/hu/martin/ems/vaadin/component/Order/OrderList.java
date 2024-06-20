@@ -4,6 +4,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.model.Order;
@@ -54,6 +55,9 @@ public class OrderList extends VVerticalLayout {
             Button permanentDeleteButton = new Button("Permanently Delete");
             DynamicFileDownloader odtDownload = new DynamicFileDownloader("Save to ODT", "order_" + order.getId() + ".odt",
                     out -> orderService.writeAsOdt(order.getOriginal(), out));
+            DynamicFileDownloader pdfDownload = new DynamicFileDownloader("Save to PDF", "order_" + order.getId() + ".pdf",
+                    out -> orderService.writeAsPdf(order.getOriginal(), out));
+            pdfDownload.addComponentAsFirst(VaadinIcon.DOWNLOAD_ALT.create());
 
             editButton.addClickListener(event -> {
                 OrderCreate.o = order.getOriginal();
@@ -79,7 +83,7 @@ public class OrderList extends VVerticalLayout {
             });
 
             VHorizontalLayout actions = new VHorizontalLayout();
-            actions.add(odtDownload.asButton());
+            actions.add(odtDownload.asButton(), pdfDownload.asButton());
             if (order.getOriginal().getDeleted() == 0) {
                 actions.add(editButton, deleteButton);
             } else if (order.getOriginal().getDeleted() == 1) {

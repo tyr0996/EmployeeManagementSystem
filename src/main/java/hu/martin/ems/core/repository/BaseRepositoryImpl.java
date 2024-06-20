@@ -28,13 +28,6 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     }
 
     @Override
-    public List<T> customSaveAll(List<T> entities) {
-        List<T> savedEntities = super.saveAll(entities);
-        logger.info("Entities saved successfully: {}", savedEntities);
-        return savedEntities;
-    }
-
-    @Override
     public List<T> customFindAll(Boolean withDeleted) {
         boolean includeDeleted = withDeleted != null ? withDeleted : true;
         String jpql = "SELECT e FROM " + type.getSimpleName() + " e";
