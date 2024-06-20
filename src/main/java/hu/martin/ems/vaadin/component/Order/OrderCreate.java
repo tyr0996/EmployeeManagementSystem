@@ -61,10 +61,9 @@ public class OrderCreate extends VerticalLayout {
         customers.setItemLabelGenerator(Customer::getName);
 
         customers.addValueChangeListener(event -> {
-            if(event.getValue() != null){
+            if (event.getValue() != null) {
                 grid.setItems(orderElementService.getByCustomer(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList()));
-            }
-            else{
+            } else {
                 grid.setItems(new ArrayList<>());
             }
         });
@@ -80,7 +79,7 @@ public class OrderCreate extends VerticalLayout {
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         currencies.setItems(currencyFilter, codeStoreService.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID));
         currencies.setItemLabelGenerator(CodeStore::getName);
-        
+
         Button saveButton = new Button("Create order");
 
         saveButton.addClickListener(event -> {

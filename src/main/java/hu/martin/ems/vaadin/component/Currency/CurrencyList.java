@@ -44,15 +44,14 @@ public class CurrencyList extends VerticalLayout {
         add(fetch, datePicker, grid);
     }
 
-    public void updateGrid(DatePicker dp){
+    public void updateGrid(DatePicker dp) {
         LocalDate date = dp.getValue();
         Currency currency = currencyService.findByDate(date);
 
-        if(currency == null){
-            if(date.isEqual(LocalDate.now())){
+        if (currency == null) {
+            if (date.isEqual(LocalDate.now())) {
                 currency = currencyService.fetchAndSaveRates();
-            }
-            else{
+            } else {
                 Notification.show("Az árfolyamokat nem lehet visszamenőlegesen letölteni!");
                 dp.setValue(LocalDate.now());
                 updateGrid(dp);
@@ -75,7 +74,7 @@ public class CurrencyList extends VerticalLayout {
         private String name;
         private String val;
 
-        public CurrencyVO(String name, Double val, String baseCurrency){
+        public CurrencyVO(String name, Double val, String baseCurrency) {
             this.name = name;
             this.val = val.toString() + " " + baseCurrency;
         }

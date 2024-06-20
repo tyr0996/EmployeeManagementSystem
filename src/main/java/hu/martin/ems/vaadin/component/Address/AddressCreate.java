@@ -41,15 +41,15 @@ public class AddressCreate extends VerticalLayout {
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         countryCodes.setItems(countryCodeFilter, codeStoreService.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID));
         countryCodes.setItemLabelGenerator(CodeStore::getName);
-        
+
         ComboBox<City> citys = new ComboBox<>("City");
         ComboBox.ItemFilter<City> cityFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         citys.setItems(cityFilter, cityService.findAll());
         citys.setItemLabelGenerator(City::getName);
-        
+
         TextField streetNameField = new TextField("Street name");
-        
+
         ComboBox<CodeStore> streetTypes = new ComboBox<>("Street type");
         ComboBox.ItemFilter<CodeStore> streetTypeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
@@ -57,10 +57,10 @@ public class AddressCreate extends VerticalLayout {
         streetTypes.setItemLabelGenerator(CodeStore::getName);
 
         TextField houseNumberField = new TextField("House number");
-        
+
         Button saveButton = new Button("Save");
 
-        if(a != null){
+        if (a != null) {
             countryCodes.setValue(a.getCountryCode());
             citys.setValue(a.getCity());
             streetNameField.setValue(a.getStreetName());

@@ -67,8 +67,11 @@ public class AddressList extends VerticalLayout {
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if(address.getOriginal().getDeleted() == 0){ actions.add(editButton, deleteButton); }
-            else if(address.getOriginal().getDeleted() == 1){ actions.add(permanentDeleteButton, restoreButton); }
+            if (address.getOriginal().getDeleted() == 0) {
+                actions.add(editButton, deleteButton);
+            } else if (address.getOriginal().getDeleted() == 1) {
+                actions.add(permanentDeleteButton, restoreButton);
+            }
             return actions;
         }).setHeader("Options");
 

@@ -41,7 +41,7 @@ public class EmployeeCreate extends VerticalLayout {
         roles.setItems(filter, roleService.findAll(false));
         roles.setItemLabelGenerator(Role::getName);
 
-        if(e != null){
+        if (e != null) {
             firstNameField.setValue(e.getFirstName());
             lastNameField.setValue(e.getLastName());
             salaryField.setValue(e.getSalary().doubleValue());

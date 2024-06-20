@@ -22,7 +22,7 @@ public class RoleXPermission extends BaseEntity {
     @JoinColumn(name = "permission_id", columnDefinition = "BIGINT", nullable = false)
     private Permission permission;
 
-    public RoleXPermission(Role r, Permission p){
+    public RoleXPermission(Role r, Permission p) {
         this.role = r;
         this.permission = p;
     }

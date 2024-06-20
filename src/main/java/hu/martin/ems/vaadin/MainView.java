@@ -14,6 +14,7 @@ import hu.martin.ems.vaadin.component.City.CityCreate;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.CodeStore.CodeStoreCreate;
 import hu.martin.ems.vaadin.component.CodeStore.CodeStoreList;
+import hu.martin.ems.vaadin.component.Currency.CurrencyList;
 import hu.martin.ems.vaadin.component.Customer.CustomerCreate;
 import hu.martin.ems.vaadin.component.Customer.CustomerList;
 import hu.martin.ems.vaadin.component.Employee.EmployeeCreate;
@@ -31,7 +32,6 @@ import hu.martin.ems.vaadin.component.Role.RoleList;
 import hu.martin.ems.vaadin.component.RoleXPermission.RoleXPermissionCreate;
 import hu.martin.ems.vaadin.component.Supplier.SupplierCreate;
 import hu.martin.ems.vaadin.component.Supplier.SupplierList;
-import hu.martin.ems.vaadin.component.Currency.CurrencyList;
 
 @Route("")
 @CssImport("./styles/shared-styles.css")
@@ -76,7 +76,7 @@ public class MainView extends HorizontalLayout implements RouterLayout {
                     return newMainMenu;
                 });
 
-        if(listClass != null){
+        if (listClass != null) {
             RouterLink listLink = new RouterLink(subMenuName + " listázás", listClass);
             HorizontalLayout listMenu = new HorizontalLayout(listLink);
             listMenu.setVisible(false);
@@ -86,7 +86,7 @@ public class MainView extends HorizontalLayout implements RouterLayout {
 
             menuLayout.add(listMenu);
         }
-        if(createClass != null){
+        if (createClass != null) {
             RouterLink createLink = new RouterLink(subMenuName + " létrehozás", createClass);
             HorizontalLayout createMenu = new HorizontalLayout(createLink);
             createMenu.setVisible(false);

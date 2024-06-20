@@ -48,7 +48,7 @@ public class RoleList extends VerticalLayout {
 
         List<GroupedRoleXPermission> data = new ArrayList<>();
         gridData.forEach((r, ps) ->
-            data.add(new GroupedRoleXPermission(r, ps))
+                data.add(new GroupedRoleXPermission(r, ps))
         );
 
         this.grid.setItems(data);
@@ -70,19 +70,19 @@ public class RoleList extends VerticalLayout {
     }
 
     @AllArgsConstructor
-    protected class GroupedRoleXPermission{
+    protected class GroupedRoleXPermission {
         private Role role;
         private List<Permission> permissions;
 
         //Nem használhatjuk a get-es előtagot, mert akkor automatikusan hozzáadja a grid-hez, azt viszont nem szeretnénk
-        public String permissionsAsString(){
+        public String permissionsAsString() {
             return permissions.stream()
-                              .filter(Objects::nonNull)
-                              .map(Permission::getName)
-                              .collect(Collectors.joining(", "));
+                    .filter(Objects::nonNull)
+                    .map(Permission::getName)
+                    .collect(Collectors.joining(", "));
         }
 
-        public String roleAsString(){
+        public String roleAsString() {
             return role.getName();
         }
     }

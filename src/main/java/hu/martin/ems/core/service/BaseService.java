@@ -9,9 +9,11 @@ import java.util.List;
 public class BaseService<T, R extends BaseRepository<T, Long>> {
 
     protected R repo;
+
     public T saveOrUpdate(T entity) {
         return repo.customSaveOrUpdate(entity);
     }
+
     public void delete(T entity) {
         repo.customDelete(entity);
     }
@@ -20,7 +22,15 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
         repo.customRestore(entity);
     }
 
-    public void permanentlyDelete(T entity) { repo.customPermanentlyDelete(entity); }
-    public List<T> findAll(boolean withDeleted) { return repo.customFindAll(withDeleted); }
-    public List<T> findAll() { return repo.customFindAll(true); }
+    public void permanentlyDelete(T entity) {
+        repo.customPermanentlyDelete(entity);
+    }
+
+    public List<T> findAll(boolean withDeleted) {
+        return repo.customFindAll(withDeleted);
+    }
+
+    public List<T> findAll() {
+        return repo.customFindAll(true);
+    }
 }

@@ -66,8 +66,11 @@ public class CustomerList extends VerticalLayout {
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if(customer.getOriginal().getDeleted() == 0){ actions.add(editButton, deleteButton); }
-            else if(customer.getOriginal().getDeleted() == 1){ actions.add(permanentDeleteButton, restoreButton); }
+            if (customer.getOriginal().getDeleted() == 0) {
+                actions.add(editButton, deleteButton);
+            } else if (customer.getOriginal().getDeleted() == 1) {
+                actions.add(permanentDeleteButton, restoreButton);
+            }
             return actions;
         }).setHeader("Options");
 

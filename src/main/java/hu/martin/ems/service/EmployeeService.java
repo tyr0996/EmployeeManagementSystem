@@ -14,7 +14,6 @@ import java.util.Random;
 public class EmployeeService extends BaseService<Employee, EmployeeRepository> {
 
 
-
     private static final String[] FIRST_NAMES = {
             "Kovács", "Szabó", "Nagy", "Tóth", "Varga", "Horváth", "Kiss", "Molnár",
             "Németh", "Farkas", "Balogh", "Papp", "Takács", "Juhász", "Mészáros",

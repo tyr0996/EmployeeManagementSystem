@@ -28,8 +28,8 @@ public class CurrencyAPI {
     public LocalDate getValidDate() {
         String[] date = this.date.split("-");
         LocalDate ld = LocalDate.of(Integer.parseInt(date[0]),
-                                 Integer.parseInt(date[1]),
-                                 Integer.parseInt(date[2]));
+                Integer.parseInt(date[1]),
+                Integer.parseInt(date[2]));
         return ld;
     }
 }

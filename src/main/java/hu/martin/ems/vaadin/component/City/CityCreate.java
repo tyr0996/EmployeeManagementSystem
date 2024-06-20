@@ -32,18 +32,18 @@ public class CityCreate extends VerticalLayout {
         FormLayout formLayout = new FormLayout();
 
         TextField nameField = new TextField("Name");
-        
+
         ComboBox<CodeStore> countryCodes = new ComboBox<>("Country code");
         ComboBox.ItemFilter<CodeStore> countryCodeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         countryCodes.setItems(countryCodeFilter, codeStoreService.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID));
         countryCodes.setItemLabelGenerator(CodeStore::getName);
-        
+
         TextField zipCodeField = new TextField("Zip code");
-        
+
         Button saveButton = new Button("Save");
 
-        if(c != null){
+        if (c != null) {
             nameField.setValue(c.getName());
             countryCodes.setValue(c.getCountryCode());
             zipCodeField.setValue(c.getZipCode());

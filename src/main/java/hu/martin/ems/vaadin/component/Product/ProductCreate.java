@@ -34,17 +34,17 @@ public class ProductCreate extends VerticalLayout {
         FormLayout formLayout = new FormLayout();
 
         TextField nameField = new TextField("Name");
-        
+
         NumberField buyingPriceNetField = new NumberField("Buying price net");
-        
+
         ComboBox<CodeStore> buyingPriceCurrencys = new ComboBox<>("Buying price currency");
         ComboBox.ItemFilter<CodeStore> buyingPriceCurrencyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         buyingPriceCurrencys.setItems(buyingPriceCurrencyFilter, codeStoreService.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID));
         buyingPriceCurrencys.setItemLabelGenerator(CodeStore::getName);
-        
+
         NumberField sellingPriceNetField = new NumberField("Selling price net");
-        
+
         ComboBox<CodeStore> sellingPriceCurrencys = new ComboBox<>("Selling price currency");
         ComboBox.ItemFilter<CodeStore> sellingPriceCurrencyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
@@ -56,18 +56,18 @@ public class ProductCreate extends VerticalLayout {
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         sellingPriceCurrencys.setItems(taxKeyFilter, codeStoreService.getChildren(StaticDatas.TAXKEYS_CODESTORE_ID));
         sellingPriceCurrencys.setItemLabelGenerator(CodeStore::getName);
-        
+
         ComboBox<CodeStore> amountUnits = new ComboBox<>("Amount unit");
         ComboBox.ItemFilter<CodeStore> amountUnitFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         amountUnits.setItems(amountUnitFilter, codeStoreService.getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID));
         amountUnits.setItemLabelGenerator(CodeStore::getName);
-        
+
         NumberField amountField = new NumberField("Amount");
-        
+
         Button saveButton = new Button("Save");
 
-        if(p != null){
+        if (p != null) {
             nameField.setValue(p.getName());
             buyingPriceNetField.setValue(p.getBuyingPriceNet());
             buyingPriceCurrencys.setValue(p.getBuyingPriceCurrency());

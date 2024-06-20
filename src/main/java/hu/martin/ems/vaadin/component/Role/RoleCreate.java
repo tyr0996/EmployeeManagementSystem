@@ -26,7 +26,7 @@ public class RoleCreate extends VerticalLayout {
         Button saveButton = new Button("Save");
         Button editRoleXPermissionButton = new Button("Edit permissions");
 
-        if(r != null){
+        if (r != null) {
             nameField.setValue(r.getName());
         }
 

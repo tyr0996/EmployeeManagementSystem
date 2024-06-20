@@ -23,7 +23,7 @@ public class Employee extends BaseEntity {
     @Transient
     private String name;
 
-    public String getName(){
+    public String getName() {
         return this.firstName + " " + this.lastName;
     }
 }

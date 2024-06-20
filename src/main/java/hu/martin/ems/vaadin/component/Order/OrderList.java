@@ -5,42 +5,38 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.StreamResource;
-import hu.martin.ems.core.service.DataConverter;
-import hu.martin.ems.core.util.WordTemplateProcessor;
 import hu.martin.ems.model.Order;
-import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.service.OrderService;
 import hu.martin.ems.vaadin.MainView;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.client.RestTemplate;
+import org.vaadin.firitin.components.DynamicFileDownloader;
+import org.vaadin.firitin.components.orderedlayout.VHorizontalLayout;
+import org.vaadin.firitin.components.orderedlayout.VVerticalLayout;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Route(value = "order/list", layout = MainView.class)
-public class OrderList extends VerticalLayout {
+public class OrderList extends VVerticalLayout {
 
     private final OrderService orderService;
     private final CurrencyService currencyService;
+    private final RestTemplate restTemplate;
     private boolean showDeleted = false;
     private Grid<OrderVO> grid;
 
     @Autowired
     public OrderList(OrderService orderService,
-                     CurrencyService currencyService) {
+                     CurrencyService currencyService,
+                     RestTemplate restTemplate) {
         this.orderService = orderService;
         this.currencyService = currencyService;
+        this.restTemplate = restTemplate;
 
         this.grid = new Grid<>(OrderVO.class);
         List<Order> orders = orderService.findAll(false);
@@ -56,7 +52,8 @@ public class OrderList extends VerticalLayout {
             Button deleteButton = new Button("Delete");
             Button restoreButton = new Button("Restore");
             Button permanentDeleteButton = new Button("Permanently Delete");
-            Button downloadPdfButton = new Button("Download pdf");
+            DynamicFileDownloader odtDownload = new DynamicFileDownloader("Save to ODT", "order_" + order.getId() + ".odt",
+                    out -> orderService.writeAsOdt(order.getOriginal(), out));
 
             editButton.addClickListener(event -> {
                 OrderCreate.o = order.getOriginal();
@@ -81,20 +78,8 @@ public class OrderList extends VerticalLayout {
                 updateGridItems();
             });
 
-            downloadPdfButton.addClickListener(event -> {
-                byte[] pdfData = generatePDFData(order);
-
-                StreamResource resource = new StreamResource("generated.pdf", () -> new ByteArrayInputStream(pdfData));
-                resource.setContentType("application/pdf");
-
-                // Wrap the button with FileDownloadWrapper
-                // FileDownloadWrapper buttonWrapper = new FileDownloadWrapper(resource);
-                // buttonWrapper.wrapComponent(downloadPdfButton);
-            });
-            //TODO: megcsinálni, hogy letöltse a cuccot.
-
-            HorizontalLayout actions = new HorizontalLayout();
-            actions.add(downloadPdfButton);
+            VHorizontalLayout actions = new VHorizontalLayout();
+            actions.add(odtDownload.asButton());
             if (order.getOriginal().getDeleted() == 0) {
                 actions.add(editButton, deleteButton);
             } else if (order.getOriginal().getDeleted() == 1) {
@@ -112,39 +97,6 @@ public class OrderList extends VerticalLayout {
         });
 
         add(showDeletedCheckbox, grid);
-    }
-
-    private byte[] generatePDFData(OrderVO order){
-        HashMap<String, Object> docxData = new HashMap<>();
-        docxData.put("buyerName", order.getOriginal().getCustomer().getName());
-        docxData.put("buyerAddress", order.getOriginal().getCustomer().getAddress().getName());
-        List<List<String>> tableData = new ArrayList<>();
-        tableData.add(List.of("Termék", "Mennyiség", "Mennyiségi egység", "Nettó egységár", "Nettó ár",
-                "ÁFA kulcs", "ÁFA", "Bruttó ár"));
-        Double totalGross = 0.0;
-        //TODO: figyelni kell, mert nem biztos, hogy van customer. Lehet, hogy supplier van, és akkor nem lesz jó.
-        String currency = order.getOriginal().getCurrency().getName();
-        for(OrderElement oe : orderService.getOrderElements(order.getOriginal())){
-            List<String> row = List.of(oe.getName(), oe.getUnit().toString(), oe.getProduct().getAmountUnit().getName(),
-                    currencyService.convert(LocalDate.now(), oe.getProduct().getSellingPriceCurrency().getName(), currency, oe.getUnitNetPrice().doubleValue()) + " " + currency,
-                    currencyService.convert(LocalDate.now(), oe.getProduct().getSellingPriceCurrency().getName(), currency, oe.getNetPrice().doubleValue()) + " " + currency,
-                    oe.getTaxKey().getName(),
-                    currencyService.convert(LocalDate.now(), oe.getProduct().getSellingPriceCurrency().getName(), currency, oe.getTaxPrice().doubleValue()) + " " + currency,
-                    currencyService.convert(LocalDate.now(), oe.getProduct().getSellingPriceCurrency().getName(), currency, oe.getGrossPrice().doubleValue()) + " " + currency
-            );
-            totalGross += currencyService.convert(LocalDate.now(), oe.getProduct().getSellingPriceCurrency().getName(), currency, oe.getGrossPrice().doubleValue());
-            tableData.add(row);
-        }
-        docxData.put("table", DataConverter.convertListToArray2(tableData));
-        docxData.put("totalGross", totalGross);
-        docxData.put("currency", order.getOriginal().getCurrency().getName());
-        byte[] documentData = new byte[0];
-        try {
-            documentData = WordTemplateProcessor.fillDocx("Order.docx", docxData);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return documentData;
     }
 
     private void updateGridItems() {

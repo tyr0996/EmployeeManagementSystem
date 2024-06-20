@@ -1,8 +1,30 @@
 {
-  "object" : "Customer",
-  "required" : ["addresss.json"],
-  "data" : [
-    {"deleted" : 0, "firstName" : "Erdei", "lastName" : "Róbert", "address_address_id" : {"refClass": "Address", "filter": {"id" : 1}}},
-    {"deleted" : 0, "firstName" : "Gálber", "lastName" : "Martin", "address_address_id" : {"refClass": "Address", "filter": {"id" : 2}}}
+  "object": "Customer",
+  "required": [
+    "addresss.json"
+  ],
+  "data": [
+    {
+      "deleted": 0,
+      "firstName": "Erdei",
+      "lastName": "Róbert",
+      "address_address_id": {
+        "refClass": "Address",
+        "filter": {
+          "id": 1
+        }
+      }
+    },
+    {
+      "deleted": 0,
+      "firstName": "Gálber",
+      "lastName": "Martin",
+      "address_address_id": {
+        "refClass": "Address",
+        "filter": {
+          "id": 2
+        }
+      }
+    }
   ]
 }

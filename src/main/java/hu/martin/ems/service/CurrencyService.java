@@ -19,7 +19,7 @@ import java.util.LinkedHashMap;
 
 @Service
 @Transactional
-public class CurrencyService extends BaseService<Currency, CurrencyRepository>{
+public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     public CurrencyService(CurrencyRepository currencyRepository,
                            CodeStoreRepository codeStoreRepository,
                            RestTemplate restTemplate) {
@@ -58,9 +58,9 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository>{
         }
     }
 
-    public Double convert(LocalDate date, String from, String to, Double amount){
+    public Double convert(LocalDate date, String from, String to, Double amount) {
         Currency c = this.repo.findByDate(date);
-        if(c != null){
+        if (c != null) {
             LinkedHashMap<String, Double> map = null;
             try {
                 map = om.readValue(c.getRateJson(), LinkedHashMap.class);
@@ -70,23 +70,20 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository>{
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-        }
-        else if(date.equals(LocalDate.now())){
+        } else if (date.equals(LocalDate.now())) {
             fetchAndSaveRates();
             return convert(date, from, to, amount);
-        }
-        else{
+        } else {
             throw new NullPointerException("Nincs árfolyam az adott dátumhoz elmentve, és annak lekérdezése csak a mai napra lehetséges!");
         }
     }
 
-    public Double get(LocalDate date, String currency){
+    public Double get(LocalDate date, String currency) {
         Currency c = this.repo.findByDate(date);
-        if(c != null){
+        if (c != null) {
             LinkedHashMap<String, Double> map = om.convertValue(c.getRateJson(), LinkedHashMap.class);
             return map.get(currency);
-        }
-        else{
+        } else {
             throw new NullPointerException("Nincs árfolyam az adott dátumhoz elmentve!");
         }
     }

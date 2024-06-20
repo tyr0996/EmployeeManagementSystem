@@ -27,16 +27,16 @@ public class SupplierCreate extends VerticalLayout {
         FormLayout formLayout = new FormLayout();
 
         TextField nameField = new TextField("First name");
-        
+
         ComboBox<Address> addresss = new ComboBox<>("Address");
         ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         addresss.setItems(addressFilter);
         addresss.setItemLabelGenerator(Address::getName);
-        
+
         Button saveButton = new Button("Save");
 
-        if(s != null){
+        if (s != null) {
             nameField.setValue(s.getName());
             addresss.setValue(s.getAddress());
         }

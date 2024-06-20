@@ -54,7 +54,7 @@ public class RoleXPermissionCreate extends VerticalLayout {
             }
         });
 
-        if(staticRole != null){
+        if (staticRole != null) {
             roles.setValue(staticRole);
             permissions.setValue(roleXPermissionService.findAllPermission(staticRole));
             roleXPermissionService.clearPermissions(staticRole);

@@ -27,7 +27,7 @@ public class PermissionCreate extends VerticalLayout {
         TextField nameField = new TextField("Name");
         Button saveButton = new Button("Save");
 
-        if(p != null){
+        if (p != null) {
             nameField.setValue(p.getName());
         }
 

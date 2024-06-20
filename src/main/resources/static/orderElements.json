@@ -1,7 +1,43 @@
 {
-  "object" : "OrderElement",
-  "required" : ["products.json", "orders.json", "codestores.json"],
-  "data" : [
-    {"deleted": 0, "product_product_id": {"refClass": "Product", "filter": {"name" : "Product1"}}, "order_order_id": {"refClass": "Order", "filter": {"id" : 1}}, "customer_customer_id": {"refClass": "Customer", "filter": {"id" : 2}}, "supplier_supplier_id": null, "unit": 10, "unitNetPrice": 10, "taxKey_codestore_id": {"refClass": "CodeStore", "filter": {"name" : "27"}}, "netPrice": 100, "taxPrice": 27.0, "grossPrice": 127}
+  "object": "OrderElement",
+  "required": [
+    "products.json",
+    "orders.json",
+    "codestores.json"
+  ],
+  "data": [
+    {
+      "deleted": 0,
+      "product_product_id": {
+        "refClass": "Product",
+        "filter": {
+          "name": "Product1"
+        }
+      },
+      "order_order_id": {
+        "refClass": "Order",
+        "filter": {
+          "id": 1
+        }
+      },
+      "customer_customer_id": {
+        "refClass": "Customer",
+        "filter": {
+          "id": 2
+        }
+      },
+      "supplier_supplier_id": null,
+      "unit": 10,
+      "unitNetPrice": 10,
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "netPrice": 100,
+      "taxPrice": 27.0,
+      "grossPrice": 127
+    }
   ]
 }

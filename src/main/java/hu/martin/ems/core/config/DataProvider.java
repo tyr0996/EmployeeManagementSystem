@@ -45,13 +45,13 @@ public class DataProvider {
         Path directory = Paths.get("src/main/resources/static");
 
         List<File> files = Files.walk(directory)
-             .filter(Files::isRegularFile)
-             .filter(path -> path.toString().toLowerCase().endsWith(".json"))
-             .map(Path::toFile).collect(Collectors.toList());
+                .filter(Files::isRegularFile)
+                .filter(path -> path.toString().toLowerCase().endsWith(".json"))
+                .map(Path::toFile).collect(Collectors.toList());
         files.stream().filter(v -> !loaded.contains(v)).forEach(v -> loadRequiredJsonAndSave(files, v));
     }
 
-    private void loadRequiredJsonAndSave(List<File> allFiles, File jsonFile){
+    private void loadRequiredJsonAndSave(List<File> allFiles, File jsonFile) {
         if (loaded.contains(jsonFile)) {
             return;
         } else {
@@ -72,7 +72,6 @@ public class DataProvider {
                 logger.error("Hiba a json fájlban! " + jsonFile.getName());
             } catch (IOException e) {
                 logger.error("HIBA: " + jsonFile.getName());
-                //throw new RuntimeException(e);
             }
         }
     }
@@ -89,7 +88,7 @@ public class DataProvider {
             entityTransaction.commit();
             logger.info("Data loaded successfully from JSON! " + jsonFile.getName());
             loaded.add(jsonFile);
-        } catch (JsonMappingException e){
+        } catch (JsonMappingException e) {
             if (entityTransaction != null && entityTransaction.isActive()) {
                 entityTransaction.rollback();
             }
@@ -111,25 +110,27 @@ public class DataProvider {
         String object;
         List<String> required;
 
-        protected String toSQL(){
+        protected String toSQL() {
             switch (object) {
-                case "Order" : object = "orders"; break;
-                default: break;
+                case "Order":
+                    object = "orders";
+                    break;
+                default:
+                    break;
             }
-            if(data.size() > 0){
+            if (data.size() > 0) {
                 List<String> res = new ArrayList<>();
                 List<String> keys = new ArrayList<>(data.get(0).keySet());
                 String fieldNames = String.join(", ", keys);
                 String baseSql = "INSERT INTO " + object + " (" + fieldNames + ") VALUES ";
-                for(Map<String, Object> obj : data){
+                for (Map<String, Object> obj : data) {
                     List<String> valuesList = new ArrayList<>();
                     for (String key : keys) {
                         Object value = obj.get(key);
-                        if(value instanceof LinkedHashMap && ((LinkedHashMap<String, Object>) value).containsKey("refClass")){
+                        if (value instanceof LinkedHashMap && ((LinkedHashMap<String, Object>) value).containsKey("refClass")) {
                             LinkedHashMap<String, Object> valHashMap = (LinkedHashMap<String, Object>) value;
                             valuesList.add(generateSelectSQLQuerry(valHashMap, key));
-                        }
-                        else{
+                        } else {
                             valuesList.add(value == null ? "NULL" : "'" + value.toString().replace("'", "\\u0027") + "'");
                         }
                     }
@@ -137,8 +138,7 @@ public class DataProvider {
                     res.add("(" + values + ")");
                 }
                 return baseSql + String.join(", ", res);
-            }
-            else{
+            } else {
                 return "";
             }
         }
@@ -147,8 +147,11 @@ public class DataProvider {
         private static String generateSelectSQLQuerry(LinkedHashMap<String, Object> reference, String columnName) {
             String refClass = (String) reference.get("refClass");
             switch (refClass) {
-                case "Order" : refClass = "orders"; break;
-                default: break;
+                case "Order":
+                    refClass = "orders";
+                    break;
+                default:
+                    break;
             }
             @SuppressWarnings("unchecked")
             LinkedHashMap<String, Object> filter = (LinkedHashMap<String, Object>) reference.get("filter");

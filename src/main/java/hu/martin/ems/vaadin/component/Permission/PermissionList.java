@@ -62,8 +62,11 @@ public class PermissionList extends VerticalLayout {
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if(permission.getDeleted() == 0){ actions.add(editButton, deleteButton); }
-            else if(permission.getDeleted() == 1){ actions.add(permanentDeleteButton, restoreButton); }
+            if (permission.getDeleted() == 0) {
+                actions.add(editButton, deleteButton);
+            } else if (permission.getDeleted() == 1) {
+                actions.add(permanentDeleteButton, restoreButton);
+            }
             return actions;
         }).setHeader("Options");
 

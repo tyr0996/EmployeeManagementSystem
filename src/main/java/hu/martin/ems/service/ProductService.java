@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class ProductService extends BaseService<Product, ProductRepository>{
-    public ProductService(ProductRepository productRepository) { super(productRepository); }
+public class ProductService extends BaseService<Product, ProductRepository> {
+    public ProductService(ProductRepository productRepository) {
+        super(productRepository);
+    }
 }

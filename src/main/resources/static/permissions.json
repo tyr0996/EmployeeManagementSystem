@@ -2,10 +2,25 @@
   "object": "Permission",
   "required": [],
   "data": [
-    {"name": "MartinEngedély1", "deleted": 0},
-    {"name": "MartinEngedély2", "deleted": 0},
-    {"name": "RobiEngedély1", "deleted": 0},
-    {"name": "RobiEngedély2", "deleted": 0},
-    {"name": "RobiEngedély3", "deleted": 0}
+    {
+      "name": "MartinEngedély1",
+      "deleted": 0
+    },
+    {
+      "name": "MartinEngedély2",
+      "deleted": 0
+    },
+    {
+      "name": "RobiEngedély1",
+      "deleted": 0
+    },
+    {
+      "name": "RobiEngedély2",
+      "deleted": 0
+    },
+    {
+      "name": "RobiEngedély3",
+      "deleted": 0
+    }
   ]
 }

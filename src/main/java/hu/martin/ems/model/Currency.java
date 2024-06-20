@@ -14,17 +14,17 @@ public class Currency extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "baseCurrency_codestore_id")
     private CodeStore baseCurrency;
-    
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String rateJson;
 
     private LocalDate validDate;
-    
+
     @Transient
     private String name;
-    
+
     public String getName() {
         return baseCurrency.getName() + " (" + validDate + ")";
     }
-    
+
 }

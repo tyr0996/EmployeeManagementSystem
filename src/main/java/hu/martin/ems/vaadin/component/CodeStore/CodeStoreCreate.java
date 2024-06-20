@@ -21,7 +21,7 @@ public class CodeStoreCreate extends VerticalLayout {
     private final CodeStoreService codeStoreService;
     public static CodeStore staticCodeStore;
 
-    public CodeStoreCreate(CodeStoreService codeStoreService){
+    public CodeStoreCreate(CodeStoreService codeStoreService) {
         this.codeStoreService = codeStoreService;
         FormLayout formLayout = new FormLayout();
 
@@ -34,7 +34,7 @@ public class CodeStoreCreate extends VerticalLayout {
 
         Checkbox deletable = new Checkbox("Deletable");
 
-        if(staticCodeStore != null){
+        if (staticCodeStore != null) {
             nameTextField.setValue(staticCodeStore.getName());
             parentCodeStore.setValue(staticCodeStore.getParentCodeStore());
         }

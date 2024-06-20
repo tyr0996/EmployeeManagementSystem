@@ -47,24 +47,24 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     @Override
     public void customDelete(T entity) {
         entityManager.createQuery("UPDATE " + type.getSimpleName() + " e SET e.deleted = 1 WHERE e.id = :id")
-                     .setParameter("id", entity.getId())
-                     .executeUpdate();
+                .setParameter("id", entity.getId())
+                .executeUpdate();
         logger.info(type.getSimpleName() + " deleted successfully: {}", entity);
     }
 
     @Override
     public void customRestore(T entity) {
         entityManager.createQuery("UPDATE " + type.getSimpleName() + " e SET e.deleted = 0 WHERE e.id = :id")
-                     .setParameter("id", entity.getId())
-                     .executeUpdate();
+                .setParameter("id", entity.getId())
+                .executeUpdate();
         logger.info(type.getSimpleName() + " restored successfully: {}", entity);
     }
 
     @Override
     public void customPermanentlyDelete(T entity) {
         entityManager.createQuery("DELETE FROM " + type.getSimpleName() + " e WHERE e.id = :id")
-                                   .setParameter("id", entity.getId())
-                                   .executeUpdate();
+                .setParameter("id", entity.getId())
+                .executeUpdate();
         logger.info(type.getSimpleName() + " deleted permanently successfully: {}", entity);
     }
 

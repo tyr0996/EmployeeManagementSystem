@@ -121,8 +121,12 @@ public class ProductList extends VerticalLayout {
             Button restoreButton = new Button("Restore");
             Button permanentDeleteButton = new Button("Permanently Delete");
 
-            orderButton.addClickListener(event -> { orderDialog.open(); });
-            sellButton.addClickListener(event -> { sellDialog.open(); });
+            orderButton.addClickListener(event -> {
+                orderDialog.open();
+            });
+            sellButton.addClickListener(event -> {
+                sellDialog.open();
+            });
             editButton.addClickListener(event -> {
                 ProductCreate.p = product.getOriginal();
                 UI.getCurrent().navigate("product/create");
@@ -147,8 +151,11 @@ public class ProductList extends VerticalLayout {
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if(product.getOriginal().getDeleted() == 0){ actions.add(editButton, deleteButton, sellButton, orderButton); }
-            else if(product.getOriginal().getDeleted() == 1){ actions.add(permanentDeleteButton, restoreButton); }
+            if (product.getOriginal().getDeleted() == 0) {
+                actions.add(editButton, deleteButton, sellButton, orderButton);
+            } else if (product.getOriginal().getDeleted() == 1) {
+                actions.add(permanentDeleteButton, restoreButton);
+            }
             return actions;
         }).setHeader("Options");
 

@@ -65,8 +65,11 @@ public class EmployeeList extends VerticalLayout {
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if(employee.getOriginal().getDeleted() == 0){ actions.add(editButton, deleteButton); }
-            else if(employee.getOriginal().getDeleted() == 1){ actions.add(permanentDeleteButton, restoreButton); }
+            if (employee.getOriginal().getDeleted() == 0) {
+                actions.add(editButton, deleteButton);
+            } else if (employee.getOriginal().getDeleted() == 1) {
+                actions.add(permanentDeleteButton, restoreButton);
+            }
             return actions;
         }).setHeader("Options");
 

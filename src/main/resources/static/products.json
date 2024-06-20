@@ -1,8 +1,70 @@
 {
-  "object" : "Product",
-  "required" : ["codestores.json"],
-  "data" : [
-    {"taxKey_codestore_id" : {"refClass": "CodeStore", "filter": {"name" : "27"}}, "name" : "Product1","buyingPriceNet" : 10.0, "buyingPriceCurrency_codestore_id" : 8, "sellingPriceNet" : 20.0,"sellingPriceCurrency_codestore_id" : 8,"amountUnit_codestore_id" : 158,"amount" : 1.0,"deleted" : 0},
-    {"taxKey_codestore_id" : {"refClass": "CodeStore", "filter": {"name" : "18"}}, "name" : "Product2","buyingPriceNet" : 10.0, "buyingPriceCurrency_codestore_id" : 8, "sellingPriceNet" : 20.0,"sellingPriceCurrency_codestore_id" : 8,"amountUnit_codestore_id" : 161,"amount" : 1.0,"deleted" : 0}
+  "object": "Product",
+  "required": [
+    "codestores.json"
+  ],
+  "data": [
+    {
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "name": "Product1",
+      "buyingPriceNet": 10.0,
+      "buyingPriceCurrency_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "RUB"
+        }
+      },
+      "sellingPriceNet": 20.0,
+      "sellingPriceCurrency_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "RUB"
+        }
+      },
+      "amountUnit_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "Liter"
+        }
+      },
+      "amount": 1.0,
+      "deleted": 0
+    },
+    {
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "name": "Product2",
+      "buyingPriceNet": 20.0,
+      "buyingPriceCurrency_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "RUB"
+        }
+      },
+      "sellingPriceNet": 20.0,
+      "sellingPriceCurrency_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "RUB"
+        }
+      },
+      "amountUnit_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "Liter"
+        }
+      },
+      "amount": 1.0,
+      "deleted": 0
+    }
   ]
 }

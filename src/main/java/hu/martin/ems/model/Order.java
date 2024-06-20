@@ -15,10 +15,10 @@ public class Order extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "state_codestore_id")
     private CodeStore state;
-    
+
     @Column(nullable = false)
     private LocalDateTime timeOfOrder;
-    
+
     @ManyToOne
     @JoinColumn(name = "customer_customer_id", columnDefinition = "BIGINT")
     private Customer customer;
@@ -26,7 +26,7 @@ public class Order extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "supplier_supplier_id", columnDefinition = "BIGINT")
     private Supplier supplier;
-    
+
     @ManyToOne
     @JoinColumn(name = "paymentType_codestore_id")
     private CodeStore paymentType;
@@ -34,12 +34,12 @@ public class Order extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "currency_codestore_id")
     private CodeStore currency;
-    
+
     @Transient
     private String name;
-    
+
     public String getName() {
         return this.getId() + " (" + this.state.getName() + ")";
     }
-    
+
 }

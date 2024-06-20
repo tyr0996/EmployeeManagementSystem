@@ -1,7 +1,10 @@
 package hu.martin.ems.model;
 
 import hu.martin.ems.core.model.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,7 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class CodeStore extends BaseEntity{
+public class CodeStore extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
@@ -24,13 +27,14 @@ public class CodeStore extends BaseEntity{
     @Column(nullable = false)
     private Boolean deletable;
 
-    public CodeStore(String name, CodeStore parent){
+    public CodeStore(String name, CodeStore parent) {
         this.name = name;
         this.linkName = name;
         this.parentCodeStore = parent;
         this.deletable = true;
     }
-    public CodeStore(String name, CodeStore parent, Boolean deletable){
+
+    public CodeStore(String name, CodeStore parent, Boolean deletable) {
         this.name = name;
         this.linkName = name;
         this.parentCodeStore = parent;

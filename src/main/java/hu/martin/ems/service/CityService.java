@@ -6,11 +6,10 @@ import hu.martin.ems.repository.CityRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
 @Transactional
-public class CityService extends BaseService<City, CityRepository>{
-    public CityService(CityRepository cityRepository) { super(cityRepository); }
+public class CityService extends BaseService<City, CityRepository> {
+    public CityService(CityRepository cityRepository) {
+        super(cityRepository);
+    }
 }

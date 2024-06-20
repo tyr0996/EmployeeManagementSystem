@@ -65,7 +65,7 @@ public class CodeStoreList extends VerticalLayout {
                 Notification.show("CodeStore permanently deleted: " + codeStore.getName());
                 updateGridItems();
             });
-            if(!codeStore.getDeletable()){
+            if (!codeStore.getDeletable()) {
                 editButton.setEnabled(false);
                 deleteButton.setEnabled(false);
                 permanentDeleteButton.setEnabled(false);
@@ -73,8 +73,11 @@ public class CodeStoreList extends VerticalLayout {
             }
 
             HorizontalLayout actions = new HorizontalLayout();
-            if(codeStore.getDeleted() == 0){ actions.add(editButton, deleteButton); }
-            else if(codeStore.getDeleted() == 1){ actions.add(permanentDeleteButton, restoreButton); }
+            if (codeStore.getDeleted() == 0) {
+                actions.add(editButton, deleteButton);
+            } else if (codeStore.getDeleted() == 1) {
+                actions.add(permanentDeleteButton, restoreButton);
+            }
             return actions;
         }).setHeader("Options");
 

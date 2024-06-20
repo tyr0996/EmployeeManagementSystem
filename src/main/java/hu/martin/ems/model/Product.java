@@ -14,25 +14,25 @@ import lombok.Setter;
 public class Product extends BaseEntity {
     @Column(nullable = false)
     private String name;
-    
+
     @Column(nullable = false)
     private Double buyingPriceNet;
-    
+
     @ManyToOne
     @JoinColumn(name = "buyingPriceCurrency_codestore_id", nullable = false)
     private CodeStore buyingPriceCurrency;
-    
+
     @Column(nullable = false)
     private Double sellingPriceNet;
-    
+
     @ManyToOne
     @JoinColumn(name = "sellingPriceCurrency_codestore_id", nullable = false)
     private CodeStore sellingPriceCurrency;
-    
+
     @ManyToOne
     @JoinColumn(name = "amountUnit_codestore_id", nullable = false)
     private CodeStore amountUnit;
-    
+
     @Column(nullable = false)
     private Double amount;
 
@@ -41,5 +41,4 @@ public class Product extends BaseEntity {
     private CodeStore taxKey;
 
 
-    
 }

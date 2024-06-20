@@ -31,18 +31,18 @@ public class CustomerCreate extends VerticalLayout {
         FormLayout formLayout = new FormLayout();
 
         TextField firstNameField = new TextField("First name");
-        
+
         TextField lastNameField = new TextField("Last name");
-        
+
         ComboBox<Address> addresss = new ComboBox<>("Address");
         ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         addresss.setItems(addressFilter, addressService.findAll(false));
         addresss.setItemLabelGenerator(Address::getName);
-        
+
         Button saveButton = new Button("Save");
 
-        if(c != null){
+        if (c != null) {
             firstNameField.setValue(c.getFirstName());
             lastNameField.setValue(c.getLastName());
             addresss.setValue(c.getAddress());

@@ -67,8 +67,11 @@ public class CityList extends VerticalLayout {
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if(city.getOriginal().getDeleted() == 0){ actions.add(editButton, deleteButton); }
-            else if(city.getOriginal().getDeleted() == 1){ actions.add(permanentDeleteButton, restoreButton); }
+            if (city.getOriginal().getDeleted() == 0) {
+                actions.add(editButton, deleteButton);
+            } else if (city.getOriginal().getDeleted() == 1) {
+                actions.add(permanentDeleteButton, restoreButton);
+            }
             return actions;
         }).setHeader("Options");
 

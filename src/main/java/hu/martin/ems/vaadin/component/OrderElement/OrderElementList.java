@@ -67,8 +67,11 @@ public class OrderElementList extends VerticalLayout {
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if(orderElement.getOriginal().getDeleted() == 0){ actions.add(editButton, deleteButton); }
-            else if(orderElement.getOriginal().getDeleted() == 1){ actions.add(permanentDeleteButton, restoreButton); }
+            if (orderElement.getOriginal().getDeleted() == 0) {
+                actions.add(editButton, deleteButton);
+            } else if (orderElement.getOriginal().getDeleted() == 1) {
+                actions.add(permanentDeleteButton, restoreButton);
+            }
             return actions;
         }).setHeader("Options");
 

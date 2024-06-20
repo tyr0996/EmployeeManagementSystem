@@ -67,8 +67,11 @@ public class SupplierList extends VerticalLayout {
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if(supplier.getOriginal().getDeleted() == 0){ actions.add(editButton, deleteButton); }
-            else if(supplier.getOriginal().getDeleted() == 1){ actions.add(permanentDeleteButton, restoreButton); }
+            if (supplier.getOriginal().getDeleted() == 0) {
+                actions.add(editButton, deleteButton);
+            } else if (supplier.getOriginal().getDeleted() == 1) {
+                actions.add(permanentDeleteButton, restoreButton);
+            }
             return actions;
         }).setHeader("Options");
 

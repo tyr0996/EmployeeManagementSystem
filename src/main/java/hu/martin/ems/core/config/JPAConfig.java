@@ -20,9 +20,8 @@ import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "hu.martin.ems",repositoryBaseClass = BaseRepositoryImpl.class )
-public class JPAConfig
-{
+@EnableJpaRepositories(basePackages = "hu.martin.ems", repositoryBaseClass = BaseRepositoryImpl.class)
+public class JPAConfig {
 
     @Value("${spring.datasource.url}")
     private String jdbcUrl;
@@ -70,7 +69,7 @@ public class JPAConfig
     }
 
     @Bean
-    public EntityManager em(){
+    public EntityManager em() {
         return entityManagerFactory().getNativeEntityManagerFactory().createEntityManager();
     }
 

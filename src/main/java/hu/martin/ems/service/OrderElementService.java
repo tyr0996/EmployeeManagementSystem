@@ -12,10 +12,12 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class OrderElementService extends BaseService<OrderElement, OrderElementRepository>{
-    public OrderElementService(OrderElementRepository orderElementRepository) { super(orderElementRepository); }
+public class OrderElementService extends BaseService<OrderElement, OrderElementRepository> {
+    public OrderElementService(OrderElementRepository orderElementRepository) {
+        super(orderElementRepository);
+    }
 
-    public List<OrderElement> getByCustomer(Customer c){
+    public List<OrderElement> getByCustomer(Customer c) {
         return this.repo.getByCustomer(c.getId()).stream().filter(v -> v.getOrder() == null).collect(Collectors.toList());
     }
 }
