@@ -23,10 +23,7 @@ import hu.martin.ems.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -81,17 +78,17 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         return Order.class.getResourceAsStream("Empty.odt");
     }
 
-    public void writeAsPdf(Order o, OutputStream out) {
+    public byte[] writeAsPdf(Order o, OutputStream out) {
         try {
-            getOrderDocumentExport(o, out, "PDF");
+            return getOrderDocumentExport(o, out, "PDF");
         } catch (IOException | XDocReportException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void writeAsOdt(Order o, OutputStream out) {
+    public byte[] writeAsOdt(Order o, OutputStream out) {
         try {
-            getOrderDocumentExport(o, out, "ODT");
+            return getOrderDocumentExport(o, out, "ODT");
         } catch (IOException | XDocReportException e) {
             throw new RuntimeException(e);
         }
@@ -137,7 +134,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
     }
 
 
-    private void getOrderDocumentExport(Order o, OutputStream out, String fileType) throws IOException, XDocReportException { //TODO FileType can be enum
+    private byte[] getOrderDocumentExport(Order o, OutputStream out, String fileType) throws IOException, XDocReportException { //TODO FileType can be enum
         InputStream in = getTemplate(new OrderDM(o));
         IXDocReport report = XDocReportRegistry.getRegistry().
                 loadReport(in, TemplateEngineKind.Freemarker);
@@ -158,11 +155,76 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         ctx.put("order", order);
         ctx.put("to", new CustomerDM(o.getCustomer()));
         if(fileType.equals("PDF")){
-            report.convert(ctx, Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.ODFDOM), out);
-            out.close();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            report.convert(ctx, Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.ODFDOM), baos);
+            out.write(baos.toByteArray());
+            return baos.toByteArray();
         }
         else if(fileType.equals("ODT")){
-            report.process(ctx, out);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            report.process(ctx, baos);
+            out.write(baos.toByteArray());
+            return baos.toByteArray();
         }
+        return null;
+    }
+
+    public String generateHTMLEmail(Order o){
+        String customerName = o.getCustomer().getName();
+        String orderNumber = o.getId().toString();
+        String orderDate = o.getTimeOfOrder().toString();
+
+        String htmlContent =
+            "<!DOCTYPE html>\n"
+            + "<html lang=\"hu\">\n"
+            + "<head>\n"
+            + "    <meta charset=\"UTF-8\">\n"
+            + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+            + "    <title>Megrendelési értesítés</title>\n"
+            + "    <style>\n"
+            + "        body {\n"
+            + "            font-family: Arial, sans-serif;\n"
+            + "            line-height: 1.6;\n"
+            + "            background-color: #f4f4f4;\n"
+            + "            padding: 20px;\n"
+            + "        }\n"
+            + "        .container {\n"
+            + "            max-width: 600px;\n"
+            + "            margin: 0 auto;\n"
+            + "            background-color: #ffffff;\n"
+            + "            padding: 30px;\n"
+            + "            border-radius: 8px;\n"
+            + "            box-shadow: 0 0 10px rgba(0,0,0,0.1);\n"
+            + "        }\n"
+            + "        h2 {\n"
+            + "            color: #333333;\n"
+            + "        }\n"
+            + "        p {\n"
+            + "            color: #666666;\n"
+            + "        }\n"
+            + "        .footer {\n"
+            + "            margin-top: 20px;\n"
+            + "            text-align: center;\n"
+            + "            color: #999999;\n"
+            + "        }\n"
+            + "    </style>\n"
+            + "</head>\n"
+            + "<body>\n"
+            + "    <div class=\"container\">\n"
+            + "        <h2>Megrendelési értesítés</h2>\n"
+            + "        <p>Kedves " + customerName + "!</p>\n"
+            + "        <p>Ezúton értesítjük, hogy sikeresen fogadtuk megrendelését az alábbi részletekkel:</p>\n"
+            + "            <strong>Megrendelés száma:</strong> " + orderNumber + "\n"
+            + "            <strong>Dátum:</strong> " + orderDate + "\n"
+            + "        <p>A rendelésének részletes leírását a mellékelt PDF fájl tartalmazza.</p>"
+            + "        <p>Köszönjük, hogy minket választott! Kérdése esetén forduljon hozzánk bizalommal.</p>\n"
+            + "        <div class=\"footer\">\n"
+            + "            <p>Ez egy automatikus értesítés, kérjük ne válaszoljon erre az e-mailre.</p>\n"
+            + "        </div>\n"
+            + "    </div>\n"
+            + "</body>\n"
+            + "</html>";
+        return htmlContent;
     }
 }
+

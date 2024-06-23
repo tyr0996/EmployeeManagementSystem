@@ -5,6 +5,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.model.Address;
@@ -40,12 +41,18 @@ public class CustomerCreate extends VerticalLayout {
         addresss.setItems(addressFilter, addressService.findAll(false));
         addresss.setItemLabelGenerator(Address::getName);
 
+        EmailField emailField = new EmailField();
+        emailField.setLabel("Email address");
+        emailField.setErrorMessage("Enter a valid email address");
+        emailField.setClearButtonVisible(true);
+
         Button saveButton = new Button("Save");
 
         if (c != null) {
             firstNameField.setValue(c.getFirstName());
             lastNameField.setValue(c.getLastName());
             addresss.setValue(c.getAddress());
+            emailField.setValue(c.getEmailAddress());
         }
 
         saveButton.addClickListener(event -> {
@@ -53,6 +60,7 @@ public class CustomerCreate extends VerticalLayout {
             customer.setFirstName(firstNameField.getValue());
             customer.setLastName(lastNameField.getValue());
             customer.setAddress(addresss.getValue());
+            customer.setEmailAddress(emailField.getValue());
             customer.setDeleted(0L);
             this.customerService.saveOrUpdate(customer);
 
@@ -60,9 +68,10 @@ public class CustomerCreate extends VerticalLayout {
             firstNameField.clear();
             lastNameField.clear();
             addresss.clear();
+            emailField.clear();
         });
 
-        formLayout.add(firstNameField, lastNameField, addresss, saveButton);
+        formLayout.add(firstNameField, lastNameField, addresss, emailField, saveButton);
         add(formLayout);
     }
 }

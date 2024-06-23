@@ -19,6 +19,9 @@ public class Customer extends BaseEntity {
     @JoinColumn(name = "address_address_id")
     private Address address;
 
+    @Column(nullable = false)
+    private String emailAddress;
+
     @Transient
     private String name;
 

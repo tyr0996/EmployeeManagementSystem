@@ -95,6 +95,7 @@ public class AddressList extends VerticalLayout {
     public class AddressVO {
         private Address original;
         private Long id;
+        private Long deleted;
         private String countryCode;
         private String city;
         private String streetType;
@@ -104,6 +105,7 @@ public class AddressList extends VerticalLayout {
         public AddressVO(Address address) {
             this.original = address;
             this.id = address.getId();
+            this.deleted = address.getDeleted();
             this.countryCode = original.getCountryCode().getName();
             this.city = original.getCity().getName();
             this.streetName = original.getStreetName();

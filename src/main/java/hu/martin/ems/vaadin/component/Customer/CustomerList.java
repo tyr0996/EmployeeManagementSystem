@@ -98,6 +98,7 @@ public class CustomerList extends VerticalLayout {
         private String address;
         private String firstName;
         private String lastName;
+        private String email;
 
         public CustomerVO(Customer customer) {
             this.original = customer;
@@ -106,6 +107,7 @@ public class CustomerList extends VerticalLayout {
             this.firstName = original.getFirstName();
             this.lastName = original.getLastName();
             this.address = original.getAddress().getName();
+            this.email = original.getEmailAddress();
         }
     }
 }

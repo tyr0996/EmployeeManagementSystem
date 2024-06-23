@@ -30,7 +30,6 @@ public class PermissionList extends VerticalLayout {
         List<Permission> permissions = permissionService.findAll(false);
         this.grid.setItems(permissions);
         this.grid.setColumns("id", "name");
-        this.grid.removeColumnByKey("deleted");
 
         this.grid.addComponentColumn(permission -> {
             Button editButton = new Button("Edit");

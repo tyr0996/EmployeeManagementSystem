@@ -9,6 +9,9 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
+import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.EmailAttachment;
+import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.service.OrderService;
@@ -19,6 +22,7 @@ import org.vaadin.firitin.components.DynamicFileDownloader;
 import org.vaadin.firitin.components.orderedlayout.VHorizontalLayout;
 import org.vaadin.firitin.components.orderedlayout.VVerticalLayout;
 
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -29,14 +33,18 @@ public class OrderList extends VVerticalLayout {
 
     private final OrderService orderService;
     private final CurrencyService currencyService;
+    private final EmailSendingService emailSendingService;
     private boolean showDeleted = false;
     private Grid<OrderVO> grid;
 
     @Autowired
     public OrderList(OrderService orderService,
-                     CurrencyService currencyService) {
+                     CurrencyService currencyService,
+                     EmailSendingService emailSendingService) {
         this.orderService = orderService;
         this.currencyService = currencyService;
+        this.emailSendingService = emailSendingService;
+
         this.grid = new Grid<>(OrderVO.class);
         List<Order> orders = orderService.findAll(false);
         DatePicker from = new DatePicker("from");
@@ -78,6 +86,17 @@ public class OrderList extends VVerticalLayout {
                     out -> orderService.writeAsPdf(order.getOriginal(), out));
             pdfDownload.addComponentAsFirst(VaadinIcon.DOWNLOAD_ALT.create());
 
+            Button sendEmail = new Button("Send email");
+            sendEmail.addClickListener(event -> {
+                emailSendingService.send(order.getOriginal().getCustomer().getEmailAddress(),
+                        orderService.generateHTMLEmail(order.getOriginal()),
+                        "Megrendelés visszaigazolás",
+                        List.of(new EmailAttachment(
+                                StaticDatas.ContentType.CONTENT_TYPE_APPLICATION_PDF,
+                                orderService.writeAsPdf(order.getOriginal(), new ByteArrayOutputStream()),
+                                "order_" + order.getId() + ".pdf")));
+            });
+
             editButton.addClickListener(event -> {
                 OrderCreate.o = order.getOriginal();
                 UI.getCurrent().navigate("order/create");
@@ -102,7 +121,7 @@ public class OrderList extends VVerticalLayout {
             });
 
             VHorizontalLayout actions = new VHorizontalLayout();
-            actions.add(odtDownload.asButton(), pdfDownload.asButton());
+            actions.add(odtDownload.asButton(), pdfDownload.asButton(), sendEmail);
             if (order.getOriginal().getDeleted() == 0) {
                 actions.add(editButton, deleteButton);
             } else if (order.getOriginal().getDeleted() == 1) {
