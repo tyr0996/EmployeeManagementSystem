@@ -3,9 +3,11 @@ package hu.martin.ems.vaadin.component.Order;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.service.CurrencyService;
@@ -13,11 +15,11 @@ import hu.martin.ems.service.OrderService;
 import hu.martin.ems.vaadin.MainView;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.client.RestTemplate;
 import org.vaadin.firitin.components.DynamicFileDownloader;
 import org.vaadin.firitin.components.orderedlayout.VHorizontalLayout;
 import org.vaadin.firitin.components.orderedlayout.VVerticalLayout;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,20 +29,37 @@ public class OrderList extends VVerticalLayout {
 
     private final OrderService orderService;
     private final CurrencyService currencyService;
-    private final RestTemplate restTemplate;
     private boolean showDeleted = false;
     private Grid<OrderVO> grid;
 
     @Autowired
     public OrderList(OrderService orderService,
-                     CurrencyService currencyService,
-                     RestTemplate restTemplate) {
+                     CurrencyService currencyService) {
         this.orderService = orderService;
         this.currencyService = currencyService;
-        this.restTemplate = restTemplate;
-
         this.grid = new Grid<>(OrderVO.class);
         List<Order> orders = orderService.findAll(false);
+        DatePicker from = new DatePicker("from");
+        DatePicker to = new DatePicker("to");
+        to.setValue(LocalDate.now());
+        from.setValue(LocalDate.now());
+        to.setMax(LocalDate.now());
+        to.setMin(from.getValue());
+        from.setMax(to.getValue());
+        to.addValueChangeListener(event -> {
+           from.setMax(event.getValue());
+        });
+        from.addValueChangeListener(event -> {
+            to.setMin(event.getValue());
+        });
+
+        Button sendSftp = new Button("Send report to accountant via SFTP");
+        sendSftp.addClickListener(event -> {
+            orderService.sendReport(from.getValue(), to.getValue());
+        });
+        HorizontalLayout sftpLayout = new HorizontalLayout();
+        sftpLayout.add(sendSftp, from, to);
+
         List<OrderVO> data = orders.stream().map(OrderVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
@@ -100,7 +119,7 @@ public class OrderList extends VVerticalLayout {
             updateGridItems();
         });
 
-        add(showDeletedCheckbox, grid);
+        add(sftpLayout, sendSftp, grid);
     }
 
     private void updateGridItems() {

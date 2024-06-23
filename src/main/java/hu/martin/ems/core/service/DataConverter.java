@@ -5,16 +5,15 @@ import java.util.List;
 public class DataConverter {
 
     public static String[][] convertListToArray2(List<List<String>> data) {
-        int rows = data.size();
-        int cols = data.get(0).size();
+        String[][] array = new String[data.size()][];
 
-        String[][] array = new String[rows][cols];
-
-        for (int i = 0; i < rows; i++) { //TODO maybe it can be simpler.
+        for (int i = 0; i < data.size(); i++) { //TODO maybe it can be simpler.
             List<String> row = data.get(i);
-            for (int j = 0; j < cols; j++) {
-                array[i][j] = row.get(j);
+            String[] r = new String[row.size()];
+            for (int j = 0; j < row.size(); j++) {
+                r[j] = data.get(i).get(j);
             }
+            array[i] = r;
         }
 
         return array;
