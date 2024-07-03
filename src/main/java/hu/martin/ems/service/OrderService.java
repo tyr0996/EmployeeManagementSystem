@@ -1,6 +1,7 @@
 package hu.martin.ems.service;
 
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import fr.opensagres.xdocreport.converter.ConverterTypeTo;
 import fr.opensagres.xdocreport.converter.ConverterTypeVia;
 import fr.opensagres.xdocreport.converter.Options;
@@ -130,7 +131,8 @@ public class OrderService extends BaseService<Order, OrderRepository> {
 
         byte[] res = XLSX.createExcelFile(sheetNames, tableDatas);
         boolean sent = sender.send(res,  "orders_" + from + "_" + to + ".xlsx");
-        Notification.show(sent ? "Report sent" : "Report unable to send! Check logs!");
+        Notification.show(sent ? "Report sent" : "Report unable to send! Check logs!")
+                .addThemeVariants(sent ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
     }
 
 

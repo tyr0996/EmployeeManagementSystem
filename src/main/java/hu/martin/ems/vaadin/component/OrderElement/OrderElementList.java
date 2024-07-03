@@ -1,68 +1,99 @@
 package hu.martin.ems.vaadin.component.OrderElement;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.router.Route;
+import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.model.CodeStore;
+import hu.martin.ems.model.Order;
 import hu.martin.ems.model.OrderElement;
+import hu.martin.ems.model.Product;
 import hu.martin.ems.service.OrderElementService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
+import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
+
 @Route(value = "orderElement/list", layout = MainView.class)
-public class OrderElementList extends VerticalLayout {
+@CssImport("./styles/ButtonVariant.css")
+@CssImport("./styles/grid.css")
+public class OrderElementList extends VerticalLayout implements Creatable<OrderElement> {
 
     private final OrderElementService orderElementService;
     private boolean showDeleted = false;
-    private Grid<OrderElementVO> grid;
+    private PaginatedGrid<OrderElementVO, String> grid;
+    private final PaginationSetting paginationSetting;
 
     @Autowired
-    public OrderElementList(OrderElementService orderElementService) {
+    public OrderElementList(OrderElementService orderElementService,
+                            PaginationSetting paginationSetting) {
         this.orderElementService = orderElementService;
+        this.paginationSetting = paginationSetting;
 
-        this.grid = new Grid<>(OrderElementVO.class);
+        this.grid = new PaginatedGrid<>(OrderElementVO.class);
         List<OrderElement> orderElements = orderElementService.findAll(false);
         List<OrderElementVO> data = orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
         this.grid.removeColumnByKey("id");
         this.grid.removeColumnByKey("deleted");
+        grid.addClassName("styling");
+        grid.setPartNameGenerator(orderElementVO -> orderElementVO.getDeleted() != 0 ? "deleted" : null);
+        grid.setPageSize(paginationSetting.getPageSize());
+        grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
         //region Options column
         this.grid.addComponentColumn(orderElement -> {
-            Button editButton = new Button("Edit");
-            Button deleteButton = new Button("Delete");
-            Button restoreButton = new Button("Restore");
-            Button permanentDeleteButton = new Button("Permanently Delete");
+            Button editButton = new Button(EDIT.create());
+            Button deleteButton = new Button(VaadinIcon.TRASH.create());
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
+            restoreButton.addClassNames("info_button_variant");
+            Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
+            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
             editButton.addClickListener(event -> {
-                OrderElementCreate.o = orderElement.getOriginal();
-                UI.getCurrent().navigate("orderElement/create");
+                Dialog d = getSaveOrUpdateDialog(orderElement.original);
+                d.open();
             });
 
             restoreButton.addClickListener(event -> {
                 this.orderElementService.restore(orderElement.getOriginal());
-                Notification.show("OrderElement restored: " + orderElement.getOriginal().getName());
+                Notification.show("OrderElement restored: " + orderElement.getOriginal().getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
                 this.orderElementService.delete(orderElement.getOriginal());
-                Notification.show("OrderElement deleted: " + orderElement.getOriginal().getName());
+                Notification.show("OrderElement deleted: " + orderElement.getOriginal().getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
                 this.orderElementService.permanentlyDelete(orderElement.getOriginal());
-                Notification.show("OrderElement permanently deleted: " + orderElement.getOriginal().getName());
+                Notification.show("OrderElement permanently deleted: " + orderElement.getOriginal().getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
@@ -77,18 +108,100 @@ public class OrderElementList extends VerticalLayout {
 
         //endregion
 
+        Button create = new Button("Create");
+        create.addClickListener(event -> {
+            Dialog d = getSaveOrUpdateDialog(null);
+            d.open();
+        });
+
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
             updateGridItems();
         });
+        HorizontalLayout hl = new HorizontalLayout();
+        hl.add(showDeletedCheckbox, create);
+        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.setAlignSelf(Alignment.CENTER, create);
 
-        add(showDeletedCheckbox, grid);
+        add(hl, grid);
     }
 
     private void updateGridItems() {
         List<OrderElement> orderElements = this.orderElementService.findAll(showDeleted);
         this.grid.setItems(orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList()));
+    }
+
+    @Override
+    public Dialog getSaveOrUpdateDialog(OrderElement entity) {
+        Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " order element");
+        FormLayout formLayout = new FormLayout();
+
+        ComboBox<Product> products = new ComboBox<>("Product");
+        ComboBox.ItemFilter<Product> productFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        products.setItems(productFilter);
+        products.setItemLabelGenerator(Product::getName);
+
+        ComboBox<Order> orders = new ComboBox<>("Order");
+        ComboBox.ItemFilter<Order> orderFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        orders.setItems(orderFilter);
+        orders.setItemLabelGenerator(Order::getName);
+
+        NumberField unitField = new NumberField("Unit");
+
+        NumberField unitNetPriceField = new NumberField("Unit net price");
+
+        ComboBox<CodeStore> taxKeys = new ComboBox<>("Tax key");
+        ComboBox.ItemFilter<CodeStore> taxKeyFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        taxKeys.setItems(taxKeyFilter);
+        taxKeys.setItemLabelGenerator(CodeStore::getName);
+
+        NumberField netPriceField = new NumberField("Net price");
+
+        NumberField grossPriceField = new NumberField("Gross price");
+
+        Button saveButton = new Button("Save");
+
+        if (entity != null) {
+            products.setValue(entity.getProduct());
+            orders.setValue(entity.getOrder());
+            unitField.setValue(entity.getUnit().doubleValue());
+            unitNetPriceField.setValue(entity.getUnitNetPrice().doubleValue());
+            taxKeys.setValue(entity.getTaxKey());
+            netPriceField.setValue(entity.getNetPrice().doubleValue());
+            grossPriceField.setValue(entity.getGrossPrice().doubleValue());
+        }
+
+        saveButton.addClickListener(event -> {
+            OrderElement orderElement = Objects.requireNonNullElseGet(entity, OrderElement::new);
+            orderElement.setProduct(products.getValue());
+            orderElement.setOrder(orders.getValue());
+            orderElement.setUnit(unitField.getValue().intValue());
+            orderElement.setUnitNetPrice(unitNetPriceField.getValue().intValue());
+            orderElement.setTaxKey(taxKeys.getValue());
+            orderElement.setNetPrice(netPriceField.getValue().intValue());
+            orderElement.setGrossPrice(grossPriceField.getValue().intValue());
+            orderElement.setDeleted(0L);
+            this.orderElementService.saveOrUpdate(orderElement);
+
+            Notification.show("OrderElement saved: " + orderElement)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            products.clear();
+            orders.clear();
+            unitField.clear();
+            unitNetPriceField.clear();
+            taxKeys.clear();
+            netPriceField.clear();
+            grossPriceField.clear();
+            createDialog.close();
+        });
+
+        formLayout.add(products, orders, unitField, unitNetPriceField, taxKeys, netPriceField, grossPriceField, saveButton);
+        createDialog.add(formLayout);
+        return createDialog;
     }
 
     @Getter

@@ -12,6 +12,7 @@ import hu.martin.ems.repository.CurrencyRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.text.DecimalFormat;
@@ -40,8 +41,12 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     private String baseCurrency;
 
     public Currency fetchAndSaveRates() {
-        Object response = restTemplate.getForObject(apiUrl + baseCurrency, Object.class);
-        try {
+        Currency curr = this.repo.findByDate(LocalDate.now());
+        if(curr != null){
+            return curr;
+        }
+        try{
+            Object response = restTemplate.getForObject(apiUrl + baseCurrency, Object.class);
             String json = om.writeValueAsString(response);
             CurrencyAPI c = om.readValue(json, CurrencyAPI.class);
             LinkedHashMap<String, Double> map = om.convertValue(c.getRates(), LinkedHashMap.class);
@@ -54,8 +59,10 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
             currency.setValidDate(c.getValidDate());
             currency.setDeleted(0L);
             return this.repo.customSaveOrUpdate(currency);
+        } catch (RestClientException e){
+            return null;
         } catch (JsonProcessingException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
     }
 

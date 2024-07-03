@@ -32,6 +32,13 @@ public interface RoleXPermissionRepository extends BaseRepository<RoleXPermissio
 
     @Query("SELECT new RoleXPermission(r, p) FROM Role r " +
             "LEFT JOIN RoleXPermission rxp on rxp.role.id = r.id " +
-            "LEFT JOIN Permission p on p.id = rxp.permission.id")
-    List<RoleXPermission> findAllWithUnused();
+            "LEFT JOIN Permission p on p.id = rxp.permission.id " +
+            "WHERE (:withDeleted = false OR rxp.deleted = 0)")
+    List<RoleXPermission> findAllWithUnused(Boolean withDeleted);
+
+    //SELECT r.name as rolename, p.name as permissionname FROM Role r LEFT JOIN rolexpermission rxp on r.id = rxp.role_id LEFT JOIN permission p on p.id = rxp.permission_id where rxp.deleted = 0
+
+    @Modifying
+    @Query("DELETE FROM RoleXPermission rxp WHERE rxp.permission.id = :permissionId")
+    void clearRoles(@Param("permissionId")Long id);
 }

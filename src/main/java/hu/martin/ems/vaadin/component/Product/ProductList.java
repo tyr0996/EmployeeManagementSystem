@@ -1,58 +1,76 @@
 package hu.martin.ems.vaadin.component.Product;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import hu.martin.ems.model.Customer;
-import hu.martin.ems.model.OrderElement;
-import hu.martin.ems.model.Product;
-import hu.martin.ems.model.Supplier;
-import hu.martin.ems.service.CustomerService;
-import hu.martin.ems.service.OrderElementService;
-import hu.martin.ems.service.ProductService;
-import hu.martin.ems.service.SupplierService;
+import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.model.*;
+import hu.martin.ems.service.*;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
+import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
+
 @Route(value = "product/list", layout = MainView.class)
-public class ProductList extends VerticalLayout {
+@CssImport("./styles/ButtonVariant.css")
+@CssImport("./styles/grid.css")
+public class ProductList extends VerticalLayout implements Creatable<Product> {
 
     private final ProductService productService;
     private final CustomerService customerService;
     private final OrderElementService orderElementService;
     private final SupplierService supplierService;
+    private final CodeStoreService codeStoreService;
     private boolean showDeleted = false;
-    private Grid<ProductVO> grid;
+    private PaginatedGrid<ProductVO, String> grid;
+    private final PaginationSetting paginationSetting;
 
     @Autowired
     public ProductList(ProductService productService,
                        CustomerService customerService,
                        OrderElementService orderElementService,
-                       SupplierService supplierService) {
+                       SupplierService supplierService,
+                       CodeStoreService codeStoreService,
+                       PaginationSetting paginationSetting) {
         this.productService = productService;
         this.customerService = customerService;
         this.orderElementService = orderElementService;
+        this.codeStoreService = codeStoreService;
         this.supplierService = supplierService;
+        this.paginationSetting = paginationSetting;
 
-        this.grid = new Grid<>(ProductVO.class);
+        this.grid = new PaginatedGrid<>(ProductVO.class);
         List<Product> products = productService.findAll(false);
         List<ProductVO> data = products.stream().map(ProductVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
         this.grid.removeColumnByKey("id");
         this.grid.removeColumnByKey("deleted");
+        grid.addClassName("styling");
+        grid.setPartNameGenerator(productVO -> productVO.getDeleted() != 0 ? "deleted" : null);
+        grid.setPageSize(paginationSetting.getPageSize());
+        grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
         //region Options column
         this.grid.addComponentColumn(product -> {
@@ -80,8 +98,9 @@ public class ProductList extends VerticalLayout {
                 orderElement.setNetPrice(p.getSellingPriceNet().intValue() * unitField.getValue().intValue());
                 orderElement.setTaxPrice((orderElement.getNetPrice() / 100.0) * Integer.parseInt(p.getTaxKey().getName()));
                 orderElement.setGrossPrice(orderElement.getNetPrice() + orderElement.getTaxPrice().intValue());
-                String s = orderElementService.saveOrUpdate(orderElement) != null ? "Rendelési tétel létrehozva a vásárlóhoz!" : "Érvénytelen rendelés!";
-                Notification.show(s);
+                OrderElement oe = orderElementService.saveOrUpdate(orderElement);
+                Notification.show(oe != null ? "Order element successfully paired to customer!" : "Invalid ordering!")
+                        .addThemeVariants(oe != null ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
                 sellDialog.close();
             });
             //endregion
@@ -108,18 +127,22 @@ public class ProductList extends VerticalLayout {
                 orderElement.setNetPrice(p.getSellingPriceNet().intValue() * buyingUnitField.getValue().intValue());
                 orderElement.setTaxPrice((orderElement.getNetPrice() / 100.0) * Integer.parseInt(p.getTaxKey().getName()));
                 orderElement.setGrossPrice(orderElement.getNetPrice() + orderElement.getTaxPrice().intValue());
-                String s = orderElementService.saveOrUpdate(orderElement) != null ? "Rendelési tétel előkészítve a szállítónak!" : "Érvénytelen rendelés!";
-                Notification.show(s);
+                OrderElement oe = orderElementService.saveOrUpdate(orderElement);
+                Notification.show(oe != null ? "Order element successfully paired to supplier!" : "Invalid ordering!")
+                        .addThemeVariants(oe != null ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
                 orderDialog.close();
             });
             //endregion
 
-            Button editButton = new Button("Edit");
-            Button deleteButton = new Button("Delete");
+            Button editButton = new Button(EDIT.create());
+            Button deleteButton = new Button(VaadinIcon.TRASH.create());
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
             Button orderButton = new Button("Order");
             Button sellButton = new Button("Sell");
-            Button restoreButton = new Button("Restore");
-            Button permanentDeleteButton = new Button("Permanently Delete");
+            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
+            restoreButton.addClassNames("info_button_variant");
+            Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
+            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
             orderButton.addClickListener(event -> {
                 orderDialog.open();
@@ -128,25 +151,28 @@ public class ProductList extends VerticalLayout {
                 sellDialog.open();
             });
             editButton.addClickListener(event -> {
-                ProductCreate.p = product.getOriginal();
-                UI.getCurrent().navigate("product/create");
+                Dialog dialog = getSaveOrUpdateDialog(product.getOriginal());
+                dialog.open();
             });
 
             restoreButton.addClickListener(event -> {
                 this.productService.restore(product.getOriginal());
-                Notification.show("Product restored: " + product.getOriginal().getName());
+                Notification.show("Product restored: " + product.getOriginal().getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
                 this.productService.delete(product.getOriginal());
-                Notification.show("Product deleted: " + product.getOriginal().getName());
+                Notification.show("Product deleted: " + product.getOriginal().getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
                 this.productService.permanentlyDelete(product.getOriginal());
-                Notification.show("Product permanently deleted: " + product.getOriginal().getName());
+                Notification.show("Product permanently deleted: " + product.getOriginal().getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
@@ -161,18 +187,109 @@ public class ProductList extends VerticalLayout {
 
         //endregion
 
+        Button create = new Button("Create");
+        create.addClickListener(event -> {
+            Dialog d = getSaveOrUpdateDialog(null);
+            d.open();
+        });
+
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
             updateGridItems();
         });
+        HorizontalLayout hl = new HorizontalLayout();
+        hl.add(showDeletedCheckbox, create);
+        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.setAlignSelf(Alignment.CENTER, create);
 
-        add(showDeletedCheckbox, grid);
+        add(hl, grid);
     }
 
     private void updateGridItems() {
         List<Product> products = this.productService.findAll(showDeleted);
         this.grid.setItems(products.stream().map(ProductVO::new).collect(Collectors.toList()));
+    }
+
+    @Override
+    public Dialog getSaveOrUpdateDialog(Product entity) {
+        Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " product");
+        FormLayout formLayout = new FormLayout();
+
+        TextField nameField = new TextField("Name");
+
+        NumberField buyingPriceNetField = new NumberField("Buying price net");
+
+        ComboBox<CodeStore> buyingPriceCurrencys = new ComboBox<>("Buying price currency");
+        ComboBox.ItemFilter<CodeStore> buyingPriceCurrencyFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        buyingPriceCurrencys.setItems(buyingPriceCurrencyFilter, codeStoreService.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID));
+        buyingPriceCurrencys.setItemLabelGenerator(CodeStore::getName);
+
+        NumberField sellingPriceNetField = new NumberField("Selling price net");
+
+        ComboBox<CodeStore> sellingPriceCurrencys = new ComboBox<>("Selling price currency");
+        ComboBox.ItemFilter<CodeStore> sellingPriceCurrencyFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        sellingPriceCurrencys.setItems(sellingPriceCurrencyFilter, codeStoreService.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID));
+        sellingPriceCurrencys.setItemLabelGenerator(CodeStore::getName);
+
+        ComboBox<CodeStore> taxKeys = new ComboBox<>("Tax key");
+        ComboBox.ItemFilter<CodeStore> taxKeyFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        sellingPriceCurrencys.setItems(taxKeyFilter, codeStoreService.getChildren(StaticDatas.TAXKEYS_CODESTORE_ID));
+        sellingPriceCurrencys.setItemLabelGenerator(CodeStore::getName);
+
+        ComboBox<CodeStore> amountUnits = new ComboBox<>("Amount unit");
+        ComboBox.ItemFilter<CodeStore> amountUnitFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        amountUnits.setItems(amountUnitFilter, codeStoreService.getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID));
+        amountUnits.setItemLabelGenerator(CodeStore::getName);
+
+        NumberField amountField = new NumberField("Amount");
+
+        Button saveButton = new Button("Save");
+
+        if (entity != null) {
+            nameField.setValue(entity.getName());
+            buyingPriceNetField.setValue(entity.getBuyingPriceNet());
+            buyingPriceCurrencys.setValue(entity.getBuyingPriceCurrency());
+            sellingPriceNetField.setValue(entity.getSellingPriceNet());
+            sellingPriceCurrencys.setValue(entity.getSellingPriceCurrency());
+            amountUnits.setValue(entity.getAmountUnit());
+            amountField.setValue(entity.getAmount());
+            taxKeys.setValue(entity.getTaxKey());
+        }
+
+        saveButton.addClickListener(event -> {
+            Product product = Objects.requireNonNullElseGet(entity, Product::new);
+            product.setName(nameField.getValue());
+            product.setBuyingPriceNet(buyingPriceNetField.getValue());
+            product.setBuyingPriceCurrency(buyingPriceCurrencys.getValue());
+            product.setSellingPriceNet(sellingPriceNetField.getValue());
+            product.setSellingPriceCurrency(sellingPriceCurrencys.getValue());
+            product.setAmountUnit(amountUnits.getValue());
+            product.setAmount(amountField.getValue());
+            product.setDeleted(0L);
+            product.setTaxKey(taxKeys.getValue());
+            this.productService.saveOrUpdate(product);
+
+            Notification.show("Product saved: " + product)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            nameField.clear();
+            buyingPriceNetField.clear();
+            buyingPriceCurrencys.clear();
+            sellingPriceNetField.clear();
+            sellingPriceCurrencys.clear();
+            amountUnits.clear();
+            amountField.clear();
+            taxKeys.clear();
+            createDialog.close();
+        });
+
+        formLayout.add(nameField, buyingPriceNetField, buyingPriceCurrencys, sellingPriceNetField, sellingPriceCurrencys, amountUnits, amountField, taxKeys, saveButton);
+        createDialog.add(formLayout);
+        return createDialog;
     }
 
     @Getter

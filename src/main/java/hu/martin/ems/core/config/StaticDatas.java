@@ -1,5 +1,13 @@
 package hu.martin.ems.core.config;
 
+import com.vaadin.flow.component.icon.SvgIcon;
+import com.vaadin.flow.server.StreamResource;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 public final class StaticDatas {
     public static final Long CURRENCIES_CODESTORE_ID = 1L;
     public static final Long AMOUNTUNITS_CODESTORE_ID = 2L;
@@ -24,5 +32,30 @@ public final class StaticDatas {
 //        public static final String CONTENT_TYPE_APPLICATION_RTF = "application/rtf";
 //        public static final String CONTENT_TYPE_APPLICATION_EXCEL = "application/excel";
 
+    }
+
+    public enum Icons {
+        PDF_FILE("pdf-file"),
+        ODT_FILE("odt-file"),
+        XLSX_FILE("xlsx-file"),
+        PERMANENTLY_DELETE("clear"),
+        EDIT("edit");
+
+
+        private String svgPath;
+
+        Icons(String svgPath) {
+            this.svgPath = svgPath;
+        }
+
+        public SvgIcon create() {
+            try {
+                byte[] iconData = Files.readAllBytes(Paths.get("src/main/resources/frontend/icon/" + svgPath + ".svg"));
+                StreamResource resource = new StreamResource(this.svgPath, () -> new ByteArrayInputStream(iconData));
+                return new SvgIcon(resource);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

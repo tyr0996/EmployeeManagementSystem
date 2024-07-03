@@ -4,15 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.vaadin.MainView;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -24,17 +26,27 @@ public class CurrencyList extends VerticalLayout {
 
     private final CurrencyService currencyService;
     private boolean showDeleted = false;
-    private Grid<CurrencyVO> grid;
+    private PaginatedGrid<CurrencyVO, String> grid;
     private final ObjectMapper om = new ObjectMapper();
+    private final PaginationSetting paginationSetting;
 
     @Autowired
-    public CurrencyList(CurrencyService currencyService) {
+    public CurrencyList(CurrencyService currencyService,
+                        PaginationSetting paginationSetting) {
         this.currencyService = currencyService;
+        this.paginationSetting = paginationSetting;
 
-        this.grid = new Grid<>(CurrencyVO.class);
+        this.grid = new PaginatedGrid<>(CurrencyVO.class);
+        grid.setPageSize(paginationSetting.getPageSize());
+        grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
         Button fetch = new Button("Fetch currencies");
-        fetch.addClickListener(event -> currencyService.fetchAndSaveRates());
+        fetch.addClickListener(event -> {
+            Currency c = currencyService.fetchAndSaveRates();
+            Notification.show(c == null ? "Error happened while fetching exchange rates" :
+                                            "Fetching exchange rates was successful!")
+                    .addThemeVariants(c == null ? NotificationVariant.LUMO_ERROR : NotificationVariant.LUMO_SUCCESS);
+        });
 
         DatePicker datePicker = new DatePicker("Date");
         datePicker.setMax(LocalDate.now());
@@ -51,8 +63,14 @@ public class CurrencyList extends VerticalLayout {
         if (currency == null) {
             if (date.isEqual(LocalDate.now())) {
                 currency = currencyService.fetchAndSaveRates();
+                if(currency == null){
+                    Notification.show("Error happened while fetching exchange rates")
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    return;
+                }
             } else {
-                Notification.show("Exchange rates cannot be downloaded retroactively!");
+                Notification.show("Exchange rates cannot be downloaded retroactively!")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 dp.setValue(LocalDate.now());
                 updateGrid(dp);
             }

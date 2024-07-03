@@ -2,15 +2,18 @@ package hu.martin.ems.vaadin.component.Order;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailAttachment;
+import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.service.CurrencyService;
@@ -21,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.firitin.components.DynamicFileDownloader;
 import org.vaadin.firitin.components.orderedlayout.VHorizontalLayout;
 import org.vaadin.firitin.components.orderedlayout.VVerticalLayout;
+import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
@@ -28,6 +32,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static hu.martin.ems.core.config.StaticDatas.Icons.*;
+
+@CssImport("./styles/ButtonVariant.css")
+@CssImport("./styles/grid.css")
 @Route(value = "order/list", layout = MainView.class)
 public class OrderList extends VVerticalLayout {
 
@@ -35,17 +43,22 @@ public class OrderList extends VVerticalLayout {
     private final CurrencyService currencyService;
     private final EmailSendingService emailSendingService;
     private boolean showDeleted = false;
-    private Grid<OrderVO> grid;
+    private PaginatedGrid<OrderVO, String> grid;
+    private final PaginationSetting paginationSetting;
 
     @Autowired
     public OrderList(OrderService orderService,
                      CurrencyService currencyService,
-                     EmailSendingService emailSendingService) {
+                     EmailSendingService emailSendingService,
+                     PaginationSetting paginationSetting) {
         this.orderService = orderService;
         this.currencyService = currencyService;
         this.emailSendingService = emailSendingService;
+        this.paginationSetting = paginationSetting;
+        this.grid = new PaginatedGrid<>(OrderVO.class);
+        grid.setPageSize(paginationSetting.getPageSize());
+        grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        this.grid = new Grid<>(OrderVO.class);
         List<Order> orders = orderService.findAll(false);
         DatePicker from = new DatePicker("from");
         DatePicker to = new DatePicker("to");
@@ -73,28 +86,36 @@ public class OrderList extends VVerticalLayout {
         this.grid.removeColumnByKey("original");
         this.grid.removeColumnByKey("id");
         this.grid.removeColumnByKey("deleted");
+        grid.addClassName("styling");
+        grid.setPartNameGenerator(orderVo -> orderVo.getDeleted() != 0 ? "deleted" : null);
 
         //region Options column
         this.grid.addComponentColumn(order -> {
-            Button editButton = new Button("Edit");
-            Button deleteButton = new Button("Delete");
-            Button restoreButton = new Button("Restore");
-            Button permanentDeleteButton = new Button("Permanently Delete");
-            DynamicFileDownloader odtDownload = new DynamicFileDownloader("Save to ODT", "order_" + order.getId() + ".odt",
-                    out -> orderService.writeAsOdt(order.getOriginal(), out));
-            DynamicFileDownloader pdfDownload = new DynamicFileDownloader("Save to PDF", "order_" + order.getId() + ".pdf",
-                    out -> orderService.writeAsPdf(order.getOriginal(), out));
-            pdfDownload.addComponentAsFirst(VaadinIcon.DOWNLOAD_ALT.create());
+            Button editButton = new Button(EDIT.create());
+            Button deleteButton = new Button(VaadinIcon.TRASH.create());
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
+            restoreButton.addClassNames("info_button_variant");
+            Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
+            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+            DynamicFileDownloader odtDownload = new DynamicFileDownloader("", "order_" + order.getId() + ".odt",
+                    out -> orderService.writeAsOdt(order.getOriginal(), out)).asButton();
+            odtDownload.getButton().setIcon(ODT_FILE.create());
+            DynamicFileDownloader pdfDownload = new DynamicFileDownloader("", "order_" + order.getId() + ".pdf",
+                    out -> orderService.writeAsPdf(order.getOriginal(), out)).asButton();
+            pdfDownload.getButton().setIcon(PDF_FILE.create());
 
             Button sendEmail = new Button("Send email");
             sendEmail.addClickListener(event -> {
-                emailSendingService.send(order.getOriginal().getCustomer().getEmailAddress(),
+                boolean success = emailSendingService.send(order.getOriginal().getCustomer().getEmailAddress(),
                         orderService.generateHTMLEmail(order.getOriginal()),
                         "Megrendelés visszaigazolás",
                         List.of(new EmailAttachment(
                                 StaticDatas.ContentType.CONTENT_TYPE_APPLICATION_PDF,
                                 orderService.writeAsPdf(order.getOriginal(), new ByteArrayOutputStream()),
                                 "order_" + order.getId() + ".pdf")));
+                Notification.show(success ? "Email sikeresen elküldve!" : "Az email küldése sikertelen volt!")
+                            .addThemeVariants(success ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
             });
 
             editButton.addClickListener(event -> {
@@ -104,24 +125,28 @@ public class OrderList extends VVerticalLayout {
 
             restoreButton.addClickListener(event -> {
                 this.orderService.restore(order.getOriginal());
-                Notification.show("Order restored: " + order.getOriginal().getName());
+                Notification.show("Order restored: " + order.getOriginal().getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
                 this.orderService.delete(order.getOriginal());
-                Notification.show("Order deleted: " + order.getOriginal().getName());
+                Notification.show("Order deleted: " + order.getOriginal().getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
                 this.orderService.permanentlyDelete(order.getOriginal());
-                Notification.show("Order permanently deleted: " + order.getOriginal().getName());
+                Notification.show("Order permanently deleted: " + order.getOriginal().getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             VHorizontalLayout actions = new VHorizontalLayout();
-            actions.add(odtDownload.asButton(), pdfDownload.asButton(), sendEmail);
+
+            actions.add(odtDownload, pdfDownload, sendEmail);
             if (order.getOriginal().getDeleted() == 0) {
                 actions.add(editButton, deleteButton);
             } else if (order.getOriginal().getDeleted() == 1) {
