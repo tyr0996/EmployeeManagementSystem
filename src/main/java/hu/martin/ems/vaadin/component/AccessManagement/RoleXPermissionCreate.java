@@ -1,31 +1,30 @@
-package hu.martin.ems.vaadin.component.RoleXPermission;
+package hu.martin.ems.vaadin.component.AccessManagement;
 
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.Route;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.model.RoleXPermission;
 import hu.martin.ems.service.PermissionService;
 import hu.martin.ems.service.RoleService;
 import hu.martin.ems.service.RoleXPermissionService;
-import hu.martin.ems.vaadin.MainView;
+import jakarta.annotation.Nullable;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Route(value = "role_x_permission/create", layout = MainView.class)
 public class RoleXPermissionCreate extends VerticalLayout {
     private final RoleService roleService;
     private final PermissionService permissionService;
     private final RoleXPermissionService roleXPermissionService;
-
-    public static Role staticRole;
 
     public RoleXPermissionCreate(RoleService roleService,
                                  PermissionService permissionService,
@@ -33,6 +32,11 @@ public class RoleXPermissionCreate extends VerticalLayout {
         this.roleService = roleService;
         this.permissionService = permissionService;
         this.roleXPermissionService = roleXPermissionService;
+
+        add(getFormLayout(null, null));
+    }
+
+    public FormLayout getFormLayout(@Nullable Role entity, @Nullable Dialog d){
         FormLayout formLayout = new FormLayout();
 
         ComboBox<Role> roles = new ComboBox<>("Role");
@@ -54,16 +58,19 @@ public class RoleXPermissionCreate extends VerticalLayout {
             }
         });
 
-        if (staticRole != null) {
-            roles.setValue(staticRole);
-            permissions.setValue(roleXPermissionService.findAllPermission(staticRole));
-            roleXPermissionService.clearPermissions(staticRole);
+        if (entity != null) {
+            roles.setValue(entity);
+            permissions.setValue(roleXPermissionService.findAllPermission(entity));
+        }
+        if(d != null){
+            roles.setEnabled(false);
         }
 
         Button saveButton = new Button("Save");
 
         saveButton.addClickListener(event -> {
             Role r = roles.getValue();
+            roleXPermissionService.clearPermissions(r);
             List<Permission> permission = permissions.getValue().stream().collect(Collectors.toList());
             permission.forEach(p -> {
                 RoleXPermission rxp = new RoleXPermission();
@@ -72,12 +79,15 @@ public class RoleXPermissionCreate extends VerticalLayout {
                 rxp.setDeleted(0L);
                 roleXPermissionService.saveOrUpdate(rxp);
             });
-            staticRole = null;
             roles.clear();
             permissions.clear();
+            if(d != null){
+                d.close();
+            }
+            Notification.show("Role successfully pairing!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
         formLayout.add(roles, permissions, saveButton);
-        add(formLayout);
+        return formLayout;
     }
 }

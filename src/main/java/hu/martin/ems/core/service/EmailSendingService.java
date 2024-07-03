@@ -8,6 +8,7 @@ import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.util.ByteArrayDataSource;
+import org.eclipse.angus.mail.util.MailConnectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -85,8 +86,15 @@ public class EmailSendingService {
             }
 
             message.setContent(multipart);
-            Transport.send(message);
-            logger.info("Email sent to " + to + " successfully!");
+            try{
+                Transport.send(message);
+                logger.info("Email sent to " + to + " successfully!");
+            }
+            catch (MailConnectException e) {
+                logger.error("Email connect refused.");
+                return false;
+            }
+
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();

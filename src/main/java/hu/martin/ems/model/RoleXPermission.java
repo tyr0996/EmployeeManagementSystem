@@ -4,6 +4,7 @@ import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @NoArgsConstructor
+@EqualsAndHashCode
 public class RoleXPermission extends BaseEntity {
 
     @ManyToOne

@@ -5,6 +5,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.core.config.StaticDatas;
@@ -96,7 +97,8 @@ public class OrderCreate extends VerticalLayout {
                 oe.setOrder(order);
                 orderElementService.saveOrUpdate(oe);
             });
-            Notification.show("Order saved: " + order);
+            Notification.show("Order saved: " + order)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             customers.clear();
             paymentTypes.clear();
         });
