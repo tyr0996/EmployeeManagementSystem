@@ -50,11 +50,21 @@ public class OrderService extends BaseService<Order, OrderRepository> {
     private final CurrencyService currencyService;
     private final SftpSender sender;
     @Override
-    public Order saveOrUpdate(Order o) {
+    public Order save(Order o){
         if ((o.getCustomer() != null && o.getSupplier() == null) || (o.getCustomer() == null || o.getSupplier() != null)) {
-            return super.saveOrUpdate(o);
-        } else {
-            return null;
+            return super.save(o);
+        }
+        else{
+            return null; //TODO
+        }
+    }
+    @Override
+    public Order update(Order o) {
+        if ((o.getCustomer() != null && o.getSupplier() == null) || (o.getCustomer() == null || o.getSupplier() != null)) {
+            return super.save(o);
+        }
+        else{
+            return null; //TODO
         }
     }
 

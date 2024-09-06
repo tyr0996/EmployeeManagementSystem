@@ -2,6 +2,7 @@ package hu.martin.ems.core.repository;
 
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
@@ -38,33 +39,49 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     }
 
     @Override
-    public void customDelete(T entity) {
+    public void customDelete(Long entityId) {
         entityManager.createQuery("UPDATE " + type.getSimpleName() + " e SET e.deleted = 1 WHERE e.id = :id")
-                .setParameter("id", entity.getId())
+                .setParameter("id", entityId)
                 .executeUpdate();
-        logger.info(type.getSimpleName() + " deleted successfully: {}", entity);
+        logger.info(type.getSimpleName() + " deleted successfully: {}", entityId);
     }
 
     @Override
-    public void customRestore(T entity) {
+    public void customRestore(Long entityId) {
         entityManager.createQuery("UPDATE " + type.getSimpleName() + " e SET e.deleted = 0 WHERE e.id = :id")
-                .setParameter("id", entity.getId())
+                .setParameter("id", entityId)
                 .executeUpdate();
-        logger.info(type.getSimpleName() + " restored successfully: {}", entity);
+        logger.info(type.getSimpleName() + " restored successfully: {}", entityId);
     }
 
     @Override
-    public void customPermanentlyDelete(T entity) {
+    public void customPermanentlyDelete(Long entityId) {
         entityManager.createQuery("DELETE FROM " + type.getSimpleName() + " e WHERE e.id = :id")
-                .setParameter("id", entity.getId())
+                .setParameter("id", entityId)
                 .executeUpdate();
-        logger.info(type.getSimpleName() + " deleted permanently successfully: {}", entity);
+        logger.info(type.getSimpleName() + " deleted permanently successfully: {}", entityId);
     }
 
     @Override
-    public T customSaveOrUpdate(T entity) {
-        T savedOrUpdatedEntity = super.save(entity);
-        logger.info(savedOrUpdatedEntity.getClass().getSimpleName() + " saved or updated successfully: {}", savedOrUpdatedEntity);
-        return savedOrUpdatedEntity;
+    public T customSave(T entity) {
+        T savedEntity = super.save(entity);
+        logger.info(savedEntity.getClass().getSimpleName() + " saved successfully: {}", savedEntity);
+        return savedEntity;
+    }
+
+    @Override
+    public T customUpdate(T entity) throws EntityNotFoundException{
+        if (customFindById(entity.getId()) != null) {
+            throw new EntityNotFoundException("Entity with type " + type.getSimpleName() + " not found: " + entity);
+        }
+        T updatedEntity = super.save(entity);
+        logger.info(updatedEntity.getClass().getSimpleName() + " updated successfully: {}", updatedEntity);
+        return updatedEntity;
+    }
+
+    @Override
+    public T customFindById(Long entityId){
+        String jpql = "SELECT e FROM " + type.getSimpleName() + " e WHERE e.id = " + entityId;
+        return entityManager.createQuery(jpql, type).getSingleResult();
     }
 }

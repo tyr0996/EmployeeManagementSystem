@@ -14,11 +14,13 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.Supplier;
-import hu.martin.ems.service.SupplierService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.SupplierApiClient;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,22 +35,21 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @Route(value = "supplier/list", layout = MainView.class)
 @CssImport("./styles/grid.css")
+@AnonymousAllowed
 public class SupplierList extends VerticalLayout implements Creatable<Supplier> {
 
-    private final SupplierService supplierService;
+    private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<SupplierVO, String> grid;
     private final PaginationSetting paginationSetting;
 
     @Autowired
-    public SupplierList(SupplierService supplierService,
-                        PaginationSetting paginationSetting) {
-        this.supplierService = supplierService;
+    public SupplierList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
         this.grid = new PaginatedGrid<>(SupplierVO.class);
         grid.addClassName("styling");
-        List<Supplier> suppliers = supplierService.findAll(false);
+        List<Supplier> suppliers = supplierApi.findAll();
         List<SupplierVO> data = suppliers.stream().map(SupplierVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
@@ -74,21 +75,21 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             });
 
             restoreButton.addClickListener(event -> {
-                this.supplierService.restore(supplier.getOriginal());
+                this.supplierApi.restore(supplier.getOriginal());
                 Notification.show("Supplier restored: " + supplier.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.supplierService.delete(supplier.getOriginal());
+                this.supplierApi.delete(supplier.getOriginal());
                 Notification.show("Supplier deleted: " + supplier.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.supplierService.permanentlyDelete(supplier.getOriginal());
+                this.supplierApi.permanentlyDelete(supplier.getOriginal().getId());
                 Notification.show("Supplier permanently deleted: " + supplier.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
@@ -126,45 +127,51 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
     }
 
     private void updateGridItems() {
-        List<Supplier> suppliers = this.supplierService.findAll(showDeleted);
+        List<Supplier> suppliers = showDeleted ? supplierApi.findAllWithDeleted() : supplierApi.findAll();
         this.grid.setItems(suppliers.stream().map(SupplierVO::new).collect(Collectors.toList()));
     }
 
-    @Override
     public Dialog getSaveOrUpdateDialog(Supplier entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " supplier");
         FormLayout formLayout = new FormLayout();
 
         TextField nameField = new TextField("Name");
 
-        ComboBox<Address> addresss = new ComboBox<>("Address");
+        ComboBox<Address> addresses = new ComboBox<>("Address");
         ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        addresss.setItems(addressFilter);
-        addresss.setItemLabelGenerator(Address::getName);
+        addresses.setItems(addressFilter);
+        addresses.setItemLabelGenerator(Address::getName);
 
         Button saveButton = new Button("Save");
 
         if (entity != null) {
             nameField.setValue(entity.getName());
-            addresss.setValue(entity.getAddress());
+            addresses.setValue(entity.getAddress());
         }
 
         saveButton.addClickListener(event -> {
             Supplier supplier = Objects.requireNonNullElseGet(entity, Supplier::new);
             supplier.setName(nameField.getValue());
-            supplier.setAddress(addresss.getValue());
+            supplier.setAddress(addresses.getValue());
             supplier.setDeleted(0L);
-            this.supplierService.saveOrUpdate(supplier);
+
+            if(entity != null){
+                supplierApi.update(supplier);
+            }
+            else{
+                supplierApi.save(supplier);
+            }
+
 
             Notification.show("Supplier saved: " + supplier)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             nameField.clear();
-            addresss.clear();
+            addresses.clear();
             createDialog.close();
         });
 
-        formLayout.add(nameField, addresss, saveButton);
+        formLayout.add(nameField, addresses, saveButton);
         createDialog.add(formLayout);
         return createDialog;
     }

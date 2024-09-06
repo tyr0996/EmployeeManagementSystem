@@ -14,13 +14,15 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.model.Product;
-import hu.martin.ems.service.OrderElementService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.OrderElementApiClient;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,22 +37,21 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @Route(value = "orderElement/list", layout = MainView.class)
 @CssImport("./styles/ButtonVariant.css")
+@AnonymousAllowed
 @CssImport("./styles/grid.css")
 public class OrderElementList extends VerticalLayout implements Creatable<OrderElement> {
 
-    private final OrderElementService orderElementService;
+    private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<OrderElementVO, String> grid;
     private final PaginationSetting paginationSetting;
 
     @Autowired
-    public OrderElementList(OrderElementService orderElementService,
-                            PaginationSetting paginationSetting) {
-        this.orderElementService = orderElementService;
+    public OrderElementList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
         this.grid = new PaginatedGrid<>(OrderElementVO.class);
-        List<OrderElement> orderElements = orderElementService.findAll(false);
+        List<OrderElement> orderElements = orderElementApi.findAll();
         List<OrderElementVO> data = orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
@@ -77,21 +78,21 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             });
 
             restoreButton.addClickListener(event -> {
-                this.orderElementService.restore(orderElement.getOriginal());
+                this.orderElementApi.restore(orderElement.getOriginal());
                 Notification.show("OrderElement restored: " + orderElement.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.orderElementService.delete(orderElement.getOriginal());
+                this.orderElementApi.delete(orderElement.getOriginal());
                 Notification.show("OrderElement deleted: " + orderElement.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.orderElementService.permanentlyDelete(orderElement.getOriginal());
+                this.orderElementApi.permanentlyDelete(orderElement.getOriginal().getId());
                 Notification.show("OrderElement permanently deleted: " + orderElement.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
@@ -128,11 +129,10 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     }
 
     private void updateGridItems() {
-        List<OrderElement> orderElements = this.orderElementService.findAll(showDeleted);
+        List<OrderElement> orderElements = showDeleted ? orderElementApi.findAllWithDeleted() : orderElementApi.findAll();
         this.grid.setItems(orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList()));
     }
 
-    @Override
     public Dialog getSaveOrUpdateDialog(OrderElement entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " order element");
         FormLayout formLayout = new FormLayout();
@@ -185,7 +185,12 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             orderElement.setNetPrice(netPriceField.getValue().intValue());
             orderElement.setGrossPrice(grossPriceField.getValue().intValue());
             orderElement.setDeleted(0L);
-            this.orderElementService.saveOrUpdate(orderElement);
+            if(entity != null){
+                orderElementApi.update(orderElement);
+            }
+            else{
+                orderElementApi.save(orderElement);
+            }
 
             Notification.show("OrderElement saved: " + orderElement)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);

@@ -10,29 +10,27 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.model.RoleXPermission;
-import hu.martin.ems.service.PermissionService;
-import hu.martin.ems.service.RoleService;
-import hu.martin.ems.service.RoleXPermissionService;
+import hu.martin.ems.vaadin.api.PermissionApiClient;
+import hu.martin.ems.vaadin.api.RoleApiClient;
+import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
 import jakarta.annotation.Nullable;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@AnonymousAllowed
 public class RoleXPermissionCreate extends VerticalLayout {
-    private final RoleService roleService;
-    private final PermissionService permissionService;
-    private final RoleXPermissionService roleXPermissionService;
 
-    public RoleXPermissionCreate(RoleService roleService,
-                                 PermissionService permissionService,
-                                 RoleXPermissionService roleXPermissionService) {
-        this.roleService = roleService;
-        this.permissionService = permissionService;
-        this.roleXPermissionService = roleXPermissionService;
+    private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
+    private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
+    private final RoleXPermissionApiClient roleXPermissionApi = BeanProvider.getBean(RoleXPermissionApiClient.class);
 
+    public  RoleXPermissionCreate() {
         add(getFormLayout(null, null));
     }
 
@@ -42,25 +40,25 @@ public class RoleXPermissionCreate extends VerticalLayout {
         ComboBox<Role> roles = new ComboBox<>("Role");
         ComboBox.ItemFilter<Role> filterRole = (role, filterString) ->
                 role.getName().toLowerCase().contains(filterString.toLowerCase());
-        roles.setItems(filterRole, roleService.findAll(false));
+        roles.setItems(filterRole, roleApi.findAll());
         roles.setItemLabelGenerator(Role::getName);
 
         MultiSelectComboBox<Permission> permissions = new MultiSelectComboBox<>("Permission");
         ComboBox.ItemFilter<Permission> filterPermission = (permission, filterString) ->
                 permission.getName().toLowerCase().contains(filterString.toLowerCase());
-        permissions.setItems(filterPermission, permissionService.findAll(false));
+        permissions.setItems(filterPermission, permissionApi.findAll());
         permissions.setItemLabelGenerator(Permission::getName);
 
         roles.addValueChangeListener((HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<ComboBox<Role>, Role>>) event -> {
             Role selectedRole = event.getValue();
             if (selectedRole != null) {
-                permissions.setValue(roleXPermissionService.findAllPermission(selectedRole));
+                permissions.setValue(roleXPermissionApi.findAllPairedPermissionsTo(selectedRole));
             }
         });
 
         if (entity != null) {
             roles.setValue(entity);
-            permissions.setValue(roleXPermissionService.findAllPermission(entity));
+            permissions.setValue(roleXPermissionApi.findAllPairedPermissionsTo(entity));
         }
         if(d != null){
             roles.setEnabled(false);
@@ -70,14 +68,14 @@ public class RoleXPermissionCreate extends VerticalLayout {
 
         saveButton.addClickListener(event -> {
             Role r = roles.getValue();
-            roleXPermissionService.clearPermissions(r);
+            roleXPermissionApi.removeAllPermissionsFrom(r);
             List<Permission> permission = permissions.getValue().stream().collect(Collectors.toList());
             permission.forEach(p -> {
                 RoleXPermission rxp = new RoleXPermission();
                 rxp.setRole(r);
                 rxp.setPermission(p);
                 rxp.setDeleted(0L);
-                roleXPermissionService.saveOrUpdate(rxp);
+                roleXPermissionApi.save(rxp);
             });
             roles.clear();
             permissions.clear();

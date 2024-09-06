@@ -10,20 +10,24 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
 
     protected R repo;
 
-    public T saveOrUpdate(T entity) {
-        return repo.customSaveOrUpdate(entity);
+    public T save(T entity) {
+        return repo.customSave(entity);
     }
 
-    public void delete(T entity) {
-        repo.customDelete(entity);
+    public T update(T entity){
+        return repo.customUpdate(entity);
     }
 
-    public void restore(T entity) {
-        repo.customRestore(entity);
+    public void delete(Long entityId) {
+        repo.customDelete(entityId);
     }
 
-    public void permanentlyDelete(T entity) {
-        repo.customPermanentlyDelete(entity);
+    public void restore(Long entityId) {
+        repo.customRestore(entityId);
+    }
+
+    public void permanentlyDelete(Long entityId) {
+        repo.customPermanentlyDelete(entityId);
     }
 
     public List<T> findAll(boolean withDeleted) {
@@ -32,5 +36,9 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
 
     public List<T> findAll() {
         return repo.customFindAll(true);
+    }
+
+    public T findById(Long id){
+        return repo.customFindById(id);
     }
 }

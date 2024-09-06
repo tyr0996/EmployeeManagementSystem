@@ -14,10 +14,12 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.CodeStore;
-import hu.martin.ems.service.CodeStoreService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.Creatable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
@@ -31,21 +33,20 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
 @Route(value = "codestore/list", layout = MainView.class)
+@AnonymousAllowed
 public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore> {
 
-    private final CodeStoreService codeStoreService;
+    private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<CodeStore, ?> grid;
     private final PaginationSetting paginationSetting;
 
     @Autowired
-    public CodeStoreList(CodeStoreService codeStoreService,
-                         PaginationSetting paginationSetting) {
-        this.codeStoreService = codeStoreService;
+    public CodeStoreList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
         this.grid = new PaginatedGrid<>(CodeStore.class);
 
-        List<CodeStore> codeStores = codeStoreService.findAll(false);
+        List<CodeStore> codeStores = codeStoreApi.findAll();
         this.grid.setItems(codeStores);
 
 
@@ -75,21 +76,21 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             });
 
             restoreButton.addClickListener(event -> {
-                codeStoreService.restore(codeStore);
+                codeStoreApi.restore(codeStore);
                 Notification.show("CodeStore restored: " + codeStore.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                codeStoreService.delete(codeStore);
+                codeStoreApi.delete(codeStore);
                 Notification.show("CodeStore deleted: " + codeStore.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                codeStoreService.permanentlyDelete(codeStore);
+                codeStoreApi.permanentlyDelete(codeStore.getId());
                 Notification.show("CodeStore permanently deleted: " + codeStore.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
@@ -130,11 +131,10 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
     }
 
     private void updateGridItems() {
-        List<CodeStore> employees = codeStoreService.findAll(showDeleted);
+        List<CodeStore> employees = showDeleted ? codeStoreApi.findAllWithDeleted() : codeStoreApi.findAll();
         this.grid.setItems(employees);
     }
 
-    @Override
     public Dialog getSaveOrUpdateDialog(CodeStore entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " codestore");
         FormLayout formLayout = new FormLayout();
@@ -143,7 +143,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         ComboBox<CodeStore> parentCodeStore = new ComboBox<>("Parent");
         ComboBox.ItemFilter<CodeStore> filter = (codeStore, filterString) ->
                 codeStore.getName().toLowerCase().contains(filterString.toLowerCase());
-        parentCodeStore.setItems(filter, codeStoreService.findAll(false));
+        parentCodeStore.setItems(filter, codeStoreApi.findAll());
         parentCodeStore.setItemLabelGenerator(CodeStore::getName);
 
         Checkbox deletable = new Checkbox("Deletable");
@@ -162,7 +162,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             codeStore.setDeletable(deletable.getValue());
             codeStore.setDeleted(0L);
             codeStore.setParentCodeStore(parentCodeStore.getValue());
-            codeStoreService.saveOrUpdate(codeStore);
+            codeStoreApi.save(codeStore);
 
             Notification.show("CodeStore saved: " + codeStore.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);

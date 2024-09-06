@@ -4,51 +4,66 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.CleanCoded;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.service.PermissionService;
-import hu.martin.ems.service.RoleService;
-import hu.martin.ems.service.RoleXPermissionService;
 import hu.martin.ems.vaadin.MainView;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@CleanCoded
 @Route(value = "accessManagement/list", layout = MainView.class)
+@AnonymousAllowed
 public class AccessManagement extends VerticalLayout {
 
     private RoleList roleList;
     private PermissionList permissionList;
     private RoleXPermissionCreate roleXPermissionCreate;
     private final PaginationSetting paginationSetting;
+
+    private Button listRoles;
+    private Button listPermissions;
+    private Button pairRolesWithPermissions;
+    private HorizontalLayout buttonsLayout;
+
     @Autowired
-    public AccessManagement(RoleXPermissionService roleXPermissionService,
-                            RoleService roleService,
-                            PermissionService permissionService,
-                            PaginationSetting paginationSetting) {
-        this.roleList = new RoleList(roleXPermissionService, roleService, permissionService, paginationSetting);
-        this.permissionList = new PermissionList(permissionService, roleService, roleXPermissionService, paginationSetting);
-        this.roleXPermissionCreate = new RoleXPermissionCreate(roleService, permissionService, roleXPermissionService);
+    public AccessManagement(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
-        HorizontalLayout buttons = new HorizontalLayout();
-        Button role = new Button("Roles");
-        Button permission = new Button("Permissions");
-        Button rolePermissionPairing = new Button("Role-permission pairing");
-        buttons.add(role, permission, rolePermissionPairing);
+        this.roleList = new RoleList(paginationSetting);
+        this.permissionList = new PermissionList(paginationSetting);
+        this.roleXPermissionCreate = new RoleXPermissionCreate();
+        this.buttonsLayout = new HorizontalLayout();
+        initButtons();
+        addClickListeners();
+        createLayout();
+    }
 
-        role.addClickListener(event -> {
+    private void initButtons(){
+        this.listRoles = new Button("Roles");
+        this.listPermissions = new Button("Permissions");
+        this.pairRolesWithPermissions = new Button("Role-permission pairing");
+    }
+
+    private void addClickListeners() {
+        listRoles.addClickListener(event ->{
             this.roleList.refreshGrid();
-            removeAll();
-            add(buttons, roleList);
+            refreshLayout(this.roleList);
         });
-
-        permission.addClickListener(event -> {
+        listPermissions.addClickListener(event -> {
             this.permissionList.refreshGrid();
-            removeAll();
-            add(buttons, permissionList);
+            refreshLayout(permissionList);
         });
+        pairRolesWithPermissions.addClickListener(event -> {
+            refreshLayout(roleXPermissionCreate);
+        });
+    }
 
-        rolePermissionPairing.addClickListener(event -> {
-            removeAll();
-            add(buttons, roleXPermissionCreate);
-        });
-        add(buttons);
+    private void createLayout(){
+        this.buttonsLayout.add(listRoles, listPermissions, pairRolesWithPermissions);
+        add(buttonsLayout);
+    }
+
+    private void refreshLayout(VerticalLayout component){
+        removeAll();
+        add(this.buttonsLayout, component);
     }
 }

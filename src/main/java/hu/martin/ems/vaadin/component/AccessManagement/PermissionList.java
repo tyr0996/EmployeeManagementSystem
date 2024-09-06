@@ -14,13 +14,15 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.model.RoleXPermission;
-import hu.martin.ems.service.PermissionService;
-import hu.martin.ems.service.RoleService;
-import hu.martin.ems.service.RoleXPermissionService;
+import hu.martin.ems.vaadin.api.PermissionApiClient;
+import hu.martin.ems.vaadin.api.RoleApiClient;
+import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
 import hu.martin.ems.vaadin.component.Creatable;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -31,26 +33,20 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/grid.css")
+@AnonymousAllowed
 public class PermissionList extends VerticalLayout implements Creatable<Permission> {
-
-    private final PermissionService permissionService;
-    private final RoleService roleService;
-    private final RoleXPermissionService roleXPermissionService;
-    private boolean showDeleted = false;
+    private boolean withDeleted = false;
     private PaginatedGrid<Permission, String> grid;
     private final PaginationSetting paginationSetting;
+    private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
+    private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
+    private final RoleXPermissionApiClient roleXPermissionApi = BeanProvider.getBean(RoleXPermissionApiClient.class);
 
-    public PermissionList(PermissionService permissionService,
-                          RoleService roleService,
-                          RoleXPermissionService roleXPermissionService,
-                          PaginationSetting paginationSetting) {
-        this.permissionService = permissionService;
+    public PermissionList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
-        this.roleService = roleService;
-        this.roleXPermissionService = roleXPermissionService;
 
         this.grid = new PaginatedGrid<>(Permission.class);
-        List<Permission> permissions = permissionService.findAll(false);
+        List<Permission> permissions = permissionApi.findAll();
         this.grid.setItems(permissions);
         this.grid.setColumns("id", "name");
         grid.addClassName("styling");
@@ -73,21 +69,21 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
             });
 
             restoreButton.addClickListener(event -> {
-                this.permissionService.restore(permission);
+                permissionApi.restore(permission);
                 Notification.show("Permission restored: " + permission.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.permissionService.delete(permission);
+                permissionApi.delete(permission);
                 Notification.show("Permission deleted: " + permission.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.permissionService.permanentlyDelete(permission);
+                permissionApi.permanentlyDelete(permission.getId());
                 Notification.show("Permission permanently deleted: " + permission.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
@@ -108,29 +104,30 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
             d.open();
         });
 
-        Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
-        showDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+        Checkbox withDeletedCheckbox = new Checkbox("Show deleted");
+        withDeletedCheckbox.addValueChangeListener(event -> {
+            withDeleted = event.getValue();
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
-        hl.add(showDeletedCheckbox, create);
-        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.add(withDeletedCheckbox, create);
+        hl.setAlignSelf(Alignment.CENTER, withDeletedCheckbox);
         hl.setAlignSelf(Alignment.CENTER, create);
 
         add(hl, grid);
     }
+
+
 
     public void refreshGrid(){
         updateGridItems();
     }
 
     private void updateGridItems() {
-        List<Permission> permissions = this.permissionService.findAll(showDeleted);
+        List<Permission> permissions = withDeleted ? permissionApi.findAllWithDeleted() : permissionApi.findAll();
         this.grid.setItems(permissions);
     }
 
-    @Override
     public Dialog getSaveOrUpdateDialog(Permission entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " permission");
         FormLayout formLayout = new FormLayout();
@@ -140,26 +137,38 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
         MultiSelectComboBox<Role> roles = new MultiSelectComboBox<>("Roles");
         ComboBox.ItemFilter<Role> filterRole = (role, filterString) ->
                 role.getName().toLowerCase().contains(filterString.toLowerCase());
-        roles.setItems(filterRole, roleService.findAll(false));
+        List<Role> savedRoles = roleApi.findAll();
+        roles.setItems(filterRole, savedRoles);
         roles.setItemLabelGenerator(Role::getName);
 
         Button saveButton = new Button("Save");
 
         if (entity != null) {
             nameField.setValue(entity.getName());
-            roles.setValue(roleXPermissionService.findAllRole(entity));
+            List<Role> pairedRoles = roleXPermissionApi.findAllPairedRoleTo(entity);
+            roles.setValue(pairedRoles);
         }
 
         saveButton.addClickListener(event -> {
             Permission permission = Objects.requireNonNullElseGet(entity, Permission::new);
             permission.setDeleted(0L);
             permission.setName(nameField.getValue());
-            this.permissionService.saveOrUpdate(permission);
-            this.roleXPermissionService.clearRoles(entity);
+            if(entity != null){
+                permissionApi.save(permission);
+            }
+            else{
+                permissionApi.update(permission);
+            }
+            roleXPermissionApi.removePermissionFromAllPaired(entity);
             roles.getSelectedItems().forEach(v ->{
                 RoleXPermission rxp = new RoleXPermission(v, permission);
                 rxp.setDeleted(0L);
-                roleXPermissionService.saveOrUpdate(rxp);
+                if(entity != null){
+                    roleXPermissionApi.update(rxp);
+                }
+                else{
+                    roleXPermissionApi.save(rxp);
+                }
             });
             Notification.show("Permission saved: " + permission.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -171,4 +180,6 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
         createDialog.add(formLayout);
         return createDialog;
     }
+
+
 }

@@ -15,12 +15,14 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Employee;
 import hu.martin.ems.model.Role;
-import hu.martin.ems.service.EmployeeService;
-import hu.martin.ems.service.RoleService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.EmployeeApiClient;
+import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,25 +37,22 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
+@AnonymousAllowed
 @Route(value = "employee/list", layout = MainView.class)
 public class EmployeeList extends VerticalLayout implements Creatable<Employee> {
 
-    private final EmployeeService employeeService;
-    private final RoleService roleService;
+    private final EmployeeApiClient employeeApi = BeanProvider.getBean(EmployeeApiClient.class);
+    private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<EmployeeVO, String> grid;
     private final PaginationSetting paginationSetting;
 
     @Autowired
-    public EmployeeList(EmployeeService employeeService,
-                        RoleService roleService,
-                        PaginationSetting paginationSetting) {
-        this.employeeService = employeeService;
-        this.roleService = roleService;
+    public EmployeeList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
         this.grid = new PaginatedGrid<>(EmployeeVO.class);
-        List<Employee> employees = employeeService.findAll(false);
+        List<Employee> employees = employeeApi.findAll();
         List<EmployeeVO> data = employees.stream().map(EmployeeVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
@@ -78,21 +77,21 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             });
 
             restoreButton.addClickListener(event -> {
-                this.employeeService.restore(employee.getOriginal());
+                this.employeeApi.restore(employee.getOriginal());
                 Notification.show("Employee restored: " + employee.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.employeeService.delete(employee.getOriginal());
+                this.employeeApi.delete(employee.getOriginal());
                 Notification.show("Employee deleted: " + employee.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.employeeService.permanentlyDelete(employee.getOriginal());
+                this.employeeApi.permanentlyDelete(employee.getOriginal().getId());
                 Notification.show("Employee permanently deleted: " + employee.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
@@ -129,11 +128,10 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     }
 
     private void updateGridItems() {
-        List<Employee> employees = this.employeeService.findAll(showDeleted);
+        List<Employee> employees = showDeleted ? employeeApi.findAllWithDeleted() : employeeApi.findAll();
         this.grid.setItems(employees.stream().map(EmployeeVO::new).collect(Collectors.toList()));
     }
 
-    @Override
     public Dialog getSaveOrUpdateDialog(Employee entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " employee");
         FormLayout formLayout = new FormLayout();
@@ -144,7 +142,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         ComboBox<Role> roles = new ComboBox<>("Role");
         ComboBox.ItemFilter<Role> filter = (role, filterString) ->
                 role.getName().toLowerCase().contains(filterString.toLowerCase());
-        roles.setItems(filter, roleService.findAll(false));
+        roles.setItems(filter, roleApi.findAll());
         roles.setItemLabelGenerator(Role::getName);
 
         if (entity != null) {
@@ -163,8 +161,12 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             employee.setDeleted(0L);
             employee.setSalary(salaryField.getValue().intValue());
             employee.setRole(roles.getValue());
-            employeeService.saveOrUpdate(employee);
-
+            if(entity != null){
+                employeeApi.update(employee);
+            }
+            else{
+                employeeApi.save(employee);
+            }
             Notification.show("Employee saved: " + employee.getFirstName() + " " + employee.getLastName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 

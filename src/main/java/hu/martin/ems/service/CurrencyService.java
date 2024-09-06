@@ -58,7 +58,7 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
             currency.setRateJson(om.writeValueAsString(c.getRates()));
             currency.setValidDate(c.getValidDate());
             currency.setDeleted(0L);
-            return this.repo.customSaveOrUpdate(currency);
+            return this.repo.customSave(currency);
         } catch (RestClientException e){
             return null;
         } catch (JsonProcessingException e) {

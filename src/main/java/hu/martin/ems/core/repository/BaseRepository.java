@@ -1,5 +1,6 @@
 package hu.martin.ems.core.repository;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.Repository;
 
@@ -9,11 +10,15 @@ import java.util.List;
 public interface BaseRepository<T, ID> extends Repository<T, ID> {
     List<T> customFindAll(Boolean withDeleted);
 
-    void customDelete(T entity);
+    void customDelete(Long entity);
 
-    void customRestore(T entity);
+    void customRestore(Long entity);
 
-    void customPermanentlyDelete(T entity);
+    void customPermanentlyDelete(Long entity);
 
-    T customSaveOrUpdate(T entity);
+    T customSave(T entity);
+
+    T customUpdate(T entity) throws EntityNotFoundException;
+
+    T customFindById(Long id);
 }
