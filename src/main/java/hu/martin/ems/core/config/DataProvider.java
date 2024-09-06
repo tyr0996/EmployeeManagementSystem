@@ -115,6 +115,9 @@ public class DataProvider {
                 case "Order":
                     object = "orders";
                     break;
+                case "User":
+                    object = "loginuser";
+                    break;
                 default:
                     break;
             }
@@ -149,6 +152,9 @@ public class DataProvider {
             switch (refClass) {
                 case "Order":
                     refClass = "orders";
+                    break;
+                case "User":
+                    refClass = "loginuser";
                     break;
                 default:
                     break;

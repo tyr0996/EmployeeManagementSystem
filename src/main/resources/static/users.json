@@ -1,0 +1,18 @@
+{
+  "object": "User",
+  "required": [
+  ],
+  "data": [
+    {
+      "deleted": 0,
+      "username": "admin",
+      "password": "admin",
+      "role_role_id": {
+        "refClass": "Role",
+        "filter": {
+          "id": 1
+        }
+      }
+    }
+  ]
+}

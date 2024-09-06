@@ -20,7 +20,7 @@ public final class StaticDatas {
     public class ContentType{
 //        public static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 //        public static final String CONTENT_TYPE_TEXT_HTML = "text/html";
-//        public static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
+        //public static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
 //        public static final String CONTENT_TYPE_APPLICATION_XML = "application/xml";
 //        public static final String CONTENT_TYPE_IMAGE_JPEG = "image/jpeg";
 //        public static final String CONTENT_TYPE_IMAGE_PNG = "image/png";
@@ -31,7 +31,10 @@ public final class StaticDatas {
 //        public static final String CONTENT_TYPE_APPLICATION_MSWORD = "application/msword";
 //        public static final String CONTENT_TYPE_APPLICATION_RTF = "application/rtf";
 //        public static final String CONTENT_TYPE_APPLICATION_EXCEL = "application/excel";
+    }
 
+    public class Produces{
+        public static final String JSON = "application/json;charset=UTF-8";
     }
 
     public enum Icons {

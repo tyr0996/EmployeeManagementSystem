@@ -15,12 +15,14 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.Customer;
-import hu.martin.ems.service.AddressService;
-import hu.martin.ems.service.CustomerService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.AddressApiClient;
+import hu.martin.ems.vaadin.api.CustomerApiClient;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,25 +37,21 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
+@AnonymousAllowed
 @Route(value = "customer/list", layout = MainView.class)
 public class CustomerList extends VerticalLayout implements Creatable<Customer> {
-
-    private final CustomerService customerService;
-    private final AddressService addressService;
     private boolean showDeleted = false;
+    private CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
+    private AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
     private PaginatedGrid<CustomerVO, String> grid;
     private final PaginationSetting paginationSetting;
 
     @Autowired
-    public CustomerList(CustomerService customerService,
-                        AddressService addressService,
-                        PaginationSetting paginationSetting) {
-        this.customerService = customerService;
-        this.addressService = addressService;
+    public CustomerList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
         this.grid = new PaginatedGrid<>(CustomerVO.class);
-        List<Customer> customers = customerService.findAll(false);
+        List<Customer> customers = customerApi.findAll();
         List<CustomerVO> data = customers.stream().map(CustomerVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
@@ -80,21 +78,21 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
             });
 
             restoreButton.addClickListener(event -> {
-                this.customerService.restore(customer.getOriginal());
+                this.customerApi.restore(customer.getOriginal());
                 Notification.show("Customer restored: " + customer.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.customerService.delete(customer.getOriginal());
+                this.customerApi.delete(customer.getOriginal());
                 Notification.show("Customer deleted: " + customer.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.customerService.permanentlyDelete(customer.getOriginal());
+                this.customerApi.permanentlyDelete(customer.getOriginal().getId());
                 Notification.show("Customer permanently deleted: " + customer.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
@@ -131,11 +129,10 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     }
 
     private void updateGridItems() {
-        List<Customer> customers = this.customerService.findAll(showDeleted);
+        List<Customer> customers = showDeleted ? customerApi.findAllWithDeleted() : customerApi.findAll();
         this.grid.setItems(customers.stream().map(CustomerVO::new).collect(Collectors.toList()));
     }
 
-    @Override
     public Dialog getSaveOrUpdateDialog(Customer entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " customer");
         FormLayout formLayout = new FormLayout();
@@ -144,11 +141,11 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
 
         TextField lastNameField = new TextField("Last name");
 
-        ComboBox<Address> addresss = new ComboBox<>("Address");
+        ComboBox<Address> addresses = new ComboBox<>("Address");
         ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        addresss.setItems(addressFilter, addressService.findAll(false));
-        addresss.setItemLabelGenerator(Address::getName);
+        addresses.setItems(addressFilter, addressApi.findAll());
+        addresses.setItemLabelGenerator(Address::getName);
 
         EmailField emailField = new EmailField();
         emailField.setLabel("Email address");
@@ -160,7 +157,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
         if (entity != null) {
             firstNameField.setValue(entity.getFirstName());
             lastNameField.setValue(entity.getLastName());
-            addresss.setValue(entity.getAddress());
+            addresses.setValue(entity.getAddress());
             emailField.setValue(entity.getEmailAddress());
         }
 
@@ -168,21 +165,26 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
             Customer customer = Objects.requireNonNullElseGet(entity, Customer::new);
             customer.setFirstName(firstNameField.getValue());
             customer.setLastName(lastNameField.getValue());
-            customer.setAddress(addresss.getValue());
+            customer.setAddress(addresses.getValue());
             customer.setEmailAddress(emailField.getValue());
             customer.setDeleted(0L);
-            this.customerService.saveOrUpdate(customer);
+            if(entity != null){
+                customerApi.update(customer);
+            }
+            else{
+                customerApi.save(customer);
+            }
 
             Notification.show("Customer saved: " + customer)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             firstNameField.clear();
             lastNameField.clear();
-            addresss.clear();
+            addresses.clear();
             emailField.clear();
             createDialog.close();
         });
 
-        formLayout.add(firstNameField, lastNameField, addresss, emailField, saveButton);
+        formLayout.add(firstNameField, lastNameField, addresses, emailField, saveButton);
         createDialog.add(formLayout);
         return createDialog;
     }

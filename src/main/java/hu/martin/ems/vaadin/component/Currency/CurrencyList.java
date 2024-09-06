@@ -8,10 +8,12 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Currency;
-import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.CurrencyApi;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
@@ -22,18 +24,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 @Route(value = "currency/list", layout = MainView.class)
+@AnonymousAllowed
 public class CurrencyList extends VerticalLayout {
 
-    private final CurrencyService currencyService;
+    private final CurrencyApi currencyApi = BeanProvider.getBean(CurrencyApi.class);
     private boolean showDeleted = false;
     private PaginatedGrid<CurrencyVO, String> grid;
     private final ObjectMapper om = new ObjectMapper();
     private final PaginationSetting paginationSetting;
 
     @Autowired
-    public CurrencyList(CurrencyService currencyService,
-                        PaginationSetting paginationSetting) {
-        this.currencyService = currencyService;
+    public CurrencyList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
         this.grid = new PaginatedGrid<>(CurrencyVO.class);
@@ -42,7 +43,7 @@ public class CurrencyList extends VerticalLayout {
 
         Button fetch = new Button("Fetch currencies");
         fetch.addClickListener(event -> {
-            Currency c = currencyService.fetchAndSaveRates();
+            Currency c = currencyApi.fetchAndSaveRates();
             Notification.show(c == null ? "Error happened while fetching exchange rates" :
                                             "Fetching exchange rates was successful!")
                     .addThemeVariants(c == null ? NotificationVariant.LUMO_ERROR : NotificationVariant.LUMO_SUCCESS);
@@ -58,11 +59,11 @@ public class CurrencyList extends VerticalLayout {
 
     public void updateGrid(DatePicker dp) {
         LocalDate date = dp.getValue();
-        Currency currency = currencyService.findByDate(date);
+        Currency currency = currencyApi.findByDate(date);
 
         if (currency == null) {
             if (date.isEqual(LocalDate.now())) {
-                currency = currencyService.fetchAndSaveRates();
+                currency = currencyApi.fetchAndSaveRates();
                 if(currency == null){
                     Notification.show("Error happened while fetching exchange rates")
                             .addThemeVariants(NotificationVariant.LUMO_ERROR);

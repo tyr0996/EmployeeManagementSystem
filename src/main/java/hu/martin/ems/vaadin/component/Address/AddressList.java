@@ -14,15 +14,17 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.City;
 import hu.martin.ems.model.CodeStore;
-import hu.martin.ems.service.AddressService;
-import hu.martin.ems.service.CityService;
-import hu.martin.ems.service.CodeStoreService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.AddressApiClient;
+import hu.martin.ems.vaadin.api.CityApiClient;
+import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,28 +40,23 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @Route(value = "address/list", layout = MainView.class)
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
+@AnonymousAllowed
 public class AddressList extends VerticalLayout implements Creatable<Address> {
 
-    private final AddressService addressService;
-    private final CodeStoreService codeStoreService;
-    private final CityService cityService;
+    private final AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
+    private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
+    private final CityApiClient cityApi = BeanProvider.getBean(CityApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<AddressVO, String> grid;
     private final PaginationSetting paginationSetting;
 
     @Autowired
-    public AddressList(AddressService addressService,
-                       CodeStoreService codeStoreService,
-                       CityService cityService,
-                       PaginationSetting paginationSetting) {
-        this.addressService = addressService;
-        this.codeStoreService = codeStoreService;
-        this.cityService = cityService;
+    public AddressList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
         this.grid = new PaginatedGrid<>(AddressVO.class);
-        List<Address> addresss = addressService.findAll(false);
-        List<AddressVO> data = addresss.stream().map(AddressVO::new).collect(Collectors.toList());
+        List<Address> addresses = addressApi.findAll();
+        List<AddressVO> data = addresses.stream().map(AddressVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
         this.grid.removeColumnByKey("id");
@@ -85,21 +82,21 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
             });
 
             restoreButton.addClickListener(event -> {
-                this.addressService.restore(address.getOriginal());
+                addressApi.restore(address.getOriginal());
                 Notification.show("Address restored: " + address.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.addressService.delete(address.getOriginal());
+                this.addressApi.delete(address.getOriginal());
                 Notification.show("Address deleted: " + address.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.addressService.permanentlyDelete(address.getOriginal());
+                this.addressApi.permanentlyDelete(address.getOriginal().getId());
                 Notification.show("Address permanently deleted: " + address.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
@@ -136,11 +133,10 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     }
 
     private void updateGridItems() {
-        List<Address> addresss = this.addressService.findAll(showDeleted);
-        this.grid.setItems(addresss.stream().map(AddressVO::new).collect(Collectors.toList()));
+        List<Address> addresses = showDeleted ? addressApi.findAllWithDeleted() : addressApi.findAll();
+        this.grid.setItems(addresses.stream().map(AddressVO::new).collect(Collectors.toList()));
     }
 
-    @Override
     public Dialog getSaveOrUpdateDialog(Address entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " address");
         FormLayout formLayout = new FormLayout();
@@ -148,13 +144,13 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         ComboBox<CodeStore> countryCodes = new ComboBox<>("Country code");
         ComboBox.ItemFilter<CodeStore> countryCodeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        countryCodes.setItems(countryCodeFilter, codeStoreService.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID));
+        countryCodes.setItems(countryCodeFilter, codeStoreApi.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID));
         countryCodes.setItemLabelGenerator(CodeStore::getName);
 
         ComboBox<City> citys = new ComboBox<>("City");
         ComboBox.ItemFilter<City> cityFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        citys.setItems(cityFilter, cityService.findAll());
+        citys.setItems(cityFilter, cityApi.findAll());
         citys.setItemLabelGenerator(City::getName);
 
         TextField streetNameField = new TextField("Street name");
@@ -162,7 +158,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         ComboBox<CodeStore> streetTypes = new ComboBox<>("Street type");
         ComboBox.ItemFilter<CodeStore> streetTypeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        streetTypes.setItems(streetTypeFilter, codeStoreService.getChildren(StaticDatas.STREET_TYPES_CODESTORE_ID));
+        streetTypes.setItems(streetTypeFilter, codeStoreApi.getChildren(StaticDatas.STREET_TYPES_CODESTORE_ID));
         streetTypes.setItemLabelGenerator(CodeStore::getName);
 
         TextField houseNumberField = new TextField("House number");
@@ -185,7 +181,12 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
             address.setStreetType(streetTypes.getValue());
             address.setDeleted(0L);
             address.setHouseNumber(houseNumberField.getValue());
-            this.addressService.saveOrUpdate(address);
+            if(entity != null){
+                addressApi.update(entity);
+            }
+            else{
+                addressApi.save(address);
+            }
 
             Notification.show("Address saved: " + address.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);

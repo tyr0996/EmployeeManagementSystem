@@ -21,8 +21,11 @@ import hu.martin.ems.vaadin.component.OrderElement.OrderElementList;
 import hu.martin.ems.vaadin.component.Product.ProductList;
 import hu.martin.ems.vaadin.component.Supplier.SupplierList;
 
+import jakarta.annotation.security.PermitAll;
+
 @Route("")
 @CssImport("./styles/shared-styles.css")
+@PermitAll
 public class MainView extends HorizontalLayout implements RouterLayout {
 
     public MainView() {

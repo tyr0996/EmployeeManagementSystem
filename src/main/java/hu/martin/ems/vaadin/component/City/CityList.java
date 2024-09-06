@@ -14,13 +14,15 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.City;
 import hu.martin.ems.model.CodeStore;
-import hu.martin.ems.service.CityService;
-import hu.martin.ems.service.CodeStoreService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.CityApiClient;
+import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,27 +38,24 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
 @Route(value = "city/list", layout = MainView.class)
+@AnonymousAllowed
 public class CityList extends VerticalLayout implements Creatable<City> {
 
-    private final CityService cityService;
-    private final CodeStoreService codeStoreService;
+    private final CityApiClient cityApi = BeanProvider.getBean(CityApiClient.class);
+    private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<CityVO, String> grid;
     private final PaginationSetting paginationSetting;
 
 
     @Autowired
-    public CityList(CityService cityService,
-                    CodeStoreService codeStoreService,
-                    PaginationSetting paginationSetting) {
-        this.cityService = cityService;
-        this.codeStoreService = codeStoreService;
+    public CityList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
 
         this.grid = new PaginatedGrid<>(CityVO.class);
-        List<City> citys = cityService.findAll(false);
-        List<CityVO> data = citys.stream().map(CityVO::new).collect(Collectors.toList());
+        List<City> cities = cityApi.findAll();
+        List<CityVO> data = cities.stream().map(CityVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
         this.grid.removeColumnByKey("original");
         this.grid.removeColumnByKey("deleted");
@@ -82,21 +81,21 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             });
 
             restoreButton.addClickListener(event -> {
-                this.cityService.restore(city.getOriginal());
+                this.cityApi.restore(city.getOriginal());
                 Notification.show("City restored: " + city.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.cityService.delete(city.getOriginal());
+                this.cityApi.delete(city.getOriginal());
                 Notification.show("City deleted: " + city.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.cityService.permanentlyDelete(city.getOriginal());
+                this.cityApi.permanentlyDelete(city.getOriginal().getId());
                 Notification.show("City permanently deleted: " + city.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
@@ -133,11 +132,10 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     }
 
     private void updateGridItems() {
-        List<City> citys = this.cityService.findAll(showDeleted);
-        this.grid.setItems(citys.stream().map(CityVO::new).collect(Collectors.toList()));
+        List<City> cities = showDeleted ? cityApi.findAllWithDeleted() : cityApi.findAll();
+        this.grid.setItems(cities.stream().map(CityVO::new).collect(Collectors.toList()));
     }
 
-    @Override
     public Dialog getSaveOrUpdateDialog(City entity){
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " city");
         FormLayout fl = new FormLayout();
@@ -146,7 +144,7 @@ public class CityList extends VerticalLayout implements Creatable<City> {
         ComboBox<CodeStore> countryCodes = new ComboBox<>("Country code");
         ComboBox.ItemFilter<CodeStore> countryCodeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        countryCodes.setItems(countryCodeFilter, codeStoreService.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID));
+        countryCodes.setItems(countryCodeFilter, codeStoreApi.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID));
         countryCodes.setItemLabelGenerator(CodeStore::getName);
 
         TextField zipCodeField = new TextField("Zip code");
@@ -161,7 +159,12 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             city.setCountryCode(countryCodes.getValue());
             city.setZipCode(zipCodeField.getValue());
             city.setDeleted(0L);
-            this.cityService.saveOrUpdate(city);
+            if(entity != null){
+                cityApi.update(city);
+            }
+            else{
+                cityApi.save(city);
+            }
 
             Notification.show("City saved: " + city.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);

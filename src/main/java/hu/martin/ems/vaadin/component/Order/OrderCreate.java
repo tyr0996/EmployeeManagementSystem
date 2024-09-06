@@ -8,18 +8,19 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.model.OrderElement;
-import hu.martin.ems.service.CodeStoreService;
-import hu.martin.ems.service.CustomerService;
-import hu.martin.ems.service.OrderElementService;
-import hu.martin.ems.service.OrderService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.CodeStoreApiClient;
+import hu.martin.ems.vaadin.api.CustomerApiClient;
+import hu.martin.ems.vaadin.api.OrderApiClient;
+import hu.martin.ems.vaadin.api.OrderElementApiClient;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,24 +28,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Route(value = "order/create", layout = MainView.class)
+@AnonymousAllowed
 public class OrderCreate extends VerticalLayout {
 
     public static Order o;
-    private final OrderService orderService;
-    private final CodeStoreService codeStoreService;
-    private final CustomerService customerService;
-    private final OrderElementService orderElementService;
+    private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
+    private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
+    private final CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
+    private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);
 
-    @Autowired
-    public OrderCreate(OrderService orderService,
-                       CodeStoreService codeStoreService,
-                       CustomerService customerService,
-                       OrderElementService orderElementService) {
-        this.orderService = orderService;
-        this.codeStoreService = codeStoreService;
-        this.customerService = customerService;
-        this.orderElementService = orderElementService;
-
+    public OrderCreate() {
         FormLayout formLayout = new FormLayout();
 
         Grid<OrderElementVO> grid = new Grid<>(OrderElementVO.class);
@@ -58,12 +51,12 @@ public class OrderCreate extends VerticalLayout {
         ComboBox<Customer> customers = new ComboBox<>("Customer");
         ComboBox.ItemFilter<Customer> customerFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        customers.setItems(customerFilter, customerService.findAll(false));
+        customers.setItems(customerFilter, customerApi.findAll());
         customers.setItemLabelGenerator(Customer::getName);
 
         customers.addValueChangeListener(event -> {
             if (event.getValue() != null) {
-                grid.setItems(orderElementService.getByCustomer(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList()));
+                grid.setItems(orderElementApi.getBy(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList()));
             } else {
                 grid.setItems(new ArrayList<>());
             }
@@ -72,30 +65,35 @@ public class OrderCreate extends VerticalLayout {
         ComboBox<CodeStore> paymentTypes = new ComboBox<>("Payment type");
         ComboBox.ItemFilter<CodeStore> paymentTypeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        paymentTypes.setItems(paymentTypeFilter, codeStoreService.getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID));
+        paymentTypes.setItems(paymentTypeFilter, codeStoreApi.getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID));
         paymentTypes.setItemLabelGenerator(CodeStore::getName);
 
         ComboBox<CodeStore> currencies = new ComboBox<>("Currency");
         ComboBox.ItemFilter<CodeStore> currencyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        currencies.setItems(currencyFilter, codeStoreService.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID));
+        currencies.setItems(currencyFilter, codeStoreApi.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID));
         currencies.setItemLabelGenerator(CodeStore::getName);
 
         Button saveButton = new Button("Create order");
 
         saveButton.addClickListener(event -> {
             Order order = Objects.requireNonNullElseGet(o, Order::new);
-            order.setState(codeStoreService.findByName("Pending"));
+            order.setState(codeStoreApi.getAllByName("Pending").get(0));
             order.setTimeOfOrder(LocalDateTime.now());
             order.setCustomer(customers.getValue());
             order.setPaymentType(paymentTypes.getValue());
             order.setDeleted(0L);
             order.setCurrency(currencies.getValue());
-            this.orderService.saveOrUpdate(order);
+            if(order != null){
+                orderApi.update(order);
+            }
+            else{
+                orderApi.save(order);
+            }
             grid.getSelectedItems().stream().forEach(v -> {
                 OrderElement oe = v.original;
                 oe.setOrder(order);
-                orderElementService.saveOrUpdate(oe);
+                orderElementApi.save(oe);
             });
             Notification.show("Order saved: " + order)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);

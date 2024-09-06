@@ -11,14 +11,15 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.model.Order;
-import hu.martin.ems.service.CurrencyService;
-import hu.martin.ems.service.OrderService;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.EmailSendingApi;
+import hu.martin.ems.vaadin.api.OrderApiClient;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.firitin.components.DynamicFileDownloader;
@@ -37,29 +38,25 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.*;
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
 @Route(value = "order/list", layout = MainView.class)
+@AnonymousAllowed
 public class OrderList extends VVerticalLayout {
 
-    private final OrderService orderService;
-    private final CurrencyService currencyService;
-    private final EmailSendingService emailSendingService;
+    private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
+    private final EmailSendingApi emailSendingApi = BeanProvider.getBean(EmailSendingApi.class);
     private boolean showDeleted = false;
     private PaginatedGrid<OrderVO, String> grid;
+
+    @Autowired
     private final PaginationSetting paginationSetting;
 
     @Autowired
-    public OrderList(OrderService orderService,
-                     CurrencyService currencyService,
-                     EmailSendingService emailSendingService,
-                     PaginationSetting paginationSetting) {
-        this.orderService = orderService;
-        this.currencyService = currencyService;
-        this.emailSendingService = emailSendingService;
+    public OrderList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
         this.grid = new PaginatedGrid<>(OrderVO.class);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        List<Order> orders = orderService.findAll(false);
+        List<Order> orders = orderApi.findAll();
         DatePicker from = new DatePicker("from");
         DatePicker to = new DatePicker("to");
         to.setValue(LocalDate.now());
@@ -76,7 +73,7 @@ public class OrderList extends VVerticalLayout {
 
         Button sendSftp = new Button("Send report to accountant via SFTP");
         sendSftp.addClickListener(event -> {
-            orderService.sendReport(from.getValue(), to.getValue());
+            orderApi.send(from.getValue(), to.getValue());
         });
         HorizontalLayout sftpLayout = new HorizontalLayout();
         sftpLayout.add(sendSftp, from, to);
@@ -99,23 +96,29 @@ public class OrderList extends VVerticalLayout {
             Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
             DynamicFileDownloader odtDownload = new DynamicFileDownloader("", "order_" + order.getId() + ".odt",
-                    out -> orderService.writeAsOdt(order.getOriginal(), out)).asButton();
+                    out -> orderApi.createDocumentAsODT(order.getOriginal(), out)).asButton();
             odtDownload.getButton().setIcon(ODT_FILE.create());
             DynamicFileDownloader pdfDownload = new DynamicFileDownloader("", "order_" + order.getId() + ".pdf",
-                    out -> orderService.writeAsPdf(order.getOriginal(), out)).asButton();
+                    out -> orderApi.createDocumentAsPDF(order.getOriginal(), out)).asButton();
             pdfDownload.getButton().setIcon(PDF_FILE.create());
 
             Button sendEmail = new Button("Send email");
             sendEmail.addClickListener(event -> {
-                boolean success = emailSendingService.send(order.getOriginal().getCustomer().getEmailAddress(),
-                        orderService.generateHTMLEmail(order.getOriginal()),
-                        "Megrendelés visszaigazolás",
-                        List.of(new EmailAttachment(
-                                StaticDatas.ContentType.CONTENT_TYPE_APPLICATION_PDF,
-                                orderService.writeAsPdf(order.getOriginal(), new ByteArrayOutputStream()),
-                                "order_" + order.getId() + ".pdf")));
-                Notification.show(success ? "Email sikeresen elküldve!" : "Az email küldése sikertelen volt!")
-                            .addThemeVariants(success ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+                try {
+                    emailSendingApi.send(order.getOriginal().getCustomer().getEmailAddress(),
+                            orderApi.generateEmail(order.getOriginal()),
+                            "Megrendelés visszaigazolás",
+                            List.of(new EmailAttachment(
+                                    StaticDatas.ContentType.CONTENT_TYPE_APPLICATION_PDF,
+                                    orderApi.createDocumentAsPDF(order.getOriginal(), new ByteArrayOutputStream()),
+                                    "order_" + order.getId() + ".pdf")));
+                    Notification.show("Email sikeresen elküldve!")
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                }
+                catch(Exception e) {
+                    Notification.show("Email küldése sikertelen")
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
             });
 
             editButton.addClickListener(event -> {
@@ -124,21 +127,21 @@ public class OrderList extends VVerticalLayout {
             });
 
             restoreButton.addClickListener(event -> {
-                this.orderService.restore(order.getOriginal());
+                this.orderApi.restore(order.getOriginal());
                 Notification.show("Order restored: " + order.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.orderService.delete(order.getOriginal());
+                this.orderApi.delete(order.getOriginal());
                 Notification.show("Order deleted: " + order.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.orderService.permanentlyDelete(order.getOriginal());
+                this.orderApi.permanentlyDelete(order.getOriginal().getId());
                 Notification.show("Order permanently deleted: " + order.getOriginal().getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
@@ -167,7 +170,7 @@ public class OrderList extends VVerticalLayout {
     }
 
     private void updateGridItems() {
-        List<Order> orders = this.orderService.findAll(showDeleted);
+        List<Order> orders = showDeleted ? orderApi.findAllWithDeleted() : orderApi.findAll();
         this.grid.setItems(orders.stream().map(OrderVO::new).collect(Collectors.toList()));
     }
 
