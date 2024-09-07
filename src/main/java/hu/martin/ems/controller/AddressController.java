@@ -1,6 +1,7 @@
 package hu.martin.ems.controller;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.repository.AddressRepository;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/address")
 @AnonymousAllowed
+@NeedCleanCoding
 public class AddressController extends BaseController<Address, AddressService, AddressRepository> {
 
     public AddressController(AddressService service) {

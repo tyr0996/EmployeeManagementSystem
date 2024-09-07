@@ -1,5 +1,6 @@
 package hu.martin.ems.core.repository;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @NoRepositoryBean
 @Transactional
+@NeedCleanCoding
 public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements BaseRepository<T, ID> {
 
     protected final EntityManager entityManager;

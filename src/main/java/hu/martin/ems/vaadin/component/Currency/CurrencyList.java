@@ -9,6 +9,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Currency;
@@ -25,6 +26,7 @@ import java.util.List;
 
 @Route(value = "currency/list", layout = MainView.class)
 @AnonymousAllowed
+@NeedCleanCoding
 public class CurrencyList extends VerticalLayout {
 
     private final CurrencyApi currencyApi = BeanProvider.getBean(CurrencyApi.class);
@@ -89,7 +91,8 @@ public class CurrencyList extends VerticalLayout {
     }
 
     @Getter
-    public class CurrencyVO {
+    @NeedCleanCoding
+public class CurrencyVO {
         private String name;
         private String val;
 

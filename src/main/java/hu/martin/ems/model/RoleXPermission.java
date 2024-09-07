@@ -1,5 +1,6 @@
 package hu.martin.ems.model;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -14,6 +15,7 @@ import lombok.Setter;
 @Entity
 @NoArgsConstructor
 @EqualsAndHashCode
+@NeedCleanCoding
 public class RoleXPermission extends BaseEntity {
 
     @ManyToOne

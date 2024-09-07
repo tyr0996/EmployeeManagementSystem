@@ -17,7 +17,8 @@ public final class StaticDatas {
     public static final Long COUNTRIES_CODESTORE_ID = 6L;
     public static final Long PAYMENT_TYPES_CODESTORE_ID = 7L;
 
-    public class ContentType{
+
+public class ContentType{
 //        public static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 //        public static final String CONTENT_TYPE_TEXT_HTML = "text/html";
         //public static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
@@ -33,11 +34,13 @@ public final class StaticDatas {
 //        public static final String CONTENT_TYPE_APPLICATION_EXCEL = "application/excel";
     }
 
-    public class Produces{
+
+public class Produces{
         public static final String JSON = "application/json;charset=UTF-8";
     }
 
-    public class Consumes{
+
+public class Consumes{
         public static final String JSON = "application/json;charset=UTF8";
     }
 

@@ -2,6 +2,7 @@ package hu.martin.ems.core.auth;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
+import hu.martin.ems.NeedCleanCoding;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,6 +10,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.stereotype.Component;
 
 @Component
+@NeedCleanCoding
 public class SecurityService {
 
     private static final String LOGOUT_SUCCESS_URL = "/";

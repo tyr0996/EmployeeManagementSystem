@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.PaginationSetting;
@@ -41,6 +42,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
 @AnonymousAllowed
+@NeedCleanCoding
 public class AddressList extends VerticalLayout implements Creatable<Address> {
 
     private final AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
@@ -203,7 +205,8 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     }
 
     @Getter
-    public class AddressVO {
+    @NeedCleanCoding
+public class AddressVO {
         private Address original;
         private Long id;
         private Long deleted;

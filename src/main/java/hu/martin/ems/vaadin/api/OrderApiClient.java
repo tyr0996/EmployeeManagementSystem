@@ -1,6 +1,7 @@
 package hu.martin.ems.vaadin.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.model.Order;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import java.io.OutputStream;
 import java.time.LocalDate;
 
 @Component
+@NeedCleanCoding
 public class OrderApiClient extends EmsApiClient<Order> {
 
     public OrderApiClient() {

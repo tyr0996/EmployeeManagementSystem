@@ -1,5 +1,6 @@
 package hu.martin.ems.core.sftp;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.JschConfig;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 
 @Service
 @AllArgsConstructor
+@NeedCleanCoding
 public class SftpSender {
 
     private final JschConfig jschConfig;

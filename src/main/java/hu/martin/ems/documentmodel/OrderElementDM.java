@@ -1,9 +1,11 @@
 package hu.martin.ems.documentmodel;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.model.OrderElement;
 import lombok.Getter;
 
 @Getter
+@NeedCleanCoding
 public class OrderElementDM extends AbstractDM {
     private String product;
     private String amount;

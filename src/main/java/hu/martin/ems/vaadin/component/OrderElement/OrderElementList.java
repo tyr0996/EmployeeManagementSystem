@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.CodeStore;
@@ -39,6 +40,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @CssImport("./styles/ButtonVariant.css")
 @AnonymousAllowed
 @CssImport("./styles/grid.css")
+@NeedCleanCoding
 public class OrderElementList extends VerticalLayout implements Creatable<OrderElement> {
 
     private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);
@@ -210,7 +212,8 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     }
 
     @Getter
-    public class OrderElementVO {
+    @NeedCleanCoding
+public class OrderElementVO {
         private OrderElement original;
         private Long deleted;
         private Long id;

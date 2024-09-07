@@ -1,5 +1,6 @@
 package hu.martin.ems.model;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,6 +9,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@NeedCleanCoding
 public class OrderElement extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "product_product_id")

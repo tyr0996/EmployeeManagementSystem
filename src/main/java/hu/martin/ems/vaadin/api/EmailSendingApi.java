@@ -2,12 +2,14 @@ package hu.martin.ems.vaadin.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.EmailProperties;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Component
+@NeedCleanCoding
 public class EmailSendingApi {
 
     protected final WebClient webClient;

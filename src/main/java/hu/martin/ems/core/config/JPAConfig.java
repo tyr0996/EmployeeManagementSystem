@@ -1,6 +1,7 @@
 package hu.martin.ems.core.config;
 
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.repository.BaseRepositoryImpl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -21,6 +22,7 @@ import java.util.Properties;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "hu.martin.ems", repositoryBaseClass = BaseRepositoryImpl.class)
+@NeedCleanCoding
 public class JPAConfig {
 
     @Value("${spring.datasource.url}")

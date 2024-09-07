@@ -1,5 +1,6 @@
 package hu.martin.ems.core.model;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.model.Role;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -10,6 +11,7 @@ import lombok.Getter;
 @Entity
 @Getter
 @Table(name = "loginuser")
+@NeedCleanCoding
 public class User extends BaseEntity{
     private String username;
     private String password;

@@ -1,6 +1,7 @@
 package hu.martin.ems.core.file;
 
 
+import hu.martin.ems.NeedCleanCoding;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@NeedCleanCoding
 public class XLSX {
     public static byte[] createExcelFile(String sheetname, String[][] sheetData){
         ArrayList<String[][]> sd = new ArrayList<>();

@@ -1,9 +1,11 @@
 package hu.martin.ems.documentmodel;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.model.Customer;
 import lombok.Getter;
 
 @Getter
+@NeedCleanCoding
 public class CustomerDM extends AbstractDM {
     private String name;
 

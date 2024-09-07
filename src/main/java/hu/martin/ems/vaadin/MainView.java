@@ -8,6 +8,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLayout;
 import com.vaadin.flow.router.RouterLink;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.vaadin.component.AccessManagement.AccessManagement;
 import hu.martin.ems.vaadin.component.Address.AddressList;
 import hu.martin.ems.vaadin.component.City.CityList;
@@ -20,12 +21,12 @@ import hu.martin.ems.vaadin.component.Order.OrderList;
 import hu.martin.ems.vaadin.component.OrderElement.OrderElementList;
 import hu.martin.ems.vaadin.component.Product.ProductList;
 import hu.martin.ems.vaadin.component.Supplier.SupplierList;
-
 import jakarta.annotation.security.PermitAll;
 
 @Route("")
 @CssImport("./styles/shared-styles.css")
 @PermitAll
+@NeedCleanCoding
 public class MainView extends HorizontalLayout implements RouterLayout {
 
     public MainView() {

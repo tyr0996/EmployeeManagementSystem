@@ -11,6 +11,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @AnonymousAllowed
+@NeedCleanCoding
 public class RoleXPermissionCreate extends VerticalLayout {
 
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);

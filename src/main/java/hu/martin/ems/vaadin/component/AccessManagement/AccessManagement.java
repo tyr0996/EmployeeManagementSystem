@@ -5,14 +5,14 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.CleanCoded;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.vaadin.MainView;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@CleanCoded
 @Route(value = "accessManagement/list", layout = MainView.class)
 @AnonymousAllowed
+@NeedCleanCoding
 public class AccessManagement extends VerticalLayout {
 
     private RoleList roleList;

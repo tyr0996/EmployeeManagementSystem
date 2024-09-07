@@ -16,6 +16,7 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.PaginationSetting;
@@ -38,6 +39,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
 @AnonymousAllowed
+@NeedCleanCoding
 public class ProductList extends VerticalLayout implements Creatable<Product> {
 
     private final ProductApiClient productApi = BeanProvider.getBean(ProductApiClient.class);
@@ -289,7 +291,8 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     }
 
     @Getter
-    public class ProductVO {
+    @NeedCleanCoding
+public class ProductVO {
         private Product original;
         private Long deleted;
         private Long id;

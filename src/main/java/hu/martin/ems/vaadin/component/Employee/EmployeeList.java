@@ -16,6 +16,7 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Employee;
@@ -39,6 +40,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @CssImport("./styles/grid.css")
 @AnonymousAllowed
 @Route(value = "employee/list", layout = MainView.class)
+@NeedCleanCoding
 public class EmployeeList extends VerticalLayout implements Creatable<Employee> {
 
     private final EmployeeApiClient employeeApi = BeanProvider.getBean(EmployeeApiClient.class);
@@ -184,7 +186,8 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     }
 
     @Getter
-    public class EmployeeVO {
+    @NeedCleanCoding
+public class EmployeeVO {
         private Employee original;
         private Long deleted;
         private Long id;

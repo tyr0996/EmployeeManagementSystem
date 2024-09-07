@@ -1,5 +1,6 @@
 package hu.martin.ems.core.service;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.User;
 import hu.martin.ems.core.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@NeedCleanCoding
 public class UserService extends BaseService<User, UserRepository> {
     public UserService(UserRepository repo) { super(repo); }
 

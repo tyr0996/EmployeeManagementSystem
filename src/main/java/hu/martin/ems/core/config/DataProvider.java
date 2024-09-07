@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hu.martin.ems.NeedCleanCoding;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 @Configuration
 @Transactional
 @Slf4j
+@NeedCleanCoding
 public class DataProvider {
     private final EntityManager em;
     private final Logger logger = LoggerFactory.getLogger(DataProvider.class);

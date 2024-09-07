@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.api;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.model.RoleXPermission;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@NeedCleanCoding
 public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
     public RoleXPermissionApiClient() {
         super(RoleXPermission.class);

@@ -3,6 +3,7 @@ package hu.martin.ems.core.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.service.EmailSendingService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @AllArgsConstructor
 @RequestMapping(path = "/api/emailSending")
 @AnonymousAllowed
+@NeedCleanCoding
 public class EmailSendingController {
     private final EmailSendingService service;
     private final ObjectMapper om;

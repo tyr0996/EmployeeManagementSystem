@@ -1,5 +1,6 @@
 package hu.martin.ems.service;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.service.BaseService;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.repository.CodeStoreRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@NeedCleanCoding
 public class CodeStoreService extends BaseService<CodeStore, CodeStoreRepository> {
     @Autowired
     public CodeStoreService(CodeStoreRepository codeStoreRepository) {

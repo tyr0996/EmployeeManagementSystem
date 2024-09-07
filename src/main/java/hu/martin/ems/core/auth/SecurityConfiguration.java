@@ -1,6 +1,7 @@
 package hu.martin.ems.core.auth;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.service.UserService;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
@@ -23,6 +24,7 @@ import java.util.List;
 
 @EnableWebSecurity
 @Configuration
+@NeedCleanCoding
 public class SecurityConfiguration extends VaadinWebSecurity {
 
     private final UserService userService;

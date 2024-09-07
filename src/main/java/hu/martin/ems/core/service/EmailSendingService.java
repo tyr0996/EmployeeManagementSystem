@@ -1,5 +1,6 @@
 package hu.martin.ems.core.service;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import jakarta.activation.DataHandler;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Properties;
 
 @Service
+@NeedCleanCoding
 public class EmailSendingService {
 
     @Value("${mail.smtp.host}")

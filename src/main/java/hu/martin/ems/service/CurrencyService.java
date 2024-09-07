@@ -3,6 +3,7 @@ package hu.martin.ems.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.apiresponse.CurrencyAPI;
 import hu.martin.ems.core.apiresponse.CurrencyResponse;
 import hu.martin.ems.core.service.BaseService;
@@ -21,6 +22,7 @@ import java.util.LinkedHashMap;
 
 @Service
 @Transactional
+@NeedCleanCoding
 public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     public CurrencyService(CurrencyRepository currencyRepository,
                            CodeStoreRepository codeStoreRepository,

@@ -1,5 +1,6 @@
 package hu.martin.ems.service;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.service.BaseService;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@NeedCleanCoding
 public class RoleXPermissionService extends BaseService<RoleXPermission, RoleXPermissionRepository> {
 
     public RoleXPermissionService(RoleXPermissionRepository roleXPermissionRepository) {

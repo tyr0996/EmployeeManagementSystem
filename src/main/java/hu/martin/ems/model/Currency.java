@@ -1,5 +1,6 @@
 package hu.martin.ems.model;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
+@NeedCleanCoding
 public class Currency extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "baseCurrency_codestore_id")

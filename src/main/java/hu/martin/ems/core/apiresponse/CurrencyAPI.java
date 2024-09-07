@@ -1,6 +1,7 @@
 package hu.martin.ems.core.apiresponse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import hu.martin.ems.NeedCleanCoding;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @NoArgsConstructor
+@NeedCleanCoding
 public class CurrencyAPI {
     private String provider;
     @JsonProperty("WARNING_UPGRADE_TO_V6")

@@ -2,6 +2,7 @@ package hu.martin.ems.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.repository.CurrencyRepository;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 @Controller
 @RequestMapping("/api/currency")
 @AnonymousAllowed
+@NeedCleanCoding
 public class CurrencyController extends BaseController<Currency, CurrencyService, CurrencyRepository> {
     public CurrencyController(CurrencyService service) {
         super(service);

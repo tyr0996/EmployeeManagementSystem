@@ -11,6 +11,7 @@ import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.IContext;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import fr.opensagres.xdocreport.template.formatter.FieldsMetadata;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.file.XLSX;
 import hu.martin.ems.core.service.BaseService;
 import hu.martin.ems.core.service.DataConverter;
@@ -34,6 +35,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@NeedCleanCoding
 public class OrderService extends BaseService<Order, OrderRepository> {
     public OrderService(OrderRepository orderRepository,
                         CurrencyService currencyService,

@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.PaginationSetting;
@@ -39,6 +40,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @CssImport("./styles/grid.css")
 @Route(value = "city/list", layout = MainView.class)
 @AnonymousAllowed
+@NeedCleanCoding
 public class CityList extends VerticalLayout implements Creatable<City> {
 
     private final CityApiClient cityApi = BeanProvider.getBean(CityApiClient.class);
@@ -177,7 +179,8 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     }
 
     @Getter
-    public class CityVO {
+    @NeedCleanCoding
+public class CityVO {
         private City original;
         private Long deleted;
         private Long id;

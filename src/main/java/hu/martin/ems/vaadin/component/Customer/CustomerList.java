@@ -16,6 +16,7 @@ import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
@@ -39,6 +40,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @CssImport("./styles/grid.css")
 @AnonymousAllowed
 @Route(value = "customer/list", layout = MainView.class)
+@NeedCleanCoding
 public class CustomerList extends VerticalLayout implements Creatable<Customer> {
     private boolean showDeleted = false;
     private CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
@@ -190,7 +192,8 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     }
 
     @Getter
-    public class CustomerVO {
+    @NeedCleanCoding
+public class CustomerVO {
         private Customer original;
         private Long deleted;
         private Long id;

@@ -1,7 +1,10 @@
 package hu.martin.ems.core.service;
 
+import hu.martin.ems.NeedCleanCoding;
+
 import java.util.List;
 
+@NeedCleanCoding
 public class DataConverter {
 
     public static String[][] convertListToArray2(List<List<String>> data) {

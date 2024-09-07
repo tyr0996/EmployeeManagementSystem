@@ -1,5 +1,6 @@
 package hu.martin.ems.model;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name = "orders")
+@NeedCleanCoding
 public class Order extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "state_codestore_id")

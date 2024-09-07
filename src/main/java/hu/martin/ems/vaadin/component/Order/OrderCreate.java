@@ -9,6 +9,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.model.CodeStore;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Route(value = "order/create", layout = MainView.class)
 @AnonymousAllowed
+@NeedCleanCoding
 public class OrderCreate extends VerticalLayout {
 
     public static Order o;
@@ -109,7 +111,8 @@ public class OrderCreate extends VerticalLayout {
     }
 
     @Getter
-    public class OrderElementVO {
+    @NeedCleanCoding
+public class OrderElementVO {
         private OrderElement original;
         private Long deleted;
         private Long id;

@@ -1,5 +1,6 @@
 package hu.martin.ems.service;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.service.BaseService;
 import hu.martin.ems.model.Employee;
 import hu.martin.ems.repository.EmployeeRepository;
@@ -11,6 +12,7 @@ import java.util.Random;
 
 @Service
 @Transactional
+@NeedCleanCoding
 public class EmployeeService extends BaseService<Employee, EmployeeRepository> {
 
 

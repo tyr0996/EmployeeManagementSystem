@@ -1,5 +1,6 @@
 package hu.martin.ems.service;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.service.BaseService;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.repository.OrderElementRepository;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@NeedCleanCoding
 public class OrderElementService extends BaseService<OrderElement, OrderElementRepository> {
     public OrderElementService(OrderElementRepository orderElementRepository) {
         super(orderElementRepository);

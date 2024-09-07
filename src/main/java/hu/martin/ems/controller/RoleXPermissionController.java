@@ -1,6 +1,7 @@
 package hu.martin.ems.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/api/roleXPermission")
+@NeedCleanCoding
 public class RoleXPermissionController extends BaseController<RoleXPermission, RoleXPermissionService, RoleXPermissionRepository> {
     public RoleXPermissionController(RoleXPermissionService service) {
         super(service);

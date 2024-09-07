@@ -1,11 +1,13 @@
 package hu.martin.ems.core.service;
 
+import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.repository.BaseRepository;
 import lombok.AllArgsConstructor;
 
 import java.util.List;
 
 @AllArgsConstructor
+@NeedCleanCoding
 public class BaseService<T, R extends BaseRepository<T, Long>> {
 
     protected R repo;
