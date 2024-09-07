@@ -7,13 +7,9 @@ public class DataConverter {
     public static String[][] convertListToArray2(List<List<String>> data) {
         String[][] array = new String[data.size()][];
 
-        for (int i = 0; i < data.size(); i++) { //TODO maybe it can be simpler.
+        for (int i = 0; i < data.size(); i++) {
             List<String> row = data.get(i);
-            String[] r = new String[row.size()];
-            for (int j = 0; j < row.size(); j++) {
-                r[j] = data.get(i).get(j);
-            }
-            array[i] = r;
+            array[i] = row.toArray(new String[0]);
         }
 
         return array;

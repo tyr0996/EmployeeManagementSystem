@@ -3,7 +3,11 @@ package hu.martin.ems.vaadin.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -13,6 +17,7 @@ import java.util.List;
 
 
 @Service
+@Slf4j
 public abstract class EmsApiClient<T> {
     protected final WebClient webClient;
 
@@ -21,14 +26,17 @@ public abstract class EmsApiClient<T> {
     private String entityName;
     private Class<T> entityType;
 
+    protected Logger logger;
+
     @Autowired
-    private ObjectMapper om;
+    protected ObjectMapper om;
 
     public EmsApiClient(Class<T> entityType) {
         this.entityType = entityType;
-        this.webClientBuilder = WebClient.builder();
         this.entityName = decapitalizeFirstLetter(entityType.getSimpleName());
+        this.webClientBuilder = WebClient.builder();
         this.webClient = webClientBuilder.baseUrl("http://localhost:8080/api/" + entityName + "/").build();
+        this.logger = LoggerFactory.getLogger(entityType);
     }
 
 
@@ -43,13 +51,15 @@ public abstract class EmsApiClient<T> {
         try{
             String response =  webClient.post()
                     .uri("save")
+                    .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(om.writeValueAsString(entity))
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return om.convertValue(response, entityType);
+            return om.readValue(response, new TypeReference<T>() {});
         }
         catch(JsonProcessingException ex){
+            logger.error("Saving entity failed due to failing convert it to json. Entity type: " + this.entityName);
             //TODO
             ex.printStackTrace();
             return null;
@@ -64,9 +74,10 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return om.convertValue(response, entityType);
+            return om.readValue(response, new TypeReference<T>() {});
         }
         catch(JsonProcessingException ex){
+            logger.error("Updating entity failed due to failing convert it to json. Entity type: " + this.entityName);
             //TODO
             ex.printStackTrace();
             return null;
@@ -81,8 +92,9 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return om.convertValue(response, entityType);
+            return om.readValue(response, new TypeReference<T>() {});
         } catch (JsonProcessingException ex) {
+            logger.error("Restoring entity failed due to failing convert it to json. Entity type: " + this.entityName);
             //TODO
             ex.printStackTrace();
             return null;
@@ -98,7 +110,8 @@ public abstract class EmsApiClient<T> {
                     .bodyToMono(Void.class)
                     .block();
         } catch (JsonProcessingException ex) {
-            // Handle JSON processing exception
+            logger.error("Saving entity failed due to failing convert it to json. Entity type: " + this.entityName);
+            //TODO
             ex.printStackTrace();
         }
     }
@@ -120,7 +133,7 @@ public abstract class EmsApiClient<T> {
         return convertResponseToEntityList(jsonResponse);
     }
 
-    private List<T> convertResponseToEntityList(String jsonResponse){
+    protected List<T> convertResponseToEntityList(String jsonResponse){
         try{
             List<LinkedHashMap<String, Object>> mapList = om.readValue(jsonResponse, new TypeReference<List<LinkedHashMap<String, Object>>>() {});
             List<T> resultList = new ArrayList<>();
@@ -137,12 +150,12 @@ public abstract class EmsApiClient<T> {
     }
 
     public List<T> findAllWithDeleted(){
-            String jsonResponse = webClient.get()
-                    .uri("findAllWithDeleted")
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-            return convertResponseToEntityList(jsonResponse);
+        String jsonResponse = webClient.get()
+                .uri("findAllWithDeleted")
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+        return convertResponseToEntityList(jsonResponse);
     }
 
     public T findById(Long id) {
@@ -154,9 +167,10 @@ public abstract class EmsApiClient<T> {
                     .block();
             return om.readValue(response, new TypeReference<T>(){});
         } catch (JsonProcessingException ex) {
-            //TODO
+            logger.error("Finding entity failed due to failing convert it from json. Entity type: " + this.entityName);
             ex.printStackTrace();
             return null;
+            //TODO
         }
     }
 

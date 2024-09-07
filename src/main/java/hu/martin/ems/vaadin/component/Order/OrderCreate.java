@@ -56,7 +56,7 @@ public class OrderCreate extends VerticalLayout {
 
         customers.addValueChangeListener(event -> {
             if (event.getValue() != null) {
-                grid.setItems(orderElementApi.getBy(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList()));
+                grid.setItems(orderElementApi.getByCustomer(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList()));
             } else {
                 grid.setItems(new ArrayList<>());
             }

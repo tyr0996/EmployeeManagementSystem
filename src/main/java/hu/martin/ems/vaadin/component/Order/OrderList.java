@@ -15,6 +15,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailAttachment;
+import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.vaadin.MainView;
@@ -95,6 +96,7 @@ public class OrderList extends VVerticalLayout {
             restoreButton.addClassNames("info_button_variant");
             Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+
             DynamicFileDownloader odtDownload = new DynamicFileDownloader("", "order_" + order.getId() + ".odt",
                     out -> orderApi.createDocumentAsODT(order.getOriginal(), out)).asButton();
             odtDownload.getButton().setIcon(ODT_FILE.create());
@@ -104,18 +106,23 @@ public class OrderList extends VVerticalLayout {
 
             Button sendEmail = new Button("Send email");
             sendEmail.addClickListener(event -> {
-                try {
-                    emailSendingApi.send(order.getOriginal().getCustomer().getEmailAddress(),
-                            orderApi.generateEmail(order.getOriginal()),
+                Boolean success = emailSendingApi.send(
+                        new EmailProperties(
+                            order.getOriginal().getCustomer().getEmailAddress(),
                             "Megrendelés visszaigazolás",
+                            orderApi.generateEmail(order.getOriginal()),
                             List.of(new EmailAttachment(
                                     StaticDatas.ContentType.CONTENT_TYPE_APPLICATION_PDF,
                                     orderApi.createDocumentAsPDF(order.getOriginal(), new ByteArrayOutputStream()),
-                                    "order_" + order.getId() + ".pdf")));
+                                    "order_" + order.getId() + ".pdf")
+                            )
+                        )
+                );
+                if(success){
                     Notification.show("Email sikeresen elküldve!")
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 }
-                catch(Exception e) {
+                else{
                     Notification.show("Email küldése sikertelen")
                             .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }

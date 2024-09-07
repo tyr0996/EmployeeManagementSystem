@@ -1,6 +1,7 @@
 package hu.martin.ems.core.service;
 
 import hu.martin.ems.core.model.EmailAttachment;
+import hu.martin.ems.core.model.EmailProperties;
 import jakarta.activation.DataHandler;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
@@ -12,12 +13,11 @@ import org.eclipse.angus.mail.util.MailConnectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Properties;
 
-@Configuration
+@Service
 public class EmailSendingService {
 
     @Value("${mail.smtp.host}")
@@ -44,7 +44,7 @@ public class EmailSendingService {
     private Logger logger = LoggerFactory.getLogger(EmailSendingService.class);
 
 
-    public boolean send(String to, String messageContent, String subject, List<EmailAttachment> attachments) {
+    public boolean send(EmailProperties emailProperties) {
         Properties props = new Properties();
         props.put("mail.smtp.host", host);
         props.put("mail.smtp.auth", auth);
@@ -62,22 +62,22 @@ public class EmailSendingService {
         try {
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(sendingAddress));
-            message.addRecipient(Message.RecipientType.TO,new InternetAddress(to));
-            message.setSubject(subject);
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailProperties.getTo()));
+            message.setSubject(emailProperties.getSubject());
 
             MimeMultipart multipart = new MimeMultipart();
 
             MimeBodyPart mainMessage = new MimeBodyPart();
-            mainMessage.setText(messageContent, "utf-8", "html");
+            mainMessage.setText(emailProperties.getHtmlText(), "utf-8", "html");
             multipart.addBodyPart(mainMessage);
 
             try {
-                if(attachments != null){
-                     for(EmailAttachment a : attachments){
+                if(emailProperties.getAttachments() != null){
+                     for(EmailAttachment emailAttachment : emailProperties.getAttachments()){
                         MimeBodyPart attachment = new MimeBodyPart();
-                        ByteArrayDataSource ds = new ByteArrayDataSource(a.getData(), a.getContentType());
+                        ByteArrayDataSource ds = new ByteArrayDataSource(emailAttachment.getData(), emailAttachment.getContentType());
                         attachment.setDataHandler(new DataHandler(ds));
-                        attachment.setFileName(a.getFileName());
+                        attachment.setFileName(emailAttachment.getFileName());
                         multipart.addBodyPart(attachment);
                     };
                 }
@@ -88,7 +88,7 @@ public class EmailSendingService {
             message.setContent(multipart);
             try{
                 Transport.send(message);
-                logger.info("Email sent to " + to + " successfully!");
+                logger.info("Email sent to " + emailProperties.getTo() + " successfully!");
             }
             catch (MailConnectException e) {
                 logger.error("Email connect refused.");

@@ -37,6 +37,10 @@ public final class StaticDatas {
         public static final String JSON = "application/json;charset=UTF-8";
     }
 
+    public class Consumes{
+        public static final String JSON = "application/json;charset=UTF8";
+    }
+
     public enum Icons {
         PDF_FILE("pdf-file"),
         ODT_FILE("odt-file"),

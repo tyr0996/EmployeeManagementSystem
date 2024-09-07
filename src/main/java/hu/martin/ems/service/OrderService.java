@@ -89,7 +89,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         return Order.class.getResourceAsStream("Empty.odt");
     }
 
-    public byte[] writeAsPdf(Order o, OutputStream out) {
+    public byte[] createDocumentAsPDF(Order o, OutputStream out) {
         try {
             return getOrderDocumentExport(o, out, "PDF");
         } catch (IOException | XDocReportException e) {
@@ -97,7 +97,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         }
     }
 
-    public byte[] writeAsOdt(Order o, OutputStream out) {
+    public byte[] createDocumentAsODT(Order o, OutputStream out) {
         try {
             return getOrderDocumentExport(o, out, "ODT");
         } catch (IOException | XDocReportException e) {

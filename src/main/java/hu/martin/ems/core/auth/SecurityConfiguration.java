@@ -44,8 +44,9 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(new AntPathRequestMatcher("/public/**")).permitAll()
                         .requestMatchers("/").permitAll()
-//                        .requestMatchers("/api/*").permitAll()
+                        .requestMatchers("/api/*").permitAll()//TODO: only for testing!
                         .requestMatchers("/api/*/*").permitAll() //TODO: only for testing!
+                        .requestMatchers("/api/*/*/*").permitAll()
                         .requestMatchers("/login").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -71,14 +72,14 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     public void configure(WebSecurity web) throws Exception {
         super.configure(web);
         web.ignoring()
-                .requestMatchers("/VAADIN/**")      // Vaadin statikus fájlok
-                .requestMatchers("/favicon.ico")    // Favicon
-                .requestMatchers("/manifest.webmanifest", "/sw.js", "/offline.html") // PWA fájlok
-                .requestMatchers("/icons/**")       // PWA ikonok
-                .requestMatchers("/images/**")      // Képfájlok
-                .requestMatchers("/frontend/**")    // Frontend források
-                .requestMatchers("/webjars/**")     // Webjars erőforrások
-                .requestMatchers("/css/**", "/js/**"); // Egyéb statikus fájlok
+                .requestMatchers("/VAADIN/**")
+                .requestMatchers("/favicon.ico")
+                .requestMatchers("/manifest.webmanifest", "/sw.js", "/offline.html")
+                .requestMatchers("/icons/**")
+                .requestMatchers("/images/**")
+                .requestMatchers("/frontend/**")
+                .requestMatchers("/webjars/**")
+                .requestMatchers("/css/**", "/js/**");
     }
 
     @Bean

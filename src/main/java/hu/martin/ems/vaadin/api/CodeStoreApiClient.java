@@ -11,13 +11,21 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
         super(CodeStore.class);
     }
 
-    public List<CodeStore> getChildren(Long parentId){
-        //TODO
-        return null;
+    public List<CodeStore> getChildren(Long parentCodeStoreId){
+        String jsonResponse = webClient.get()
+                .uri("getChildren?parentCodeStoreId=" + parentCodeStoreId)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+        return convertResponseToEntityList(jsonResponse);
     }
 
     public List<CodeStore> getAllByName(String name){
-        //TODO
-        return null;
+        String jsonResponse = webClient.get()
+                .uri("getByName?name=" + name)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+        return convertResponseToEntityList(jsonResponse);
     }
 }

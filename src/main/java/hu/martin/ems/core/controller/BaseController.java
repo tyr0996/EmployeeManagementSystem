@@ -18,7 +18,7 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     protected S service;
 
     @Autowired
-    private ObjectMapper om;
+    protected ObjectMapper om;
 
     public BaseController(S service){
         this.service = service;
@@ -54,9 +54,8 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     }
 
     @PostMapping(path = "/save", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> save(@RequestBody T entity) {
-        service.save(entity);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<String> save(@RequestBody T entity) throws JsonProcessingException {
+        return new ResponseEntity<>(om.writeValueAsString(service.save(entity)), HttpStatus.OK);
     }
 
     @PutMapping(path = "/update", produces = StaticDatas.Produces.JSON)

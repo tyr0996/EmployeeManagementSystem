@@ -12,7 +12,7 @@ public class OrderElementApiClient extends EmsApiClient<OrderElement> {
         super(OrderElement.class);
     }
 
-    public List<OrderElement> getBy(Customer customer){
+    public List<OrderElement> getByCustomer(Customer customer){
         //TODO
         return null;
     }
