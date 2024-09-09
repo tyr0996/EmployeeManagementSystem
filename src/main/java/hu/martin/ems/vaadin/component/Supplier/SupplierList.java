@@ -171,6 +171,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             nameField.clear();
             addresses.clear();
             createDialog.close();
+            updateGridItems();
         });
 
         formLayout.add(nameField, addresses, saveButton);

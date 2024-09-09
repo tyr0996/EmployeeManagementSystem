@@ -177,13 +177,14 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
                 customerApi.save(customer);
             }
 
-            Notification.show("Customer saved: " + customer)
+            Notification.show("Customer saved: " + customer.getFirstName() + " " + customer.getLastName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             firstNameField.clear();
             lastNameField.clear();
             addresses.clear();
             emailField.clear();
             createDialog.close();
+            updateGridItems();
         });
 
         formLayout.add(firstNameField, lastNameField, addresses, emailField, saveButton);
@@ -193,7 +194,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
 
     @Getter
     @NeedCleanCoding
-public class CustomerVO {
+    public class CustomerVO {
         private Customer original;
         private Long deleted;
         private Long id;

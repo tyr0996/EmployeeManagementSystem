@@ -287,6 +287,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
 
         formLayout.add(nameField, buyingPriceNetField, buyingPriceCurrencys, sellingPriceNetField, sellingPriceCurrencies, amountUnits, amountField, taxKeys, saveButton);
         createDialog.add(formLayout);
+        updateGridItems();
         return createDialog;
     }
 

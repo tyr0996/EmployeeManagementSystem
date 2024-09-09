@@ -204,6 +204,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             netPriceField.clear();
             grossPriceField.clear();
             createDialog.close();
+            updateGridItems();
         });
 
         formLayout.add(products, orders, unitField, unitNetPriceField, taxKeys, netPriceField, grossPriceField, saveButton);

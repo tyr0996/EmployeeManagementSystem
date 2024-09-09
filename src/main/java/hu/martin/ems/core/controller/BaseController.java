@@ -25,8 +25,8 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     }
 
     @GetMapping(path = "/findAll", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> findAll(@RequestParam(required = false) Boolean withDeleted) {
-        List<T> allElements =  withDeleted == null ? service.findAll(false) : service.findAll(withDeleted);
+    public ResponseEntity<String> findAll(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) {
+        List<T> allElements = service.findAll(withDeleted);
         try{
             return new ResponseEntity<>(om.writeValueAsString(allElements), HttpStatus.OK);
         }
@@ -36,14 +36,14 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     }
 
     @PutMapping(path = "/restore", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> restore(@RequestParam Long entityId) {
-        service.restore(entityId);
+    public ResponseEntity<String> restore(@RequestBody T entity) {
+        service.restore(entity);
         return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
     }
 
     @PutMapping(path = "/delete", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> delete(@RequestParam Long entityId) {
-        service.delete(entityId);
+    public ResponseEntity<String> delete(@RequestBody T entity) {
+        service.delete(entity);
         return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
     }
 

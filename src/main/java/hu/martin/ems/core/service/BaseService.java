@@ -20,12 +20,12 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
         return repo.customUpdate(entity);
     }
 
-    public void delete(Long entityId) {
-        repo.customDelete(entityId);
+    public void delete(T entity) {
+        repo.customDelete(entity);
     }
 
-    public void restore(Long entityId) {
-        repo.customRestore(entityId);
+    public void restore(T entity) {
+        repo.customRestore(entity);
     }
 
     public void permanentlyDelete(Long entityId) {

@@ -10,9 +10,9 @@ import java.util.List;
 public interface BaseRepository<T, ID> extends Repository<T, ID> {
     List<T> customFindAll(Boolean withDeleted);
 
-    void customDelete(Long entity);
+    void customDelete(T entity);
 
-    void customRestore(Long entity);
+    void customRestore(T entity);
 
     void customPermanentlyDelete(Long entity);
 

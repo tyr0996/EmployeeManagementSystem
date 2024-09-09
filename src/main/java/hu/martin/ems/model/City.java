@@ -1,11 +1,9 @@
 package hu.martin.ems.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +17,7 @@ public class City extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "countryCode_codestore_id")
+    @JsonIgnore
     private CodeStore countryCode;
 
     @Column(nullable = false)

@@ -198,6 +198,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
             streetTypes.clear();
             houseNumberField.clear();
             createDialog.close();
+            updateGridItems();
         });
         formLayout.add(countryCodes, citys, streetNameField, streetTypes, houseNumberField, saveButton);
         createDialog.add(formLayout);

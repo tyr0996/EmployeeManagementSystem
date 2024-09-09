@@ -177,6 +177,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             salaryField.clear();
             roles.clear();
             createDialog.close();
+            updateGridItems();
         });
 
         formLayout.add(firstNameField, lastNameField, salaryField, roles, saveButton);

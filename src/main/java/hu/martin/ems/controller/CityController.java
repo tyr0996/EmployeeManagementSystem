@@ -9,7 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/city")
+@RequestMapping("/api/city")
 @AnonymousAllowed
 public class CityController extends BaseController<City, CityService, CityRepository> {
 

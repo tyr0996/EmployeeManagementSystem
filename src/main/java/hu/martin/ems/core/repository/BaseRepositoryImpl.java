@@ -41,19 +41,19 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     }
 
     @Override
-    public void customDelete(Long entityId) {
+    public void customDelete(T entity) {
         entityManager.createQuery("UPDATE " + type.getSimpleName() + " e SET e.deleted = 1 WHERE e.id = :id")
-                .setParameter("id", entityId)
+                .setParameter("id", entity.getId())
                 .executeUpdate();
-        logger.info(type.getSimpleName() + " deleted successfully: {}", entityId);
+        logger.info(type.getSimpleName() + " deleted successfully: {}", entity.getId());
     }
 
     @Override
-    public void customRestore(Long entityId) {
+    public void customRestore(T entity) {
         entityManager.createQuery("UPDATE " + type.getSimpleName() + " e SET e.deleted = 0 WHERE e.id = :id")
-                .setParameter("id", entityId)
+                .setParameter("id", entity.getId())
                 .executeUpdate();
-        logger.info(type.getSimpleName() + " restored successfully: {}", entityId);
+        logger.info(type.getSimpleName() + " restored successfully: {}", entity.getId());
     }
 
     @Override

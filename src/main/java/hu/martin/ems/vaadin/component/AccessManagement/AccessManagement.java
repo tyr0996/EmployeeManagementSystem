@@ -39,11 +39,11 @@ public class AccessManagement extends VerticalLayout {
 
     private void initButtons(){
         this.listRoles = new Button("Roles");
-        //this.listRoles.setId("AccessManagement_RolesButton");
+        this.listRoles.setId("AccessManagement_RolesButton");
         this.listPermissions = new Button("Permissions");
-        //this.listPermissions = new Button("AccessManagement_Permissions_button");
+        this.listPermissions.setId("AccessManagement_Permissions_button");
         this.pairRolesWithPermissions = new Button("Role-permission pairing");
-        //this.pairRolesWithPermissions.setId("AccessManagement_RolePermissionPairingButton");
+        this.pairRolesWithPermissions.setId("AccessManagement_RolePermissionPairingButton");
     }
 
     private void addClickListeners() {

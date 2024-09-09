@@ -89,6 +89,7 @@ public abstract class EmsApiClient<T> {
         try {
             String response = webClient.put()
                     .uri("restore")
+                    .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(om.writeValueAsString(entity))
                     .retrieve()
                     .bodyToMono(String.class)
@@ -106,6 +107,7 @@ public abstract class EmsApiClient<T> {
         try {
             webClient.put()
                     .uri("delete")
+                    .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(om.writeValueAsString(entity))
                     .retrieve()
                     .bodyToMono(Void.class)
@@ -156,7 +158,7 @@ public abstract class EmsApiClient<T> {
 
     public List<T> findAllWithDeleted(){
         String jsonResponse = webClient.get()
-                .uri("findAllWithDeleted")
+                .uri("findAll?withDeleted=true")
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
