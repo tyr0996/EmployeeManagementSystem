@@ -73,7 +73,7 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
 
     @Override
     public T customUpdate(T entity) throws EntityNotFoundException{
-        if (customFindById(entity.getId()) != null) {
+        if (customFindById(entity.getId()) == null) {
             throw new EntityNotFoundException("Entity with type " + type.getSimpleName() + " not found: " + entity);
         }
         T updatedEntity = super.save(entity);

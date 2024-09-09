@@ -25,11 +25,6 @@ public interface RoleXPermissionRepository extends BaseRepository<RoleXPermissio
             "WHERE rxp.permission.id = :permissionId")
     List<Role> findAllRole(@Param("permissionId") Long permissionId);
 
-
-    @Modifying
-    @Query("DELETE FROM RoleXPermission rxp WHERE rxp.role.id = :roleId")
-    void clearPermissions(@Param("roleId") Long roleId);
-
     @Query("SELECT new RoleXPermission(r, p) FROM Role r " +
             "LEFT JOIN RoleXPermission rxp on rxp.role.id = r.id " +
             "LEFT JOIN Permission p on p.id = rxp.permission.id " +
@@ -39,6 +34,10 @@ public interface RoleXPermissionRepository extends BaseRepository<RoleXPermissio
     //SELECT r.name as rolename, p.name as permissionname FROM Role r LEFT JOIN rolexpermission rxp on r.id = rxp.role_id LEFT JOIN permission p on p.id = rxp.permission_id where rxp.deleted = 0
 
     @Modifying
+    @Query("DELETE FROM RoleXPermission rxp WHERE rxp.role.id = :roleId")
+    void removeAllPermissionsFrom(@Param("roleId") Long roleId);
+
+    @Modifying
     @Query("DELETE FROM RoleXPermission rxp WHERE rxp.permission.id = :permissionId")
-    void clearRoles(@Param("permissionId")Long id);
+    void removeAllRolesFrom(@Param("permissionId")Long id);
 }

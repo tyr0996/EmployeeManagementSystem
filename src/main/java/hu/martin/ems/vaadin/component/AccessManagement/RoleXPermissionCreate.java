@@ -1,7 +1,5 @@
 package hu.martin.ems.vaadin.component.AccessManagement;
 
-import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
@@ -22,7 +20,6 @@ import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
 import jakarta.annotation.Nullable;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @AnonymousAllowed
 @NeedCleanCoding
@@ -32,62 +29,93 @@ public class RoleXPermissionCreate extends VerticalLayout {
     private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
     private final RoleXPermissionApiClient roleXPermissionApi = BeanProvider.getBean(RoleXPermissionApiClient.class);
 
-    public  RoleXPermissionCreate() {
-        add(getFormLayout(null, null));
+    public RoleXPermissionCreate() {
+        add(buildFormLayout(null, null));
     }
 
-    public FormLayout getFormLayout(@Nullable Role entity, @Nullable Dialog d){
+    public FormLayout buildFormLayout(@Nullable Role role, @Nullable Dialog dialog) {
         FormLayout formLayout = new FormLayout();
 
-        ComboBox<Role> roles = new ComboBox<>("Role");
-        ComboBox.ItemFilter<Role> filterRole = (role, filterString) ->
-                role.getName().toLowerCase().contains(filterString.toLowerCase());
-        roles.setItems(filterRole, roleApi.findAll());
-        roles.setItemLabelGenerator(Role::getName);
+        ComboBox<Role> roleComboBox = createRoleComboBox(role);
+        MultiSelectComboBox<Permission> permissionComboBox = createPermissionComboBox(roleComboBox);
 
-        MultiSelectComboBox<Permission> permissions = new MultiSelectComboBox<>("Permission");
-        ComboBox.ItemFilter<Permission> filterPermission = (permission, filterString) ->
-                permission.getName().toLowerCase().contains(filterString.toLowerCase());
-        permissions.setItems(filterPermission, permissionApi.findAll());
-        permissions.setItemLabelGenerator(Permission::getName);
+        if (role != null) {
+            initializeFormWithExistingData(roleComboBox, permissionComboBox, role, dialog);
+        }
 
-        roles.addValueChangeListener((HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<ComboBox<Role>, Role>>) event -> {
+        Button saveButton = createSaveButton(roleComboBox, permissionComboBox, dialog);
+
+        formLayout.add(roleComboBox, permissionComboBox, saveButton);
+        return formLayout;
+    }
+
+    private ComboBox<Role> createRoleComboBox(@Nullable Role selectedRole) {
+        ComboBox<Role> roleComboBox = new ComboBox<>("Role");
+        roleComboBox.setItems((role, filter) -> role.getName().toLowerCase().contains(filter.toLowerCase()), roleApi.findAll());
+        roleComboBox.setItemLabelGenerator(Role::getName);
+
+        if (selectedRole != null) {
+            roleComboBox.setValue(selectedRole);
+        }
+
+        return roleComboBox;
+    }
+
+    private MultiSelectComboBox<Permission> createPermissionComboBox(ComboBox<Role> roleComboBox) {
+        MultiSelectComboBox<Permission> permissionComboBox = new MultiSelectComboBox<>("Permission");
+        permissionComboBox.setItems((permission, filter) -> permission.getName().toLowerCase().contains(filter.toLowerCase()), permissionApi.findAll());
+        permissionComboBox.setItemLabelGenerator(Permission::getName);
+
+        roleComboBox.addValueChangeListener(event -> {
             Role selectedRole = event.getValue();
             if (selectedRole != null) {
-                permissions.setValue(roleXPermissionApi.findAllPairedPermissionsTo(selectedRole));
+                permissionComboBox.setValue(roleXPermissionApi.findAllPairedPermissionsTo(selectedRole));
             }
         });
 
-        if (entity != null) {
-            roles.setValue(entity);
-            permissions.setValue(roleXPermissionApi.findAllPairedPermissionsTo(entity));
-        }
-        if(d != null){
-            roles.setEnabled(false);
-        }
+        return permissionComboBox;
+    }
 
+    private void initializeFormWithExistingData(ComboBox<Role> roleComboBox, MultiSelectComboBox<Permission> permissionComboBox, Role entity, @Nullable Dialog dialog) {
+        roleComboBox.setValue(entity);
+        permissionComboBox.setValue(roleXPermissionApi.findAllPairedPermissionsTo(entity));
+
+        if (dialog != null) {
+            roleComboBox.setEnabled(false);
+        }
+    }
+
+    private Button createSaveButton(ComboBox<Role> roleComboBox, MultiSelectComboBox<Permission> permissionComboBox, @Nullable Dialog dialog) {
         Button saveButton = new Button("Save");
 
-        saveButton.addClickListener(event -> {
-            Role r = roles.getValue();
-            roleXPermissionApi.removeAllPermissionsFrom(r);
-            List<Permission> permission = permissions.getValue().stream().collect(Collectors.toList());
-            permission.forEach(p -> {
-                RoleXPermission rxp = new RoleXPermission();
-                rxp.setRole(r);
-                rxp.setPermission(p);
-                rxp.setDeleted(0L);
-                roleXPermissionApi.save(rxp);
-            });
-            roles.clear();
-            permissions.clear();
-            if(d != null){
-                d.close();
-            }
-            Notification.show("Role successfully pairing!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        saveButton.addClickListener(event -> saveRolePermissions(roleComboBox, permissionComboBox, dialog));
+
+        return saveButton;
+    }
+
+    private void saveRolePermissions(ComboBox<Role> roleComboBox, MultiSelectComboBox<Permission> permissionComboBox, @Nullable Dialog dialog) {
+        Role selectedRole = roleComboBox.getValue();
+        List<Permission> selectedPermissions = permissionComboBox.getValue().stream().toList();
+
+        roleXPermissionApi.removeAllPermissionsFrom(selectedRole);
+
+        selectedPermissions.forEach(permission -> {
+            RoleXPermission roleXPermission = new RoleXPermission(selectedRole, permission);
+            roleXPermission.setDeleted(0L);
+            roleXPermissionApi.save(roleXPermission);
         });
 
-        formLayout.add(roles, permissions, saveButton);
-        return formLayout;
+        clearForm(roleComboBox, permissionComboBox, dialog);
+
+        Notification.show("Role successfully paired!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+    }
+
+    private void clearForm(ComboBox<Role> roleComboBox, MultiSelectComboBox<Permission> permissionComboBox, @Nullable Dialog dialog) {
+        roleComboBox.clear();
+        permissionComboBox.clear();
+
+        if (dialog != null) {
+            dialog.close();
+        }
     }
 }

@@ -11,7 +11,7 @@ import hu.martin.ems.service.RoleXPermissionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/api/roleXPermission")
@@ -21,27 +21,30 @@ public class RoleXPermissionController extends BaseController<RoleXPermission, R
         super(service);
     }
 
-    public ResponseEntity<String> findAllPairedRoleTo(Permission p) throws JsonProcessingException {
-        return new ResponseEntity<>(om.writeValueAsString(service.findAllRole(p)), HttpStatus.OK);
+    @GetMapping(path = "findAllPairedRoleTo")
+    public ResponseEntity<String> findAllPairedRoleTo(@RequestParam Long permissionId) throws JsonProcessingException {
+        return new ResponseEntity<>(om.writeValueAsString(service.findAllRole(permissionId)), HttpStatus.OK);
     }
 
-    public ResponseEntity<String> findAllPairedPermissionsTo(Role r) throws JsonProcessingException {
-        return new ResponseEntity<>(om.writeValueAsString(service.findAllPermission(r)), HttpStatus.OK);
+    @GetMapping(path = "findAllPairedPermissionsTo")
+    public ResponseEntity<String> findAllPairedPermissionsTo(@RequestParam Long roleId) throws JsonProcessingException {
+        return new ResponseEntity<>(om.writeValueAsString(service.findAllPermission(roleId)), HttpStatus.OK);
     }
 
-    public ResponseEntity<String> findAllWithUnused(Boolean withUnused) throws JsonProcessingException {
-        return new ResponseEntity<>(om.writeValueAsString(service.findAllWithUnused(withUnused)), HttpStatus.OK);
+    @GetMapping(path = "findAllWithUnused")
+    public ResponseEntity<String> findAllWithUnused(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) throws JsonProcessingException {
+        return new ResponseEntity<>(om.writeValueAsString(service.findAllWithUnused(withDeleted)), HttpStatus.OK);
     }
 
-    public ResponseEntity<String> removePermissionFromAllPaired(Permission p) throws JsonProcessingException {
-        //return new ResponseEntity<>(om.writeValueAsString(service.clearRoles(p)), HttpStatus.OK);
-        //TODO
-        return null;
+    @PutMapping(path = "removeAllRolesFrom")
+    public ResponseEntity<String> removeAllRolesFrom(@RequestBody Permission p) {
+        service.removeAllRolesFrom(p);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    public ResponseEntity<String> removeAllPermissionsFrom(Role r){
-        //return new ResponseEntity<>(om.writeValueAsString(service.clearPermissions(r)), HttpStatus.OK);
-        //TODO
-        return null;
+    @PutMapping(path = "removeAllPermissionsFrom")
+    public ResponseEntity<String> removeAllPermissionsFrom(@RequestBody Role r) {
+        service.removeAllPermissionsFrom(r);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

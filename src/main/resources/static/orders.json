@@ -1,5 +1,5 @@
 {
-  "object": "Order",
+  "objectName": "Order",
   "required": [
     "orderelements.json",
     "codestores.json",

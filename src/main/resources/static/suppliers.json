@@ -1,5 +1,5 @@
 {
-  "object": "Supplier",
+  "objectName": "Supplier",
   "required": [
     "addresss.json"
   ],

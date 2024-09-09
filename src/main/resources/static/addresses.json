@@ -1,5 +1,5 @@
 {
-  "object": "Address",
+  "objectName": "Address",
   "required": [
     "codestores.json",
     "cities.json",

@@ -55,8 +55,19 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         this.paginationSetting = paginationSetting;
         this.groupedRoleXPermissions = new ArrayList<>();
         this.createOrModifyForm = new FormLayout();
-        createLayout();
         createRoleXPermissionGrid();
+        createLayout();
+    }
+
+    private void createRoleXPermissionGrid(){
+        this.grid = new PaginatedGrid<>(GroupedRoleXPermission.class);
+        grid.addClassName("styling");
+        grid.setPartNameGenerator(roleXPermission -> roleXPermission.role.getDeleted() != 0 ? "deleted" : null);
+
+        grid.setPageSize(paginationSetting.getPageSize());
+        grid.setPaginationLocation(paginationSetting.getPaginationLocation());
+        setGridColumns();
+        updateGridItems();
     }
 
     private void createLayout(){
@@ -77,17 +88,19 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         createOrModifyDialog = new Dialog((editableRole == null ? "Create" : "Modify") + " role");
         createSaveOrUpdateForm();
         saveButton.addClickListener(event -> {
-            saveRole();
+            saveRoleWithPermissions(null);
             Notification.show((editableRole == null ? "Role saved: " : "Role updated: ") + editableRole.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             nameField.clear();
             createOrModifyDialog.close();
             updateGridItems();
         });
+
         createOrModifyDialog.add(this.createOrModifyForm);
     }
 
     private void createSaveOrUpdateForm(){
+        this.createOrModifyForm.removeAll();
         nameField = new TextField("Name");
         saveButton = new Button("Save");
         //Button editRoleXPermissionButton = new Button("Edit permissions");
@@ -107,7 +120,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         createOrModifyForm.add(nameField, permissions, saveButton);
     }
 
-    private void saveRole(){
+    private void saveRoleWithPermissions(List<Permission> appendedPermissions){
         Role role = Objects.requireNonNullElseGet(editableRole, Role::new);
         role.setName(nameField.getValue());
         role.setDeleted(0L);
@@ -125,16 +138,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         });
     }
 
-    private void createRoleXPermissionGrid(){
-        this.grid = new PaginatedGrid<>(GroupedRoleXPermission.class);
-        grid.addClassName("styling");
-        grid.setPartNameGenerator(roleXPermission -> roleXPermission.role.getDeleted() != 0 ? "deleted" : null);
 
-        grid.setPageSize(paginationSetting.getPageSize());
-        grid.setPaginationLocation(paginationSetting.getPaginationLocation());
-        setGridColumns();
-        updateGridItems();
-    }
 
     private void setGridColumns(){
         this.grid.addColumn(GroupedRoleXPermission::roleAsString).setHeader("Role");
@@ -156,40 +160,35 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         }).setHeader("Options");
     }
 
-    //Eddig ok
-
-
-
     public void refreshGrid(){
         updateGridItems();
     }
 
     private void updateGridItems() {
+        groupedRoleXPermissions.clear();
         setGroupedRoleXPermissions();
         this.grid.setItems(groupedRoleXPermissions);
     }
 
     private void setGroupedRoleXPermissions(){
-        List<RoleXPermission> rxps = roleXPermissionApi.findAllWith(false);
+        List<RoleXPermission> rxps = roleXPermissionApi.findAllWithUnused();
         Map<Role, List<Permission>> gridData = new HashMap<>();
         for (RoleXPermission rxp : rxps) {
             Role role = rxp.getRole();
             addRoleIfNotExists(gridData, role);
         }
-        addPermissionsToRoles(gridData);
+        gridData.forEach((role, permissionList) -> {
+            this.groupedRoleXPermissions.add(new GroupedRoleXPermission(role, permissionList));
+        });
     }
 
-    private void addRoleIfNotExists(Map<Role, List<Permission>> gridData, Role role){
+    private void addRoleIfNotExists(Map<Role, List<Permission>> gridData, Role role) {
         if (!gridData.containsKey(role)) {
-            gridData.put(role, new ArrayList<>());
+            List<Permission> permissions = roleXPermissionApi.findAllPairedPermissionsTo(role);
+            gridData.put(role, permissions);
         }
     }
 
-    private void addPermissionsToRoles(Map<Role, List<Permission>> gridData){
-        gridData.forEach((role, permissionList) ->
-            groupedRoleXPermissions.add(new GroupedRoleXPermission(role, permissionList))
-        );
-    }
 
     @AllArgsConstructor
     protected class GroupedRoleXPermission {

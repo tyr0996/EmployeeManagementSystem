@@ -1,6 +1,5 @@
 package hu.martin.ems.controller;
 
-import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.repository.OrderRepository;
@@ -17,7 +16,6 @@ import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/order")
-@NeedCleanCoding
 public class OrderController extends BaseController<Order, OrderService, OrderRepository> {
     public OrderController(OrderService service) {
         super(service);

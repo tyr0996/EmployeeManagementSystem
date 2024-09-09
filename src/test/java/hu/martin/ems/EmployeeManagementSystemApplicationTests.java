@@ -1,6 +1,7 @@
 package hu.martin.ems;
 
 import hu.martin.ems.core.config.DataProvider;
+import hu.martin.ems.core.config.StaticDatas;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 class EmployeeManagementSystemApplicationTests {
+
     @BeforeAll
     static void setUp() {
         DataProvider.saveAllSqlsFromJsons();
@@ -19,13 +21,8 @@ class EmployeeManagementSystemApplicationTests {
 
     @Test
     public void testSqlFileCount() {
-        String projectRoot = System.getProperty("user.dir");
-
-        String sqlDirectoryPath = projectRoot + "\\src\\test\\java\\hu\\martin\\ems\\sql";
-        String jsonDirectoryPath = projectRoot + "\\src\\main\\resources\\static";
-
-        Integer sqlFileCount = fileCountInFolder(sqlDirectoryPath, ".sql");
-        Integer jsonFileCount = fileCountInFolder(jsonDirectoryPath, ".json");
+        Integer sqlFileCount = fileCountInFolder(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH, ".sql");
+        Integer jsonFileCount = fileCountInFolder(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH, ".json");
 
         assertEquals(jsonFileCount, sqlFileCount, "The number of the sql files not equals with the number of json files.");
     }
@@ -39,5 +36,15 @@ class EmployeeManagementSystemApplicationTests {
         String[] files = folderFile.list(filter);
         return files != null ? files.length : 0;
     }
+
+    @Test
+    public void testSqlGenerationFromJson(){
+        String generatedSql = DataProvider.generateSqlFromJson(new File(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
+        assertEquals("INSERT INTO Role (name, deleted) VALUES\n\t('Martin', '0'),\n\t('Robi', '0')",
+                generatedSql,
+                "The generated sql not equals with the excepted");
+    }
+
+
 
 }

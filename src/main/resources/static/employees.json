@@ -1,5 +1,5 @@
 {
-  "object": "Employee",
+  "objectName": "Employee",
   "required": [
     "roles.json"
   ],

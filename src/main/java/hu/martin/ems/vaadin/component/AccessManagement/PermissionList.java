@@ -161,7 +161,7 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
             else{
                 permissionApi.update(permission);
             }
-            roleXPermissionApi.removePermissionFromAllPaired(entity);
+            roleXPermissionApi.removeAllRolesFrom(entity);
             roles.getSelectedItems().forEach(v ->{
                 RoleXPermission rxp = new RoleXPermission(v, permission);
                 rxp.setDeleted(0L);

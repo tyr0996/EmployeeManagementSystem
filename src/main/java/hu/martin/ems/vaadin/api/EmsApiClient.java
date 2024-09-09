@@ -70,6 +70,7 @@ public abstract class EmsApiClient<T> {
         try{
             String response =  webClient.put()
                     .uri("update")
+                    .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(om.writeValueAsString(entity))
                     .retrieve()
                     .bodyToMono(String.class)
@@ -134,20 +135,24 @@ public abstract class EmsApiClient<T> {
     }
 
     protected List<T> convertResponseToEntityList(String jsonResponse){
-        try{
+        return convertResponseToEntityList(jsonResponse, this.entityType);
+    }
+
+    protected <X> List<X> convertResponseToEntityList(String jsonResponse, Class<X> resultEntityType) {
+        try {
             List<LinkedHashMap<String, Object>> mapList = om.readValue(jsonResponse, new TypeReference<List<LinkedHashMap<String, Object>>>() {});
-            List<T> resultList = new ArrayList<>();
+            List<X> resultList = new ArrayList<>();
             mapList.forEach(v -> {
-                resultList.add(om.convertValue(v, entityType));
+                resultList.add(om.convertValue(v, resultEntityType));
             });
             return resultList;
-        }
-        catch(JsonProcessingException ex){
-            //TODO
+        } catch (JsonProcessingException ex) {
             ex.printStackTrace();
+            //TODO
             return null;
         }
     }
+
 
     public List<T> findAllWithDeleted(){
         String jsonResponse = webClient.get()

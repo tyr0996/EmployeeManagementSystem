@@ -63,7 +63,7 @@ public class SecurityConfiguration extends VaadinWebSecurity {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        //http.rememberMe().alwaysRemember(false);
+        http.rememberMe(me -> me.alwaysRemember(false));
 
         // super.configure(HttpSecurity)
         super.configure(http);
@@ -99,7 +99,7 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     }
 
     private String[] getRolesAsString(Role r){
-        List<Permission> permissions = roleXPermissionService.findAllPermission(r);
+        List<Permission> permissions = roleXPermissionService.findAllPermission(r.getId());
         String[] ret = new String[permissions.size() + 1];
         ret[0] = r.getName();
         for(int i = 1; i < permissions.size() + 1; i++){

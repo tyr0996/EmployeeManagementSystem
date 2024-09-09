@@ -17,6 +17,12 @@ public final class StaticDatas {
     public static final Long COUNTRIES_CODESTORE_ID = 6L;
     public static final Long PAYMENT_TYPES_CODESTORE_ID = 7L;
 
+    public class FolderPaths{
+        public static final String PROJECT_ROOT = System.getProperty("user.dir");
+        public static final String GENERATED_SQL_FILES_PATH = PROJECT_ROOT + "\\src\\test\\java\\hu\\martin\\ems\\sql";
+        public static final String STATIC_JSON_FOLDER_PATH = PROJECT_ROOT + "\\src\\main\\resources\\static";
+    }
+
 
 public class ContentType{
 //        public static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain";

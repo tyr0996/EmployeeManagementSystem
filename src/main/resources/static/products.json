@@ -1,5 +1,5 @@
 {
-  "object": "Product",
+  "objectName": "Product",
   "required": [
     "codestores.json"
   ],

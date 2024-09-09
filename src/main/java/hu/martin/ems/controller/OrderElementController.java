@@ -1,7 +1,6 @@
 package hu.martin.ems.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.repository.OrderElementRepository;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/api/orderElement")
-@NeedCleanCoding
 public class OrderElementController extends BaseController<OrderElement, OrderElementService, OrderElementRepository> {
     public OrderElementController(OrderElementService service) {
         super(service);

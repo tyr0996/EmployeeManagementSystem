@@ -1,6 +1,5 @@
 package hu.martin.ems.controller;
 
-import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.repository.RoleRepository;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/api/role")
-@NeedCleanCoding
 public class RoleController extends BaseController<Role, RoleService, RoleRepository> {
 
     public RoleController(RoleService service) {

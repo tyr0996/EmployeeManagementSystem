@@ -59,8 +59,8 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     }
 
     @PutMapping(path = "/update", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> update(@RequestBody T entity) {
-        service.update(entity);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<String> update(@RequestBody T entity) throws JsonProcessingException {
+        T e = service.update(entity);
+        return new ResponseEntity<>(om.writeValueAsString(e), HttpStatus.OK);
     }
 }

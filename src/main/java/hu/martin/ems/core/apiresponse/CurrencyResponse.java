@@ -9,7 +9,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@NeedCleanCoding
 public class CurrencyResponse {
 
     @JsonProperty("AED")

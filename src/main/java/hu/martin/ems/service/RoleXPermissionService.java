@@ -24,15 +24,17 @@ public class RoleXPermissionService extends BaseService<RoleXPermission, RoleXPe
         return this.repo.findAllWithUnused(withDeleted);
     }
 
-    public List<Permission> findAllPermission(Role r) { return this.repo.findAllPermission(r.getId()); }
-
-    public List<Role> findAllRole(Permission p) {
-        return this.repo.findAllRole(p.getId());
+    public List<Permission> findAllPermission(Long roleId) {
+        return this.repo.findAllPermission(roleId);
     }
 
-    public void clearPermissions(Role r) { this.repo.clearPermissions(r.getId()); }
+    public List<Role> findAllRole(Long permissionId) {
+        return this.repo.findAllRole(permissionId);
+    }
 
-    public void clearRoles(Permission p) {
-        this.repo.clearRoles(p.id);
+    public void removeAllPermissionsFrom(Role r) { this.repo.removeAllPermissionsFrom(r.getId()); }
+
+    public void removeAllRolesFrom(Permission p) {
+        this.repo.removeAllRolesFrom(p.id);
     }
 }
