@@ -1,5 +1,7 @@
 package hu.martin.ems.UITests;
 
+import hu.martin.ems.PaginatorComponents;
+import hu.martin.ems.TestingUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,8 +35,6 @@ public class AccessManagementUITests {
         loginWith("unauthorized", "unauthorized");
         assertEquals("http://localhost:8080/login?error", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
     }
-
-
 
     @Test
     public void authorizedCredidentalsTest() throws InterruptedException {
@@ -86,11 +86,21 @@ public class AccessManagementUITests {
         WebElement createButton = findClickableElementWithXpath("//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-horizontal-layout/vaadin-button");
         WebElement grid = findVisibleEventWithXpath("//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid");
 
+        //Create
         int originalVisible = countVisibleGridDataRows(grid);
         int originalInvisible = countHiddenGridDataRows(grid, showDeletedCheckBox);
-        createEmployee(createButton);
+        CreatedEmployee createdEmployee = createEmployee(createButton);
         assertEquals(originalVisible + 1, countVisibleGridDataRows(grid));
 
+        //Read
+        ElementLocation createdEmployeeLocation = lookingForElementInGrid(grid, createdEmployee.getFirstName(),
+                                                                          createdEmployee.getLastName(),
+                                                                          createdEmployee.getRoleName(),
+                                                                          createdEmployee.getSalary(),
+                                                                          "skip");
+        assertNotNull(createdEmployeeLocation);
+
+        //Delete
         deleteEmployee(grid);
         grid = findVisibleEventWithXpath("//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid");
         assertEquals(originalVisible, countVisibleGridDataRows(grid));
@@ -98,9 +108,42 @@ public class AccessManagementUITests {
         showDeletedCheckBox.click();
         assertEquals(originalInvisible + originalVisible + 1, countVisibleGridDataRows(grid));
         showDeletedCheckBox.click();
+
+        //update
     }
 
-    private void createEmployee(WebElement createButton) throws InterruptedException {
+    private ElementLocation lookingForElementInGrid(WebElement grid, String... attributes) throws InterruptedException {
+        for(int i = 1; i <= getGridPaginationData(grid).getNumberOfPages(); i++){
+            ElementLocation el = lookingForElementOnPage(grid, i, attributes);
+            if(el != null){
+                return el;
+            }
+        }
+        return null;
+    }
+
+    private ElementLocation lookingForElementOnPage(WebElement grid, int pageIndex, String... attributes) throws InterruptedException {
+        goToPageInPaginatedGrid(grid, pageIndex);
+        int rowLimit = countVisibleGridDataRowsOnPage(grid);
+        for(int rowIndex = 0; rowIndex < rowLimit; rowIndex++){
+            WebElement row = getVisibleGridRow(grid, rowIndex);
+            if(checkRoleContent(row, attributes)){
+                return new ElementLocation(pageIndex, rowIndex);
+            }
+        }
+        return null;
+    }
+
+    private boolean checkRoleContent(WebElement row, String... attributes){
+        for(int i = 0; i < attributes.length; i++){
+            if(!attributes[i].equals("skip") && !attributes[i].equals(getVisibleGridCell(row, i).getText())){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private CreatedEmployee createEmployee(WebElement createButton) throws InterruptedException {
         createButton.click();
         findVisibleEventWithXpath("//*[@id=\"overlay\"]");
         WebElement firstNameField = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field[1]/input");
@@ -135,6 +178,7 @@ public class AccessManagementUITests {
         notificationDisappearWait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("/html/body/vaadin-notification-container/vaadin-notification-card")));
         assertNull(findVisibleEventWithXpath("//*[@id=\"resizerContainer\"]"));
         Thread.sleep(2000);
+        return new CreatedEmployee(firstName, lastName, "Martin", "20500");
     }
 
     private void checkNotificationText(String excepted){
@@ -144,8 +188,6 @@ public class AccessManagementUITests {
         js.executeScript("arguments[0].remove();", notification);
     }
 
-
-    //@Test
     public void deleteEmployee(WebElement grid) throws InterruptedException {
         int visibleRows = countVisibleGridDataRows(grid);
         assertNotEquals(0, visibleRows);
@@ -227,6 +269,14 @@ public class AccessManagementUITests {
         return visibleWithHidden - visible;
     }
 
+    private int countVisibleGridDataRowsOnPage(WebElement grid){
+        WebElement e2 = grid.getShadowRoot().findElement(By.id("scroller"));
+        WebElement e3 = e2.findElement(By.id("table"));
+        WebElement e4 = e3.findElement(By.id("items"));
+        List<WebElement> e5 = e4.findElements(By.tagName("tr"));
+        return e5.stream().filter(v -> v.isDisplayed()).toList().size();
+    }
+
     private boolean adminSubMenusVisible(){
         WebElement employeeSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.EMPLOYEE_SUBMENU);
         WebElement accessManagementSubMenu = findClickableElementWithXpath(UIXpaths.ACESS_MANAGEMENT_SUBMENU);
@@ -291,20 +341,22 @@ public class AccessManagementUITests {
     }
 
     private PaginationData getGridPaginationData(WebElement grid){
-        WebElement parent = getParent(grid);
+        WebElement parent = TestingUtils.getParent(grid);
         WebElement paginationComponent = parent.findElement(By.tagName("span")).findElement(By.tagName("lit-pagination"));
         Integer total = Integer.parseInt(paginationComponent.getDomAttribute("total"));
         Integer currentPage = Integer.parseInt(paginationComponent.getDomAttribute("page"));
         Integer pageSize = Integer.parseInt(paginationComponent.getDomAttribute("limit"));
-        return new PaginationData(pageSize, total, currentPage);
-    }
-
-    private WebElement getParent(WebElement grid){
-        return grid.findElement(By.xpath("./.."));
+        Integer numberOfPages = (int) Math.ceil((double) total / (double) pageSize);
+        return new PaginationData(pageSize, total, currentPage, numberOfPages);
     }
 
     private WebElement getVisibleGridCell(WebElement grid, int rowIndex, int columnIndex){
         WebElement row = getVisibleGridRow(grid, rowIndex);
+        List<WebElement> rowElements = row.findElements(By.xpath(".//td"));
+        return rowElements.get(columnIndex);
+    }
+
+    private WebElement getVisibleGridCell(WebElement row, int columnIndex){
         List<WebElement> rowElements = row.findElements(By.xpath(".//td"));
         return rowElements.get(columnIndex);
     }
@@ -318,10 +370,17 @@ public class AccessManagementUITests {
 
     @Deprecated
     @Test
-    public void testGridPagination(){
+    public void testGridPagination() throws InterruptedException {
         loginWith("admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.EMPLOYEE_SUBMENU);
-        
+        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CODESTORE_SUBMENU);
+        WebElement grid = findVisibleEventWithXpath("//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid");
+        assertNotNull(grid);
+        goToPageInPaginatedGrid(grid, 5);
+        assertEquals(5, new PaginatorComponents(grid, driver).getCurrentPageNumber());
+        goToPageInPaginatedGrid(grid, 2);
+        assertEquals(2, new PaginatorComponents(grid, driver).getCurrentPageNumber());
+        goToPageInPaginatedGrid(grid, 2);
+        assertEquals(2, new PaginatorComponents(grid, driver).getCurrentPageNumber());
     }
 
     private String generateRandomOnlyLetterString(){
@@ -338,36 +397,27 @@ public class AccessManagementUITests {
         return buffer.toString();
     }
 
-//    //TODO megcsinálni, hogy tudjak lapozni a grid-ben.
-//
-//    private WebElement getNextPageButtonInPaginatedGrid(WebElement grid){
-//        WebElement parent = grid.findElement(By.xpath("./.."));
-//        WebElement paginationComponent = parent.findElement(By.tagName("span")).findElement(By.tagName("lit-pagination"));
-//        WebElement paginatorComponent = paginationComponent.getShadowRoot().findElement(By.id("paginator-page-container"));
-//        return paginatorComponent.findElement(By.id("navigateNextId"));
-//    }
-//
-//    private WebElement getPreviousPageButtonInPaginatedGrid(WebElement grid){
-//        WebElement parent = grid.findElement(By.xpath("./.."));
-//        WebElement paginationComponent = parent.findElement(By.tagName("span")).findElement(By.tagName("lit-pagination"));
-//        return paginationComponent.findElement(By.id("navigateBeforeId"));
-//    }
-//
-//    private WebElement goToPageInPaginatedGrid(WebElement grid, int requiredPageNumber) throws InterruptedException {
-//        if(getGridPaginationData(grid).getCurrentPage() < requiredPageNumber){
-//            WebElement nextPageButton = getNextPageButtonInPaginatedGrid(grid);
-//            while(getGridPaginationData(grid).getCurrentPage() != requiredPageNumber){
-//                nextPageButton.click();
-//                Thread.sleep(100);
-//            }
-//        }
-//        if(getGridPaginationData(grid).getCurrentPage() > requiredPageNumber){
-//            WebElement nextPageButton = getPreviousPageButtonInPaginatedGrid(grid);
-//            while(getGridPaginationData(grid).getCurrentPage() != requiredPageNumber){
-//                nextPageButton.click();
-//                Thread.sleep(100);
-//            }
-//        }
-//        return grid;
-//    }
+    private WebElement goToPageInPaginatedGrid(WebElement grid, int requiredPageNumber) throws InterruptedException {
+        PaginatorComponents paginatorComponents = new PaginatorComponents(grid, driver);
+        int needMoves = requiredPageNumber - paginatorComponents.getCurrentPageNumber();
+        if (needMoves > 0){
+            for(int i = 0; i < needMoves; i++){
+                if(paginatorComponents.getNextButton().isEnabled()){
+                    paginatorComponents.getNextButton().click();
+                }
+                paginatorComponents.refresh();
+                Thread.sleep(50);
+            }
+        }
+        else if(needMoves < 0){
+            for(int i = 0; i < Math.abs(needMoves); i++){
+                if(paginatorComponents.getPreviousButton().isEnabled()){
+                    paginatorComponents.getPreviousButton().click();
+                }
+                paginatorComponents.refresh();
+                Thread.sleep(50);
+            }
+        }
+        return grid;
+    }
 }

@@ -9,4 +9,5 @@ public class PaginationData {
     private Integer pageSize;
     private Integer totalElements;
     private Integer currentPage;
+    private Integer numberOfPages;
 }
