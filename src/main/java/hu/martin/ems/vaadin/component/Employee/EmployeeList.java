@@ -57,7 +57,12 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         List<Employee> employees = employeeApi.findAll();
         List<EmployeeVO> data = employees.stream().map(EmployeeVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
-        this.grid.removeColumnByKey("original");
+        this.grid.removeAllColumns(); // TODO megnézni az összesnél, hogy így nézzen ki
+        this.grid.addColumn(EmployeeVO::getFirstName).setHeader("First name");
+        this.grid.addColumn(EmployeeVO::getLastName).setHeader("Last name");
+        this.grid.addColumn(EmployeeVO::getRole).setHeader("Role");
+        this.grid.addColumn(EmployeeVO::getSalary).setHeader("Salary");
+
         grid.addClassName("styling");
         grid.setPartNameGenerator(employeeVO -> employeeVO.getDeleted() != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());

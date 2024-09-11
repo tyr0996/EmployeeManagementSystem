@@ -17,6 +17,7 @@
     "@vaadin/avatar-group": "24.3.13",
     "@vaadin/bundles": "24.3.13",
     "@vaadin/button": "24.3.13",
+    "@vaadin/charts": "24.3.13",
     "@vaadin/checkbox": "24.3.13",
     "@vaadin/checkbox-group": "24.3.13",
     "@vaadin/combo-box": "24.3.13",
@@ -114,6 +115,7 @@
       "@vaadin/avatar-group": "24.3.13",
       "@vaadin/bundles": "24.3.13",
       "@vaadin/button": "24.3.13",
+      "@vaadin/charts": "24.3.13",
       "@vaadin/checkbox": "24.3.13",
       "@vaadin/checkbox-group": "24.3.13",
       "@vaadin/combo-box": "24.3.13",
@@ -195,7 +197,7 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "b6dee45fd5c5f213bfe812731b0e0f777b9eadcda3dcdb77f205675d16d3a351"
+    "hash": "08dfd56418262b30313a206c6c62dbd8dbc52364fe113e870cd5828135f7e6ff"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -276,6 +278,7 @@
     "lit-html": "$lit-html",
     "@polymer/paper-icon-button": "$@polymer/paper-icon-button",
     "lit-element": "$lit-element",
-    "@polymer/paper-button": "$@polymer/paper-button"
+    "@polymer/paper-button": "$@polymer/paper-button",
+    "@vaadin/charts": "$@vaadin/charts"
   }
 }
