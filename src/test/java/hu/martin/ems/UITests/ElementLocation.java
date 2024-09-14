@@ -6,6 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ElementLocation {
-    private int pageIndex;
+    private int pageNumber;
     private int rowIndex;
 }
