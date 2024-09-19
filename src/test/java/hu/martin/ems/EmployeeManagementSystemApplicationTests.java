@@ -11,8 +11,9 @@ import java.io.FilenameFilter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class EmployeeManagementSystemApplicationTests {
+
 
     @BeforeAll
     static void setUp() {
@@ -44,7 +45,4 @@ class EmployeeManagementSystemApplicationTests {
                 generatedSql,
                 "The generated sql not equals with the excepted");
     }
-
-
-
 }

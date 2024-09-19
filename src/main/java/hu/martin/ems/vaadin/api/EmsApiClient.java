@@ -7,6 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -18,8 +21,9 @@ import java.util.List;
 
 @Service
 @Slf4j
+@Lazy
 public abstract class EmsApiClient<T> {
-    protected final WebClient webClient;
+    protected WebClient webClient;
 
     private WebClient.Builder webClientBuilder;
 
@@ -31,14 +35,19 @@ public abstract class EmsApiClient<T> {
     @Autowired
     protected ObjectMapper om;
 
+    @Autowired
+    private Environment env;
+
+
+    @Autowired
+    private ServletWebServerApplicationContext webServerAppCtxt;
+
     public EmsApiClient(Class<T> entityType) {
         this.entityType = entityType;
         this.entityName = decapitalizeFirstLetter(entityType.getSimpleName());
         this.webClientBuilder = WebClient.builder();
-        this.webClient = webClientBuilder.baseUrl("http://localhost:8080/api/" + entityName + "/").build();
         this.logger = LoggerFactory.getLogger(entityType);
     }
-
 
     private String decapitalizeFirstLetter(String input) {
         if (input == null || input.isEmpty()) {
@@ -48,6 +57,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public T save(T entity) {
+        initWebClient();
         try{
             String response =  webClient.post()
                     .uri("save")
@@ -104,6 +114,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public void delete(T entity){
+        initWebClient();
         try {
             webClient.put()
                     .uri("delete")
@@ -120,6 +131,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public void permanentlyDelete(Long entityId){
+        initWebClient();
         webClient.delete()
                 .uri("permanentlyDelete?id={id}", entityId)
                 .retrieve()
@@ -128,6 +140,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public List<T> findAll(){
+        initWebClient();
         String jsonResponse = webClient.get()
                 .uri("findAll")
                 .retrieve()
@@ -141,6 +154,7 @@ public abstract class EmsApiClient<T> {
     }
 
     protected <X> List<X> convertResponseToEntityList(String jsonResponse, Class<X> resultEntityType) {
+        initWebClient();
         try {
             List<LinkedHashMap<String, Object>> mapList = om.readValue(jsonResponse, new TypeReference<List<LinkedHashMap<String, Object>>>() {});
             List<X> resultList = new ArrayList<>();
@@ -155,8 +169,20 @@ public abstract class EmsApiClient<T> {
         }
     }
 
+    protected T convertResponseToEntity(String jsonResponse){
+        try{
+            return convertResponseToEntityList("[" + jsonResponse + "]").get(0);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            //TODO
+            return null;
+        }
+    }
+
 
     public List<T> findAllWithDeleted(){
+        initWebClient();
         String jsonResponse = webClient.get()
                 .uri("findAll?withDeleted=true")
                 .retrieve()
@@ -166,6 +192,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public T findById(Long id) {
+        initWebClient();
         try{
             String response = webClient.get()
                     .uri("findById?id={id}", id)
@@ -181,4 +208,10 @@ public abstract class EmsApiClient<T> {
         }
     }
 
+    public void initWebClient(){
+        if(webClient == null){
+            String baseUrl = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/api/" + entityName + "/";
+            webClient = webClientBuilder.baseUrl(baseUrl).build();
+        }
+    }
 }

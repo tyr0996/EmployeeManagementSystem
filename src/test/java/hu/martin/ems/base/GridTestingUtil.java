@@ -186,8 +186,12 @@ public class GridTestingUtil {
         }
     }
 
-    public static int countVisibleGridDataRows(String gridXpath) throws InterruptedException {
+    public static int countVisibleGridDataRows(String gridXpath, String showDeletedXpath) throws InterruptedException {
         WebElement grid = findVisibleEventWithXpath(gridXpath);
+//        WebElement showDeletedButton = findVisibleEventWithXpath(showDeletedXpath);
+//        if(showDeletedButton.isSelected()){
+//            showDeletedButton.click();
+//        }
         WebElement parent = grid.findElement(By.xpath("./.."));
         Thread.sleep(100);
         String total = parent.findElement(By.tagName("span")).findElement(By.tagName("lit-pagination")).getDomAttribute("total");
@@ -196,9 +200,9 @@ public class GridTestingUtil {
 
     public static int countHiddenGridDataRows(String gridXpath, String showDeletedXpath) throws InterruptedException {
         WebElement showDeletedElement = findClickableElementWithXpath(showDeletedXpath);
-        int visible = countVisibleGridDataRows(gridXpath);
+        int visible = countVisibleGridDataRows(gridXpath, showDeletedXpath);
         showDeletedElement.click();
-        int visibleWithHidden = countVisibleGridDataRows(gridXpath);
+        int visibleWithHidden = countVisibleGridDataRows(gridXpath, showDeletedXpath);
         showDeletedElement.click();
         return visibleWithHidden - visible;
     }
@@ -212,8 +216,8 @@ public class GridTestingUtil {
         return e5.stream().filter(v -> v.isDisplayed()).toList().size();
     }
 
-    public static ElementLocation getRandomLocationFromGrid(String gridXpath) throws InterruptedException {
-        int elementNumber = countVisibleGridDataRows(gridXpath);
+    public static ElementLocation getRandomLocationFromGrid(String gridXpath, String showDeletedXpath) throws InterruptedException {
+        int elementNumber = countVisibleGridDataRows(gridXpath, showDeletedXpath);
         Random rnd = new Random();
         Integer selectedElementIndex;
         if(elementNumber == 0){
@@ -308,7 +312,6 @@ public class GridTestingUtil {
     }
 
     public static String[] getDataFromRowLocation(String gridXpath, ElementLocation location) throws InterruptedException {
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
         int columnNumber =  getGridColumnNumber(gridXpath);
         goToPageInPaginatedGrid(gridXpath, location.getPageNumber());
         String[] result = new String[columnNumber];

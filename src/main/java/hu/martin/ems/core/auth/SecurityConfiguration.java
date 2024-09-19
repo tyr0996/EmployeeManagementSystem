@@ -12,14 +12,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @EnableWebSecurity
@@ -84,27 +79,5 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                 .requestMatchers("/css/**", "/js/**");
     }
 
-    @Bean
-    public UserDetailsManager userDetailsService() {
-        List<UserDetails> all = new ArrayList<>();
-        List<hu.martin.ems.core.model.User> users = userService.findAll(false);
-        users.forEach(v -> {
-            all.add(User.withUsername(v.getUsername())
-                    .password("{noop}" + v.getPassword()) //TODO lehet, hogy ezt a {noop}-t ki kell törölni. Ez lehet, hogy azt jelenti, hogy nincs titkosítva!
-                    .roles(getRolesAsString(v.getRoleRole()))
-                    .build()
-            );
-        });
-        return new InMemoryUserDetailsManager(all);
-    }
 
-    private String[] getRolesAsString(Role r){
-        List<Permission> permissions = roleXPermissionService.findAllPermission(r.getId());
-        String[] ret = new String[permissions.size() + 1];
-        ret[0] = r.getName();
-        for(int i = 1; i < permissions.size() + 1; i++){
-            ret[i] = permissions.get(i-1).getName();
-        }
-        return ret;
-    }
 }

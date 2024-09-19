@@ -1,53 +1,127 @@
-package hu.martin.ems.UITests;
+package hu.martin.ems;
 
+import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 
 import java.time.Duration;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest
-public class LoginTest {
 
-    private WebDriver driver;
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+public class LoginTests {
 
-    private WebDriverWait notificationDisappearWait;
+    private static WebDriver driver;
 
-    CrudTestingUtil crudTestingUtil;
+    private static WebDriverWait notificationDisappearWait;
+
+    private static CrudTestingUtil crudTestingUtil;
 
     private static final String showDeletedChecBoxXpath = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-horizontal-layout/vaadin-checkbox";
     private static final String gridXpath = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid";
     private static final String createButtonXpath = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-horizontal-layout/vaadin-button";
 
-    @Before
+    @Autowired
+    private ServletWebServerApplicationContext webServerAppCtxt;
+
+    private Integer port;
+
+    @BeforeEach
     public void setup() {
+        port = webServerAppCtxt.getWebServer().getPort();
+        //serverPort.setPort(port);
         driver = new ChromeDriver();
         crudTestingUtil = new CrudTestingUtil(driver, "Employee", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
     @Test
+    public void registrationText(){
+        
+    }
+
+    @Test
     public void unauthorizedCredidentalsTest() {
         loginWith("unauthorized", "unauthorized");
-        assertEquals("http://localhost:8080/login?error", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
+        assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
+    }
+
+    @Test
+    public void forgotPassword_userNotFoundTest() throws InterruptedException {
+        modifyPassword("notExistingUserName", "asdf", "asdf");
+        checkNotificationContainsTexts("User not found!");
+    }
+
+    @Test
+    public void forgotPassword_passwordDoesNotMatchAndUserNotFound() throws InterruptedException {
+        modifyPassword("notExistingUserName", "asdf", "asd");
+        checkNotificationContainsTexts("The passwords doesn't match!");
+    }
+
+    @Test
+    public void forgotPassword_passwordDoesNotMatch() throws InterruptedException {
+        modifyPassword("admin", "asdf", "asd");
+        checkNotificationContainsTexts("The passwords doesn't match!");
+    }
+
+    private void modifyPassword(String userName, String password, String againPassword) throws InterruptedException {
+        driver.get("http://localhost:" + port + "/login");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"input-vaadin-text-field-6\"]")));
+
+        WebElement forgotPasswordButton = driver.findElement(By.xpath("//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[2]"));
+        WebElement registerButton = driver.findElement(By.xpath("//*[@id=\"ROOT-2521314\"]/vaadin-vertical-layout/vaadin-button"));
+
+        forgotPasswordButton.click();
+        Thread.sleep(500);
+        WebElement forgotPasswordDialog = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout");
+        WebElement usernameField = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field/input");
+        WebElement nextButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+
+        usernameField.sendKeys(userName);
+        nextButton.click();
+
+        Thread.sleep(500);
+        WebElement forgotPasswordForDialog = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout");
+        WebElement passwordField = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-password-field[1]/input");
+        WebElement passwordAgainField = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-password-field[2]/input");
+        WebElement submitButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-button");
+        passwordField.sendKeys(password);
+        passwordAgainField.sendKeys(againPassword);
+
+        submitButton.click();
+    }
+
+    @Test
+    public void forgotPassword_success() throws InterruptedException {
+        modifyPassword("admin", "asdf", "asdf");
+        checkNotificationContainsTexts("Password changed successfully!");
+        Thread.sleep(2000);
+        loginWith("admin", "asdf");
+        Thread.sleep(2000);
+        assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem engedett be az új felhasználónév-jelszó párossal!");
+        modifyPassword("admin", "admin", "admin");
+        checkNotificationContainsTexts("Password changed successfully!");
     }
 
     @Test
     public void authorizedCredidentalsTest() throws InterruptedException {
         loginWith("admin", "admin");
         Thread.sleep(2000);
-        assertEquals("http://localhost:8080/", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
+        assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
     }
 
     @Test
@@ -107,14 +181,13 @@ public class LoginTest {
     }
 
     private void loginWith(String username, String password) {
-        driver.get("http://localhost:8080/login");
+        driver.get("http://localhost:" + port + "/login");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
 
         WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"input-vaadin-text-field-6\"]")));
         WebElement passwordField = driver.findElement(By.xpath("//*[@id=\"input-vaadin-password-field-7\"]"));
         WebElement loginButton = driver.findElement(By.xpath("//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[1]"));
-        WebElement forgotPasswordButton = driver.findElement(By.xpath("//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[2]"));
-        WebElement registerButton = driver.findElement(By.xpath("//*[@id=\"ROOT-2521314\"]/vaadin-vertical-layout/vaadin-button"));
+
 
         usernameField.sendKeys(username);
         passwordField.sendKeys(password);
@@ -154,7 +227,7 @@ public class LoginTest {
                 orderCreateMenu != null;
     }
 
-    @After
+    @AfterEach
     public void destroy(){
         driver.close();
     }

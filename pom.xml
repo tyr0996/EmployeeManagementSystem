@@ -268,7 +268,18 @@
 
     <profiles>
         <profile>
-            <id>dev</id>
+            <id>test</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>env</name>
+                    <value>test</value>
+                </property>
+            </activation>
+            <properties>
+                <wsdlProfile>test</wsdlProfile>
+                <spring-boot.run.profiles>test</spring-boot.run.profiles>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -277,7 +288,7 @@
                         <version>${vaadin.version}</version>
                         <executions>
                             <execution>
-                                <id>frontend</id>
+                                <id>frontend-test</id>
                                 <phase>compile</phase>
                                 <goals>
                                     <goal>prepare-frontend</goal>
@@ -286,11 +297,28 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
+
         <profile>
-            <id>production</id>
+            <id>dev</id>
+            <activation>
+                <!-- this profile is active by default -->
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>env</name>
+                    <value>dev</value>
+                </property>
+            </activation>
+            <properties>
+                <spring-boot.run.profiles>dev</spring-boot.run.profiles>
+                <wsdlProfile>dev</wsdlProfile>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -299,7 +327,7 @@
                         <version>${vaadin.version}</version>
                         <executions>
                             <execution>
-                                <id>frontend</id>
+                                <id>frontend-dev</id>
                                 <phase>compile</phase>
                                 <goals>
                                     <goal>prepare-frontend</goal>
@@ -307,6 +335,48 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>production</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>env</name>
+                    <value>prod</value>
+                </property>
+            </activation>
+            <properties>
+                <wsdlProfile>production</wsdlProfile>
+                <spring-boot.run.profiles>prod</spring-boot.run.profiles>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.vaadin</groupId>
+                        <artifactId>vaadin-maven-plugin</artifactId>
+                        <version>${vaadin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>frontend-prod</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>prepare-frontend</goal>
+                                    <goal>build-frontend</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
                     </plugin>
                 </plugins>
             </build>

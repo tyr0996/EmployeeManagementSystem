@@ -44,7 +44,7 @@ public class DataProvider {
     public DataProvider(EntityManager em) throws IOException {
         this.em = em;
         loadAllJsonAndSave();
-        loaded = null;
+        loaded = new ArrayList<>();
     }
 
     private static LinkedHashMap<String, String> generateAllSqlsFromJsons() {
