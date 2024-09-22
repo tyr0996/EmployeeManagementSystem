@@ -30,6 +30,7 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
     }
 
     public List<Permission> findAllPairedPermissionsTo(Role r){
+        initWebClient();
         String jsonResponse = webClient.get()
                 .uri("findAllPairedPermissionsTo?roleId=" + r.getId())
                 .retrieve()
@@ -39,6 +40,7 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
     }
 
     public void removeAllRolesFrom(Permission p){
+        initWebClient();
         try {
             webClient.put()
                     .uri("removeAllRolesFrom")
@@ -55,6 +57,7 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
     }
 
     public String removeAllPermissionsFrom(Role r){
+        initWebClient();
         try {
             String response = webClient.put()
                     .uri("removeAllPermissionsFrom")
@@ -73,6 +76,7 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
     }
 
     public List<RoleXPermission> findAllWithUnused() {
+        initWebClient();
         String jsonResponse = webClient.get()
                 .uri("findAllWithUnused")
                 .retrieve()

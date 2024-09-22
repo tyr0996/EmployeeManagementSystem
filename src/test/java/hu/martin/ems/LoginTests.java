@@ -2,6 +2,7 @@ package hu.martin.ems;
 
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
+import hu.martin.ems.base.RandomGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,8 +50,31 @@ public class LoginTests {
     }
 
     @Test
-    public void registrationText(){
-        
+    public void registrationSuccessText() throws InterruptedException {
+        driver.get("http://localhost:" + port + "/login");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+
+        WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/div/flow-container-root-2521314/vaadin-vertical-layout/vaadin-button")));
+        registerButton.click();
+
+        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field/input")));
+        WebElement passwordField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[1]/input");
+        WebElement passwordAgainField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input");
+        WebElement register = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+
+        String userName = RandomGenerator.generateRandomOnlyLetterString();
+        String password = RandomGenerator.generateRandomOnlyLetterString();
+        usernameField.sendKeys(userName);
+        passwordField.sendKeys(password);
+        passwordAgainField.sendKeys(password);
+
+        register.click();
+        checkNotificationContainsTexts("Registration successful!");
+
+        Thread.sleep(2000);
+        loginWith(userName, password);
+        Thread.sleep(2000);
+        assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem enged be az új regisztráció");
     }
 
     @Test
@@ -206,6 +230,7 @@ public class LoginTests {
         WebElement productSubMenu = findClickableElementWithXpath(UIXpaths.PRODUCT_SUBMENU);
         WebElement supplierSubMenu = findClickableElementWithXpath(UIXpaths.SUPPLIER_SUBMENU);
         WebElement currencySubMenu = findClickableElementWithXpath(UIXpaths.CURRENCY_SUBMENU);
+        WebElement usersSubMenu = findClickableElementWithXpath(UIXpaths.USER_SUB_MENU);
 
         return employeeSubMenu != null &&
                 accessManagementSubMenu != null &&
@@ -215,7 +240,8 @@ public class LoginTests {
                 customerSubMenu != null &&
                 productSubMenu != null &&
                 supplierSubMenu != null &&
-                currencySubMenu != null;
+                currencySubMenu != null &&
+                usersSubMenu != null;
     }
     
     private boolean ordersSubMenusVisible(){

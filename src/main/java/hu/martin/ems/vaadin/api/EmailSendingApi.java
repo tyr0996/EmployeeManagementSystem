@@ -4,19 +4,26 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.EmailProperties;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@Component
+@Service
 @NeedCleanCoding
+@Lazy
 public class EmailSendingApi {
 
     protected final WebClient webClient;
     private final ObjectMapper om = new ObjectMapper();
 
+    @Autowired
+    private ServletWebServerApplicationContext webServerAppCtxt;
+
     public EmailSendingApi(){
-        this.webClient = WebClient.builder().baseUrl("http://localhost:8080/api/emailSending/").build();
+        this.webClient = WebClient.builder().baseUrl("http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/api/emailSending/").build();
     }
 
     public Boolean send(EmailProperties emailProperties) {

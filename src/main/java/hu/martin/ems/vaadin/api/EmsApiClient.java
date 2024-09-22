@@ -66,7 +66,7 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return om.readValue(response, new TypeReference<T>() {});
+            return convertResponseToEntity(response);
         }
         catch(JsonProcessingException ex){
             logger.error("Saving entity failed due to failing convert it to json. Entity type: " + this.entityName);
@@ -85,7 +85,7 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return om.readValue(response, new TypeReference<T>() {});
+            return convertResponseToEntity(response);
         }
         catch(JsonProcessingException ex){
             logger.error("Updating entity failed due to failing convert it to json. Entity type: " + this.entityName);

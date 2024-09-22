@@ -1,3 +1,7 @@
+:root {
+    --side-menu-width: 250px;
+}
+
 .menu-layout {
     background-color: #f7f7f7;
     padding: 10px;
@@ -8,4 +12,25 @@
     padding: 20px;
     flex-grow: 1;
     overflow: auto;
+    margin-left: var(--side-menu-width);
+}
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px!important;
+    height: 100%;
+    background-color: #f8f9fa;
+}
+
+.logout-button {
+    position: absolute;
+    bottom: 0;        /* Az alsó sarokhoz */
+    left: 0;          /* A bal oldalhoz */
+    background-color: #ff4d4f;
+    color: white;
+    margin: 10px;
+
+    text-align: center;
 }

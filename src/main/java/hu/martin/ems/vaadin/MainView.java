@@ -1,13 +1,18 @@
 package hu.martin.ems.vaadin;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLayout;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.server.VaadinServletService;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.vaadin.component.AccessManagement.AccessManagement;
 import hu.martin.ems.vaadin.component.Address.AddressList;
@@ -21,7 +26,12 @@ import hu.martin.ems.vaadin.component.Order.OrderList;
 import hu.martin.ems.vaadin.component.OrderElement.OrderElementList;
 import hu.martin.ems.vaadin.component.Product.ProductList;
 import hu.martin.ems.vaadin.component.Supplier.SupplierList;
+import hu.martin.ems.vaadin.component.User.UserList;
 import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 @Route("")
 @CssImport("./styles/shared-styles.css")
@@ -29,9 +39,11 @@ import jakarta.annotation.security.PermitAll;
 @NeedCleanCoding
 public class MainView extends HorizontalLayout implements RouterLayout {
 
+    private VerticalLayout menuLayout;
+
     public MainView() {
-        VerticalLayout menuLayout = new VerticalLayout();
-        menuLayout.setWidth("250px");
+        menuLayout = new VerticalLayout();
+        menuLayout.setClassName("side-menu");
 
         Div contentLayout = new Div();
         contentLayout.setClassName("content-layout");
@@ -45,12 +57,32 @@ public class MainView extends HorizontalLayout implements RouterLayout {
         addMenu(menuLayout, "Admin", "Product", ProductList.class);
         addMenu(menuLayout, "Admin", "Supplier", SupplierList.class);
         addMenu(menuLayout, "Admin", "Currency", CurrencyList.class);
+        addMenu(menuLayout, "Admin", "Users", UserList.class);
         addMenu(menuLayout, "Orders", "OrderElement", OrderElementList.class);
         addMenu(menuLayout, "Orders", "Order", OrderCreate.class, OrderList.class);
+
+        addLogoutButton();
 
         addClassName("main-view");
         add(menuLayout, contentLayout);
         setSizeFull();
+    }
+
+    private void addLogoutButton() {
+        Button logoutButton = new Button("Kijelentkezés", event -> {
+            // Kijelentkezési logika
+            HttpServletRequest request = (HttpServletRequest) VaadinServletService.getCurrentRequest();
+            HttpServletResponse response = VaadinServletService.getCurrentResponse();
+
+            // SecurityContextLogoutHandler segítségével kijelentkeztetjük a felhasználót
+            SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
+            logoutHandler.logout(request, response, SecurityContextHolder.getContext().getAuthentication());
+
+            UI.getCurrent().getPage().setLocation("logout");
+            Notification.show("Logging out successfully!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        });
+        logoutButton.addClassNames("logout-button");
+        menuLayout.add(logoutButton);
     }
 
     private void addMenu(VerticalLayout menuLayout, String mainMenuName,

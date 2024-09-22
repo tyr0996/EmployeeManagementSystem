@@ -1,6 +1,7 @@
 package hu.martin.ems.vaadin.component.Login;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.login.LoginForm;
@@ -16,6 +17,8 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.User;
+import hu.martin.ems.model.Role;
+import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 
 @Route(value = "login")
@@ -25,6 +28,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     private LoginForm login = new LoginForm();
 
     private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
+    private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
 
     public LoginView() {
         login.setAction("login");
@@ -34,7 +38,45 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
             d.open();
         });
         Button register = new Button("Register");
+        register.addClickListener(event -> {
+            Dialog registerDialog = getRegistrationDialog();
+            registerDialog.open();
+        });
         add(login, register);
+    }
+
+    private Dialog getRegistrationDialog() {
+        Dialog d = new Dialog("Registration");
+        FormLayout form = new FormLayout();
+        TextField userName = new TextField();
+        PasswordField password = new PasswordField();
+        PasswordField passwordAgain = new PasswordField();
+        ComboBox<Role> roleComboBox = createRoleComboBox();
+        Button register = new Button("Register");
+        register.addClickListener(event -> {
+            User allreadyUser = userApi.findByUsername(userName.getValue());
+            if(allreadyUser != null){
+                Notification.show("Username already exists!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+            else{
+                if(!password.getValue().equals(passwordAgain.getValue())){
+                    Notification.show("The passwords doesn't match!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+                else{
+                    User newUser = new User();
+                    newUser.setPassword(password.getValue());
+                    newUser.setUsername(userName.getValue());
+                    newUser.setDeleted(0L);
+                    newUser.setRoleRole(roleComboBox.getValue()); //TODO jogosultságot át kellene gondolni
+                    userApi.save(newUser);
+                    Notification.show("Registration successful!");
+                    d.close();
+                }
+            }
+        });
+        form.add(userName, password, passwordAgain, roleComboBox, register); //TODO Valamiért nem megy bele a roleComboBox a form-ba
+        d.add(form);
+        return d;
     }
 
     private Dialog getForgotPasswordDialog(){
@@ -78,6 +120,15 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
             }
         });
         return d;
+    }
+
+    private ComboBox<Role> createRoleComboBox() {
+        ComboBox<Role> roles = new ComboBox<>("Role");
+        ComboBox.ItemFilter<Role> filter = (role, filterString) ->
+                role.getName().toLowerCase().contains(filterString.toLowerCase());
+        roles.setItems(filter, roleApi.findAll());
+        roles.setItemLabelGenerator(Role::getName);
+        return roles;
     }
 
     @Override

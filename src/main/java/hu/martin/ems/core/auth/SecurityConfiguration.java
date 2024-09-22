@@ -3,8 +3,6 @@ package hu.martin.ems.core.auth;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.service.UserService;
-import hu.martin.ems.model.Permission;
-import hu.martin.ems.model.Role;
 import hu.martin.ems.service.RoleXPermissionService;
 import hu.martin.ems.vaadin.component.Login.LoginView;
 import org.springframework.context.annotation.Bean;
@@ -14,8 +12,6 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import java.util.List;
 
 @EnableWebSecurity
 @Configuration
@@ -51,7 +47,12 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                         .loginPage("/login")
                         .permitAll()
                 )
-                .logout((logout) -> logout.permitAll());
+                .logout(logout -> logout
+                        .permitAll()
+                        .logoutUrl("/logout")  // Kijelentkezési végpont
+                        .logoutSuccessUrl("/login")  // Bejelentkezési oldalra irányít
+                        .invalidateHttpSession(true)  // A session érvénytelenítése
+                        .deleteCookies("JSESSIONID")); // Cookie törlése kijelentkezéskor
 
         return http.build();
     }

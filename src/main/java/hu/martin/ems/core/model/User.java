@@ -12,10 +12,8 @@ import lombok.*;
 @Getter
 @Table(name = "loginuser")
 @NeedCleanCoding
-@Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
+@Setter
 public class User extends BaseEntity{
     private String username;
 
