@@ -48,7 +48,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
     public LoginView() {
         NO_ROLE_USER.setTitle("Permission error");
-        NO_ROLE_USER.setMessage("You have no permission to log in. Contact the administrator about your roles, and try again");
+        NO_ROLE_USER.setMessage("You have no permission to log in. Contact the administrator about your roles, and try again.");
         BAD_CREDIDENTALS.setTitle("Incorrect username or password");
         BAD_CREDIDENTALS.setMessage("Check that you have entered the correct username and password and try again.");
 

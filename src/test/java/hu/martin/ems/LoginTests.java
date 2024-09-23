@@ -6,9 +6,7 @@ import hu.martin.ems.base.RandomGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -17,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 
 import java.time.Duration;
+import java.util.List;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,7 +49,7 @@ public class LoginTests {
 
     }
 
-    //@Test
+    @Test
     public void registrationSuccessButNoPermissionTest() throws InterruptedException {
         driver.get("http://localhost:" + port + "/login");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
@@ -76,14 +75,11 @@ public class LoginTests {
         loginWith(userName, password);
         Thread.sleep(2000);
 
-        WebElement errorHeader = findVisibleElementWithXpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper//section/div[1]/h5");
-        WebElement errorText = findVisibleElementWithXpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper//section/div[1]/p");
-
-        assertEquals("Permission error", errorHeader.getText());
-        assertEquals("You have no permission to log in. Contact the administrator about your roles, and try again!", errorText.getText());
+        checkLoginErrorMessage("Permission error",
+                "You have no permission to log in. Contact the administrator about your roles, and try again.");
     }
 
-    //@Test
+    @Test
     public void unauthorizedCredidentalsTest() throws InterruptedException {
         loginWith("unauthorized", "unauthorized");
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
@@ -91,39 +87,37 @@ public class LoginTests {
         Thread.sleep(1000);
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
-        //Valamiért hiába várom, hogy megtalálja az Error-t, egyszerűen nem találja meg. Bár lehet, hogy a h5 az ami nem tetszik neki
-        WebElement errorHeader = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper//section/div[1]/h5")));
-        WebElement errorText = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper//section/div[1]/p")));
 
-        assertEquals("Incorrect username or password", errorHeader.getText());
-        assertEquals("Check that you have entered the correct username and password and try again.", errorText.getText());
+        checkLoginErrorMessage("Incorrect username or password",
+                "Check that you have entered the correct username and password and try again.");
     }
 
-    //@Test
+    @Test
     public void forgotPassword_userNotFoundTest() throws InterruptedException {
         modifyPassword("notExistingUserName", "asdf", "asdf");
         checkNotificationContainsTexts("User not found!");
     }
 
-    //@Test
+    @Test
     public void forgotPassword_passwordDoesNotMatchAndUserNotFound() throws InterruptedException {
         modifyPassword("notExistingUserName", "asdf", "asd");
         checkNotificationContainsTexts("The passwords doesn't match!");
     }
 
-    //@Test
+    @Test
     public void forgotPassword_passwordDoesNotMatch() throws InterruptedException {
         modifyPassword("admin", "asdf", "asd");
         checkNotificationContainsTexts("The passwords doesn't match!");
     }
 
+    @Test
     private void modifyPassword(String userName, String password, String againPassword) throws InterruptedException {
         driver.get("http://localhost:" + port + "/login");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"input-vaadin-text-field-6\"]")));
 
         WebElement forgotPasswordButton = driver.findElement(By.xpath("//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[2]"));
-        WebElement registerButton = driver.findElement(By.xpath("//*[@id=\"ROOT-2521314\"]/vaadin-vertical-layout/vaadin-button"));
+        WebElement registerButton = driver.findElement(By.xpath("//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[3]"));
 
         forgotPasswordButton.click();
         Thread.sleep(500);
@@ -145,7 +139,7 @@ public class LoginTests {
         submitButton.click();
     }
 
-    //@Test
+    @Test
     public void forgotPassword_success() throws InterruptedException {
         modifyPassword("admin", "asdf", "asdf");
         checkNotificationContainsTexts("Password changed successfully!");
@@ -157,14 +151,14 @@ public class LoginTests {
         checkNotificationContainsTexts("Password changed successfully!");
     }
 
-    //@Test
+    @Test
     public void authorizedCredidentalsTest() throws InterruptedException {
         loginWith("admin", "admin");
         Thread.sleep(2000);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
     }
 
-    //@Test
+    @Test
     public void sideMenuElementsTest() throws InterruptedException {
         loginWith("admin", "admin");
         findClickableElementWithXpath(UIXpaths.SIDE_MENU);
@@ -198,7 +192,7 @@ public class LoginTests {
         assertEquals(true, ordersSubMenusVisible());
     }
 
-    //@Test
+    @Test
     public void employeeCrudTest() throws InterruptedException {
         loginWith("admin", "admin");
         navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.EMPLOYEE_SUBMENU);
@@ -273,4 +267,17 @@ public class LoginTests {
     public void destroy(){
         driver.close();
     }
+
+    private void checkLoginErrorMessage(String title, String description){
+        WebElement login = findVisibleElementWithXpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper");
+        SearchContext shadow = login.getShadowRoot();
+        WebElement errorMessage = shadow.findElements(By.cssSelector("*")).get(0).findElement(By.tagName("div"));
+
+        String errorTitle = errorMessage.findElement(By.tagName("h5")).getText();
+        String errorDescription = errorMessage.findElement(By.tagName("p")).getText();
+
+        assertEquals(title, errorTitle, "Nem megfelelő a hibaüzenet címe");
+        assertEquals(description, errorDescription, "Nem megfelelő a hibaüzenet leírás");
+    }
 }
+
