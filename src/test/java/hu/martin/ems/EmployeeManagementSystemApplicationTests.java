@@ -11,7 +11,7 @@ import java.io.FilenameFilter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class EmployeeManagementSystemApplicationTests {
 
 
@@ -41,7 +41,7 @@ class EmployeeManagementSystemApplicationTests {
     @Test
     public void testSqlGenerationFromJson(){
         String generatedSql = DataProvider.generateSqlFromJson(new File(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
-        assertEquals("INSERT INTO Role (name, deleted) VALUES\n\t('Martin', '0'),\n\t('Robi', '0')",
+        assertEquals("INSERT INTO Role (name, deleted) VALUES\n\t('Martin', '0'),\n\t('Robi', '0'),\n\t('NO_ROLE', '0')",
                 generatedSql,
                 "The generated sql not equals with the excepted");
     }

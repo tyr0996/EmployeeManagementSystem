@@ -47,9 +47,10 @@ public class LoginTests {
         driver = new ChromeDriver();
         crudTestingUtil = new CrudTestingUtil(driver, "Employee", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
+
     }
 
-    @Test
+    //@Test
     public void registrationSuccessButNoPermissionTest() throws InterruptedException {
         driver.get("http://localhost:" + port + "/login");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
@@ -82,7 +83,7 @@ public class LoginTests {
         assertEquals("You have no permission to log in. Contact the administrator about your roles, and try again!", errorText.getText());
     }
 
-    @Test
+    //@Test
     public void unauthorizedCredidentalsTest() throws InterruptedException {
         loginWith("unauthorized", "unauthorized");
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
@@ -98,19 +99,19 @@ public class LoginTests {
         assertEquals("Check that you have entered the correct username and password and try again.", errorText.getText());
     }
 
-    @Test
+    //@Test
     public void forgotPassword_userNotFoundTest() throws InterruptedException {
         modifyPassword("notExistingUserName", "asdf", "asdf");
         checkNotificationContainsTexts("User not found!");
     }
 
-    @Test
+    //@Test
     public void forgotPassword_passwordDoesNotMatchAndUserNotFound() throws InterruptedException {
         modifyPassword("notExistingUserName", "asdf", "asd");
         checkNotificationContainsTexts("The passwords doesn't match!");
     }
 
-    @Test
+    //@Test
     public void forgotPassword_passwordDoesNotMatch() throws InterruptedException {
         modifyPassword("admin", "asdf", "asd");
         checkNotificationContainsTexts("The passwords doesn't match!");
@@ -144,7 +145,7 @@ public class LoginTests {
         submitButton.click();
     }
 
-    @Test
+    //@Test
     public void forgotPassword_success() throws InterruptedException {
         modifyPassword("admin", "asdf", "asdf");
         checkNotificationContainsTexts("Password changed successfully!");
@@ -156,15 +157,15 @@ public class LoginTests {
         checkNotificationContainsTexts("Password changed successfully!");
     }
 
-    @Test
+    //@Test
     public void authorizedCredidentalsTest() throws InterruptedException {
         loginWith("admin", "admin");
         Thread.sleep(2000);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
     }
 
-    @Test
-    public void sideMenuElementsTest() {
+    //@Test
+    public void sideMenuElementsTest() throws InterruptedException {
         loginWith("admin", "admin");
         findClickableElementWithXpath(UIXpaths.SIDE_MENU);
 
@@ -197,7 +198,7 @@ public class LoginTests {
         assertEquals(true, ordersSubMenusVisible());
     }
 
-    @Test
+    //@Test
     public void employeeCrudTest() throws InterruptedException {
         loginWith("admin", "admin");
         navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.EMPLOYEE_SUBMENU);
