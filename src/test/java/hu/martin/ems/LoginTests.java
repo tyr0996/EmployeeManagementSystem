@@ -50,11 +50,11 @@ public class LoginTests {
     }
 
     @Test
-    public void registrationSuccessText() throws InterruptedException {
+    public void registrationSuccessButNoPermissionTest() throws InterruptedException {
         driver.get("http://localhost:" + port + "/login");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
 
-        WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/div/flow-container-root-2521314/vaadin-vertical-layout/vaadin-button")));
+        WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper/vaadin-button[3]")));
         registerButton.click();
 
         WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field/input")));
@@ -74,13 +74,28 @@ public class LoginTests {
         Thread.sleep(2000);
         loginWith(userName, password);
         Thread.sleep(2000);
-        assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem enged be az új regisztráció");
+
+        WebElement errorHeader = findVisibleElementWithXpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper//section/div[1]/h5");
+        WebElement errorText = findVisibleElementWithXpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper//section/div[1]/p");
+
+        assertEquals("Permission error", errorHeader.getText());
+        assertEquals("You have no permission to log in. Contact the administrator about your roles, and try again!", errorText.getText());
     }
 
     @Test
-    public void unauthorizedCredidentalsTest() {
+    public void unauthorizedCredidentalsTest() throws InterruptedException {
         loginWith("unauthorized", "unauthorized");
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
+
+        Thread.sleep(1000);
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+        //Valamiért hiába várom, hogy megtalálja az Error-t, egyszerűen nem találja meg. Bár lehet, hogy a h5 az ami nem tetszik neki
+        WebElement errorHeader = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper//section/div[1]/h5")));
+        WebElement errorText = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper//section/div[1]/p")));
+
+        assertEquals("Incorrect username or password", errorHeader.getText());
+        assertEquals("Check that you have entered the correct username and password and try again.", errorText.getText());
     }
 
     @Test
@@ -111,17 +126,17 @@ public class LoginTests {
 
         forgotPasswordButton.click();
         Thread.sleep(500);
-        WebElement forgotPasswordDialog = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout");
-        WebElement usernameField = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field/input");
+        WebElement forgotPasswordDialog = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout");
+        WebElement usernameField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field/input");
         WebElement nextButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
         usernameField.sendKeys(userName);
         nextButton.click();
 
         Thread.sleep(500);
-        WebElement forgotPasswordForDialog = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout");
-        WebElement passwordField = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-password-field[1]/input");
-        WebElement passwordAgainField = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-password-field[2]/input");
+        WebElement forgotPasswordForDialog = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout");
+        WebElement passwordField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-password-field[1]/input");
+        WebElement passwordAgainField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-password-field[2]/input");
         WebElement submitButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-button");
         passwordField.sendKeys(password);
         passwordAgainField.sendKeys(againPassword);

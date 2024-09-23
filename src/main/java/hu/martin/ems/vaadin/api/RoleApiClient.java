@@ -10,4 +10,14 @@ public class RoleApiClient extends EmsApiClient<Role> {
     public RoleApiClient() {
         super(Role.class);
     }
+
+    public Role findByName(String name) {
+        initWebClient();
+        String response = webClient.get()
+                .uri("findByName?name={name}", name)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+        return convertResponseToEntity(response);
+    }
 }

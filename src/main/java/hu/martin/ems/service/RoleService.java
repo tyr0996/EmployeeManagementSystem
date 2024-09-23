@@ -14,4 +14,8 @@ public class RoleService extends BaseService<Role, RoleRepository> {
     public RoleService(RoleRepository roleRepository) {
         super(roleRepository);
     }
+
+    public Role findByName(String name) {
+        return this.repo.findByName(name);
+    }
 }

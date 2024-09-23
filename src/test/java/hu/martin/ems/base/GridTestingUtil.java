@@ -20,7 +20,7 @@ public class GridTestingUtil {
     public static WebDriver driver;
 
     public static WebElement goToPageInPaginatedGrid(String gridXpath, int requiredPageNumber) throws InterruptedException {
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
         PaginatorComponents paginatorComponents = new PaginatorComponents(grid, driver);
         int needMoves = requiredPageNumber - paginatorComponents.getCurrentPageNumber();
         if (needMoves > 0){
@@ -61,7 +61,7 @@ public class GridTestingUtil {
     }
 
     public static int getGridColumnNumber(String gridXpath){
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
         WebElement e2 = grid.getShadowRoot().findElement(By.id("scroller"));
         WebElement e3 = e2.findElement(By.id("table"));
         WebElement e4 = e3.findElement(By.id("header"));
@@ -71,7 +71,7 @@ public class GridTestingUtil {
     }
 
     public static WebElement getVisibleGridRow(String gridXpath, int rowIndex){
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
         WebElement e2 = grid.getShadowRoot().findElement(By.id("scroller"));
         WebElement e3 = e2.findElement(By.id("table"));
         WebElement e4 = e3.findElement(By.id("items"));
@@ -84,7 +84,7 @@ public class GridTestingUtil {
     }
 
     public static PaginationData getGridPaginationData(String gridXpath){
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
         WebElement parent = TestingUtils.getParent(grid);
         WebElement paginationComponent = parent.findElement(By.tagName("span")).findElement(By.tagName("lit-pagination"));
         Integer total = Integer.parseInt(paginationComponent.getDomAttribute("total"));
@@ -107,7 +107,7 @@ public class GridTestingUtil {
 
     public static WebElement getDeleteButton(String gridXpath, int rowIndex){
         try{
-            WebElement grid = findVisibleEventWithXpath(gridXpath);
+            WebElement grid = findVisibleElementWithXpath(gridXpath);
             int optionsColumnIndex = getGridColumnNumber(gridXpath) - 1;
             WebElement optionsCell = getVisibleGridCell(gridXpath, rowIndex, optionsColumnIndex);
             WebElement deleteButton = optionsCell.findElements(By.xpath("//vaadin-icon[@icon='vaadin:trash']/parent::vaadin-button")).get(rowIndex);
@@ -120,7 +120,7 @@ public class GridTestingUtil {
 
     public static WebElement getModifyButton(String gridXpath, int rowIndex){
         try{
-            WebElement grid = findVisibleEventWithXpath(gridXpath);
+            WebElement grid = findVisibleElementWithXpath(gridXpath);
             int optionsColumnIndex = getGridColumnNumber(gridXpath) - 1;
             WebElement optionsCell = getVisibleGridCell(gridXpath, rowIndex, optionsColumnIndex);
             WebElement modifyButton = optionsCell.findElements(By.xpath("//vaadin-icon[contains(@src, 'edit')]")).get(rowIndex);
@@ -133,7 +133,7 @@ public class GridTestingUtil {
 
     public static WebElement getPermanentlyDeleteButton(String gridXpath, int rowIndex){
         try{
-            WebElement grid = findVisibleEventWithXpath(gridXpath);
+            WebElement grid = findVisibleElementWithXpath(gridXpath);
             int optionsColumnIndex = getGridColumnNumber(gridXpath) - 1;
             WebElement optionsCell = getVisibleGridCell(gridXpath, rowIndex, optionsColumnIndex);
             WebElement permanentlyDeleteButton = optionsCell.findElements(By.xpath("//vaadin-icon[contains(@src, 'clear')]")).get(rowIndex);
@@ -146,7 +146,7 @@ public class GridTestingUtil {
 
     public static WebElement getRestoreButton(String gridXpath, int rowIndex){
         try{
-            WebElement grid = findVisibleEventWithXpath(gridXpath);
+            WebElement grid = findVisibleElementWithXpath(gridXpath);
             int optionsColumnIndex = getGridColumnNumber(gridXpath) - 1;
             WebElement optionsCell = getVisibleGridCell(gridXpath, rowIndex, optionsColumnIndex);
             WebElement restoreButton = optionsCell.findElements(By.xpath("//vaadin-icon[@icon='vaadin:backwards']/parent::vaadin-button")).get(rowIndex);
@@ -177,7 +177,7 @@ public class GridTestingUtil {
         }
     }
 
-    public static WebElement findVisibleEventWithXpath(String xpath) {
+    public static WebElement findVisibleElementWithXpath(String xpath) {
         try {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(200));
             return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
@@ -187,8 +187,8 @@ public class GridTestingUtil {
     }
 
     public static int countVisibleGridDataRows(String gridXpath, String showDeletedXpath) throws InterruptedException {
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
-//        WebElement showDeletedButton = findVisibleEventWithXpath(showDeletedXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+//        WebElement showDeletedButton = findVisibleElementWithXpath(showDeletedXpath);
 //        if(showDeletedButton.isSelected()){
 //            showDeletedButton.click();
 //        }
@@ -208,7 +208,7 @@ public class GridTestingUtil {
     }
 
     public static int countVisibleGridDataRowsOnPage(String gridXpath){
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
         WebElement e2 = grid.getShadowRoot().findElement(By.id("scroller"));
         WebElement e3 = e2.findElement(By.id("table"));
         WebElement e4 = e3.findElement(By.id("items"));
@@ -245,6 +245,23 @@ public class GridTestingUtil {
         }
     }
 
+    public static void selectElementByTextFromComboBox(WebElement comboBox, String text) throws InterruptedException {
+        comboBox.click();
+        Thread.sleep(200);
+        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
+        if(comboBoxOptions.size() == 0){
+            System.err.println("Nincs elem a combo boxban!");
+        }
+        else{
+            for(WebElement comboBoxElement : comboBoxOptions){
+                if(comboBoxElement.getText().equals(text)){
+                    comboBoxElement.click();
+                    break;
+                }
+            }
+        }
+    }
+
     public static void selectRandomFromComboBox(WebElement comboBox) throws InterruptedException {
         comboBox.click();
         Thread.sleep(200);
@@ -263,7 +280,7 @@ public class GridTestingUtil {
     }
 
     public static ElementLocation lookingForElementInGrid(String gridXpath, String... attributes) throws InterruptedException {
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
         for(int i = 1; i <= getGridPaginationData(gridXpath).getNumberOfPages(); i++){
             ElementLocation el = lookingForElementOnPage(gridXpath, i, attributes);
             if(el != null){
@@ -274,7 +291,7 @@ public class GridTestingUtil {
     }
 
     public static ElementLocation lookingForElementOnPage(String gridXpath, int pageIndex, String... attributes) throws InterruptedException {
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
         goToPageInPaginatedGrid(gridXpath, pageIndex);
         int rowLimit = countVisibleGridDataRowsOnPage(gridXpath);
         for(int rowIndex = 0; rowIndex < rowLimit; rowIndex++){
@@ -296,14 +313,14 @@ public class GridTestingUtil {
     }
 
     public static void checkNotificationText(String excepted){
-        WebElement notification = findVisibleEventWithXpath("/html/body/vaadin-notification-container/vaadin-notification-card");
+        WebElement notification = findVisibleElementWithXpath("/html/body/vaadin-notification-container/vaadin-notification-card");
         assertEquals(excepted, notification.getText());
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].remove();", notification);
     }
 
     public static void checkNotificationContainsTexts(String... texts){
-        WebElement notification = findVisibleEventWithXpath("/html/body/vaadin-notification-container/vaadin-notification-card");
+        WebElement notification = findVisibleElementWithXpath("/html/body/vaadin-notification-container/vaadin-notification-card");
         for(String text : texts){
             assertEquals(true, notification.getText().contains(text));
         }

@@ -69,12 +69,10 @@ public class MainView extends HorizontalLayout implements RouterLayout {
     }
 
     private void addLogoutButton() {
-        Button logoutButton = new Button("Kijelentkezés", event -> {
-            // Kijelentkezési logika
+        Button logoutButton = new Button("Log out", event -> {
             HttpServletRequest request = (HttpServletRequest) VaadinServletService.getCurrentRequest();
             HttpServletResponse response = VaadinServletService.getCurrentResponse();
 
-            // SecurityContextLogoutHandler segítségével kijelentkeztetjük a felhasználót
             SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
             logoutHandler.logout(request, response, SecurityContextHolder.getContext().getAuthentication());
 

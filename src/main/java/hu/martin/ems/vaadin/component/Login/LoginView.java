@@ -4,7 +4,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.login.LoginI18n;
+import com.vaadin.flow.component.login.LoginOverlay;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -20,38 +21,103 @@ import hu.martin.ems.core.model.User;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Route(value = "login")
 @AnonymousAllowed
 @NeedCleanCoding
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
-    private LoginForm login = new LoginForm();
+
+    private LoginI18n login = LoginI18n.createDefault();
+//    private LoginForm login = new LoginForm();
 
     private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
 
+    private LoginI18n.ErrorMessage NO_ROLE_USER = new LoginI18n.ErrorMessage();
+    private LoginI18n.ErrorMessage BAD_CREDIDENTALS = new LoginI18n.ErrorMessage();
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+
     public LoginView() {
-        login.setAction("login");
-        login.setForgotPasswordButtonVisible(true);
-        login.addForgotPasswordListener(event -> {
-            Dialog d = getForgotPasswordDialog();
-            d.open();
-        });
+        NO_ROLE_USER.setTitle("Permission error");
+        NO_ROLE_USER.setMessage("You have no permission to log in. Contact the administrator about your roles, and try again");
+        BAD_CREDIDENTALS.setTitle("Incorrect username or password");
+        BAD_CREDIDENTALS.setMessage("Check that you have entered the correct username and password and try again.");
+
         Button register = new Button("Register");
+        register.setClassName("register-button");
         register.addClickListener(event -> {
             Dialog registerDialog = getRegistrationDialog();
             registerDialog.open();
         });
-        add(login, register);
+
+        LoginOverlay loginOverlay = new LoginOverlay();
+
+        loginOverlay.setTitle("EMS");
+        loginOverlay.setDescription("The Employee Management System.");
+
+        LoginI18n.Form loginForm = login.getForm();
+        loginForm.setTitle("Login");
+        loginForm.setUsername("Username");
+        loginForm.setPassword("Password");
+        loginForm.setSubmit("Login");
+        loginForm.setForgotPassword("Forgot password");
+        login.setForm(loginForm);
+
+        loginOverlay.setI18n(login);
+        loginOverlay.getFooter().add(register);
+
+        loginOverlay.setOpened(true);
+        add(loginOverlay);
+
+        loginOverlay.addLoginListener(e -> {
+            String userName = e.getUsername();
+            String password = e.getPassword();
+            User user = userApi.findByUsername(userName);
+            if(user != null && user.getRoleRole().getName().equals("NO_ROLE")){
+                login.setErrorMessage(NO_ROLE_USER);
+                loginOverlay.setI18n(login);
+                loginOverlay.setError(true);
+                loginOverlay.setEnabled(true);
+            }
+            else {
+                try {
+                    UsernamePasswordAuthenticationToken authRequest =
+                            new UsernamePasswordAuthenticationToken(userName, password);
+                    Authentication auth = authenticationManager.authenticate(authRequest);
+
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                    loginOverlay.close();
+                    getUI().ifPresent(ui -> ui.navigate("/"));
+                }
+                catch (AuthenticationException ex) {
+                    login.setErrorMessage(BAD_CREDIDENTALS);
+                    loginOverlay.setI18n(login);
+                    loginOverlay.setError(true);
+                    loginOverlay.setEnabled(true);
+                }
+            }
+        });
+
+        loginOverlay.addForgotPasswordListener(e -> {
+            getForgotPasswordDialog().open();
+        });
     }
 
     private Dialog getRegistrationDialog() {
         Dialog d = new Dialog("Registration");
         FormLayout form = new FormLayout();
-        TextField userName = new TextField();
-        PasswordField password = new PasswordField();
-        PasswordField passwordAgain = new PasswordField();
-        ComboBox<Role> roleComboBox = createRoleComboBox();
+        TextField userName = new TextField("Username");
+        PasswordField password = new PasswordField("Password");
+        PasswordField passwordAgain = new PasswordField("Password again");
         Button register = new Button("Register");
         register.addClickListener(event -> {
             User allreadyUser = userApi.findByUsername(userName.getValue());
@@ -67,14 +133,14 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     newUser.setPassword(password.getValue());
                     newUser.setUsername(userName.getValue());
                     newUser.setDeleted(0L);
-                    newUser.setRoleRole(roleComboBox.getValue()); //TODO jogosultságot át kellene gondolni
+                    newUser.setRoleRole(roleApi.findByName("NO_ROLE"));
                     userApi.save(newUser);
                     Notification.show("Registration successful!");
                     d.close();
                 }
             }
         });
-        form.add(userName, password, passwordAgain, roleComboBox, register); //TODO Valamiért nem megy bele a roleComboBox a form-ba
+        form.add(userName, password, passwordAgain, register);
         d.add(form);
         return d;
     }
@@ -137,7 +203,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 .getQueryParameters()
                 .getParameters()
                 .containsKey("error")) {
-            login.setError(true);
+            //login.setError(true);
         }
     }
 }

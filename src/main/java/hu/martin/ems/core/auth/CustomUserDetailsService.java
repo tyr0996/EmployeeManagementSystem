@@ -29,10 +29,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
 
         return User.withUsername(user.getUsername())
-                .password("{noop}" + user.getPassword()) // Titkosítást figyelembe venni
+                .password("{noop}" + user.getPassword()) //TODO Titkosítást figyelembe venni
                 .roles(getRolesAsString(user.getRoleRole()))
+                .accountLocked(user.getRoleRole().getName().equals("NO_ROLE"))
                 .build();
     }
+
 
     private String[] getRolesAsString(Role r){
         List<Permission> permissions = roleXPermissionService.findAllPermission(r.getId());

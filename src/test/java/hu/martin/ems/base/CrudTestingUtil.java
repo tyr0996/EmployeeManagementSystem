@@ -38,7 +38,7 @@ public class CrudTestingUtil {
     }
 
     public void updateTest() throws InterruptedException {
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
         ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath, showDeletedCheckBoxXpath);
         if(rowLocation == null){
             createTest();
@@ -59,7 +59,7 @@ public class CrudTestingUtil {
         String originalLastName = lastNameCell.getText();
         modifyButton.click();
 
-        WebElement dialog = findVisibleEventWithXpath("//*[@id=\"overlay\"]");
+        WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
         WebElement saveEmployeeButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
         List<WebElement> fields = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout").findElements(By.xpath("./*"));
@@ -67,9 +67,9 @@ public class CrudTestingUtil {
             fillElementWithRandom(fields.get(i));
         }
 
-        WebElement firstNameField = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field[1]/input");
-        WebElement lastNameField = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field[2]/input");
-        WebElement salaryField = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-number-field/input");
+        WebElement firstNameField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field[1]/input");
+        WebElement lastNameField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field[2]/input");
+        WebElement salaryField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-number-field/input");
         WebElement roleComboBox = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-combo-box/input");
 
         assertNotEquals(firstNameCell.getText(), firstNameField.getText());
@@ -97,7 +97,7 @@ public class CrudTestingUtil {
         createButton.click();
 
 
-        List<WebElement> fields = findVisibleEventWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout").findElements(By.xpath("./*"));
+        List<WebElement> fields = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout").findElements(By.xpath("./*"));
         List<String> generatedData = new ArrayList<>();
         for(int i = 0; i < fields.size(); i++){
             fillElementWithRandom(fields.get(i));
@@ -114,7 +114,7 @@ public class CrudTestingUtil {
     }
 
     public void deleteTest() throws InterruptedException {
-        WebElement grid = findVisibleEventWithXpath(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
         ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath, showDeletedCheckBoxXpath);
         if(rowLocation == null){
             createTest();
@@ -123,7 +123,7 @@ public class CrudTestingUtil {
         goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
 
 
-        WebElement showDeletedCheckBox = findVisibleEventWithXpath(showDeletedCheckBoxXpath);
+        WebElement showDeletedCheckBox = findVisibleElementWithXpath(showDeletedCheckBoxXpath);
         int originalVisible = GridTestingUtil.countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath);
         int originalInvisible = GridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
 
@@ -136,7 +136,7 @@ public class CrudTestingUtil {
         checkNotificationContainsTexts("Employee deleted: ");
         Thread.sleep(2000);
 
-        grid = findVisibleEventWithXpath(gridXpath);
+        grid = findVisibleElementWithXpath(gridXpath);
         assertEquals(originalVisible - 1, countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath));
         assertEquals(originalInvisible + 1, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
         showDeletedCheckBox.click();

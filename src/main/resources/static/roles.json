@@ -9,6 +9,10 @@
     {
       "name": "Robi",
       "deleted": 0
+    },
+    {
+      "name": "NO_ROLE",
+      "deleted": 0
     }
   ]
 }
