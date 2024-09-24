@@ -22,6 +22,7 @@ public class CrudTestingUtil {
     private final String createButtonXpath;
     private LinkedHashMap<String, String> createOrUpdateDialogPartXpaths;
     private final String className;
+
     public CrudTestingUtil(WebDriver driver,
                            String className,
                            String showDeletedCheckBoxXpath,
@@ -82,7 +83,7 @@ public class CrudTestingUtil {
         firstNameField.sendKeys(newFirstName);
 
         saveEmployeeButton.click();
-        checkNotificationContainsTexts("Employee saved: ");
+        checkNotificationContainsTexts(className + " saved: ");
         Thread.sleep(200);
 //        assertNull(lookingForElementInGrid(gridXpath, originalFirstName, originalLastName, "Martin", "20500"));
 //        Thread.sleep(2000);
@@ -106,7 +107,7 @@ public class CrudTestingUtil {
         WebElement saveEmployeeButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
         saveEmployeeButton.click();
-        checkNotificationContainsTexts("Employee saved: ");
+        checkNotificationContainsTexts(className + " saved: ");
         //assertNotNull(lookingForElementInGrid(gridXpath, firstName, lastName, "Martin", "20500"));
         Thread.sleep(2000);
         assertEquals(originalVisible + 1, countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath));
@@ -114,6 +115,13 @@ public class CrudTestingUtil {
     }
 
     public void deleteTest() throws InterruptedException {
+        int originalVisible = countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+        int originalInvisible = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+
+        if(originalVisible == 0){
+            createTest();
+            originalVisible++;
+        }
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath, showDeletedCheckBoxXpath);
         if(rowLocation == null){
@@ -124,8 +132,6 @@ public class CrudTestingUtil {
 
 
         WebElement showDeletedCheckBox = findVisibleElementWithXpath(showDeletedCheckBoxXpath);
-        int originalVisible = GridTestingUtil.countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath);
-        int originalInvisible = GridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
 
         Thread.sleep(200);
 //        WebElement firstName = getVisibleGridCell(gridXpath, rowLocation.getRowIndex(), 0);
@@ -133,7 +139,7 @@ public class CrudTestingUtil {
 //        String name = firstName.getText() + " " + lastName.getText();
         WebElement deleteButton = getDeleteButton(gridXpath, rowLocation.getRowIndex());
         deleteButton.click();
-        checkNotificationContainsTexts("Employee deleted: ");
+        checkNotificationContainsTexts(className + " deleted: ");
         Thread.sleep(2000);
 
         grid = findVisibleElementWithXpath(gridXpath);
@@ -144,8 +150,38 @@ public class CrudTestingUtil {
         showDeletedCheckBox.click();
     }
 
-    public void permanentlyDeleteTest(){
+    public void permanentlyDeleteTest() throws InterruptedException {
+        int originalVisible = countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+        int originalInvisible = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+        if(originalVisible == 0 && originalInvisible == 0){
+            createTest();
+            Thread.sleep(500);
+            originalVisible++;
+        }
+        if(originalInvisible == 0){
+            deleteTest();
+            Thread.sleep(500);
+            originalVisible--;
+            originalInvisible++;
+        }
+        ElementLocation el = getRandomLocationDeletedStatusFromGrid(gridXpath, showDeletedCheckBoxXpath);
+        WebElement showDeleted = findClickableElementWithXpath(showDeletedCheckBoxXpath);
+        showDeleted.click();
+        Thread.sleep(500);
+        goToPageInPaginatedGrid(gridXpath, el.getPageNumber());
+        String[] selectedData = getDataFromRowLocation(gridXpath, el);
+        assertNotNull(lookingForElementInGrid(gridXpath, selectedData));
+        goToPageInPaginatedGrid(gridXpath, el.getPageNumber());
+        WebElement pDeleteButton = getPermanentlyDeleteButton(gridXpath, el.getRowIndex());
+        pDeleteButton.click();
+        checkNotificationContainsTexts(className + " permanently deleted: ");
+        Thread.sleep(500);
+        assertNull(lookingForElementInGrid(gridXpath, selectedData));
+        showDeleted = findClickableElementWithXpathWithWaiting(showDeletedCheckBoxXpath);
+        showDeleted.click();
+        assertNull(lookingForElementInGrid(gridXpath, selectedData));
 
+        assertEquals(originalInvisible - 1, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
     }
 
     public void readTest(){
@@ -160,6 +196,13 @@ public class CrudTestingUtil {
         int originalVisibleRows = countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath);
         int originalInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
         WebElement showDeletedButton = findClickableElementWithXpath(showDeletedCheckBoxXpath);
+
+        if(originalInvisibleRows == 0){
+            createTest();
+            deleteTest();
+            originalInvisibleRows++;
+        }
+
         if(!showDeletedButton.isSelected()){
             showDeletedButton.click();
         }

@@ -136,7 +136,7 @@ public class GridTestingUtil {
             WebElement grid = findVisibleElementWithXpath(gridXpath);
             int optionsColumnIndex = getGridColumnNumber(gridXpath) - 1;
             WebElement optionsCell = getVisibleGridCell(gridXpath, rowIndex, optionsColumnIndex);
-            WebElement permanentlyDeleteButton = optionsCell.findElements(By.xpath("//vaadin-icon[contains(@src, 'clear')]")).get(rowIndex);
+            WebElement permanentlyDeleteButton = optionsCell.findElements(By.xpath("//vaadin-icon[contains(@src, 'clear')]")).get(0);
             return permanentlyDeleteButton;
         }
         catch (Exception e){
@@ -224,15 +224,68 @@ public class GridTestingUtil {
             return null;
         }
         else if(elementNumber > 1){
-            selectedElementIndex = rnd.nextInt(0, elementNumber - 1);
+            selectedElementIndex = rnd.nextInt(0, elementNumber - 1); //TODO lehet, hogy ezt ki kell venni
         }
         else{
             return new ElementLocation(1, 0);
         }
-        int pageNumber = (int) Math.ceil((double)selectedElementIndex / (double) getGridPaginationData(gridXpath).getPageSize());
+        int pageNumber;
+        if(selectedElementIndex != 0){
+            pageNumber = (int) Math.ceil((double)selectedElementIndex / (double) getGridPaginationData(gridXpath).getPageSize());
+        }
+        else{
+            pageNumber = 1;
+        }
+
         int rowIndex = selectedElementIndex % getGridPaginationData(gridXpath).getPageSize();
 
         return new ElementLocation(pageNumber, rowIndex);
+    }
+
+    public static ElementLocation getRandomLocationDeletedStatusFromGrid(String gridXpath, String showDeletedXpath) throws InterruptedException {
+        int originalElements = countVisibleGridDataRows(gridXpath, showDeletedXpath);
+        int deletedElements = countHiddenGridDataRows(gridXpath, showDeletedXpath);
+        WebElement showDeleted = findClickableElementWithXpathWithWaiting(showDeletedXpath);
+        boolean originalShowDeleted = showDeleted.isSelected();
+        if(!originalShowDeleted){
+            showDeleted.click();
+            Thread.sleep(100);
+        }
+        if(deletedElements == 0){
+            return null;
+        }
+        Random rnd = new Random();
+        ElementLocation deletedRow = null;
+        while (deletedRow == null) {
+            int randomRow = rnd.nextInt(0, originalElements + deletedElements);
+            int pageNumber;
+            if(randomRow != 0){
+                pageNumber = (int) Math.ceil((double)randomRow / (double) getGridPaginationData(gridXpath).getPageSize());
+            }
+            else{
+                pageNumber = 1;
+            }
+            int rowIndex = randomRow % getGridPaginationData(gridXpath).getPageSize();
+            goToPageInPaginatedGrid(gridXpath, pageNumber);
+            if(isDeletedRow(gridXpath, getRowAtPosition(gridXpath, new ElementLocation(pageNumber, rowIndex)))){
+                deletedRow = new ElementLocation(pageNumber, rowIndex);
+            }
+        }
+        if(!originalShowDeleted){
+            showDeleted.click();
+        }
+        return deletedRow;
+    }
+
+    public static boolean isDeletedRow(String gridXpath, WebElement row){
+        int cols = getGridColumnNumber(gridXpath);
+        Boolean isDeleted = getVisibleGridCell(row, 0).getDomAttribute("part").contains("deleted");
+        for(int i = 1; i < cols; i++){
+            if(getVisibleGridCell(row, i).getDomAttribute("part").contains("deleted") != isDeleted){
+                throw new RuntimeException("Nem dönthető el biztosan, hogy egy a row az törölt, vagy nem");
+            }
+        }
+        return isDeleted;
     }
 
     public static void fillElementWithRandom(WebElement element) throws InterruptedException {

@@ -2,6 +2,7 @@ package hu.martin.ems;
 
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
+import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.RandomGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,30 +24,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class LoginTests {
-
-    private static WebDriver driver;
-
-    private static WebDriverWait notificationDisappearWait;
-
-    private static CrudTestingUtil crudTestingUtil;
-
-    private static final String showDeletedChecBoxXpath = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid";
-    private static final String createButtonXpath = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-horizontal-layout/vaadin-button";
-
     @Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
-
     private Integer port;
+    private static WebDriver driver;
+    private static WebDriverWait notificationDisappearWait;
+
 
     @BeforeEach
     public void setup() {
         port = webServerAppCtxt.getWebServer().getPort();
-        //serverPort.setPort(port);
         driver = new ChromeDriver();
-        crudTestingUtil = new CrudTestingUtil(driver, "Employee", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
-
+        GridTestingUtil.driver = driver;
     }
 
     @Test
@@ -72,7 +62,7 @@ public class LoginTests {
         checkNotificationContainsTexts("Registration successful!");
 
         Thread.sleep(2000);
-        loginWith(userName, password);
+        TestingUtils.loginWith(driver, port, userName, password);
         Thread.sleep(2000);
 
         checkLoginErrorMessage("Permission error",
@@ -81,7 +71,7 @@ public class LoginTests {
 
     @Test
     public void unauthorizedCredidentalsTest() throws InterruptedException {
-        loginWith("unauthorized", "unauthorized");
+        TestingUtils.loginWith(driver, port, "unauthorized", "unauthorized");
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
 
         Thread.sleep(1000);
@@ -144,7 +134,7 @@ public class LoginTests {
         modifyPassword("admin", "asdf", "asdf");
         checkNotificationContainsTexts("Password changed successfully!");
         Thread.sleep(2000);
-        loginWith("admin", "asdf");
+        TestingUtils.loginWith(driver, port, "admin", "asdf");
         Thread.sleep(2000);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem engedett be az új felhasználónév-jelszó párossal!");
         modifyPassword("admin", "admin", "admin");
@@ -153,14 +143,14 @@ public class LoginTests {
 
     @Test
     public void authorizedCredidentalsTest() throws InterruptedException {
-        loginWith("admin", "admin");
+        TestingUtils.loginWith(driver, port, "admin", "admin");
         Thread.sleep(2000);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
     }
 
     @Test
     public void sideMenuElementsTest() throws InterruptedException {
-        loginWith("admin", "admin");
+        TestingUtils.loginWith(driver, port, "admin", "admin");
         findClickableElementWithXpath(UIXpaths.SIDE_MENU);
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(1000));
@@ -191,44 +181,6 @@ public class LoginTests {
         assertEquals(true, adminSubMenusVisible());
         assertEquals(true, ordersSubMenusVisible());
     }
-
-    @Test
-    public void employeeCrudTest() throws InterruptedException {
-        loginWith("admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.EMPLOYEE_SUBMENU);
-
-        //Create
-        crudTestingUtil.createTest();
-
-        //Read
-        crudTestingUtil.readTest();
-
-        //Delete
-
-        crudTestingUtil.deleteTest();
-
-        //update
-        crudTestingUtil.updateTest();
-
-        //restore
-        crudTestingUtil.restoreTest();
-    }
-
-    private void loginWith(String username, String password) {
-        driver.get("http://localhost:" + port + "/login");
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
-
-        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"input-vaadin-text-field-6\"]")));
-        WebElement passwordField = driver.findElement(By.xpath("//*[@id=\"input-vaadin-password-field-7\"]"));
-        WebElement loginButton = driver.findElement(By.xpath("//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[1]"));
-
-
-        usernameField.sendKeys(username);
-        passwordField.sendKeys(password);
-        loginButton.click();
-    }
-
-
 
     private boolean adminSubMenusVisible(){
         WebElement employeeSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.EMPLOYEE_SUBMENU);

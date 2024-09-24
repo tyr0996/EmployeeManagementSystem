@@ -132,10 +132,10 @@ public abstract class EmsApiClient<T> {
 
     public void permanentlyDelete(Long entityId){
         initWebClient();
-        webClient.delete()
+        String response = webClient.delete()
                 .uri("permanentlyDelete?id={id}", entityId)
                 .retrieve()
-                .bodyToMono(Void.class)
+                .bodyToMono(String.class)
                 .block();
     }
 

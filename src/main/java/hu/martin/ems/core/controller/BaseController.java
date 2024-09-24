@@ -47,8 +47,8 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
         return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
     }
 
-    @DeleteMapping(path = "/permanentDelete", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> permanentlyDelete(@RequestParam Long entityId) {
+    @DeleteMapping(path = "/permanentlyDelete", produces = StaticDatas.Produces.JSON)
+    public ResponseEntity<String> permanentlyDelete(@RequestParam(value = "id") Long entityId) {
         service.permanentlyDelete(entityId);
         return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
     }
