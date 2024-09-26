@@ -17,7 +17,7 @@ public class City extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "countryCode_codestore_id")
-    @JsonIgnore
+    //@JsonIgnore
     private CodeStore countryCode;
 
     @Column(nullable = false)

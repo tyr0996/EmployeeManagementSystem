@@ -5,11 +5,14 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.PaginationData;
 import hu.martin.ems.UITests.UIXpaths;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -94,6 +97,8 @@ public class GridTestingUtil {
         return new PaginationData(pageSize, total, currentPage, numberOfPages);
     }
 
+
+
     public static WebElement getVisibleGridCell(String gridXpath, int rowIndex, int columnIndex){
         WebElement row = getVisibleGridRow(gridXpath, rowIndex);
         List<WebElement> rowElements = row.findElements(By.xpath(".//td"));
@@ -148,9 +153,25 @@ public class GridTestingUtil {
         try{
             WebElement grid = findVisibleElementWithXpath(gridXpath);
             int optionsColumnIndex = getGridColumnNumber(gridXpath) - 1;
-            WebElement optionsCell = getVisibleGridCell(gridXpath, rowIndex, optionsColumnIndex);
-            WebElement restoreButton = optionsCell.findElements(By.xpath("//vaadin-icon[@icon='vaadin:backwards']/parent::vaadin-button")).get(rowIndex);
-            return restoreButton;
+//            WebElement optionsCell = getVisibleGridCell(gridXpath, rowIndex, optionsColumnIndex).findElements(By.xpath(".//*")).get(0);
+//            //WebElement restoreButton = optionsCell.findElements(By.xpath("//vaadin-icon[@icon='vaadin:backwards']/parent::vaadin-button")).get(rowIndex);
+//            List<WebElement> buttons = optionsCell.findElements(By.xpath(".//*"));
+//            for(int i = 0; i < buttons.size(); i++){
+//                if(buttons.get(i).findElement(By.tagName("vaadin-icon")).getDomAttribute("icon").equals("vaadin:backwards")){
+//                    return buttons.get(i);
+//                }
+//            }
+//
+//            Oszlopok = 4;
+//            sorindex = 4;
+//            optionscolumnIndex = 3;
+//
+//            2*oszlopok (üres) + 1*oszlopok (fejléc) + sorindex * oszlopok + oszlopindex + 1
+//
+            int gridCellIndex = (3 + rowIndex) * getGridColumnNumber(gridXpath) + optionsColumnIndex + 1;
+
+            return findClickableElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
+            //return null;
         }
         catch (Exception e){
             return null;
@@ -246,7 +267,7 @@ public class GridTestingUtil {
         int originalElements = countVisibleGridDataRows(gridXpath, showDeletedXpath);
         int deletedElements = countHiddenGridDataRows(gridXpath, showDeletedXpath);
         WebElement showDeleted = findClickableElementWithXpathWithWaiting(showDeletedXpath);
-        boolean originalShowDeleted = showDeleted.isSelected();
+        boolean originalShowDeleted = getCheckboxStatus(showDeletedXpath);
         if(!originalShowDeleted){
             showDeleted.click();
             Thread.sleep(100);
@@ -254,27 +275,51 @@ public class GridTestingUtil {
         if(deletedElements == 0){
             return null;
         }
-        Random rnd = new Random();
-        ElementLocation deletedRow = null;
-        while (deletedRow == null) {
-            int randomRow = rnd.nextInt(0, originalElements + deletedElements);
-            int pageNumber;
-            if(randomRow != 0){
-                pageNumber = (int) Math.ceil((double)randomRow / (double) getGridPaginationData(gridXpath).getPageSize());
-            }
-            else{
-                pageNumber = 1;
-            }
-            int rowIndex = randomRow % getGridPaginationData(gridXpath).getPageSize();
-            goToPageInPaginatedGrid(gridXpath, pageNumber);
-            if(isDeletedRow(gridXpath, getRowAtPosition(gridXpath, new ElementLocation(pageNumber, rowIndex)))){
-                deletedRow = new ElementLocation(pageNumber, rowIndex);
-            }
+        List<ElementLocation> allDeleted = getDeletedRowsInGrid(gridXpath);
+        ElementLocation selected = null;
+        if(allDeleted.size() == 0){
+            throw new RuntimeException("There isn't any deleted rows in the grid.\n\nSolution1: delete an element first");
         }
+        else if(allDeleted.size() == 1){
+            selected = allDeleted.get(0);
+        }
+        else{
+            Random rnd = new Random();
+            selected = allDeleted.get(rnd.nextInt(0, allDeleted.size()));
+        }
+
         if(!originalShowDeleted){
             showDeleted.click();
         }
-        return deletedRow;
+        return selected;
+    }
+
+    private static List<ElementLocation> getDeletedRowsInGrid(String gridXpath) throws InterruptedException {
+        int maxPage = getGridPaginationData(gridXpath).getNumberOfPages();
+        List<ElementLocation> allDeleted = new ArrayList<>();
+        for(int currentPageNumber = 1; currentPageNumber <= maxPage; currentPageNumber++){
+            allDeleted.addAll(getDeletedRowsOnPage(gridXpath, currentPageNumber));
+        }
+        return allDeleted;
+    }
+
+    private static List<ElementLocation> getDeletedRowsOnPage(String gridXpath, int currentPageNumber) throws InterruptedException {
+        goToPageInPaginatedGrid(gridXpath, currentPageNumber);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+
+        WebElement e2 = grid.getShadowRoot().findElement(By.id("scroller"));
+        WebElement e3 = e2.findElement(By.id("table"));
+        WebElement e4 = e3.findElement(By.id("items"));
+        List<WebElement> allRows = e4.findElements(By.tagName("tr"));
+        allRows = allRows.stream().filter(v -> v.isDisplayed()).toList();
+        int rowNumber = allRows.size();
+        List<ElementLocation> deletedRows = new ArrayList<>();
+        for(int i = 0; i < rowNumber; i++){
+            if(getVisibleGridCell(allRows.get(i), 0).getDomAttribute("part").contains("deleted")){
+                deletedRows.add(new ElementLocation(currentPageNumber, i));
+            }
+        }
+        return deletedRows;
     }
 
     public static boolean isDeletedRow(String gridXpath, WebElement row){
@@ -295,6 +340,13 @@ public class GridTestingUtil {
             case "vaadin-combo-box": selectRandomFromComboBox(element); break;
             case "vaadin-button", "style": break;
             default : System.err.println("Nem jó a filed teg-name-je ahhoz, hogy adatot generáljunk: " + element.getTagName()); break;
+        }
+    }
+
+    public static void setShowDeletedCheckboxStatus(String checkboxXpath, boolean selected) throws InterruptedException {
+        if(getCheckboxStatus(checkboxXpath) != selected){
+            findClickableElementWithXpath(checkboxXpath).click();
+            Thread.sleep(100);
         }
     }
 
@@ -372,11 +424,9 @@ public class GridTestingUtil {
         js.executeScript("arguments[0].remove();", notification);
     }
 
-    public static void checkNotificationContainsTexts(String... texts){
+    public static void checkNotificationContainsTexts(String text){
         WebElement notification = findVisibleElementWithXpath("/html/body/vaadin-notification-container/vaadin-notification-card");
-        for(String text : texts){
-            assertEquals(true, notification.getText().contains(text));
-        }
+        Assert.assertThat(notification.getText(), CoreMatchers.containsString(text));
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].remove();", notification);
     }
@@ -390,5 +440,14 @@ public class GridTestingUtil {
         }
         result[columnNumber - 1] = "skip";
         return result;
+
+    }
+
+    public static boolean getCheckboxStatus(String checboxXpath){
+        return findClickableElementWithXpath(checboxXpath).getDomAttribute("selected") != null;
+    }
+
+    public static void printToConsole(WebElement e){
+        System.out.println(e.getAttribute("outerHTML"));
     }
 }

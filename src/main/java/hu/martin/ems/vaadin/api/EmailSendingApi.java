@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.EmailProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.context.annotation.Lazy;
@@ -11,18 +12,22 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import javax.annotation.PostConstruct;
+
 @Service
-@NeedCleanCoding
+@Slf4j
 @Lazy
+@NeedCleanCoding
 public class EmailSendingApi {
 
-    protected final WebClient webClient;
+    protected WebClient webClient;
     private final ObjectMapper om = new ObjectMapper();
 
     @Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
 
-    public EmailSendingApi(){
+    @PostConstruct
+    public void init(){
         this.webClient = WebClient.builder().baseUrl("http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/api/emailSending/").build();
     }
 
@@ -39,6 +44,5 @@ public class EmailSendingApi {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-
     }
 }

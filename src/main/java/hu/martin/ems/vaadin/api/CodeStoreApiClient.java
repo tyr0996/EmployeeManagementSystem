@@ -14,6 +14,7 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
     }
 
     public List<CodeStore> getChildren(Long parentCodeStoreId){
+        initWebClient();
         String jsonResponse = webClient.get()
                 .uri("getChildren?parentCodeStoreId=" + parentCodeStoreId)
                 .retrieve()
@@ -23,6 +24,7 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
     }
 
     public List<CodeStore> getAllByName(String name){
+        initWebClient();
         String jsonResponse = webClient.get()
                 .uri("getByName?name=" + name)
                 .retrieve()

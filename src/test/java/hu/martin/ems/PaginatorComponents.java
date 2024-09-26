@@ -1,5 +1,7 @@
 package hu.martin.ems;
 
+import hu.martin.ems.UITests.PaginationData;
+import hu.martin.ems.base.GridTestingUtil;
 import lombok.Getter;
 import org.openqa.selenium.*;
 
@@ -19,12 +21,26 @@ public class PaginatorComponents {
     private WebElement lastButton;
 
     @Getter
-    private WebElement currentPageIndex;
+    private WebElement currentPageNumber;
+
+    @Getter
+    private WebElement lastPageNumber;
+
+    private int nubmerOfPages;
 
     private WebElement grid;
     private WebDriver driver;
 
-    public PaginatorComponents(WebElement grid, WebDriver driver){
+    public enum PAGE_CHANGE_EVENT {
+        NEXT,
+        PREVIOUS,
+        FIRST,
+        LAST
+    }
+
+    private int lastKnownPageNumber;
+
+    public PaginatorComponents(WebElement grid, WebDriver driver) throws InterruptedException {
         this.grid = grid;
         this.driver = driver;
         WebElement span = TestingUtils.getParent(grid).findElement(By.tagName("span"));
@@ -43,10 +59,20 @@ public class PaginatorComponents {
         });
         List<WebElement> paperButtons = (List<WebElement>) executor.executeScript("return arguments[0].querySelectorAll('div[hidden] paper-button')", shadow);
         paperButtons.forEach(v -> {
-            if(v.getDomAttribute("elevation").equals("1")){
-                this.currentPageIndex = v;
+            if(v.getDomAttribute("aria-disabled").equals("true")){
+                this.currentPageNumber = v;
             }
+//            if(v.getDomAttribute("elevation").equals("1")){
+//                this.currentPageIndex = v;
+//            }
         });
+
+        //Get max page number
+//        WebElement parent = TestingUtils.getParent(grid);
+//        WebElement paginationComponent = parent.findElement(By.tagName("span")).findElement(By.tagName("lit-pagination"));
+//        Integer total = Integer.parseInt(paginationComponent.getDomAttribute("total"));
+//        Integer currentPage = Integer.parseInt(paginationComponent.getDomAttribute("page"));
+//        this.nubmerOfPages numberOfPages = (int) Math.ceil((double) total / (double) pageSize);
     }
 
     public void refresh(){
@@ -56,14 +82,26 @@ public class PaginatorComponents {
         JavascriptExecutor executor = (JavascriptExecutor) driver;
         List<WebElement> paperButtons = (List<WebElement>) executor.executeScript("return arguments[0].querySelectorAll('div[hidden] paper-button')", shadow);
         paperButtons.forEach(v -> {
-            if(v.getDomAttribute("elevation").equals("0")){
-                this.currentPageIndex = v;
+            if(v.getDomAttribute("aria-disabled").equals("true")){
+                this.currentPageNumber = v;
+                this.lastKnownPageNumber = Integer.parseInt(v.getText());
             }
         });
     }
 
     public Integer getCurrentPageNumber() {
         refresh();
-        return Integer.parseInt(this.currentPageIndex.getText());
+        if(currentPageNumber == null){
+            return lastKnownPageNumber;
+        }
+        return Integer.parseInt(this.currentPageNumber.getText());
+    }
+
+    public void changePage(PAGE_CHANGE_EVENT event){
+        switch (event){
+            case FIRST -> lastKnownPageNumber = 1;
+            case LAST -> lastKnownPageNumber = 0;
+            default -> lastKnownPageNumber = -1;
+        }
     }
 }

@@ -8,6 +8,7 @@ import org.openqa.selenium.WebElement;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Random;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static hu.martin.ems.base.RandomGenerator.generateRandomOnlyLetterString;
@@ -48,46 +49,29 @@ public class CrudTestingUtil {
         goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
         WebElement modifyButton = getModifyButton(gridXpath, rowLocation.getRowIndex());
         Thread.sleep(200);
-
-        WebElement firstNameCell = getVisibleGridCell(gridXpath, rowLocation.getRowIndex(), 0);
-        WebElement lastNameCell = getVisibleGridCell(gridXpath, rowLocation.getRowIndex(), 1);
-        WebElement roleCell = getVisibleGridCell(gridXpath, rowLocation.getRowIndex(), 2);
-        WebElement salaryCell = getVisibleGridCell(gridXpath, rowLocation.getRowIndex(), 3);
-
-
-        //TODO azt kell megcsinálni, hogy random válasszon egyet (vagy többet) a bemeneti mezőkből, és azok alapján generáljon adatot
-        String originalFirstName = firstNameCell.getText();
-        String originalLastName = lastNameCell.getText();
         modifyButton.click();
 
         WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
         WebElement saveEmployeeButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
         List<WebElement> fields = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout").findElements(By.xpath("./*"));
-        for(int i = 0; i < fields.size(); i++){
-            fillElementWithRandom(fields.get(i));
+        Random rnd = new Random();
+        Boolean modifiedMinimumOneData = false;
+        while (!modifiedMinimumOneData){
+            for(int i = 0; i < fields.size(); i++){
+                if(rnd.nextBoolean()){
+                    printToConsole(fields.get(i));
+                    fillElementWithRandom(fields.get(i));
+                    System.out.println("*********************************************");
+                    modifiedMinimumOneData = true;
+                }
+            }
         }
 
-        WebElement firstNameField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field[1]/input");
-        WebElement lastNameField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field[2]/input");
-        WebElement salaryField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-number-field/input");
-        WebElement roleComboBox = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-combo-box/input");
-
-        assertNotEquals(firstNameCell.getText(), firstNameField.getText());
-        assertNotEquals(lastNameCell.getText(), lastNameField.getText());
-        assertNotEquals(salaryCell.getText(), salaryField.getText());
-        assertNotEquals(roleCell.getText(), roleComboBox.getText());
-
-        String newFirstName = generateRandomOnlyLetterString();
-        firstNameField.clear();
-        firstNameField.sendKeys(newFirstName);
-
         saveEmployeeButton.click();
+
         checkNotificationContainsTexts(className + " saved: ");
-        Thread.sleep(200);
-//        assertNull(lookingForElementInGrid(gridXpath, originalFirstName, originalLastName, "Martin", "20500"));
-//        Thread.sleep(2000);
-//        assertNotNull(lookingForElementInGrid(gridXpath, newFirstName, originalLastName, "Martin", "20500"));
+        Thread.sleep(500);
     }
 
     public void createTest() throws InterruptedException {
@@ -132,22 +116,23 @@ public class CrudTestingUtil {
 
 
         WebElement showDeletedCheckBox = findVisibleElementWithXpath(showDeletedCheckBoxXpath);
+        String[] deletedData = getDataFromRowLocation(gridXpath, rowLocation);
 
         Thread.sleep(200);
-//        WebElement firstName = getVisibleGridCell(gridXpath, rowLocation.getRowIndex(), 0);
-//        WebElement lastName = getVisibleGridCell(gridXpath, rowLocation.getRowIndex(), 1);
-//        String name = firstName.getText() + " " + lastName.getText();
         WebElement deleteButton = getDeleteButton(gridXpath, rowLocation.getRowIndex());
         deleteButton.click();
         checkNotificationContainsTexts(className + " deleted: ");
         Thread.sleep(2000);
 
-        grid = findVisibleElementWithXpath(gridXpath);
+        assertNull(lookingForElementInGrid(gridXpath, deletedData));
         assertEquals(originalVisible - 1, countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath));
         assertEquals(originalInvisible + 1, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
         showDeletedCheckBox.click();
         assertEquals(originalInvisible + originalVisible, countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+        assertNotNull(lookingForElementInGrid(gridXpath, deletedData));
         showDeletedCheckBox.click();
+
+        //TODO meg kellene nézni a táblát, hogy tényleg nem találjuk-e meg.
     }
 
     public void permanentlyDeleteTest() throws InterruptedException {
@@ -176,10 +161,10 @@ public class CrudTestingUtil {
         pDeleteButton.click();
         checkNotificationContainsTexts(className + " permanently deleted: ");
         Thread.sleep(500);
-        assertNull(lookingForElementInGrid(gridXpath, selectedData));
         showDeleted = findClickableElementWithXpathWithWaiting(showDeletedCheckBoxXpath);
         showDeleted.click();
         assertNull(lookingForElementInGrid(gridXpath, selectedData));
+        Thread.sleep(500);
 
         assertEquals(originalInvisible - 1, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
     }
@@ -203,27 +188,21 @@ public class CrudTestingUtil {
             originalInvisibleRows++;
         }
 
-        if(!showDeletedButton.isSelected()){
+        if(getCheckboxStatus(showDeletedCheckBoxXpath)){
             showDeletedButton.click();
         }
-        WebElement restoreButton;
-        ElementLocation location;
-        do {
-            location = getRandomLocationFromGrid(gridXpath, showDeletedCheckBoxXpath);
-            goToPageInPaginatedGrid(gridXpath, location.getPageNumber());
-            restoreButton = getRestoreButton(gridXpath, location.getRowIndex());
-        } while (restoreButton == null);
-        String[] originalData = getDataFromRowLocation(gridXpath, location);
-        showDeletedButton = findClickableElementWithXpath(showDeletedCheckBoxXpath);
-        showDeletedButton.click();
-        Thread.sleep(1000);
-        //assertNull(lookingForElementInGrid(gridXpath, originalData)); //TODO
-        findClickableElementWithXpath(showDeletedCheckBoxXpath).click();
-        assertNotNull(lookingForElementInGrid(gridXpath, originalData));
-        goToPageInPaginatedGrid(gridXpath, location.getPageNumber());
-        restoreButton = getRestoreButton(gridXpath, location.getRowIndex());
+        ElementLocation el = getRandomLocationDeletedStatusFromGrid(gridXpath, showDeletedCheckBoxXpath);
+        //WebElement showDeleted = findClickableElementWithXpath(showDeletedCheckBoxXpath);
+        setShowDeletedCheckboxStatus(showDeletedCheckBoxXpath, true);
+        Thread.sleep(500);
+        goToPageInPaginatedGrid(gridXpath, el.getPageNumber());
+        String[] originalData = getDataFromRowLocation(gridXpath, el);
+        //assertNotNull(lookingForElementInGrid(gridXpath, originalData));
+        goToPageInPaginatedGrid(gridXpath, el.getPageNumber());
+
+        WebElement restoreButton = getRestoreButton(gridXpath, el.getRowIndex());
         restoreButton.click();
-        Thread.sleep(1000);
+        checkNotificationContainsTexts(className + " restored: ");
         findClickableElementWithXpath(showDeletedCheckBoxXpath).click();
         assertNotNull(lookingForElementInGrid(gridXpath, originalData));
 

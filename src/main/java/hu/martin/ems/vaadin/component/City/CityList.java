@@ -151,6 +151,12 @@ public class CityList extends VerticalLayout implements Creatable<City> {
 
         TextField zipCodeField = new TextField("Zip code");
 
+        if (entity != null) {
+            nameField.setValue(entity.getName());
+            countryCodes.setValue(entity.getCountryCode());
+            zipCodeField.setValue(entity.getZipCode());
+        }
+
         Button saveButton = new Button("Save");
         fl.add(nameField, countryCodes, zipCodeField, saveButton);
         createDialog.add(fl);
@@ -167,6 +173,7 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             else{
                 cityApi.save(city);
             }
+            updateGridItems();
 
             Notification.show("City saved: " + city.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);

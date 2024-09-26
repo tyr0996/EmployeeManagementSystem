@@ -274,6 +274,9 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
 
             Notification.show("Product saved: " + product)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+            updateGridItems();
+
             nameField.clear();
             buyingPriceNetField.clear();
             buyingPriceCurrencys.clear();

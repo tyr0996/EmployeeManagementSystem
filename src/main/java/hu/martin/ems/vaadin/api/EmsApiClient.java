@@ -36,10 +36,6 @@ public abstract class EmsApiClient<T> {
     protected ObjectMapper om;
 
     @Autowired
-    private Environment env;
-
-
-    @Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
 
     public EmsApiClient(Class<T> entityType) {
@@ -141,7 +137,10 @@ public abstract class EmsApiClient<T> {
 
     public List<T> findAll(){
         initWebClient();
-        String jsonResponse = webClient.get()
+        String jsonResponse = webClient.mutate().codecs(
+                    configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
+                .build()
+                .get()
                 .uri("findAll")
                 .retrieve()
                 .bodyToMono(String.class)
@@ -183,7 +182,10 @@ public abstract class EmsApiClient<T> {
 
     public List<T> findAllWithDeleted(){
         initWebClient();
-        String jsonResponse = webClient.get()
+        String jsonResponse = webClient.mutate().codecs(
+                        configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
+                .build()
+                .get()
                 .uri("findAll?withDeleted=true")
                 .retrieve()
                 .bodyToMono(String.class)
