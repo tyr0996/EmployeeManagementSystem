@@ -16,6 +16,7 @@ import com.vaadin.flow.server.VaadinServletService;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.vaadin.component.AccessManagement.AccessManagement;
 import hu.martin.ems.vaadin.component.Address.AddressList;
+import hu.martin.ems.vaadin.component.AdminTools.AdminTools;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.CodeStore.CodeStoreList;
 import hu.martin.ems.vaadin.component.Currency.CurrencyList;
@@ -58,6 +59,7 @@ public class MainView extends HorizontalLayout implements RouterLayout {
         addMenu(menuLayout, "Admin", "Supplier", SupplierList.class);
         addMenu(menuLayout, "Admin", "Currency", CurrencyList.class);
         addMenu(menuLayout, "Admin", "Users", UserList.class);
+        addMenu(menuLayout, "Admin", "Admin tools", AdminTools.class);
         addMenu(menuLayout, "Orders", "OrderElement", OrderElementList.class);
         addMenu(menuLayout, "Orders", "Order", OrderCreate.class, OrderList.class);
 

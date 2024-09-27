@@ -21,4 +21,6 @@ public interface BaseRepository<T, ID> extends Repository<T, ID> {
     T customUpdate(T entity) throws EntityNotFoundException;
 
     T customFindById(Long id);
+
+    void customClearDatabaseTable();
 }

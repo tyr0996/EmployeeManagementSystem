@@ -126,6 +126,15 @@ public abstract class EmsApiClient<T> {
         }
     }
 
+    public void clearDatabaseTable(){
+        initWebClient();
+        webClient.delete()
+                .uri("clearDatabaseTable")
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+    }
+
     public void permanentlyDelete(Long entityId){
         initWebClient();
         String response = webClient.delete()

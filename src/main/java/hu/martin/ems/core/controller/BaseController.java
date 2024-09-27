@@ -63,4 +63,10 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
         T e = service.update(entity);
         return new ResponseEntity<>(om.writeValueAsString(e), HttpStatus.OK);
     }
+
+    @DeleteMapping(path = "/clearDatabaseTable", produces = StaticDatas.Produces.JSON)
+    public ResponseEntity<String> clearDatabaseTable() {
+        service.clearDatabaseTable();
+        return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
+    }
 }

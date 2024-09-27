@@ -1,5 +1,6 @@
 package hu.martin.ems;
 
+import com.vaadin.flow.component.UI;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
@@ -193,6 +194,7 @@ public class LoginTests {
         WebElement supplierSubMenu = findClickableElementWithXpath(UIXpaths.SUPPLIER_SUBMENU);
         WebElement currencySubMenu = findClickableElementWithXpath(UIXpaths.CURRENCY_SUBMENU);
         WebElement usersSubMenu = findClickableElementWithXpath(UIXpaths.USER_SUB_MENU);
+        WebElement admintoolsSubMenu = findClickableElementWithXpath(UIXpaths.ADMINTOOLS_SUB_MENU);
 
         return employeeSubMenu != null &&
                 accessManagementSubMenu != null &&
@@ -203,7 +205,8 @@ public class LoginTests {
                 productSubMenu != null &&
                 supplierSubMenu != null &&
                 currencySubMenu != null &&
-                usersSubMenu != null;
+                usersSubMenu != null &&
+                admintoolsSubMenu != null;
     }
     
     private boolean ordersSubMenusVisible(){

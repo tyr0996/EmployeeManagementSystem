@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -61,12 +62,9 @@ public class AddressTest {
 
     @Test
     public void addressUpdateTest() throws InterruptedException {
-        for(int i = 0; i < 50; i++){
-            TestingUtils.loginWith(driver, port, "admin", "admin");
-            navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADDRESS_SUBMENU);
-            crudTestingUtil.updateTest();
-            System.out.println("Successfully runed " + (i+1) + " times");
-        }
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADDRESS_SUBMENU);
+        crudTestingUtil.updateTest();
     }
 
     @Test

@@ -9,6 +9,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
@@ -56,11 +57,11 @@ public class GridTestingUtil {
     }
 
     public static void navigateMenu(String mainUIXpath, String subIXpath){
-        findClickableElementWithXpath(UIXpaths.SIDE_MENU);
+        findClickableElementWithXpathWithWaiting(UIXpaths.SIDE_MENU);
         WebElement adminMenu = findClickableElementWithXpathWithWaiting(mainUIXpath);
         adminMenu.click();
-        WebElement employeeSubMenu = findClickableElementWithXpathWithWaiting(subIXpath);
-        employeeSubMenu.click();
+        WebElement subMenu = findClickableElementWithXpathWithWaiting(subIXpath);
+        subMenu.click();
     }
 
     public static int getGridColumnNumber(String gridXpath){
@@ -221,10 +222,11 @@ public class GridTestingUtil {
 
     public static int countHiddenGridDataRows(String gridXpath, String showDeletedXpath) throws InterruptedException {
         WebElement showDeletedElement = findClickableElementWithXpath(showDeletedXpath);
+        setShowDeletedCheckboxStatus(showDeletedXpath, false);
         int visible = countVisibleGridDataRows(gridXpath, showDeletedXpath);
-        showDeletedElement.click();
+        setShowDeletedCheckboxStatus(showDeletedXpath, true);
         int visibleWithHidden = countVisibleGridDataRows(gridXpath, showDeletedXpath);
-        showDeletedElement.click();
+        setShowDeletedCheckboxStatus(showDeletedXpath, false);
         return visibleWithHidden - visible;
     }
 
@@ -268,10 +270,7 @@ public class GridTestingUtil {
         int deletedElements = countHiddenGridDataRows(gridXpath, showDeletedXpath);
         WebElement showDeleted = findClickableElementWithXpathWithWaiting(showDeletedXpath);
         boolean originalShowDeleted = getCheckboxStatus(showDeletedXpath);
-        if(!originalShowDeleted){
-            showDeleted.click();
-            Thread.sleep(100);
-        }
+        setShowDeletedCheckboxStatus(showDeletedXpath, true);
         if(deletedElements == 0){
             return null;
         }
@@ -288,9 +287,7 @@ public class GridTestingUtil {
             selected = allDeleted.get(rnd.nextInt(0, allDeleted.size()));
         }
 
-        if(!originalShowDeleted){
-            showDeleted.click();
-        }
+        setShowDeletedCheckboxStatus(showDeletedXpath, false);
         return selected;
     }
 
@@ -335,8 +332,16 @@ public class GridTestingUtil {
 
     public static void fillElementWithRandom(WebElement element) throws InterruptedException {
         switch (element.getTagName()){
-            case "vaadin-text-field": element.sendKeys(RandomGenerator.generateRandomOnlyLetterString()); break;
-            case "vaadin-number-field": element.sendKeys(RandomGenerator.generateRandomInteger().toString()); break;
+            case "vaadin-text-field": {
+                element.clear();
+                element.sendKeys(RandomGenerator.generateRandomOnlyLetterString());
+                break;
+            }
+            case "vaadin-number-field":{
+                element.clear();
+                element.sendKeys(RandomGenerator.generateRandomInteger().toString());
+                break;
+            }
             case "vaadin-combo-box": selectRandomFromComboBox(element); break;
             case "vaadin-button", "style": break;
             default : System.err.println("Nem jó a filed teg-name-je ahhoz, hogy adatot generáljunk: " + element.getTagName()); break;
@@ -344,8 +349,10 @@ public class GridTestingUtil {
     }
 
     public static void setShowDeletedCheckboxStatus(String checkboxXpath, boolean selected) throws InterruptedException {
-        if(getCheckboxStatus(checkboxXpath) != selected){
-            findClickableElementWithXpath(checkboxXpath).click();
+        Boolean checkboxStatus = getCheckboxStatus(checkboxXpath);
+        if(checkboxStatus != selected){
+            //HA false-ra akarom álítani, akkor valamiért nem jó
+            findClickableElementWithXpathWithWaiting(checkboxXpath).click();
             Thread.sleep(100);
         }
     }
@@ -360,7 +367,8 @@ public class GridTestingUtil {
         else{
             for(WebElement comboBoxElement : comboBoxOptions){
                 if(comboBoxElement.getText().equals(text)){
-                    comboBoxElement.click();
+                    JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
+                    jsExecutor.executeScript("arguments[0].click();", comboBoxElement);
                     break;
                 }
             }
@@ -377,10 +385,11 @@ public class GridTestingUtil {
         else if(comboBoxOptions.size() == 1){
             comboBoxOptions.get(0).click();
         }
-        else{
+        else {
             Random rnd = new Random();
             Integer selectedIndex = rnd.nextInt(0, comboBoxOptions.size() - 1);
-            comboBoxOptions.get(selectedIndex).click();
+            JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
+            jsExecutor.executeScript("arguments[0].click();", comboBoxOptions.get(selectedIndex));
         }
     }
 
@@ -444,7 +453,7 @@ public class GridTestingUtil {
     }
 
     public static boolean getCheckboxStatus(String checboxXpath){
-        return findClickableElementWithXpath(checboxXpath).getDomAttribute("selected") != null;
+        return findClickableElementWithXpathWithWaiting(checboxXpath).getDomAttribute("checked") != null;
     }
 
     public static void printToConsole(WebElement e){

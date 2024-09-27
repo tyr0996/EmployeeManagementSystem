@@ -14,8 +14,9 @@ public class UIXpaths {
     public static final String SUPPLIER_SUBMENU = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[8]/a";
     public static final String CURRENCY_SUBMENU = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[9]/a";
     public static final String USER_SUB_MENU = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[10]/a";
-    public static final String ORDER_ELEMENT_SUBMENU = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[11]/a";
-    public static final String ORDER_SUBMENU = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[12]/a";
-    public static final String ORDER_CREATE_SUBMENU = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[13]/a";
+    public static final String ADMINTOOLS_SUB_MENU = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[11]/a";
+    public static final String ORDER_ELEMENT_SUBMENU = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[12]/a";
+    public static final String ORDER_SUBMENU = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[13]/a";
+    public static final String ORDER_CREATE_SUBMENU = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[14]/a";
 
 }

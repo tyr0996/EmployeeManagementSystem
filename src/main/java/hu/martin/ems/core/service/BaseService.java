@@ -43,4 +43,6 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
     public T findById(Long id){
         return repo.customFindById(id);
     }
+
+    public void clearDatabaseTable(){ repo.customClearDatabaseTable(); }
 }

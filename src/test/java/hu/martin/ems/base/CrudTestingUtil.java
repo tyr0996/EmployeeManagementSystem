@@ -114,6 +114,7 @@ public class CrudTestingUtil {
         }
         goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
 
+        setShowDeletedCheckboxStatus(showDeletedCheckBoxXpath, false);
 
         WebElement showDeletedCheckBox = findVisibleElementWithXpath(showDeletedCheckBoxXpath);
         String[] deletedData = getDataFromRowLocation(gridXpath, rowLocation);
@@ -127,10 +128,10 @@ public class CrudTestingUtil {
         assertNull(lookingForElementInGrid(gridXpath, deletedData));
         assertEquals(originalVisible - 1, countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath));
         assertEquals(originalInvisible + 1, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
-        showDeletedCheckBox.click();
+        setShowDeletedCheckboxStatus(showDeletedCheckBoxXpath, true);
         assertEquals(originalInvisible + originalVisible, countVisibleGridDataRows(gridXpath, showDeletedCheckBoxXpath));
         assertNotNull(lookingForElementInGrid(gridXpath, deletedData));
-        showDeletedCheckBox.click();
+        setShowDeletedCheckboxStatus(showDeletedCheckBoxXpath, false);
 
         //TODO meg kellene nézni a táblát, hogy tényleg nem találjuk-e meg.
     }
@@ -151,7 +152,7 @@ public class CrudTestingUtil {
         }
         ElementLocation el = getRandomLocationDeletedStatusFromGrid(gridXpath, showDeletedCheckBoxXpath);
         WebElement showDeleted = findClickableElementWithXpath(showDeletedCheckBoxXpath);
-        showDeleted.click();
+        setShowDeletedCheckboxStatus(showDeletedCheckBoxXpath, true);
         Thread.sleep(500);
         goToPageInPaginatedGrid(gridXpath, el.getPageNumber());
         String[] selectedData = getDataFromRowLocation(gridXpath, el);
@@ -162,7 +163,7 @@ public class CrudTestingUtil {
         checkNotificationContainsTexts(className + " permanently deleted: ");
         Thread.sleep(500);
         showDeleted = findClickableElementWithXpathWithWaiting(showDeletedCheckBoxXpath);
-        showDeleted.click();
+        setShowDeletedCheckboxStatus(showDeletedCheckBoxXpath, false);
         assertNull(lookingForElementInGrid(gridXpath, selectedData));
         Thread.sleep(500);
 
@@ -188,9 +189,7 @@ public class CrudTestingUtil {
             originalInvisibleRows++;
         }
 
-        if(getCheckboxStatus(showDeletedCheckBoxXpath)){
-            showDeletedButton.click();
-        }
+        setShowDeletedCheckboxStatus(showDeletedCheckBoxXpath, false);
         ElementLocation el = getRandomLocationDeletedStatusFromGrid(gridXpath, showDeletedCheckBoxXpath);
         //WebElement showDeleted = findClickableElementWithXpath(showDeletedCheckBoxXpath);
         setShowDeletedCheckboxStatus(showDeletedCheckBoxXpath, true);
