@@ -20,6 +20,24 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
 
     private final RoleApiClient roleApiClient = BeanProvider.getBean(RoleApiClient.class);
 
+    public List<RoleXPermission> findAlRoleXPermissionByRole(Role r){
+        String jsonResponse = webClient.get()
+                .uri("findAlRoleXPermissionByRole?roleId=" + r.getId())
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+        return convertResponseToEntityList(jsonResponse, RoleXPermission.class);
+    }
+
+    public List<RoleXPermission> findAllRoleXPermissionByPermission(Permission p){
+        String jsonResponse = webClient.get()
+                .uri("findAllRoleXPermissionByPermission?permissionId=" + p.getId())
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+        return convertResponseToEntityList(jsonResponse, RoleXPermission.class);
+    }
+
     public List<Role> findAllPairedRoleTo(Permission p){
         String jsonResponse = webClient.get()
                 .uri("findAllPairedRoleTo?permissionId=" + p.getId())
@@ -75,10 +93,10 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
         }
     }
 
-    public List<RoleXPermission> findAllWithUnused() {
+    public List<RoleXPermission> findAllWithUnused(Boolean withDeleted) {
         initWebClient();
         String jsonResponse = webClient.get()
-                .uri("findAllWithUnused")
+                .uri("findAllWithUnused?withDeleted=" + withDeleted)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();

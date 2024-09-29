@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/api/roleXPermission")
 @NeedCleanCoding
@@ -33,7 +35,8 @@ public class RoleXPermissionController extends BaseController<RoleXPermission, R
 
     @GetMapping(path = "findAllWithUnused")
     public ResponseEntity<String> findAllWithUnused(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) throws JsonProcessingException {
-        return new ResponseEntity<>(om.writeValueAsString(service.findAllWithUnused(withDeleted)), HttpStatus.OK);
+        List<RoleXPermission> rxps = withDeleted ? service.findAllWithUnusedWithDeleted() : service.findAllWithUnused();
+        return new ResponseEntity<>(om.writeValueAsString(rxps), HttpStatus.OK);
     }
 
     @PutMapping(path = "removeAllRolesFrom")
@@ -46,5 +49,15 @@ public class RoleXPermissionController extends BaseController<RoleXPermission, R
     public ResponseEntity<String> removeAllPermissionsFrom(@RequestBody Role r) {
         service.removeAllPermissionsFrom(r);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping(path = "findAlRoleXPermissionByRole")
+    public ResponseEntity<String> findAlRoleXPermissionByRole(Long roleId) throws JsonProcessingException {
+        return new ResponseEntity<>(om.writeValueAsString(service.findAlRoleXPermissionByRole(roleId)), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "findAllRoleXPermissionByPermission")
+    public ResponseEntity<String> findAllRoleXPermissionByPermission(Long permissionId) throws JsonProcessingException {
+        return new ResponseEntity<>(om.writeValueAsString(service.findAlRoleXPermissionByPermission(permissionId)), HttpStatus.OK);
     }
 }

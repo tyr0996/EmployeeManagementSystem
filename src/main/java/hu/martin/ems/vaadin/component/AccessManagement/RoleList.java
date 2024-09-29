@@ -1,11 +1,14 @@
 package hu.martin.ems.vaadin.component.AccessManagement;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -29,6 +32,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
+import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/grid.css")
 @AnonymousAllowed
@@ -76,8 +80,15 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             generateSaveOrUpdateDialog();
             createOrModifyDialog.open();
         });
+
+        Checkbox withDeletedCheckbox = new Checkbox("Show deleted");
+        withDeletedCheckbox.addValueChangeListener(event -> {
+            showDeleted = event.getValue();
+            updateGridItems();
+        });
+
         buttonsLayout = new HorizontalLayout();
-        buttonsLayout.add(create);
+        buttonsLayout.add(create, withDeletedCheckbox);
         buttonsLayout.setAlignSelf(Alignment.CENTER, create);
 
         add(buttonsLayout, grid);
@@ -88,8 +99,8 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         createOrModifyDialog = new Dialog((editableRole == null ? "Create" : "Modify") + " role");
         createSaveOrUpdateForm();
         saveButton.addClickListener(event -> {
-            saveRoleWithPermissions(null);
-            Notification.show((editableRole == null ? "Role saved: " : "Role updated: ") + editableRole.getName())
+            GroupedRoleXPermission grxp = saveRoleWithPermissions();
+            Notification.show((editableRole == null ? "Role saved: " : "Role updated: ") + grxp.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             nameField.clear();
             createOrModifyDialog.close();
@@ -120,22 +131,23 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         createOrModifyForm.add(nameField, permissions, saveButton);
     }
 
-    private void saveRoleWithPermissions(List<Permission> appendedPermissions){
+    private GroupedRoleXPermission saveRoleWithPermissions(){
         Role role = Objects.requireNonNullElseGet(editableRole, Role::new);
         role.setName(nameField.getValue());
         role.setDeleted(0L);
         if(editableRole != null){
-            roleApi.update(role);
+            role = roleApi.update(role);
         }
         else{
-            roleApi.save(role);
+            role = roleApi.save(role);
         }
         roleXPermissionApi.removeAllPermissionsFrom(role);
-        permissions.getSelectedItems().forEach(v ->{
-            RoleXPermission rxp = new RoleXPermission(role, v);
+        for(Permission p : permissions.getSelectedItems()){
+            RoleXPermission rxp = new RoleXPermission(role, p);
             rxp.setDeleted(0L);
             roleXPermissionApi.save(rxp);
-        });
+        }
+        return new GroupedRoleXPermission(role, permissions.getSelectedItems().stream().toList());
     }
 
 
@@ -147,15 +159,58 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     }
 
     private void addOptionsColumn(){
-        this.grid.addComponentColumn(entry -> {
+        this.grid.addComponentColumn(groupedRoleXPermission -> {
             Button editButton = new Button(EDIT.create());
+            Button deleteButton = new Button(VaadinIcon.TRASH.create());
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
+            restoreButton.addClassNames("info_button_variant");
+            Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
+            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+
             editButton.addClickListener(event -> {
-                editableRole = entry.role;
-                generateSaveOrUpdateDialog();
-                createOrModifyDialog.open();
+                createSaveOrUpdateForm();
             });
+
+            restoreButton.addClickListener(event -> {
+                roleApi.restore(groupedRoleXPermission.role);
+                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermission.role);
+                for(RoleXPermission rxp : rxps){
+                    roleXPermissionApi.restore(rxp);
+                }
+                Notification.show("Role restored: " + groupedRoleXPermission.getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                updateGridItems();
+            });
+
+            deleteButton.addClickListener(event -> {
+                roleApi.delete(groupedRoleXPermission.role);
+                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermission.role);
+                for(RoleXPermission rxp : rxps){
+                    roleXPermissionApi.delete(rxp);
+                }
+                Notification.show("Role deleted: " + groupedRoleXPermission.getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                updateGridItems();
+            });
+
+            permanentDeleteButton.addClickListener(event -> {
+                roleApi.permanentlyDelete(groupedRoleXPermission.role.id);
+                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermission.role);
+                for(RoleXPermission rxp : rxps){
+                    roleXPermissionApi.permanentlyDelete(rxp.id);
+                }
+                Notification.show("Role permanently deleted: " + groupedRoleXPermission.getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                updateGridItems();
+            });
+
             HorizontalLayout actions = new HorizontalLayout();
-            actions.add(editButton);
+            if (groupedRoleXPermission.getDeleted() == 0) {
+                actions.add(editButton, deleteButton);
+            } else if (groupedRoleXPermission.getDeleted() == 1) {
+                actions.add(permanentDeleteButton, restoreButton);
+            }
             return actions;
         }).setHeader("Options");
     }
@@ -171,7 +226,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     }
 
     private void setGroupedRoleXPermissions(){
-        List<RoleXPermission> rxps = roleXPermissionApi.findAllWithUnused();
+        List<RoleXPermission> rxps = roleXPermissionApi.findAllWithUnused(showDeleted);
         Map<Role, List<Permission>> gridData = new HashMap<>();
         for (RoleXPermission rxp : rxps) {
             Role role = rxp.getRole();
@@ -195,7 +250,18 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         private Role role;
         private List<Permission> permissions;
 
-        //Nem használhatjuk a get-es előtagot, mert akkor automatikusan hozzáadja a grid-hez, azt viszont nem szeretnénk
+        private String getName(){
+            return this.role.getName();
+        }
+
+        private Long getDeleted(){
+            return this.role.getDeleted();
+        }
+
+        private Long getId(){
+            return this.role.getId();
+        }
+
         public String permissionsAsString() {
             return permissions.stream()
                     .filter(Objects::nonNull)

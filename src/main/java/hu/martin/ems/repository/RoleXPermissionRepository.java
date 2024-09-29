@@ -28,10 +28,14 @@ public interface RoleXPermissionRepository extends BaseRepository<RoleXPermissio
     @Query("SELECT new RoleXPermission(r, p) FROM Role r " +
             "LEFT JOIN RoleXPermission rxp on rxp.role.id = r.id " +
             "LEFT JOIN Permission p on p.id = rxp.permission.id " +
-            "WHERE (:withDeleted = false OR rxp.deleted = 0)")
-    List<RoleXPermission> findAllWithUnused(Boolean withDeleted);
+            "WHERE rxp.deleted = 0")
+    List<RoleXPermission> findAllWithUnused();
 
-    //SELECT r.name as rolename, p.name as permissionname FROM Role r LEFT JOIN rolexpermission rxp on r.id = rxp.role_id LEFT JOIN permission p on p.id = rxp.permission_id where rxp.deleted = 0
+    @Query("SELECT new RoleXPermission(r, p) FROM Role r " +
+            "LEFT JOIN RoleXPermission rxp on rxp.role.id = r.id " +
+            "LEFT JOIN Permission p on p.id = rxp.permission.id " +
+            "WHERE (rxp.deleted = 0 OR rxp.deleted = 1)")
+    List<RoleXPermission> findAllWithUnusedWithDeleted();
 
     @Modifying
     @Query("DELETE FROM RoleXPermission rxp WHERE rxp.role.id = :roleId")
@@ -40,4 +44,13 @@ public interface RoleXPermissionRepository extends BaseRepository<RoleXPermissio
     @Modifying
     @Query("DELETE FROM RoleXPermission rxp WHERE rxp.permission.id = :permissionId")
     void removeAllRolesFrom(@Param("permissionId")Long id);
+
+
+    @Query("SELECT rxp FROM RoleXPermission rxp " +
+            "WHERE rxp.role.id = :roleId")
+    List<RoleXPermission> findAlRoleXPermissionByRole(Long roleId);
+
+    @Query("SELECT rxp FROM RoleXPermission rxp " +
+            "WHERE rxp.permission.id = :permissionId")
+    List<RoleXPermission> findAllRoleXPermissionByPermission(Long permissionId);
 }

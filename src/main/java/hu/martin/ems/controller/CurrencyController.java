@@ -2,16 +2,19 @@ package hu.martin.ems.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.repository.CurrencyRepository;
 import hu.martin.ems.service.CurrencyService;
+import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 
@@ -23,14 +26,16 @@ public class CurrencyController extends BaseController<Currency, CurrencyService
         super(service);
     }
 
-    @PutMapping
+    @GetMapping(path = "fetchAndSaveRates")
     public ResponseEntity<String> fetchAndSaveRates() throws JsonProcessingException {
         return new ResponseEntity<>(om.writeValueAsString(service.fetchAndSaveRates()), HttpStatus.OK);
     }
 
 
-    @GetMapping
-    public ResponseEntity<String> findByDate(LocalDate date) throws JsonProcessingException {
-        return new ResponseEntity<>(om.writeValueAsString(service.findByDate(date)), HttpStatus.OK);
+    @GetMapping(path = "findByDate")
+    public ResponseEntity<String> findByDate(String date) throws JsonProcessingException {
+        String[] d = date.split("-");
+        LocalDate ld = LocalDate.of(Integer.parseInt(d[0]), Integer.parseInt(d[1]), Integer.parseInt(d[2]));
+        return new ResponseEntity<>(om.writeValueAsString(service.findByDate(ld)), HttpStatus.OK);
     }
 }

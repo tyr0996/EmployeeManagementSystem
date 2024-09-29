@@ -17,10 +17,13 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
+import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.SupplierApiClient;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
@@ -41,6 +44,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 public class SupplierList extends VerticalLayout implements Creatable<Supplier> {
 
     private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);
+    private final AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<SupplierVO, String> grid;
     private final PaginationSetting paginationSetting;
@@ -142,7 +146,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         ComboBox<Address> addresses = new ComboBox<>("Address");
         ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        addresses.setItems(addressFilter);
+        addresses.setItems(addressFilter, addressApi.findAll());
         addresses.setItemLabelGenerator(Address::getName);
 
         Button saveButton = new Button("Save");

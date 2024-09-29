@@ -331,18 +331,21 @@ public class GridTestingUtil {
     }
 
     public static void fillElementWithRandom(WebElement element) throws InterruptedException {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+
         switch (element.getTagName()){
             case "vaadin-text-field": {
-                element.clear();
+                js.executeScript("arguments[0].value = '';", element);
                 element.sendKeys(RandomGenerator.generateRandomOnlyLetterString());
                 break;
             }
             case "vaadin-number-field":{
-                element.clear();
+                js.executeScript("arguments[0].value = '';", element);
                 element.sendKeys(RandomGenerator.generateRandomInteger().toString());
                 break;
             }
             case "vaadin-combo-box": selectRandomFromComboBox(element); break;
+            case "vaadin-multi-select-combo-box": selectRandomFromMultiSelectComboBox(element); break;
             case "vaadin-button", "style": break;
             default : System.err.println("Nem jó a filed teg-name-je ahhoz, hogy adatot generáljunk: " + element.getTagName()); break;
         }
@@ -390,6 +393,34 @@ public class GridTestingUtil {
             Integer selectedIndex = rnd.nextInt(0, comboBoxOptions.size() - 1);
             JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
             jsExecutor.executeScript("arguments[0].click();", comboBoxOptions.get(selectedIndex));
+        }
+    }
+
+    public static void selectRandomFromMultiSelectComboBox(WebElement multiSelectComboBox) throws InterruptedException {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        WebElement toggleButton = (WebElement) js.executeScript("return arguments[0].querySelectorAll('*')[6].querySelectorAll('*')[5];", multiSelectComboBox.getShadowRoot());
+
+        toggleButton.click();
+        Thread.sleep(200);
+
+        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-multi-select-combo-box-item"));
+        if(comboBoxOptions.size() == 0){
+            System.err.println("Nincs elem a multiselect combo boxban!");
+            toggleButton.click();
+        }
+        else if(comboBoxOptions.size() == 1){
+            comboBoxOptions.get(0).click();
+            toggleButton.click();
+        }
+        else {
+            for(int i = 0; i < comboBoxOptions.size(); i++){
+                Random rnd = new Random();
+                if(rnd.nextBoolean()){
+                    JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
+                    jsExecutor.executeScript("arguments[0].click();", comboBoxOptions.get(i));
+                }
+            }
+            toggleButton.click();
         }
     }
 
