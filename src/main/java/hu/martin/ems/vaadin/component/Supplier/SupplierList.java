@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.component.Supplier;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -7,6 +8,9 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -25,6 +29,7 @@ import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.SupplierApiClient;
+import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +38,7 @@ import org.vaadin.klaudeta.PaginatedGrid;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
@@ -49,6 +55,15 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
     private PaginatedGrid<SupplierVO, String> grid;
     private final PaginationSetting paginationSetting;
 
+    private List<Supplier> suppliers;
+    private List<SupplierVO> supplierVOS;
+
+    Grid.Column<SupplierVO> addressColumn;
+    Grid.Column<SupplierVO> nameColumn;
+    private static String addressFilterText = "";
+    private static String nameFilterText = "";
+
+
     @Autowired
     public SupplierList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
@@ -57,13 +72,17 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         grid.addClassName("styling");
         List<Supplier> suppliers = supplierApi.findAll();
         List<SupplierVO> data = suppliers.stream().map(SupplierVO::new).collect(Collectors.toList());
+
         this.grid.setItems(data);
-        this.grid.removeColumnByKey("original");
-        this.grid.removeColumnByKey("deleted");
-        this.grid.removeColumnByKey("id");
-        grid.setPartNameGenerator(supplierVO -> supplierVO.getDeleted() != 0 ? "deleted" : null);
+
+        addressColumn = grid.addColumn(v -> v.address);
+        nameColumn = grid.addColumn(v -> v.name);
+
+        grid.setPartNameGenerator(supplierVO -> supplierVO.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
+
+        setFilteringHeaderRow();
 
         //region Options column
         this.grid.addComponentColumn(supplier -> {
@@ -81,30 +100,30 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             });
 
             restoreButton.addClickListener(event -> {
-                this.supplierApi.restore(supplier.getOriginal());
-                Notification.show("Supplier restored: " + supplier.getOriginal().getName())
+                this.supplierApi.restore(supplier.original);
+                Notification.show("Supplier restored: " + supplier.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.supplierApi.delete(supplier.getOriginal());
-                Notification.show("Supplier deleted: " + supplier.getOriginal().getName())
+                this.supplierApi.delete(supplier.original);
+                Notification.show("Supplier deleted: " + supplier.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.supplierApi.permanentlyDelete(supplier.getOriginal().getId());
-                Notification.show("Supplier permanently deleted: " + supplier.getOriginal().getName())
+                this.supplierApi.permanentlyDelete(supplier.id);
+                Notification.show("Supplier permanently deleted: " + supplier.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if (supplier.getOriginal().getDeleted() == 0) {
+            if (supplier.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (supplier.getOriginal().getDeleted() == 1) {
+            } else if (supplier.deleted == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -132,9 +151,57 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         add(hl, grid);
     }
 
+    private Stream<SupplierVO> getFilteredStream() {
+        return supplierVOS.stream().filter(supplierVO ->
+                        (addressFilterText.isEmpty() || supplierVO.address.toLowerCase().contains(addressFilterText.toLowerCase())) &&
+                        (nameFilterText.isEmpty() || supplierVO.name.toLowerCase().contains(nameFilterText.toLowerCase())) &&
+                        (showDeleted ? (supplierVO.deleted == 0 || supplierVO.deleted == 1) : supplierVO.deleted == 0)
+        );
+    }
+
+    private Component filterField(TextField filterField, String title){
+        VerticalLayout res = new VerticalLayout();
+        res.getStyle().set("padding", "0px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center");
+        filterField.getStyle().set("display", "flex").set("width", "100%");
+        NativeLabel titleLabel = new NativeLabel(title);
+        res.add(titleLabel, filterField);
+        res.setClassName("vaadin-header-cell-content");
+        return res;
+    }
+
+    private void setFilteringHeaderRow(){
+        TextField addressFilter = new TextField();
+        addressFilter.setPlaceholder("Search address...");
+        addressFilter.setClearButtonVisible(true);
+        addressFilter.addValueChangeListener(event -> {
+            addressFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField nameFilter = new TextField();
+        nameFilter.setPlaceholder("Search name...");
+        nameFilter.setClearButtonVisible(true);
+        nameFilter.addValueChangeListener(event -> {
+            nameFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+        HeaderRow filterRow = grid.appendHeaderRow();;
+        filterRow.getCell(addressColumn).setComponent(filterField(addressFilter, "Address"));
+        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
+    }
+
+
     private void updateGridItems() {
-        List<Supplier> suppliers = showDeleted ? supplierApi.findAllWithDeleted() : supplierApi.findAll();
-        this.grid.setItems(suppliers.stream().map(SupplierVO::new).collect(Collectors.toList()));
+        List<Supplier> suppliers = supplierApi.findAllWithDeleted();
+        supplierVOS = suppliers.stream().map(SupplierVO::new).collect(Collectors.toList());
+        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
     public Dialog getSaveOrUpdateDialog(Supplier entity) {
@@ -170,7 +237,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             }
 
 
-            Notification.show("Supplier saved: " + supplier)
+            Notification.show("Supplier " + (entity == null ? "saved: " : "updated: ") + supplier)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             nameField.clear();
             addresses.clear();
@@ -183,7 +250,6 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         return createDialog;
     }
 
-    @Getter
     @NeedCleanCoding
 public class SupplierVO {
         private Supplier original;

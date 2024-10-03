@@ -2,27 +2,39 @@ package hu.martin.ems.vaadin.component.Currency;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.date.Date;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Currency;
+import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CurrencyApi;
+import hu.martin.ems.vaadin.component.Supplier.SupplierList;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Route(value = "currency/list", layout = MainView.class)
 @AnonymousAllowed
@@ -34,6 +46,17 @@ public class CurrencyList extends VerticalLayout {
     private PaginatedGrid<CurrencyVO, String> grid;
     private final ObjectMapper om = new ObjectMapper();
     private final PaginationSetting paginationSetting;
+
+    List<Currency> currencies;
+    List<CurrencyVO> currencyVOS;
+
+    Grid.Column<CurrencyVO> nameColumn;
+    Grid.Column<CurrencyVO> valColumn;
+    private static String nameFilterText = "";
+    private static String valFilterText = "";
+
+    private DatePicker datePicker;
+
 
     @Autowired
     public CurrencyList(PaginationSetting paginationSetting) {
@@ -51,16 +74,37 @@ public class CurrencyList extends VerticalLayout {
                     .addThemeVariants(c == null ? NotificationVariant.LUMO_ERROR : NotificationVariant.LUMO_SUCCESS);
         });
 
-        DatePicker datePicker = new DatePicker("Date");
+        datePicker = new DatePicker("Date");
         datePicker.setMax(LocalDate.now());
         datePicker.setValue(LocalDate.now());
-        datePicker.addValueChangeListener(event -> updateGrid(datePicker));
-        updateGrid(datePicker);
+        datePicker.addValueChangeListener(event -> updateGrid());
+        datePicker.setI18n(new DatePicker.DatePickerI18n().setDateFormats(
+                "yyyy. MM. dd",
+                Date.generateAllFormats().toArray(new String[0])
+        ));
+
+
+        nameColumn = this.grid.addColumn(v -> v.name);
+        valColumn = this.grid.addColumn(v -> v.val);
+
+        setFilteringHeaderRow();
+
+        updateGrid();
         add(fetch, datePicker, grid);
     }
 
-    public void updateGrid(DatePicker dp) {
-        LocalDate date = dp.getValue();
+    private void correctDateFormat(String enteredDate) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.M.d");
+            LocalDate parsedDate = LocalDate.parse(enteredDate, formatter);
+            datePicker.setValue(parsedDate);
+        } catch (DateTimeParseException ex) {
+            Notification.show("Invalid date format!", 3000, Notification.Position.MIDDLE);
+        }
+    }
+
+    public void updateGrid() {
+        LocalDate date = datePicker.getValue();
         Currency currency = currencyApi.findByDate(date);
 
         if (currency == null) {
@@ -74,23 +118,68 @@ public class CurrencyList extends VerticalLayout {
             } else {
                 Notification.show("Exchange rates cannot be downloaded retroactively!")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                dp.setValue(LocalDate.now());
-                updateGrid(dp);
+                datePicker.setValue(LocalDate.now());
+                updateGrid();
             }
         }
-        List<CurrencyVO> data = new ArrayList<>();
+        currencyVOS = new ArrayList<>();
         String baseCurrency = currency.getBaseCurrency().getName();
         try {
             LinkedHashMap<String, Double> map = om.readValue(currency.getRateJson(), LinkedHashMap.class);
-            map.forEach((k, v) -> data.add(new CurrencyVO(k, v, baseCurrency)));
-            this.grid.setItems(data);
+            map.forEach((k, v) -> currencyVOS.add(new CurrencyVO(k, v, baseCurrency)));
+
+            List<CurrencyVO> curr = getFilteredStream().collect(Collectors.toList());
+            this.grid.setItems(curr);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-
     }
 
-    @Getter
+    private Stream<CurrencyVO> getFilteredStream() {
+        return currencyVOS.stream().filter(currencyVO ->
+                (valFilterText.isEmpty() || currencyVO.val.toLowerCase().contains(valFilterText.toLowerCase())) &&
+                (nameFilterText.isEmpty() || currencyVO.name.toLowerCase().contains(nameFilterText.toLowerCase()))
+        );
+    }
+
+    private Component filterField(TextField filterField, String title){
+        VerticalLayout res = new VerticalLayout();
+        res.getStyle().set("padding", "0px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center");
+        filterField.getStyle().set("display", "flex").set("width", "100%");
+        NativeLabel titleLabel = new NativeLabel(title);
+        res.add(titleLabel, filterField);
+        res.setClassName("vaadin-header-cell-content");
+        return res;
+    }
+
+    private void setFilteringHeaderRow(){
+        TextField nameFilter = new TextField();
+        nameFilter.setPlaceholder("Search name...");
+        nameFilter.setClearButtonVisible(true);
+        nameFilter.addValueChangeListener(event -> {
+            nameFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGrid();
+        });
+
+        TextField valFilter = new TextField();
+        valFilter.setPlaceholder("Search val...");
+        valFilter.setClearButtonVisible(true);
+        valFilter.addValueChangeListener(event -> {
+            valFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGrid();
+        });
+
+        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+        HeaderRow filterRow = grid.appendHeaderRow();
+        filterRow.getCell(valColumn).setComponent(filterField(valFilter, "Val"));
+        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
+    }
+
     @NeedCleanCoding
 public class CurrencyVO {
         private String name;

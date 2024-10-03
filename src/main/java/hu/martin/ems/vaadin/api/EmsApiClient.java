@@ -73,6 +73,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public T update(T entity) {
+        initWebClient();
         try{
             String response =  webClient.put()
                     .uri("update")
@@ -92,6 +93,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public T restore(T entity){
+        initWebClient();
         try {
             String response = webClient.put()
                     .uri("restore")
@@ -162,7 +164,9 @@ public abstract class EmsApiClient<T> {
     }
 
     protected <X> List<X> convertResponseToEntityList(String jsonResponse, Class<X> resultEntityType) {
-        initWebClient();
+        if(jsonResponse.startsWith("{")){
+            jsonResponse = "[" + jsonResponse + "]";
+        }
         try {
             List<LinkedHashMap<String, Object>> mapList = om.readValue(jsonResponse, new TypeReference<List<LinkedHashMap<String, Object>>>() {});
             List<X> resultList = new ArrayList<>();

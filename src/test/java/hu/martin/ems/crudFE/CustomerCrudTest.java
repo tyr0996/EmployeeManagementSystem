@@ -1,27 +1,20 @@
-package hu.martin.ems;
+package hu.martin.ems.crudFE;
 
+import hu.martin.ems.BaseCrudTest;
+import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.time.Duration;
 
 import static hu.martin.ems.base.GridTestingUtil.navigateMenu;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-public class EmployeeCrudTest {
-    @Autowired
-    private ServletWebServerApplicationContext webServerAppCtxt;
-    private Integer port;
-    private static WebDriver driver;
+public class CustomerCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
 
@@ -29,58 +22,51 @@ public class EmployeeCrudTest {
     private static final String gridXpath = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid";
     private static final String createButtonXpath = "//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-horizontal-layout/vaadin-button";
 
-    @BeforeEach
+    @BeforeClass
     public void setup() {
-        port = webServerAppCtxt.getWebServer().getPort();
-        driver = new ChromeDriver();
-        crudTestingUtil = new CrudTestingUtil(driver, "Employee", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
+        crudTestingUtil = new CrudTestingUtil(driver, "Customer", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
     @Test
-    public void employeeCreateTest() throws InterruptedException {
+    public void customerCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.EMPLOYEE_SUBMENU);
+        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
         crudTestingUtil.createTest();
     }
 
     @Test
-    public void employeeReadTest() {
+    public void customerReadTest() {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.EMPLOYEE_SUBMENU);
+        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
         crudTestingUtil.readTest();
     }
 
     @Test
-    public void employeeDeleteTest() throws InterruptedException {
+    public void customerDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.EMPLOYEE_SUBMENU);
+        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
         crudTestingUtil.deleteTest();
     }
 
     @Test
-    public void employeeUpdateTest() throws InterruptedException {
+    public void customerUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.EMPLOYEE_SUBMENU);
+        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
         crudTestingUtil.updateTest();
     }
 
     @Test
-    public void employeeRestoreTest() throws InterruptedException {
+    public void customerRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.EMPLOYEE_SUBMENU);
+        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
         crudTestingUtil.restoreTest();
     }
 
     @Test
-    public void employeePermanentlyDeleteTest() throws InterruptedException {
+    public void customerPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.EMPLOYEE_SUBMENU);
+        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
         crudTestingUtil.permanentlyDeleteTest();
-    }
-
-    @AfterEach
-    public void destroy(){
-        driver.close();
     }
 }

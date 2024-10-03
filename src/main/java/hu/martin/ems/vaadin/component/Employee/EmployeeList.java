@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.component.Employee;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -7,6 +8,9 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -24,6 +28,7 @@ import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmployeeApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
+import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +37,7 @@ import org.vaadin.klaudeta.PaginatedGrid;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
@@ -48,25 +54,39 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     private boolean showDeleted = false;
     private PaginatedGrid<EmployeeVO, String> grid;
     private final PaginationSetting paginationSetting;
+    List<Employee> employees;
+    List<EmployeeVO> employeeVOS;
 
+    Grid.Column<EmployeeVO> firstNameColumn;
+    Grid.Column<EmployeeVO> lastNameColumn;
+    Grid.Column<EmployeeVO> roleColumn;
+    Grid.Column<EmployeeVO> salaryColumn;
+
+    private String firstNameFilterText = "";
+    private String lastNameFilterText = "";
+    private String roleFilterText = "";
+    private String salaryFilterText = "";
     @Autowired
     public EmployeeList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
         this.grid = new PaginatedGrid<>(EmployeeVO.class);
-        List<Employee> employees = employeeApi.findAll();
-        List<EmployeeVO> data = employees.stream().map(EmployeeVO::new).collect(Collectors.toList());
-        this.grid.setItems(data);
-        this.grid.removeAllColumns(); // TODO megnézni az összesnél, hogy így nézzen ki
-        this.grid.addColumn(EmployeeVO::getFirstName).setHeader("First name");
-        this.grid.addColumn(EmployeeVO::getLastName).setHeader("Last name");
-        this.grid.addColumn(EmployeeVO::getRole).setHeader("Role");
-        this.grid.addColumn(EmployeeVO::getSalary).setHeader("Salary");
+        employees = employeeApi.findAll();
+        employeeVOS = employees.stream().map(EmployeeVO::new).collect(Collectors.toList());
+        this.grid.setItems(getFilteredStream().toList());
+
+//        this.grid.removeAllColumns(); // TODO megnézni az összesnél, hogy így nézzen ki
+        firstNameColumn = this.grid.addColumn(v -> v.firstName);
+        lastNameColumn = this.grid.addColumn(v -> v.lastName);
+        roleColumn = this.grid.addColumn(v -> v.role);
+        salaryColumn = this.grid.addColumn(v -> v.salary);
 
         grid.addClassName("styling");
-        grid.setPartNameGenerator(employeeVO -> employeeVO.getDeleted() != 0 ? "deleted" : null);
+        grid.setPartNameGenerator(employeeVO -> employeeVO.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
+
+        setFilteringHeaderRow();
 
         //region Options column
         this.grid.addComponentColumn(employee -> {
@@ -84,30 +104,30 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             });
 
             restoreButton.addClickListener(event -> {
-                this.employeeApi.restore(employee.getOriginal());
-                Notification.show("Employee restored: " + employee.getOriginal().getName())
+                this.employeeApi.restore(employee.original);
+                Notification.show("Employee restored: " + employee.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.employeeApi.delete(employee.getOriginal());
-                Notification.show("Employee deleted: " + employee.getOriginal().getName())
+                this.employeeApi.delete(employee.original);
+                Notification.show("Employee deleted: " + employee.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.employeeApi.permanentlyDelete(employee.getOriginal().getId());
-                Notification.show("Employee permanently deleted: " + employee.getOriginal().getName())
+                this.employeeApi.permanentlyDelete(employee.original.getId());
+                Notification.show("Employee permanently deleted: " + employee.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if (employee.getOriginal().getDeleted() == 0) {
+            if (employee.original.getDeleted() == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (employee.getOriginal().getDeleted() == 1) {
+            } else if (employee.original.getDeleted() == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -134,9 +154,79 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         add(hl, grid);
     }
 
+    private Stream<EmployeeVO> getFilteredStream() {
+
+        return employeeVOS.stream().filter(employeeVO ->
+                (firstNameFilterText.isEmpty() || employeeVO.firstName.toLowerCase().contains(firstNameFilterText.toLowerCase())) &&
+                (lastNameFilterText.isEmpty() || employeeVO.lastName.toLowerCase().contains(lastNameFilterText.toLowerCase())) &&
+                (roleFilterText.isEmpty() || employeeVO.role.toLowerCase().contains(roleFilterText.toLowerCase())) &&
+                (salaryFilterText.isEmpty() || employeeVO.salary.toString().toLowerCase().contains(salaryFilterText.toLowerCase())) &&
+                (showDeleted ? (employeeVO.deleted == 0 || employeeVO.deleted == 1) : employeeVO.deleted == 0)
+        );
+    }
+
+    private Component filterField(TextField filterField, String title){
+        VerticalLayout res = new VerticalLayout();
+        res.getStyle().set("padding", "0px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center");
+        filterField.getStyle().set("display", "flex").set("width", "100%");
+        NativeLabel titleLabel = new NativeLabel(title);
+        res.add(titleLabel, filterField);
+        res.setClassName("vaadin-header-cell-content");
+        return res;
+    }
+
+    private void setFilteringHeaderRow(){
+        TextField firstNameFilter = new TextField();
+        firstNameFilter.setPlaceholder("Search first name...");
+        firstNameFilter.setClearButtonVisible(true);
+        firstNameFilter.addValueChangeListener(event -> {
+            firstNameFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField lastNameFilter = new TextField();
+        lastNameFilter.setPlaceholder("Search last name...");
+        lastNameFilter.setClearButtonVisible(true);
+        lastNameFilter.addValueChangeListener(event -> {
+            lastNameFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField roleFilter = new TextField();
+        roleFilter.setPlaceholder("Search role...");
+        roleFilter.setClearButtonVisible(true);
+        roleFilter.addValueChangeListener(event -> {
+            roleFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField salaryFilter = new TextField();
+        salaryFilter.setPlaceholder("Search salary...");
+        salaryFilter.setClearButtonVisible(true);
+        salaryFilter.addValueChangeListener(event -> {
+            salaryFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+        HeaderRow filterRow = grid.appendHeaderRow();;
+        filterRow.getCell(firstNameColumn).setComponent(filterField(firstNameFilter, "First name"));
+        filterRow.getCell(lastNameColumn).setComponent(filterField(lastNameFilter, "Last name"));
+        filterRow.getCell(roleColumn).setComponent(filterField(roleFilter, "Role"));
+        filterRow.getCell(salaryColumn).setComponent(filterField(salaryFilter, "Salary"));
+    }
+
     private void updateGridItems() {
-        List<Employee> employees = showDeleted ? employeeApi.findAllWithDeleted() : employeeApi.findAll();
-        this.grid.setItems(employees.stream().map(EmployeeVO::new).collect(Collectors.toList()));
+        List<Employee> employees = employeeApi.findAllWithDeleted();
+        employeeVOS = employees.stream().map(EmployeeVO::new).collect(Collectors.toList());
+        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
     public Dialog getSaveOrUpdateDialog(Employee entity) {
@@ -174,7 +264,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             else{
                 employeeApi.save(employee);
             }
-            Notification.show("Employee saved: " + employee.getFirstName() + " " + employee.getLastName())
+            Notification.show("Employee " + (entity == null ? "saved: " : "updated: ") + employee.getFirstName() + " " + employee.getLastName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
             firstNameField.clear();
@@ -191,7 +281,6 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         return createDialog;
     }
 
-    @Getter
     @NeedCleanCoding
 public class EmployeeVO {
         private Employee original;

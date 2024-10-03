@@ -1,41 +1,31 @@
-package hu.martin.ems;
+package hu.martin.ems.crudFE;
 
-import com.vaadin.flow.component.UI;
+import hu.martin.ems.BaseCrudTest;
+import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.RandomGenerator;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.openqa.selenium.*;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.time.Duration;
-import java.util.List;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-public class LoginTests {
-    @Autowired
-    private ServletWebServerApplicationContext webServerAppCtxt;
-    private Integer port;
-    private static WebDriver driver;
+public class LoginTests extends BaseCrudTest {
+
     private static WebDriverWait notificationDisappearWait;
 
 
-    @BeforeEach
+    @BeforeClass
     public void setup() {
-        port = webServerAppCtxt.getWebServer().getPort();
-        driver = new ChromeDriver();
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
         GridTestingUtil.driver = driver;
     }
@@ -101,7 +91,6 @@ public class LoginTests {
         checkNotificationContainsTexts("The passwords doesn't match!");
     }
 
-    @Test
     private void modifyPassword(String userName, String password, String againPassword) throws InterruptedException {
         driver.get("http://localhost:" + port + "/login");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
@@ -218,16 +207,14 @@ public class LoginTests {
                 orderCreateMenu != null;
     }
 
-    @AfterEach
-    public void destroy(){
-        driver.close();
-    }
-
     private void checkLoginErrorMessage(String title, String description){
         WebElement login = findVisibleElementWithXpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper");
         SearchContext shadow = login.getShadowRoot();
-        WebElement errorMessage = shadow.findElements(By.cssSelector("*")).get(0).findElement(By.tagName("div"));
+        JavascriptExecutor js = (JavascriptExecutor) driver;
 
+        WebElement errorMessage = (WebElement) js.executeScript("return arguments[0].querySelectorAll('*')[1].querySelectorAll('*')[1];", shadow);
+
+        printToConsole(errorMessage);
         String errorTitle = errorMessage.findElement(By.tagName("h5")).getText();
         String errorDescription = errorMessage.findElement(By.tagName("p")).getText();
 

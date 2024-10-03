@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.component.Address;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -7,6 +8,9 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -26,14 +30,17 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
+import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
+import org.apache.commons.math3.analysis.function.Add;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
@@ -51,22 +58,43 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     private boolean showDeleted = false;
     private PaginatedGrid<AddressVO, String> grid;
     private final PaginationSetting paginationSetting;
+    List<Address> addresses;
+    List<AddressVO> addressVOS;
+
+    Grid.Column<AddressVO> cityColumn;
+    Grid.Column<AddressVO> countryCodeColumn;
+    Grid.Column<AddressVO> houseNumberColumn;
+    Grid.Column<AddressVO> streetNameColumn;
+    Grid.Column<AddressVO> streetTypeColumn;
+
+    private static String cityFilterText = "";
+    private static String countryCodeFilterText = "";
+    private static String houseNumberFilterText = "";
+    private static String streetNameFilterText = "";
+    private static String streetTypeFilterText = "";
+
 
     @Autowired
     public AddressList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
         this.grid = new PaginatedGrid<>(AddressVO.class);
-        List<Address> addresses = addressApi.findAll();
+        addresses = addressApi.findAll();
         List<AddressVO> data = addresses.stream().map(AddressVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
-        this.grid.removeColumnByKey("original");
-        this.grid.removeColumnByKey("id");
-        this.grid.removeColumnByKey("deleted");
+
+        cityColumn = grid.addColumn(v -> v.city);
+        countryCodeColumn = grid.addColumn(v -> v.countryCode);
+        houseNumberColumn = grid.addColumn(v -> v.houseNumber);
+        streetNameColumn = grid.addColumn(v -> v.streetName);
+        streetTypeColumn = grid.addColumn(v -> v.streetType);
+
         grid.addClassName("styling");
-        grid.setPartNameGenerator(addressVO -> addressVO.getDeleted() != 0 ? "deleted" : null);
+        grid.setPartNameGenerator(addressVO -> addressVO.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
+
+        setFilteringHeaderRow();
 
         //region Options column
         this.grid.addComponentColumn(address -> {
@@ -84,30 +112,30 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
             });
 
             restoreButton.addClickListener(event -> {
-                addressApi.restore(address.getOriginal());
-                Notification.show("Address restored: " + address.getOriginal().getName())
+                addressApi.restore(address.original);
+                Notification.show("Address restored: " + address.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.addressApi.delete(address.getOriginal());
-                Notification.show("Address deleted: " + address.getOriginal().getName())
+                this.addressApi.delete(address.original);
+                Notification.show("Address deleted: " + address.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.addressApi.permanentlyDelete(address.getOriginal().getId());
-                Notification.show("Address permanently deleted: " + address.getOriginal().getName())
+                this.addressApi.permanentlyDelete(address.original.getId());
+                Notification.show("Address permanently deleted: " + address.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if (address.getOriginal().getDeleted() == 0) {
+            if (address.original.getDeleted() == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (address.getOriginal().getDeleted() == 1) {
+            } else if (address.original.getDeleted() == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -134,9 +162,92 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         add(hl, grid);
     }
 
+    private Stream<AddressVO> getFilteredStream() {
+        return addressVOS.stream().filter(addressVO ->
+                (cityFilterText.isEmpty() || addressVO.city.toLowerCase().contains(cityFilterText.toLowerCase())) &&
+                        (countryCodeFilterText.isEmpty() || addressVO.countryCode.toLowerCase().contains(countryCodeFilterText.toLowerCase())) &&
+                        (houseNumberFilterText.isEmpty() || addressVO.houseNumber.toLowerCase().contains(houseNumberFilterText.toLowerCase())) &&
+                        (streetTypeFilterText.isEmpty() || addressVO.streetType.toLowerCase().contains(streetTypeFilterText.toLowerCase())) &&
+                        (streetNameFilterText.isEmpty() || addressVO.streetName.toLowerCase().contains(streetNameFilterText.toLowerCase())) &&
+                        (showDeleted ? (addressVO.deleted == 0 || addressVO.deleted == 1) : addressVO.deleted == 0)
+        );
+    }
+
+    private Component filterField(TextField filterField, String title){
+        VerticalLayout res = new VerticalLayout();
+        res.getStyle().set("padding", "0px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center");
+        filterField.getStyle().set("display", "flex").set("width", "100%");
+        NativeLabel titleLabel = new NativeLabel(title);
+        res.add(titleLabel, filterField);
+        res.setClassName("vaadin-header-cell-content");
+        return res;
+    }
+
+    private void setFilteringHeaderRow(){
+        TextField cityFilter = new TextField();
+        cityFilter.setPlaceholder("Search city...");
+        cityFilter.setClearButtonVisible(true);
+        cityFilter.addValueChangeListener(event -> {
+            cityFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField countryCodeFilter = new TextField();
+        countryCodeFilter.setPlaceholder("Search country code...");
+        countryCodeFilter.setClearButtonVisible(true);
+        countryCodeFilter.addValueChangeListener(event -> {
+            countryCodeFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField streetNameFilter = new TextField();
+        streetNameFilter.setPlaceholder("Search street name...");
+        streetNameFilter.setClearButtonVisible(true);
+        streetNameFilter.addValueChangeListener(event -> {
+            streetNameFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField streetTypeFilter = new TextField();
+        streetTypeFilter.setPlaceholder("Search street type...");
+        streetTypeFilter.setClearButtonVisible(true);
+        streetTypeFilter.addValueChangeListener(event -> {
+            streetTypeFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField houseNumberFilter = new TextField();
+        houseNumberFilter.setPlaceholder("Search street type...");
+        houseNumberFilter.setClearButtonVisible(true);
+        houseNumberFilter.addValueChangeListener(event -> {
+            houseNumberFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+
+        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+        HeaderRow filterRow = grid.appendHeaderRow();;
+        filterRow.getCell(cityColumn).setComponent(filterField(cityFilter, "City"));
+        filterRow.getCell(countryCodeColumn).setComponent(filterField(countryCodeFilter, "Country code"));
+        filterRow.getCell(houseNumberColumn).setComponent(filterField(houseNumberFilter, "House number"));
+        filterRow.getCell(streetNameColumn).setComponent(filterField(streetNameFilter, "Street name"));
+        filterRow.getCell(streetTypeColumn).setComponent(filterField(streetTypeFilter, "Street type"));
+    }
+
+
     private void updateGridItems() {
-        List<Address> addresses = showDeleted ? addressApi.findAllWithDeleted() : addressApi.findAll();
-        this.grid.setItems(addresses.stream().map(AddressVO::new).collect(Collectors.toList()));
+        List<Address> addresses = addressApi.findAllWithDeleted();
+        addressVOS = addresses.stream().map(AddressVO::new).collect(Collectors.toList());
+        List<AddressVO> data = getFilteredStream().collect(Collectors.toList());
+        this.grid.setItems(data);
     }
 
     public Dialog getSaveOrUpdateDialog(Address entity) {
@@ -190,7 +301,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
                 addressApi.save(address);
             }
 
-            Notification.show("Address saved: " + address.getName())
+            Notification.show("Address " + (entity == null ? "saved: " : "updated: ") + address.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             countryCodes.clear();
             citys.clear();
@@ -205,7 +316,6 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         return createDialog;
     }
 
-    @Getter
     @NeedCleanCoding
 public class AddressVO {
         private Address original;

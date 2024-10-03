@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.martin.ems.NeedCleanCoding;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -158,16 +159,17 @@ public class DataProvider {
             logger.info("Data loaded successfully from JSON! " + jsonFile.getName());
             loaded.add(jsonFile);
         } catch (JsonMappingException e) {
-            if (entityTransaction != null && entityTransaction.isActive()) {
-                entityTransaction.rollback();
-            }
             logger.error("Hiba a json fájlban! " + jsonFile.getName());
-        } catch (IOException e) {
-            if (entityTransaction != null && entityTransaction.isActive()) {
-                entityTransaction.rollback();
-            }
+        } catch (IOException e){
             logger.error("HIBA: " + jsonFile.getName());
         }
+    }
+
+    public void executeSQL(String sql){
+        EntityTransaction entityTransaction = em.getTransaction();
+        entityTransaction.begin();
+        em.createNativeQuery(sql).executeUpdate();
+        entityTransaction.commit();
     }
 
     @NoArgsConstructor

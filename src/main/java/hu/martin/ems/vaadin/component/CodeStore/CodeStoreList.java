@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.component.CodeStore;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -7,6 +8,9 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -21,12 +25,16 @@ import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
+import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
@@ -40,30 +48,39 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
 
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private boolean showDeleted = false;
-    private PaginatedGrid<CodeStore, ?> grid;
+    private boolean showOnlyDeletable = false;
+    private PaginatedGrid<CodeStoreVO, ?> grid;
     private final PaginationSetting paginationSetting;
+
+    private List<CodeStore> codeStores;
+    private List<CodeStoreVO> codeStoreVOS;
+
+    Grid.Column<CodeStoreVO> nameColumn;
+    Grid.Column<CodeStoreVO> parentColumn;
+
+    private static String nameColumnFilterText = "";
+    private static String parentColumnFilterText = "";
+
 
     @Autowired
     public CodeStoreList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
-        this.grid = new PaginatedGrid<>(CodeStore.class);
+        this.grid = new PaginatedGrid<>(CodeStoreVO.class);
 
         List<CodeStore> codeStores = codeStoreApi.findAll();
-        this.grid.setItems(codeStores);
+        codeStoreVOS = codeStores.stream().map(CodeStoreVO::new).collect(Collectors.toList());
+        this.grid.setItems(codeStoreVOS);
 
-
-        this.grid.getColumns().forEach(grid::removeColumn);
-        this.grid.addColumn(CodeStore::getName).setHeader("Name");
-        this.grid.addColumn(codeStore -> {
-            CodeStore parent = codeStore.getParentCodeStore();
-            return parent != null ? parent.getName() : "";
-        }).setHeader("Parent");
+        nameColumn = this.grid.addColumn(v -> v.name);
+        parentColumn = this.grid.addColumn(v -> v.parentName);
         grid.addClassName("styling");
-        grid.setPartNameGenerator(codeStore -> codeStore.getDeleted() != 0 ? "deleted" : null);
+        grid.setPartNameGenerator(codeStore -> codeStore.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        this.grid.addComponentColumn(codeStore -> {
+        setFilteringHeaderRow();
+
+        this.grid.addComponentColumn(codeStoreVO -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -73,31 +90,31 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
             editButton.addClickListener(event -> {
-                Dialog dialog = getSaveOrUpdateDialog(codeStore);
+                Dialog dialog = getSaveOrUpdateDialog(codeStoreVO.original);
                 dialog.open();
             });
 
             restoreButton.addClickListener(event -> {
-                codeStoreApi.restore(codeStore);
-                Notification.show("CodeStore restored: " + codeStore.getName())
+                codeStoreApi.restore(codeStoreVO.original);
+                Notification.show("CodeStore restored: " + codeStoreVO.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                codeStoreApi.delete(codeStore);
-                Notification.show("CodeStore deleted: " + codeStore.getName())
+                codeStoreApi.delete(codeStoreVO.original);
+                Notification.show("CodeStore deleted: " + codeStoreVO.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                codeStoreApi.permanentlyDelete(codeStore.getId());
-                Notification.show("CodeStore permanently deleted: " + codeStore.getName())
+                codeStoreApi.permanentlyDelete(codeStoreVO.id);
+                Notification.show("CodeStore permanently deleted: " + codeStoreVO.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
-            if (!codeStore.getDeletable()) {
+            if (!codeStoreVO.deletable) {
                 editButton.setEnabled(false);
                 deleteButton.setEnabled(false);
                 permanentDeleteButton.setEnabled(false);
@@ -105,9 +122,9 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             }
 
             HorizontalLayout actions = new HorizontalLayout();
-            if (codeStore.getDeleted() == 0) {
+            if (codeStoreVO.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (codeStore.getDeleted() == 1) {
+            } else if (codeStoreVO.deleted == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -124,17 +141,71 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             showDeleted = event.getValue();
             updateGridItems();
         });
+
+        Checkbox showOnlyDeletableCodeStores = new Checkbox("Show only deletable codestores");
+        showOnlyDeletableCodeStores.addValueChangeListener(event -> {
+            showOnlyDeletable = event.getValue();
+            updateGridItems();
+        });
         HorizontalLayout hl = new HorizontalLayout();
         hl.add(showDeletedCheckbox, create);
         hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
         hl.setAlignSelf(Alignment.CENTER, create);
 
-        add(hl, grid);
+        add(hl, showOnlyDeletableCodeStores, grid);
     }
 
     private void updateGridItems() {
-        List<CodeStore> employees = showDeleted ? codeStoreApi.findAllWithDeleted() : codeStoreApi.findAll();
-        this.grid.setItems(employees);
+        codeStores = codeStoreApi.findAllWithDeleted();
+        codeStoreVOS = codeStores.stream().map(CodeStoreVO::new).collect(Collectors.toList());
+        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+    }
+
+    private Stream<CodeStoreVO> getFilteredStream() {
+        return codeStoreVOS.stream().filter(codeStoreVO ->
+                (nameColumnFilterText.isEmpty() || codeStoreVO.name.toLowerCase().contains(nameColumnFilterText.toLowerCase())) &&
+                        (parentColumnFilterText.isEmpty() || codeStoreVO.parentName.toLowerCase().contains(parentColumnFilterText.toLowerCase())) &&
+                        (showDeleted ? (codeStoreVO.deleted == 0 || codeStoreVO.deleted == 1) : codeStoreVO.deleted == 0) &&
+                        (showOnlyDeletable ? codeStoreVO.deletable : true)
+        );
+    }
+
+    private Component filterField(TextField filterField, String title){
+        VerticalLayout res = new VerticalLayout();
+        res.getStyle().set("padding", "0px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center");
+        filterField.getStyle().set("display", "flex").set("width", "100%");
+        NativeLabel titleLabel = new NativeLabel(title);
+        res.add(titleLabel, filterField);
+        res.setClassName("vaadin-header-cell-content");
+        return res;
+    }
+
+    private void setFilteringHeaderRow(){
+        TextField nameFilter = new TextField();
+        nameFilter.setPlaceholder("Search name...");
+        nameFilter.setClearButtonVisible(true);
+        nameFilter.addValueChangeListener(event -> {
+            nameColumnFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField parentColumnFilter = new TextField();
+        parentColumnFilter.setPlaceholder("Search parent...");
+        parentColumnFilter.setClearButtonVisible(true);
+        parentColumnFilter.addValueChangeListener(event -> {
+            parentColumnFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+        HeaderRow filterRow = grid.appendHeaderRow();
+        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
+        filterRow.getCell(parentColumn).setComponent(filterField(parentColumnFilter, "Parent"));
     }
 
     public Dialog getSaveOrUpdateDialog(CodeStore entity) {
@@ -166,8 +237,10 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             codeStore.setParentCodeStore(parentCodeStore.getValue());
             codeStoreApi.save(codeStore);
 
-            Notification.show("CodeStore saved: " + codeStore.getName())
+            Notification.show("CodeStore " + (entity == null ? "saved: " : "updated: ") + codeStore.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+            updateGridItems();
 
             nameTextField.clear();
             deletable.clear();
@@ -179,5 +252,23 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
 
         createDialog.add(formLayout);
         return createDialog;
+    }
+
+    public class CodeStoreVO{
+        private CodeStore original;
+        private long id;
+        private long deleted;
+        private String name;
+        private String parentName;
+        private Boolean deletable;
+
+        public CodeStoreVO(CodeStore codeStore){
+            this.original = codeStore;
+            this.id = codeStore.getId();
+            this.deleted = codeStore.getDeleted();
+            this.name = codeStore.getName();
+            this.parentName = codeStore.getParentCodeStore() == null ? "" : codeStore.getParentCodeStore().getName();
+            this.deletable = codeStore.getDeletable();
+        }
     }
 }

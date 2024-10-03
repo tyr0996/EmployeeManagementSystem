@@ -1,5 +1,8 @@
 package hu.martin.ems.base;
 
+import reactor.core.publisher.Flux;
+
+import java.time.LocalDate;
 import java.util.Random;
 
 public class RandomGenerator {
@@ -24,10 +27,18 @@ public class RandomGenerator {
         return random.nextInt(0, 100000);
     }
 
-    public static CharSequence generateRandomEmailAddress() {
+    public static String generateRandomEmailAddress() {
         String r = generateRandomOnlyLetterString(8) + "@" +
                 generateRandomOnlyLetterString(5) + "." +
                 generateRandomOnlyLetterString(3);
         return r;
+    }
+
+    public static String generateRandomDate() {
+        LocalDate today = LocalDate.now();
+        return random.nextInt(2000, today.getYear()) + ". " +
+                random.nextInt(1, today.getMonthValue()) + ". " +
+                random.nextInt(1, today.getDayOfMonth())+ ".";
+
     }
 }

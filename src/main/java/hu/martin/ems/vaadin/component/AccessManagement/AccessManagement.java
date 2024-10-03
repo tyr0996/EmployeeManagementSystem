@@ -48,11 +48,11 @@ public class AccessManagement extends VerticalLayout {
 
     private void addClickListeners() {
         listRoles.addClickListener(event ->{
-            this.roleList.refreshGrid();
+            this.roleList.generateSaveOrUpdateDialog();
             refreshLayout(this.roleList);
         });
         listPermissions.addClickListener(event -> {
-            this.permissionList.refreshGrid();
+            this.permissionList.getSaveOrUpdateDialog(null);
             refreshLayout(permissionList);
         });
         pairRolesWithPermissions.addClickListener(event -> {

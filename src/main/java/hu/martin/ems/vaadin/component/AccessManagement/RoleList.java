@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.component.AccessManagement;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -8,6 +9,9 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -24,12 +28,14 @@ import hu.martin.ems.model.RoleXPermission;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
+import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.AllArgsConstructor;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
@@ -39,7 +45,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @NeedCleanCoding
 public class RoleList extends VerticalLayout implements Creatable<Role> {
     private boolean showDeleted = false;
-    private PaginatedGrid<GroupedRoleXPermission, String> grid;
+    private PaginatedGrid<GroupedRoleXPermissionVO, String> grid;
     private final PaginationSetting paginationSetting;
     private HorizontalLayout buttonsLayout;
     private Button saveButton;
@@ -50,10 +56,16 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     private Dialog createOrModifyDialog;
     private FormLayout createOrModifyForm;
     private List<GroupedRoleXPermission> groupedRoleXPermissions;
+    private List<GroupedRoleXPermissionVO> groupedRoleXPermissionVOS;
 
     private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
     private final RoleXPermissionApiClient roleXPermissionApi = BeanProvider.getBean(RoleXPermissionApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
+
+    private static String roleFilterText = "";
+    private static String permissionsFilterText = "";
+    private Grid.Column<GroupedRoleXPermissionVO> roleColumn;
+    private Grid.Column<GroupedRoleXPermissionVO> permissionsColumn;
 
     public RoleList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
@@ -64,13 +76,14 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     }
 
     private void createRoleXPermissionGrid(){
-        this.grid = new PaginatedGrid<>(GroupedRoleXPermission.class);
+        this.grid = new PaginatedGrid<>(GroupedRoleXPermissionVO.class);
         grid.addClassName("styling");
-        grid.setPartNameGenerator(roleXPermission -> roleXPermission.role.getDeleted() != 0 ? "deleted" : null);
+        grid.setPartNameGenerator(roleXPermissionVO -> roleXPermissionVO.original.role.getDeleted() != 0 ? "deleted" : null);
+        setGridColumns();
+        setFilteringHeaderRow();
 
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
-        setGridColumns();
         updateGridItems();
     }
 
@@ -100,7 +113,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         createSaveOrUpdateForm();
         saveButton.addClickListener(event -> {
             GroupedRoleXPermission grxp = saveRoleWithPermissions();
-            Notification.show((editableRole == null ? "Role saved: " : "Role updated: ") + grxp.getName())
+            Notification.show("Role " + (editableRole == null ? "saved: " : "updated: ") + grxp.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             nameField.clear();
             createOrModifyDialog.close();
@@ -150,16 +163,52 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         return new GroupedRoleXPermission(role, permissions.getSelectedItems().stream().toList());
     }
 
+    private void setFilteringHeaderRow(){
+        TextField roleFilter = new TextField();
+        roleFilter.setPlaceholder("Search role...");
+        roleFilter.setClearButtonVisible(true);
+        roleFilter.addValueChangeListener(event -> {
+            roleFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
 
+        TextField permissionsFilter = new TextField();
+        permissionsFilter.setPlaceholder("Permissions name...");
+        permissionsFilter.setClearButtonVisible(true);
+        permissionsFilter.addValueChangeListener(event -> {
+            permissionsFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+        HeaderRow filterRow = grid.appendHeaderRow();
+        filterRow.getCell(roleColumn).setComponent(filterField(roleFilter, "Role"));
+        filterRow.getCell(permissionsColumn).setComponent(filterField(permissionsFilter, "Permissions"));
+    }
 
     private void setGridColumns(){
-        this.grid.addColumn(GroupedRoleXPermission::roleAsString).setHeader("Role");
-        this.grid.addColumn(GroupedRoleXPermission::permissionsAsString).setHeader("Permissions");
+        roleColumn = this.grid.addColumn(v -> v.role);
+        permissionsColumn = this.grid.addColumn(v -> v.permissions);
         addOptionsColumn();
     }
 
+    private Component filterField(TextField filterField, String title){
+        VerticalLayout res = new VerticalLayout();
+        res.getStyle().set("padding", "0px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center");
+        filterField.getStyle().set("display", "flex").set("width", "100%");
+        NativeLabel titleLabel = new NativeLabel(title);
+        res.add(titleLabel, filterField);
+        res.setClassName("vaadin-header-cell-content");
+        return res;
+    }
+
     private void addOptionsColumn(){
-        this.grid.addComponentColumn(groupedRoleXPermission -> {
+        this.grid.addComponentColumn(groupedRoleXPermissionVO -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -169,64 +218,71 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
             editButton.addClickListener(event -> {
-                createSaveOrUpdateForm();
+                editableRole = groupedRoleXPermissionVO.original.role;
+                generateSaveOrUpdateDialog();
+                createOrModifyDialog.open();
             });
 
             restoreButton.addClickListener(event -> {
-                roleApi.restore(groupedRoleXPermission.role);
-                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermission.role);
+                roleApi.restore(groupedRoleXPermissionVO.original.role);
+                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermissionVO.original.role);
                 for(RoleXPermission rxp : rxps){
                     roleXPermissionApi.restore(rxp);
                 }
-                Notification.show("Role restored: " + groupedRoleXPermission.getName())
+                Notification.show("Role restored: " + groupedRoleXPermissionVO.role)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                roleApi.delete(groupedRoleXPermission.role);
-                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermission.role);
+                roleApi.delete(groupedRoleXPermissionVO.original.role);
+                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermissionVO.original.role);
                 for(RoleXPermission rxp : rxps){
                     roleXPermissionApi.delete(rxp);
                 }
-                Notification.show("Role deleted: " + groupedRoleXPermission.getName())
+                Notification.show("Role deleted: " + groupedRoleXPermissionVO.role)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                roleApi.permanentlyDelete(groupedRoleXPermission.role.id);
-                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermission.role);
+                roleApi.permanentlyDelete(groupedRoleXPermissionVO.id);
+                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermissionVO.original.role);
                 for(RoleXPermission rxp : rxps){
                     roleXPermissionApi.permanentlyDelete(rxp.id);
                 }
-                Notification.show("Role permanently deleted: " + groupedRoleXPermission.getName())
+                Notification.show("Role permanently deleted: " + groupedRoleXPermissionVO.role)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if (groupedRoleXPermission.getDeleted() == 0) {
+            if (groupedRoleXPermissionVO.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (groupedRoleXPermission.getDeleted() == 1) {
+            } else if (groupedRoleXPermissionVO.deleted == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        }).setHeader("Options");
-    }
-
-    public void refreshGrid(){
-        updateGridItems();
+        });
     }
 
     private void updateGridItems() {
         groupedRoleXPermissions.clear();
         setGroupedRoleXPermissions();
-        this.grid.setItems(groupedRoleXPermissions);
+        groupedRoleXPermissionVOS = groupedRoleXPermissions.stream().map(GroupedRoleXPermissionVO::new).collect(Collectors.toList());
+        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+    }
+
+    private Stream<GroupedRoleXPermissionVO> getFilteredStream() {
+        return groupedRoleXPermissionVOS.stream().filter(groupedRoleXPermissionVO ->
+                (roleFilterText.isEmpty() || groupedRoleXPermissionVO.role.toLowerCase().contains(roleFilterText.toLowerCase())) &&
+                        (permissionsFilterText.isEmpty() || groupedRoleXPermissionVO.permissions.toLowerCase().contains(permissionsFilterText.toLowerCase())) &&
+                        (showDeleted ? (groupedRoleXPermissionVO.deleted == 0 || groupedRoleXPermissionVO.deleted == 1) : groupedRoleXPermissionVO.deleted == 0)
+        );
     }
 
     private void setGroupedRoleXPermissions(){
-        List<RoleXPermission> rxps = roleXPermissionApi.findAllWithUnused(showDeleted);
+        List<RoleXPermission> rxps = roleXPermissionApi.findAllWithUnused(true);
         Map<Role, List<Permission>> gridData = new HashMap<>();
         for (RoleXPermission rxp : rxps) {
             Role role = rxp.getRole();
@@ -241,6 +297,23 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         if (!gridData.containsKey(role)) {
             List<Permission> permissions = roleXPermissionApi.findAllPairedPermissionsTo(role);
             gridData.put(role, permissions);
+        }
+    }
+
+    protected class GroupedRoleXPermissionVO {
+        private GroupedRoleXPermission original;
+        private Long id;
+        private Long deleted;
+
+        private String role;
+        private String permissions;
+
+        public GroupedRoleXPermissionVO(GroupedRoleXPermission groupedRoleXPermission){
+            this.original = groupedRoleXPermission;
+            this.id = original.getId();
+            this.deleted = original.getDeleted();
+            this.role = groupedRoleXPermission.roleAsString();
+            this.permissions = groupedRoleXPermission.permissionsAsString();
         }
     }
 

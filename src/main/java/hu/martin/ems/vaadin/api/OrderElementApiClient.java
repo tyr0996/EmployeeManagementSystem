@@ -13,8 +13,9 @@ public class OrderElementApiClient extends EmsApiClient<OrderElement> {
     }
 
     public List<OrderElement> getByCustomer(Customer customer){
+        initWebClient();
         String jsonResponse = webClient.get()
-                .uri("getByCustomer")
+                .uri("getByCustomer?customerId=" + customer.getId())
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();

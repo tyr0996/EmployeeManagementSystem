@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.component.Product;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -7,6 +8,9 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -23,6 +27,7 @@ import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
+import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +36,7 @@ import org.vaadin.klaudeta.PaginatedGrid;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
@@ -49,6 +55,28 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<ProductVO, String> grid;
+
+    private List<ProductVO> productVOS;
+
+    private static String amountFilterText = "";
+    private static String amountUnitFilterText = "";
+    private static String buyingPriceCurrencyFilterText = "";
+    private static String buyingPriceNetFilterText = "";
+    private static String nameFilterText = "";
+    private static String sellingPriceCurrencyFilterText = "";
+    private static String sellingPriceNetFilterText = "";
+
+
+    private Grid.Column<ProductVO> amountColumn;
+    private Grid.Column<ProductVO> amountUnitColumn;
+    private Grid.Column<ProductVO> buyingPriceCurrencyColumn;
+    private Grid.Column<ProductVO> buyingPriceNetColumn;
+    private Grid.Column<ProductVO> nameColumn;
+    private Grid.Column<ProductVO> sellingPriceCurrencyColumn;
+    private Grid.Column<ProductVO> sellingPriceNetColumn;
+    
+    
+    
     private final PaginationSetting paginationSetting;
 
     @Autowired
@@ -57,15 +85,23 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
 
         this.grid = new PaginatedGrid<>(ProductVO.class);
         List<Product> products = productApi.findAll();
-        List<ProductVO> data = products.stream().map(ProductVO::new).collect(Collectors.toList());
-        this.grid.setItems(data);
-        this.grid.removeColumnByKey("original");
-        this.grid.removeColumnByKey("id");
-        this.grid.removeColumnByKey("deleted");
+        productVOS = products.stream().map(ProductVO::new).collect(Collectors.toList());
+        this.grid.setItems(productVOS);
+
+       amountColumn = grid.addColumn(v -> v.amount);
+       amountUnitColumn = grid.addColumn(v -> v.amountUnit);
+       buyingPriceCurrencyColumn = grid.addColumn(v -> v.buyingPriceCurrency);
+       buyingPriceNetColumn = grid.addColumn(v -> v.buyingPriceNet);
+       nameColumn = grid.addColumn(v -> v.name);
+       sellingPriceCurrencyColumn = grid.addColumn(v -> v.sellingPriceCurrency);
+       sellingPriceNetColumn = grid.addColumn(v -> v.sellingPriceNet);
+        
         grid.addClassName("styling");
-        grid.setPartNameGenerator(productVO -> productVO.getDeleted() != 0 ? "deleted" : null);
+        grid.setPartNameGenerator(productVO -> productVO.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
+        
+        setFilteringHeaderRow();
 
         //region Options column
         this.grid.addComponentColumn(product -> {
@@ -145,35 +181,35 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
                 sellDialog.open();
             });
             editButton.addClickListener(event -> {
-                Dialog dialog = getSaveOrUpdateDialog(product.getOriginal());
+                Dialog dialog = getSaveOrUpdateDialog(product.original);
                 dialog.open();
             });
 
             restoreButton.addClickListener(event -> {
-                this.productApi.restore(product.getOriginal());
-                Notification.show("Product restored: " + product.getOriginal().getName())
+                this.productApi.restore(product.original);
+                Notification.show("Product restored: " + product.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.productApi.delete(product.getOriginal());
-                Notification.show("Product deleted: " + product.getOriginal().getName())
+                this.productApi.delete(product.original);
+                Notification.show("Product deleted: " + product.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.productApi.permanentlyDelete(product.getOriginal().getId());
-                Notification.show("Product permanently deleted: " + product.getOriginal().getName())
+                this.productApi.permanentlyDelete(product.original.getId());
+                Notification.show("Product permanently deleted: " + product.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if (product.getOriginal().getDeleted() == 0) {
+            if (product.original.getDeleted() == 0) {
                 actions.add(editButton, deleteButton, sellButton, orderButton);
-            } else if (product.getOriginal().getDeleted() == 1) {
+            } else if (product.original.getDeleted() == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -200,9 +236,112 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         add(hl, grid);
     }
 
+    private Stream<ProductVO> getFilteredStream() {
+        return productVOS.stream().filter(productVO ->
+                (amountFilterText.isEmpty() || productVO.amount.toString().toLowerCase().contains(amountFilterText.toLowerCase())) &&
+                (amountUnitFilterText.isEmpty() || productVO.amountUnit.toLowerCase().contains(amountUnitFilterText.toLowerCase())) &&
+                (buyingPriceCurrencyFilterText.isEmpty() || productVO.buyingPriceCurrency.toLowerCase().contains(buyingPriceCurrencyFilterText.toLowerCase())) &&
+                (buyingPriceNetFilterText.isEmpty() || productVO.buyingPriceNet.toString().toLowerCase().contains(buyingPriceNetFilterText.toLowerCase())) &&
+                (nameFilterText.isEmpty() || productVO.name.toLowerCase().contains(nameFilterText.toLowerCase())) &&
+                (sellingPriceCurrencyFilterText.isEmpty() || productVO.sellingPriceCurrency.toLowerCase().contains(sellingPriceCurrencyFilterText.toLowerCase())) &&
+                (sellingPriceNetFilterText.isEmpty() || productVO.sellingPriceNet.toString().toLowerCase().contains(sellingPriceNetFilterText.toLowerCase())) &&
+                (showDeleted ? (productVO.deleted == 0 || productVO.deleted == 1) : productVO.deleted == 0)
+        );
+    }
+
+    private Component filterField(TextField filterField, String title){
+        VerticalLayout res = new VerticalLayout();
+        res.getStyle().set("padding", "0px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center");
+        filterField.getStyle().set("display", "flex").set("width", "100%");
+        NativeLabel titleLabel = new NativeLabel(title);
+        res.add(titleLabel, filterField);
+        res.setClassName("vaadin-header-cell-content");
+        return res;
+    }
+
+    private void setFilteringHeaderRow(){
+        TextField amountFilter = new TextField();
+        amountFilter.setPlaceholder("Search amount...");
+        amountFilter.setClearButtonVisible(true);
+        amountFilter.addValueChangeListener(event -> {
+            amountFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField amountUnitFilter = new TextField();
+        amountUnitFilter.setPlaceholder("Search amount unit...");
+        amountUnitFilter.setClearButtonVisible(true);
+        amountUnitFilter.addValueChangeListener(event -> {
+            amountUnitFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField buyingPriceCurrencyFilter = new TextField();
+        buyingPriceCurrencyFilter.setPlaceholder("Search buying price currency...");
+        buyingPriceCurrencyFilter.setClearButtonVisible(true);
+        buyingPriceCurrencyFilter.addValueChangeListener(event -> {
+            buyingPriceCurrencyFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField buyingPriceNetFilter = new TextField();
+        buyingPriceNetFilter.setPlaceholder("Search buying price net...");
+        buyingPriceNetFilter.setClearButtonVisible(true);
+        buyingPriceNetFilter.addValueChangeListener(event -> {
+            buyingPriceNetFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField nameFilter = new TextField();
+        nameFilter.setPlaceholder("Search name...");
+        nameFilter.setClearButtonVisible(true);
+        nameFilter.addValueChangeListener(event -> {
+            nameFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField sellingPriceCurrencyFilter = new TextField();
+        sellingPriceCurrencyFilter.setPlaceholder("Search selling price currency...");
+        sellingPriceCurrencyFilter.setClearButtonVisible(true);
+        sellingPriceCurrencyFilter.addValueChangeListener(event -> {
+            sellingPriceCurrencyFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField sellingPriceNetFilter = new TextField();
+        sellingPriceNetFilter.setPlaceholder("Search selling price net...");
+        sellingPriceNetFilter.setClearButtonVisible(true);
+        sellingPriceNetFilter.addValueChangeListener(event -> {
+            sellingPriceNetFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+
+        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+        HeaderRow filterRow = grid.appendHeaderRow();;
+        filterRow.getCell(amountColumn).setComponent(filterField(amountFilter, "Amount"));
+        filterRow.getCell(amountUnitColumn).setComponent(filterField(amountUnitFilter, "Amount unit"));
+        filterRow.getCell(buyingPriceCurrencyColumn).setComponent(filterField(buyingPriceCurrencyFilter, "Buying price currency"));
+        filterRow.getCell(buyingPriceNetColumn).setComponent(filterField(buyingPriceNetFilter, "Buying price net"));
+        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
+        filterRow.getCell(sellingPriceCurrencyColumn).setComponent(filterField(sellingPriceCurrencyFilter, "Selling price currency"));
+        filterRow.getCell(sellingPriceNetColumn).setComponent(filterField(sellingPriceNetFilter, "Selling price net"));
+    }
+
     private void updateGridItems() {
-        List<Product> products = showDeleted ? productApi.findAllWithDeleted() : productApi.findAll();
-        this.grid.setItems(products.stream().map(ProductVO::new).collect(Collectors.toList()));
+        List<Product> products = productApi.findAllWithDeleted();
+        productVOS = products.stream().map(ProductVO::new).collect(Collectors.toList());
+        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
     public Dialog getSaveOrUpdateDialog(Product entity) {
@@ -272,7 +411,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
                 productApi.save(product);
             }
 
-            Notification.show("Product saved: " + product)
+            Notification.show("Product " + (entity == null ? "saved: " : "updated: ") + product)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
             updateGridItems();
@@ -293,8 +432,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         updateGridItems();
         return createDialog;
     }
-
-    @Getter
+    
     @NeedCleanCoding
 public class ProductVO {
         private Product original;

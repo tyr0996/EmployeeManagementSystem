@@ -1,15 +1,21 @@
 package hu.martin.ems.vaadin.component.Order;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.NeedCleanCoding;
@@ -19,9 +25,11 @@ import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Order;
+import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
 import hu.martin.ems.vaadin.api.OrderApiClient;
+import hu.martin.ems.vaadin.component.Supplier.SupplierList;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.firitin.components.DynamicFileDownloader;
@@ -34,6 +42,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static hu.martin.ems.core.config.StaticDatas.Icons.*;
 
@@ -48,6 +57,18 @@ public class OrderList extends VVerticalLayout {
     private final EmailSendingApi emailSendingApi = BeanProvider.getBean(EmailSendingApi.class);
     private boolean showDeleted = false;
     private PaginatedGrid<OrderVO, String> grid;
+
+    List<OrderVO> orderVOS;
+
+    Grid.Column<OrderVO> customerColumn;
+    Grid.Column<OrderVO> paymentTypeColumn;
+    Grid.Column<OrderVO> stateColumn;
+    Grid.Column<OrderVO> timeOfOrderColumn;
+
+    private static String customerFilterText = "";
+    private static String paymentTypeColumnFilterText = "";
+    private static String stateFilterText = "";
+    private static String timeOfOrderFilterText = "";
 
     @Autowired
     private final PaginationSetting paginationSetting;
@@ -83,11 +104,16 @@ public class OrderList extends VVerticalLayout {
 
         List<OrderVO> data = orders.stream().map(OrderVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
-        this.grid.removeColumnByKey("original");
-        this.grid.removeColumnByKey("id");
-        this.grid.removeColumnByKey("deleted");
+
+        customerColumn = grid.addColumn(v -> v.customer);
+        paymentTypeColumn = grid.addColumn(v -> v.paymentType);
+        stateColumn = grid.addColumn(v -> v.state);
+        timeOfOrderColumn = grid.addColumn(v -> v.timeOfOrder);
+
         grid.addClassName("styling");
-        grid.setPartNameGenerator(orderVo -> orderVo.getDeleted() != 0 ? "deleted" : null);
+        grid.setPartNameGenerator(orderVo -> orderVo.deleted != 0 ? "deleted" : null);
+
+        setFilteringHeaderRow();
 
         //region Options column
         this.grid.addComponentColumn(order -> {
@@ -99,24 +125,24 @@ public class OrderList extends VVerticalLayout {
             Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
-            DynamicFileDownloader odtDownload = new DynamicFileDownloader("", "order_" + order.getId() + ".odt",
-                    out -> orderApi.createDocumentAsODT(order.getOriginal(), out)).asButton();
+            DynamicFileDownloader odtDownload = new DynamicFileDownloader("", "order_" + order.id + ".odt",
+                    out -> orderApi.createDocumentAsODT(order.original, out)).asButton();
             odtDownload.getButton().setIcon(ODT_FILE.create());
-            DynamicFileDownloader pdfDownload = new DynamicFileDownloader("", "order_" + order.getId() + ".pdf",
-                    out -> orderApi.createDocumentAsPDF(order.getOriginal(), out)).asButton();
+            DynamicFileDownloader pdfDownload = new DynamicFileDownloader("", "order_" + order.id + ".pdf",
+                    out -> orderApi.createDocumentAsPDF(order.original, out)).asButton();
             pdfDownload.getButton().setIcon(PDF_FILE.create());
 
             Button sendEmail = new Button("Send email");
             sendEmail.addClickListener(event -> {
                 Boolean success = emailSendingApi.send(
                         new EmailProperties(
-                            order.getOriginal().getCustomer().getEmailAddress(),
+                            order.original.getCustomer().getEmailAddress(),
                             "Megrendelés visszaigazolás",
-                            orderApi.generateEmail(order.getOriginal()),
+                            orderApi.generateEmail(order.original),
                             List.of(new EmailAttachment(
                                     StaticDatas.ContentType.CONTENT_TYPE_APPLICATION_PDF,
-                                    orderApi.createDocumentAsPDF(order.getOriginal(), new ByteArrayOutputStream()),
-                                    "order_" + order.getId() + ".pdf")
+                                    orderApi.createDocumentAsPDF(order.original, new ByteArrayOutputStream()),
+                                    "order_" + order.id + ".pdf")
                             )
                         )
                 );
@@ -131,27 +157,27 @@ public class OrderList extends VVerticalLayout {
             });
 
             editButton.addClickListener(event -> {
-                OrderCreate.o = order.getOriginal();
+                OrderCreate.o = order.original;
                 UI.getCurrent().navigate("order/create");
             });
 
             restoreButton.addClickListener(event -> {
-                this.orderApi.restore(order.getOriginal());
-                Notification.show("Order restored: " + order.getOriginal().getName())
+                this.orderApi.restore(order.original);
+                Notification.show("Order restored: " + order.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.orderApi.delete(order.getOriginal());
-                Notification.show("Order deleted: " + order.getOriginal().getName())
+                this.orderApi.delete(order.original);
+                Notification.show("Order deleted: " + order.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.orderApi.permanentlyDelete(order.getOriginal().getId());
-                Notification.show("Order permanently deleted: " + order.getOriginal().getName())
+                this.orderApi.permanentlyDelete(order.id);
+                Notification.show("Order permanently deleted: " + order.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
@@ -159,9 +185,9 @@ public class OrderList extends VVerticalLayout {
             VHorizontalLayout actions = new VHorizontalLayout();
 
             actions.add(odtDownload, pdfDownload, sendEmail);
-            if (order.getOriginal().getDeleted() == 0) {
+            if (order.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (order.getOriginal().getDeleted() == 1) {
+            } else if (order.deleted == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -178,12 +204,83 @@ public class OrderList extends VVerticalLayout {
         add(sftpLayout, sendSftp, grid);
     }
 
-    private void updateGridItems() {
-        List<Order> orders = showDeleted ? orderApi.findAllWithDeleted() : orderApi.findAll();
-        this.grid.setItems(orders.stream().map(OrderVO::new).collect(Collectors.toList()));
+
+    private Stream<OrderVO> getFilteredStream() {
+        return orderVOS.stream().filter(orderVO ->
+                (customerFilterText.isEmpty() || orderVO.customer.toLowerCase().contains(customerFilterText.toLowerCase())) &&
+                (paymentTypeColumnFilterText.isEmpty() || orderVO.paymentType.toLowerCase().contains(paymentTypeColumnFilterText.toLowerCase())) &&
+                (stateFilterText.isEmpty() || orderVO.state.toLowerCase().contains(stateFilterText.toLowerCase())) &&
+                (timeOfOrderFilterText.isEmpty() || orderVO.timeOfOrder.toLowerCase().contains(timeOfOrderFilterText.toLowerCase())) &&
+                (showDeleted ? (orderVO.deleted == 0 || orderVO.deleted == 1) : orderVO.deleted == 0)
+        );
     }
 
-    @Getter
+    private Component filterField(TextField filterField, String title){
+        VerticalLayout res = new VerticalLayout();
+        res.getStyle().set("padding", "0px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center");
+        filterField.getStyle().set("display", "flex").set("width", "100%");
+        NativeLabel titleLabel = new NativeLabel(title);
+        res.add(titleLabel, filterField);
+        res.setClassName("vaadin-header-cell-content");
+        return res;
+    }
+
+    private void setFilteringHeaderRow(){
+        TextField customerFilter = new TextField();
+        customerFilter.setPlaceholder("Search customer...");
+        customerFilter.setClearButtonVisible(true);
+        customerFilter.addValueChangeListener(event -> {
+            customerFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField paymentTypeFilter = new TextField();
+        paymentTypeFilter.setPlaceholder("Search payment type...");
+        paymentTypeFilter.setClearButtonVisible(true);
+        paymentTypeFilter.addValueChangeListener(event -> {
+            paymentTypeColumnFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField stateFilter = new TextField();
+        stateFilter.setPlaceholder("Search state...");
+        stateFilter.setClearButtonVisible(true);
+        stateFilter.addValueChangeListener(event -> {
+            stateFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField timeOfOrderFilter = new TextField();
+        timeOfOrderFilter.setPlaceholder("Search name...");
+        timeOfOrderFilter.setClearButtonVisible(true);
+        timeOfOrderFilter.addValueChangeListener(event -> {
+            timeOfOrderFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+        HeaderRow filterRow = grid.appendHeaderRow();
+        filterRow.getCell(customerColumn).setComponent(filterField(customerFilter, "Customer"));
+        filterRow.getCell(paymentTypeColumn).setComponent(filterField(paymentTypeFilter, "Payment type"));
+        filterRow.getCell(stateColumn).setComponent(filterField(stateFilter, "State"));
+        filterRow.getCell(timeOfOrderColumn).setComponent(filterField(timeOfOrderFilter, "Time of order"));
+    }
+
+
+    private void updateGridItems() {
+        List<Order> orders = orderApi.findAllWithDeleted();
+        orderVOS = orders.stream().map(OrderVO::new).collect(Collectors.toList());
+        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+    }
+
+
     @NeedCleanCoding
 public class OrderVO {
         private Order original;
@@ -193,6 +290,7 @@ public class OrderVO {
         private String customer;
         private String paymentType;
         private String timeOfOrder;
+        private String name;
 
         public OrderVO(Order order) {
             this.original = order;
@@ -202,6 +300,7 @@ public class OrderVO {
             this.timeOfOrder = original.getTimeOfOrder().format(DateTimeFormatter.ofPattern("yyyy. MM. dd. HH:mm:ss"));
             this.customer = original.getCustomer().getName();
             this.paymentType = original.getPaymentType().getName();
+            this.name = original.getName();
         }
     }
 }

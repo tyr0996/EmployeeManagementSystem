@@ -1,4 +1,4 @@
-package hu.martin.ems;
+package hu.martin.ems.crudFE;
 
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.StaticDatas;
@@ -11,7 +11,7 @@ import java.io.FilenameFilter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class EmployeeManagementSystemApplicationTests {
 
 

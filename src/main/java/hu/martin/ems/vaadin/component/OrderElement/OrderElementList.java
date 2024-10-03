@@ -1,5 +1,7 @@
 package hu.martin.ems.vaadin.component.OrderElement;
 
+import com.google.common.collect.FluentIterable;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -7,31 +9,36 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.CodeStore;
-import hu.martin.ems.model.Order;
-import hu.martin.ems.model.OrderElement;
-import hu.martin.ems.model.Product;
+import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.MainView;
-import hu.martin.ems.vaadin.api.OrderElementApiClient;
+import hu.martin.ems.vaadin.api.*;
+import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
@@ -44,9 +51,30 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 public class OrderElementList extends VerticalLayout implements Creatable<OrderElement> {
 
     private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);
+    private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
+    private final ProductApiClient productApi = BeanProvider.getBean(ProductApiClient.class);
+    private final CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
+    private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<OrderElementVO, String> grid;
+    
+    private List<OrderElementVO> orderElementVOS;
     private final PaginationSetting paginationSetting;
+    private Grid.Column<OrderElementVO> grossPriceColumn;
+    private Grid.Column<OrderElementVO> netPriceColumn;
+    private Grid.Column<OrderElementVO> orderColumn;
+    private Grid.Column<OrderElementVO> productColumn;
+    private Grid.Column<OrderElementVO> taxKeyColumn;
+    private Grid.Column<OrderElementVO> unitColumn;
+    private Grid.Column<OrderElementVO> unitNetPriceColumn;
+
+    private static String grossPriceFilterText = "";
+    private static String netPriceFilterText = "";
+    private static String orderFilterText = "";
+    private static String productFilterText = "";
+    private static String taxKeyFilterText = "";
+    private static String unitFilterText = "";
+    private static String unitNetPriceFilterText = "";
 
     @Autowired
     public OrderElementList(PaginationSetting paginationSetting) {
@@ -54,15 +82,23 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
 
         this.grid = new PaginatedGrid<>(OrderElementVO.class);
         List<OrderElement> orderElements = orderElementApi.findAll();
-        List<OrderElementVO> data = orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList());
-        this.grid.setItems(data);
-        this.grid.removeColumnByKey("original");
-        this.grid.removeColumnByKey("id");
-        this.grid.removeColumnByKey("deleted");
+        orderElementVOS = orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList());
+        this.grid.setItems(getFilteredStream().toList());
+
+        grossPriceColumn = grid.addColumn(v -> v.grossPrice);
+        netPriceColumn = grid.addColumn(v -> v.netPrice);
+        orderColumn = grid.addColumn(v -> v.order);
+        productColumn = grid.addColumn(v -> v.product);
+        taxKeyColumn = grid.addColumn(v -> v.taxKey);
+        unitColumn = grid.addColumn(v -> v.unit);
+        unitNetPriceColumn = grid.addColumn(v -> v.unitNetPrice);
+
         grid.addClassName("styling");
-        grid.setPartNameGenerator(orderElementVO -> orderElementVO.getDeleted() != 0 ? "deleted" : null);
+        grid.setPartNameGenerator(orderElementVO -> orderElementVO.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
+        
+        setFilteringHeaderRow();
 
         //region Options column
         this.grid.addComponentColumn(orderElement -> {
@@ -80,30 +116,30 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             });
 
             restoreButton.addClickListener(event -> {
-                this.orderElementApi.restore(orderElement.getOriginal());
-                Notification.show("OrderElement restored: " + orderElement.getOriginal().getName())
+                this.orderElementApi.restore(orderElement.original);
+                Notification.show("OrderElement restored: " + orderElement.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.orderElementApi.delete(orderElement.getOriginal());
-                Notification.show("OrderElement deleted: " + orderElement.getOriginal().getName())
+                this.orderElementApi.delete(orderElement.original);
+                Notification.show("OrderElement deleted: " + orderElement.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.orderElementApi.permanentlyDelete(orderElement.getOriginal().getId());
-                Notification.show("OrderElement permanently deleted: " + orderElement.getOriginal().getName())
+                this.orderElementApi.permanentlyDelete(orderElement.original.getId());
+                Notification.show("OrderElement permanently deleted: " + orderElement.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if (orderElement.getOriginal().getDeleted() == 0) {
+            if (orderElement.original.getDeleted() == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (orderElement.getOriginal().getDeleted() == 1) {
+            } else if (orderElement.original.getDeleted() == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -130,9 +166,111 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         add(hl, grid);
     }
 
+    private Stream<OrderElementVO> getFilteredStream() {
+        return orderElementVOS.stream().filter(orderElementVO ->
+                (grossPriceFilterText.isEmpty() || orderElementVO.grossPrice.toString().toLowerCase().contains(grossPriceFilterText.toLowerCase())) &&
+                (netPriceFilterText.isEmpty() || orderElementVO.netPrice.toString().toLowerCase().contains(netPriceFilterText.toLowerCase())) &&
+                (orderFilterText.isEmpty() || orderElementVO.order.toLowerCase().contains(orderFilterText.toLowerCase())) &&
+                (productFilterText.isEmpty() || orderElementVO.product.toLowerCase().contains(productFilterText.toLowerCase())) &&
+                (taxKeyFilterText.isEmpty() || orderElementVO.taxKey.toLowerCase().contains(taxKeyFilterText.toLowerCase())) &&
+                (unitFilterText.isEmpty() || orderElementVO.unit.toString().toLowerCase().contains(unitFilterText.toLowerCase())) &&
+                (unitNetPriceFilterText.isEmpty() || orderElementVO.unitNetPrice.toString().toLowerCase().contains(unitNetPriceFilterText.toLowerCase())) &&
+                (showDeleted ? (orderElementVO.deleted == 0 || orderElementVO.deleted == 1) : orderElementVO.deleted == 0)
+        );
+    }
+
+    private Component filterField(TextField filterField, String title){
+        VerticalLayout res = new VerticalLayout();
+        res.getStyle().set("padding", "0px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center");
+        filterField.getStyle().set("display", "flex").set("width", "100%");
+        NativeLabel titleLabel = new NativeLabel(title);
+        res.add(titleLabel, filterField);
+        res.setClassName("vaadin-header-cell-content");
+        return res;
+    }
+
+    private void setFilteringHeaderRow(){
+        TextField grossPriceFilter = new TextField();
+        grossPriceFilter.setPlaceholder("Search gross price...");
+        grossPriceFilter.setClearButtonVisible(true);
+        grossPriceFilter.addValueChangeListener(event -> {
+            grossPriceFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField netPriceFilter = new TextField();
+        netPriceFilter.setPlaceholder("Search net price...");
+        netPriceFilter.setClearButtonVisible(true);
+        netPriceFilter.addValueChangeListener(event -> {
+            netPriceFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField orderFilter = new TextField();
+        orderFilter.setPlaceholder("Search order...");
+        orderFilter.setClearButtonVisible(true);
+        orderFilter.addValueChangeListener(event -> {
+            orderFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField productFilter = new TextField();
+        productFilter.setPlaceholder("Search product...");
+        productFilter.setClearButtonVisible(true);
+        productFilter.addValueChangeListener(event -> {
+            productFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField taxKeyFilter = new TextField();
+        taxKeyFilter.setPlaceholder("Search tax key...");
+        taxKeyFilter.setClearButtonVisible(true);
+        taxKeyFilter.addValueChangeListener(event -> {
+            taxKeyFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField unitFilter = new TextField();
+        unitFilter.setPlaceholder("Search unit...");
+        unitFilter.setClearButtonVisible(true);
+        unitFilter.addValueChangeListener(event -> {
+            unitFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField unitNetPriceFilter = new TextField();
+        unitNetPriceFilter.setPlaceholder("Search unit net price...");
+        unitNetPriceFilter.setClearButtonVisible(true);
+        unitNetPriceFilter.addValueChangeListener(event -> {
+            unitNetPriceFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+        HeaderRow filterRow = grid.appendHeaderRow();;
+        filterRow.getCell(grossPriceColumn).setComponent(filterField(grossPriceFilter, "Gross price"));
+        filterRow.getCell(netPriceColumn).setComponent(filterField(netPriceFilter, "Net price"));
+        filterRow.getCell(orderColumn).setComponent(filterField(orderFilter, "Order"));
+        filterRow.getCell(productColumn).setComponent(filterField(productFilter, "Product"));
+        filterRow.getCell(taxKeyColumn).setComponent(filterField(taxKeyFilter, "Tax key"));
+        filterRow.getCell(unitColumn).setComponent(filterField(unitFilter, "Unit"));
+        filterRow.getCell(unitNetPriceColumn).setComponent(filterField(unitNetPriceFilter, "Unit net price"));
+    }
+
     private void updateGridItems() {
-        List<OrderElement> orderElements = showDeleted ? orderElementApi.findAllWithDeleted() : orderElementApi.findAll();
-        this.grid.setItems(orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList()));
+        List<OrderElement> orderElements = orderElementApi.findAllWithDeleted();
+        orderElementVOS = orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList());
+        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
     public Dialog getSaveOrUpdateDialog(OrderElement entity) {
@@ -142,51 +280,52 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         ComboBox<Product> products = new ComboBox<>("Product");
         ComboBox.ItemFilter<Product> productFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        products.setItems(productFilter);
+        products.setItems(productFilter, productApi.findAll());
         products.setItemLabelGenerator(Product::getName);
+//
+//        ComboBox<Order> orders = new ComboBox<>("Order");
+//        ComboBox.ItemFilter<Order> orderFilter = (element, filterString) ->
+//                element.getName().toLowerCase().contains(filterString.toLowerCase());
+//        orders.setItems(orderFilter, orderApi.findAll());
+//        orders.setItemLabelGenerator(Order::getName);
 
-        ComboBox<Order> orders = new ComboBox<>("Order");
-        ComboBox.ItemFilter<Order> orderFilter = (element, filterString) ->
+        ComboBox<Customer> customer = new ComboBox<>("Customer");
+        ComboBox.ItemFilter<Customer> customerFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        orders.setItems(orderFilter);
-        orders.setItemLabelGenerator(Order::getName);
+        customer.setItems(customerFilter, customerApi.findAll());
+        customer.setItemLabelGenerator(Customer::getName);
+
+        ComboBox<Supplier> supplier = new ComboBox<>("Supplier");
+        ComboBox.ItemFilter<Supplier> supplierFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        supplier.setItems(supplierFilter, supplierApi.findAll());
+        supplier.setItemLabelGenerator(Supplier::getName);
 
         NumberField unitField = new NumberField("Unit");
-
-        NumberField unitNetPriceField = new NumberField("Unit net price");
-
-        ComboBox<CodeStore> taxKeys = new ComboBox<>("Tax key");
-        ComboBox.ItemFilter<CodeStore> taxKeyFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        taxKeys.setItems(taxKeyFilter);
-        taxKeys.setItemLabelGenerator(CodeStore::getName);
-
-        NumberField netPriceField = new NumberField("Net price");
-
-        NumberField grossPriceField = new NumberField("Gross price");
 
         Button saveButton = new Button("Save");
 
         if (entity != null) {
             products.setValue(entity.getProduct());
-            orders.setValue(entity.getOrder());
+//            orders.setValue(entity.getOrder());
             unitField.setValue(entity.getUnit().doubleValue());
-            unitNetPriceField.setValue(entity.getUnitNetPrice().doubleValue());
-            taxKeys.setValue(entity.getTaxKey());
-            netPriceField.setValue(entity.getNetPrice().doubleValue());
-            grossPriceField.setValue(entity.getGrossPrice().doubleValue());
         }
 
         saveButton.addClickListener(event -> {
             OrderElement orderElement = Objects.requireNonNullElseGet(entity, OrderElement::new);
             orderElement.setProduct(products.getValue());
-            orderElement.setOrder(orders.getValue());
+            //orderElement.setOrder(orders.getValue());
             orderElement.setUnit(unitField.getValue().intValue());
-            orderElement.setUnitNetPrice(unitNetPriceField.getValue().intValue());
-            orderElement.setTaxKey(taxKeys.getValue());
-            orderElement.setNetPrice(netPriceField.getValue().intValue());
-            orderElement.setGrossPrice(grossPriceField.getValue().intValue());
+            orderElement.setUnitNetPrice(products.getValue().getSellingPriceNet().intValue());
+            orderElement.setTaxKey(products.getValue().getTaxKey());
+            orderElement.setNetPrice(orderElement.getUnitNetPrice() * orderElement.getUnit());
+            orderElement.setSupplier(supplier.getValue());
+            orderElement.setCustomer(customer.getValue());
+            double tax = (Double.parseDouble(orderElement.getTaxKey().getName()) / 100) + 1;
+            orderElement.setGrossPrice(((Double) Math.ceil(tax * orderElement.getNetPrice())).intValue());
             orderElement.setDeleted(0L);
+            orderElement.setName(products.getValue().getName());
+            orderElement.setTaxPrice(orderElement.getGrossPrice().doubleValue() - orderElement.getNetPrice().doubleValue());
             if(entity != null){
                 orderElementApi.update(orderElement);
             }
@@ -194,25 +333,19 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
                 orderElementApi.save(orderElement);
             }
 
-            Notification.show("OrderElement saved: " + orderElement)
+            Notification.show("OrderElement " + (entity == null ? "saved: " : "updated: ") + orderElement)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             products.clear();
-            orders.clear();
             unitField.clear();
-            unitNetPriceField.clear();
-            taxKeys.clear();
-            netPriceField.clear();
-            grossPriceField.clear();
             createDialog.close();
             updateGridItems();
         });
 
-        formLayout.add(products, orders, unitField, unitNetPriceField, taxKeys, netPriceField, grossPriceField, saveButton);
+        formLayout.add(products, unitField, supplier, customer, saveButton);
         createDialog.add(formLayout);
         return createDialog;
     }
 
-    @Getter
     @NeedCleanCoding
 public class OrderElementVO {
         private OrderElement original;

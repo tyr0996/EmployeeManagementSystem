@@ -53,4 +53,9 @@ public class OrderElement extends BaseEntity {
         return this.product.getName();
     }
 
+    @Override
+    public String toString(){
+        return this.getName() + " (" + this.unit + " " + this.product.getAmountUnit().getName() + ")";
+    }
+
 }

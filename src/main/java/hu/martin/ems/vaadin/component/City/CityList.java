@@ -1,5 +1,7 @@
 package hu.martin.ems.vaadin.component.City;
 
+import com.vaadin.data.provider.ListDataProvider;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -7,12 +9,20 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
+import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.NeedCleanCoding;
@@ -31,7 +41,9 @@ import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
@@ -49,26 +61,39 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     private PaginatedGrid<CityVO, String> grid;
     private final PaginationSetting paginationSetting;
 
+    List<CityVO> cityVOS;
+
+    private String countryCodeFilterText = "";
+    private String nameFilterText = "";
+    private String zipCodeFilterText = "";
+
+    private Grid.Column<CityVO> countryCodeColumn;
+    private Grid.Column<CityVO> nameColumn;
+    private Grid.Column<CityVO> zipCodeColumn;
+
 
     @Autowired
     public CityList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
-
         this.grid = new PaginatedGrid<>(CityVO.class);
         List<City> cities = cityApi.findAll();
-        List<CityVO> data = cities.stream().map(CityVO::new).collect(Collectors.toList());
-        this.grid.setItems(data);
-        this.grid.removeColumnByKey("original");
-        this.grid.removeColumnByKey("deleted");
-        this.grid.removeColumnByKey("id");
+        cityVOS = cities.stream().map(CityVO::new).collect(Collectors.toList());
+        grid.setItems(getFilteredStream().toList());
+
+        countryCodeColumn = grid.addColumn(v -> v.countryCode);
+        nameColumn = grid.addColumn(v -> v.name);
+        zipCodeColumn = grid.addColumn(v -> v.zipCode);
+
         grid.addClassName("styling");
-        grid.setPartNameGenerator(cityVO -> cityVO.getDeleted() != 0 ? "deleted" : null);
+        grid.setPartNameGenerator(cityVO -> cityVO.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
+        setFilteringHeaderRow();
+
         //region Options column
-        this.grid.addComponentColumn(city -> {
+        Grid.Column<CityVO> options = this.grid.addComponentColumn(city -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -83,34 +108,34 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             });
 
             restoreButton.addClickListener(event -> {
-                this.cityApi.restore(city.getOriginal());
-                Notification.show("City restored: " + city.getOriginal().getName())
+                this.cityApi.restore(city.original);
+                Notification.show("City restored: " + city.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.cityApi.delete(city.getOriginal());
-                Notification.show("City deleted: " + city.getOriginal().getName())
+                this.cityApi.delete(city.original);
+                Notification.show("City deleted: " + city.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.cityApi.permanentlyDelete(city.getOriginal().getId());
-                Notification.show("City permanently deleted: " + city.getOriginal().getName())
+                this.cityApi.permanentlyDelete(city.original.getId());
+                Notification.show("City permanently deleted: " + city.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if (city.getOriginal().getDeleted() == 0) {
+            if (city.original.getDeleted() == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (city.getOriginal().getDeleted() == 1) {
+            } else if (city.original.getDeleted() == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        }).setHeader("Options");
+        });
 
         //endregion
 
@@ -133,9 +158,70 @@ public class CityList extends VerticalLayout implements Creatable<City> {
         add(hl, grid);
     }
 
+    private Stream<CityVO> getFilteredStream() {
+
+        return cityVOS.stream().filter(cityVO ->
+                (zipCodeFilterText.isEmpty() || cityVO.zipCode.toLowerCase().contains(zipCodeFilterText.toLowerCase())) &&
+                        (countryCodeFilterText.isEmpty() || cityVO.countryCode.toLowerCase().contains(countryCodeFilterText.toLowerCase())) &&
+                        (nameFilterText.isEmpty() || cityVO.name.toLowerCase().contains(nameFilterText.toLowerCase())) &&
+                        (showDeleted ? (cityVO.deleted == 0 || cityVO.deleted == 1) : cityVO.deleted == 0)
+        );
+    }
+
+    private Component filterField(TextField filterField, String title){
+        VerticalLayout res = new VerticalLayout();
+        res.getStyle().set("padding", "0px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center");
+        filterField.getStyle().set("display", "flex").set("width", "100%");
+        NativeLabel titleLabel = new NativeLabel(title);
+        res.add(titleLabel, filterField);
+        res.setClassName("vaadin-header-cell-content");
+        return res;
+    }
+
+    private void setFilteringHeaderRow(){
+        TextField countryCodeFilter = new TextField();
+        countryCodeFilter.setPlaceholder("Search country code...");
+        countryCodeFilter.setClearButtonVisible(true);
+        countryCodeFilter.addValueChangeListener(event -> {
+            countryCodeFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField nameFilter = new TextField();
+        nameFilter.setPlaceholder("Search name...");
+        nameFilter.setClearButtonVisible(true);
+        nameFilter.addValueChangeListener(event -> {
+            nameFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        TextField zipCodeFilter = new TextField();
+        zipCodeFilter.setPlaceholder("Search zip code...");
+        zipCodeFilter.setClearButtonVisible(true);
+        zipCodeFilter.addValueChangeListener(event -> {
+            zipCodeFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+        HeaderRow filterRow = grid.appendHeaderRow();;
+        filterRow.getCell(countryCodeColumn).setComponent(filterField(countryCodeFilter, "Country code"));
+        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
+        filterRow.getCell(zipCodeColumn).setComponent(filterField(zipCodeFilter, "ZipCode"));
+    }
+
+
     private void updateGridItems() {
-        List<City> cities = showDeleted ? cityApi.findAllWithDeleted() : cityApi.findAll();
-        this.grid.setItems(cities.stream().map(CityVO::new).collect(Collectors.toList()));
+        List<City> cities = cityApi.findAllWithDeleted();
+        cityVOS = cities.stream().map(CityVO::new).collect(Collectors.toList());
+        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        //this.grid.setItems(cities.stream().map(CityVO::new).collect(Collectors.toList()));
     }
 
     public Dialog getSaveOrUpdateDialog(City entity){
@@ -175,7 +261,7 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             }
             updateGridItems();
 
-            Notification.show("City saved: " + city.getName())
+            Notification.show("City " + (entity == null ? "saved: " : "updated: ") + city.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             nameField.clear();
             countryCodes.clear();
@@ -185,7 +271,6 @@ public class CityList extends VerticalLayout implements Creatable<City> {
         return createDialog;
     }
 
-    @Getter
     @NeedCleanCoding
 public class CityVO {
         private City original;

@@ -87,17 +87,17 @@ public class OrderCreate extends VerticalLayout {
             order.setDeleted(0L);
             order.setCurrency(currencies.getValue());
             if(order != null){
-                orderApi.update(order);
+                order = orderApi.update(order);
             }
             else{
-                orderApi.save(order);
+                order = orderApi.save(order);
             }
-            grid.getSelectedItems().stream().forEach(v -> {
-                OrderElement oe = v.original;
+            for(OrderElementVO oeVo : grid.getSelectedItems()){
+                OrderElement oe = oeVo.original;
                 oe.setOrder(order);
                 orderElementApi.save(oe);
-            });
-            Notification.show("Order saved: " + order)
+            }
+            Notification.show("Order " + (o == null ? "saved: " : "updated: ") + order)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             customers.clear();
             paymentTypes.clear();

@@ -8,14 +8,16 @@ import hu.martin.ems.UITests.UIXpaths;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.openqa.selenium.*;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.time.Instant;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -35,7 +37,7 @@ public class GridTestingUtil {
                     } catch (Exception e) {}
                 }
                 paginatorComponents.refresh();
-                Thread.sleep(50);
+                Thread.sleep(5);
             }
         }
         else if(needMoves < 0){
@@ -46,7 +48,7 @@ public class GridTestingUtil {
                     } catch (Exception e) {}
                 }
                 paginatorComponents.refresh();
-                Thread.sleep(50);
+                Thread.sleep(5);
             }
         }
         return grid;
@@ -171,7 +173,8 @@ public class GridTestingUtil {
 //
             int gridCellIndex = (3 + rowIndex) * getGridColumnNumber(gridXpath) + optionsColumnIndex + 1;
 
-            return findClickableElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
+            return findClickableElementWithXpath(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
+            //return findClickableElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
             //return null;
         }
         catch (Exception e){
@@ -208,12 +211,8 @@ public class GridTestingUtil {
         }
     }
 
-    public static int countVisibleGridDataRows(String gridXpath, String showDeletedXpath) throws InterruptedException {
+    public static int countVisibleGridDataRows(String gridXpath) throws InterruptedException {
         WebElement grid = findVisibleElementWithXpath(gridXpath);
-//        WebElement showDeletedButton = findVisibleElementWithXpath(showDeletedXpath);
-//        if(showDeletedButton.isSelected()){
-//            showDeletedButton.click();
-//        }
         WebElement parent = grid.findElement(By.xpath("./.."));
         Thread.sleep(100);
         String total = parent.findElement(By.tagName("span")).findElement(By.tagName("lit-pagination")).getDomAttribute("total");
@@ -222,11 +221,11 @@ public class GridTestingUtil {
 
     public static int countHiddenGridDataRows(String gridXpath, String showDeletedXpath) throws InterruptedException {
         WebElement showDeletedElement = findClickableElementWithXpath(showDeletedXpath);
-        setShowDeletedCheckboxStatus(showDeletedXpath, false);
-        int visible = countVisibleGridDataRows(gridXpath, showDeletedXpath);
-        setShowDeletedCheckboxStatus(showDeletedXpath, true);
-        int visibleWithHidden = countVisibleGridDataRows(gridXpath, showDeletedXpath);
-        setShowDeletedCheckboxStatus(showDeletedXpath, false);
+        setCheckboxStatus(showDeletedXpath, false);
+        int visible = countVisibleGridDataRows(gridXpath);
+        setCheckboxStatus(showDeletedXpath, true);
+        int visibleWithHidden = countVisibleGridDataRows(gridXpath);
+        setCheckboxStatus(showDeletedXpath, false);
         return visibleWithHidden - visible;
     }
 
@@ -239,8 +238,8 @@ public class GridTestingUtil {
         return e5.stream().filter(v -> v.isDisplayed()).toList().size();
     }
 
-    public static ElementLocation getRandomLocationFromGrid(String gridXpath, String showDeletedXpath) throws InterruptedException {
-        int elementNumber = countVisibleGridDataRows(gridXpath, showDeletedXpath);
+    public static ElementLocation getRandomLocationFromGrid(String gridXpath) throws InterruptedException {
+        int elementNumber = countVisibleGridDataRows(gridXpath);
         Random rnd = new Random();
         Integer selectedElementIndex;
         if(elementNumber == 0){
@@ -266,11 +265,11 @@ public class GridTestingUtil {
     }
 
     public static ElementLocation getRandomLocationDeletedStatusFromGrid(String gridXpath, String showDeletedXpath) throws InterruptedException {
-        int originalElements = countVisibleGridDataRows(gridXpath, showDeletedXpath);
+        int originalElements = countVisibleGridDataRows(gridXpath);
         int deletedElements = countHiddenGridDataRows(gridXpath, showDeletedXpath);
         WebElement showDeleted = findClickableElementWithXpathWithWaiting(showDeletedXpath);
         boolean originalShowDeleted = getCheckboxStatus(showDeletedXpath);
-        setShowDeletedCheckboxStatus(showDeletedXpath, true);
+        setCheckboxStatus(showDeletedXpath, true);
         if(deletedElements == 0){
             return null;
         }
@@ -287,7 +286,7 @@ public class GridTestingUtil {
             selected = allDeleted.get(rnd.nextInt(0, allDeleted.size()));
         }
 
-        setShowDeletedCheckboxStatus(showDeletedXpath, false);
+        setCheckboxStatus(showDeletedXpath, false);
         return selected;
     }
 
@@ -303,7 +302,7 @@ public class GridTestingUtil {
     private static List<ElementLocation> getDeletedRowsOnPage(String gridXpath, int currentPageNumber) throws InterruptedException {
         goToPageInPaginatedGrid(gridXpath, currentPageNumber);
         WebElement grid = findVisibleElementWithXpath(gridXpath);
-
+        Instant start = Instant.now();
         WebElement e2 = grid.getShadowRoot().findElement(By.id("scroller"));
         WebElement e3 = e2.findElement(By.id("table"));
         WebElement e4 = e3.findElement(By.id("items"));
@@ -316,6 +315,8 @@ public class GridTestingUtil {
                 deletedRows.add(new ElementLocation(currentPageNumber, i));
             }
         }
+        Instant stop = Instant.now();
+        System.out.println("Eltelt idő: " + Duration.between(start, stop).toMillis() + "ms");
         return deletedRows;
     }
 
@@ -330,34 +331,50 @@ public class GridTestingUtil {
         return isDeleted;
     }
 
-    public static void fillElementWithRandom(WebElement element) throws InterruptedException {
+    public static String fillElementWithRandom(WebElement element, Boolean hasDeletableField, String previousPasswordFieldValue) throws InterruptedException {
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
         switch (element.getTagName()){
             case "vaadin-text-field": {
                 js.executeScript("arguments[0].value = '';", element);
                 element.sendKeys(RandomGenerator.generateRandomOnlyLetterString());
-                break;
+                return null;
+            }
+            case "vaadin-password-field": {
+                js.executeScript("arguments[0].value = '';", element);
+                String passwordToBeSend = previousPasswordFieldValue == null ? RandomGenerator.generateRandomOnlyLetterString() : previousPasswordFieldValue;
+                element.sendKeys(passwordToBeSend);
+                return passwordToBeSend;
             }
             case "vaadin-number-field":{
                 js.executeScript("arguments[0].value = '';", element);
                 element.sendKeys(RandomGenerator.generateRandomInteger().toString());
-                break;
+                return null;
             }
-            case "vaadin-combo-box": selectRandomFromComboBox(element); break;
-            case "vaadin-multi-select-combo-box": selectRandomFromMultiSelectComboBox(element); break;
-            case "vaadin-button", "style": break;
-            default : System.err.println("Nem jó a filed teg-name-je ahhoz, hogy adatot generáljunk: " + element.getTagName()); break;
+            case "vaadin-combo-box": selectRandomFromComboBox(element); return null;
+            case "vaadin-multi-select-combo-box": selectRandomFromMultiSelectComboBox(element); return null;
+            case "vaadin-button", "style": return null;
+            case "vaadin-checkbox":{
+                if(element.findElement(By.tagName("label")).getText().toLowerCase().contains("deletable") &&
+                    hasDeletableField){
+                    js.executeScript("arguments[0].click()", element);
+                }
+                else if(new Random().nextBoolean()){
+                    js.executeScript("arguments[0].click()", element);
+                }
+                return null;
+            }
+            default : System.err.println("Nem jó a filed teg-name-je ahhoz, hogy adatot generáljunk: " + element.getTagName()); return null;
         }
     }
 
-    public static void setShowDeletedCheckboxStatus(String checkboxXpath, boolean selected) throws InterruptedException {
+    public static void setCheckboxStatus(String checkboxXpath, boolean selected) throws InterruptedException {
         Boolean checkboxStatus = getCheckboxStatus(checkboxXpath);
         if(checkboxStatus != selected){
             //HA false-ra akarom álítani, akkor valamiért nem jó
             findClickableElementWithXpathWithWaiting(checkboxXpath).click();
-            Thread.sleep(100);
         }
+        Thread.sleep(100);
     }
 
     public static void selectElementByTextFromComboBox(WebElement comboBox, String text) throws InterruptedException {
@@ -424,6 +441,146 @@ public class GridTestingUtil {
         }
     }
 
+    public static int countElementResultsFromGridWithFilter(String gridXPath, String... attributes) throws InterruptedException {
+        applyFilter(gridXPath, attributes);
+        int result = countVisibleGridDataRows(gridXPath);
+        resetFilter(gridXPath);
+        return result;
+    }
+
+    public static void resetFilter(String gridXPath) throws InterruptedException {
+        getHeaderFilterInputFields(gridXPath).forEach(v -> {
+            v.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
+            v.sendKeys(Keys.ENTER);
+        });
+        Thread.sleep(200);
+        findVisibleElementWithXpath(gridXPath);
+    }
+
+    public static void applyFilter(String gridXpath, String... attributes) throws InterruptedException {
+        List<WebElement> filterInputs = getHeaderFilterInputFields(gridXpath);
+        if(filterInputs.size() != attributes.length){
+            throw new ArrayIndexOutOfBoundsException("The number of filter fields doesn't match the given attributes.");
+        }
+        for(int i = 0; i < filterInputs.size(); i++){
+            filterInputs.get(i).sendKeys(attributes[i]);
+            filterInputs.get(i).sendKeys(Keys.ENTER);
+        }
+        Thread.sleep(200);
+    }
+
+
+    private static List<WebElement> getHeaderFilterInputFields(String gridXpath){
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        List<WebElement> all = grid.findElements(By.xpath("./*"));
+        List<WebElement> headerFilterInputs = new ArrayList<>();
+        for(int i = 0; i < all.size(); i++) {
+            List<WebElement> we = all.get(i).findElements(By.cssSelector("input[slot='input']"));
+            if (we.size() != 0){
+                headerFilterInputs.addAll(we);
+            }
+        }
+        return headerFilterInputs;
+    }
+
+
+    //átlagos 133
+    public static ElementLocation lookingForElementInGridOptimized2(String gridXpath, String... attributes) throws InterruptedException {
+        StringBuilder allGrid = new StringBuilder();
+        int numberOfPages = getGridPaginationData(gridXpath).getNumberOfPages();
+        int gridColumnNumber = getGridColumnNumber(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        Instant start = Instant.now();
+        for(int i = 1; i <= numberOfPages; i++){
+            goToPageInPaginatedGrid(gridXpath, i);
+            allGrid.append(grid.getAttribute("outerHTML"));
+        }
+        Instant eoPaging = Instant.now();
+        String regexForGettingCellContent = "(?<=<vaadin-grid-cell-content slot=\"vaadin-grid-cell-content-)[0-9]*\">\\S*(?=</vaadin-grid-cell-content>)";
+        Pattern pattern = Pattern.compile(regexForGettingCellContent);
+        Matcher matcher = pattern.matcher(allGrid);
+        List<String> data = new ArrayList<>();
+        while(matcher.find()){
+            String row = matcher.group();
+            if(!row.endsWith("\">")){
+                String value = row.split("\">")[1];
+                data.add(value);
+            }
+        }
+        List<String[]> correctedData = chunkList(data, gridColumnNumber - 1);
+        for(int j = 0; j < correctedData.size(); j++){
+            if(Arrays.equals(attributes, correctedData.get(j))){
+                System.out.println("Az optimalizált futás sikeresen megtalálta az elemet");
+                return new ElementLocation(getGridPaginationData(gridXpath).getCurrentPage(), j);
+            }
+        }
+        Instant end = Instant.now();
+        System.out.println("Az oldal lekérése általánosan " + Duration.between(start, eoPaging).toMillis()/numberOfPages);
+        System.out.println("Átlagos oldalvizsgálati idő: " + Duration.between(start, end).toMillis()/numberOfPages);
+        System.out.println("Az optimalizált futás nem találja az elemet");
+
+
+        return null;
+    }
+
+
+        //átlag: 155
+    public static ElementLocation lookingForElementInGridOptimized(String gridXpath, String... attributes) throws InterruptedException {
+        System.out.println("Optimalizált futás elindult");
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        //String regexForGettingCellContent = "(?<=<vaadin-grid-cell-content slot=\"vaadin-grid-cell-content-)(.*)(?=</vaadin-grid-cell-content>)"; //Itt még benne lesz az index-e, majd "> string, és utána jön az érdemi dolog
+        String regexForGettingCellContent = "(?<=<vaadin-grid-cell-content slot=\"vaadin-grid-cell-content-)[0-9]*\">\\S*(?=</vaadin-grid-cell-content>)";
+        int gridColumnNumber = getGridColumnNumber(gridXpath);
+        long totalMilis = 0;
+        for(int i = 1; i <= getGridPaginationData(gridXpath).getNumberOfPages(); i++){
+            Instant start = Instant.now();
+            goToPageInPaginatedGrid(gridXpath, i);
+            String pageHtml = grid.getAttribute("outerHTML");
+            Pattern pattern = Pattern.compile(regexForGettingCellContent);
+            Matcher matcher = pattern.matcher(pageHtml);
+            List<String> data = new ArrayList<>();
+            int needToDrop = getGridColumnNumber(gridXpath) * 2;
+            for(int j = 0; j < needToDrop; j++){
+                matcher.find();
+            }
+            while(matcher.find()){
+                String row = matcher.group();
+                if(!row.endsWith("\">")){
+                    String value = row.split("\">")[1];
+                    data.add(value);
+                }
+            }
+            List<String[]> correctedData = chunkList(data, gridColumnNumber - 1);
+            for(int j = 0; j < correctedData.size(); j++){
+                if(Arrays.equals(attributes, correctedData.get(j))){
+                    System.out.println("Az optimalizált futás sikeresen megtalálta az elemet");
+                    return new ElementLocation(getGridPaginationData(gridXpath).getCurrentPage(), j);
+                }
+            }
+            Instant end = Instant.now();
+            long milis = Duration.between(start, end).toMillis();
+            totalMilis += milis;
+            System.out.println("Az oldal megvizsgálása " + milis + " ms telt el.");
+        }
+        System.out.println("Átlagos oldalvizsgálati idő: " + totalMilis/getGridPaginationData(gridXpath).getNumberOfPages());
+        System.out.println("Az optimalizált futás nem találja az elemet");
+        return null;
+    }
+
+    public static List<String[]> chunkList(List<String> originalList, int chunkSize) {
+        List<String[]> chunkedList = new ArrayList<>();
+        for (int i = 0; i < originalList.size(); i += chunkSize) {
+            int end = Math.min(i + chunkSize, originalList.size());
+            String[] chunk = new String[end - i + 1];
+            for (int j = 0; j < chunk.length - 1; j++) {
+                chunk[j] = originalList.get(i + j);
+            }
+            chunk[chunk.length-1] = "skip";
+            chunkedList.add(chunk);
+        }
+        return chunkedList;
+    }
+
     public static ElementLocation lookingForElementInGrid(String gridXpath, String... attributes) throws InterruptedException {
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         for(int i = 1; i <= getGridPaginationData(gridXpath).getNumberOfPages(); i++){
@@ -474,11 +631,10 @@ public class GridTestingUtil {
     public static String[] getDataFromRowLocation(String gridXpath, ElementLocation location) throws InterruptedException {
         int columnNumber =  getGridColumnNumber(gridXpath);
         goToPageInPaginatedGrid(gridXpath, location.getPageNumber());
-        String[] result = new String[columnNumber];
+        String[] result = new String[columnNumber - 1];
         for(int i = 0; i < columnNumber - 1; i++){
             result[i] = getVisibleGridCell(gridXpath, location.getRowIndex(), i).getText();
         }
-        result[columnNumber - 1] = "skip";
         return result;
 
     }
