@@ -7,9 +7,11 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
+import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmsApiClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -29,7 +31,7 @@ public class AdminTools extends VerticalLayout {
     @Autowired
     private ApplicationContext applicationContext;
 
-    public AdminTools(){
+    public AdminTools(PaginationSetting paginationSetting){
         Button b = new Button("b");
         add(b);
 

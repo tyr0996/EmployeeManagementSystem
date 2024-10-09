@@ -1,6 +1,10 @@
 package hu.martin.ems.vaadin.component.Order;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -29,6 +33,8 @@ import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
 import hu.martin.ems.vaadin.api.OrderApiClient;
+import hu.martin.ems.vaadin.component.BaseVO;
+import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Supplier.SupplierList;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +46,7 @@ import org.vaadin.klaudeta.PaginatedGrid;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -64,7 +70,8 @@ public class OrderList extends VVerticalLayout {
     Grid.Column<OrderVO> paymentTypeColumn;
     Grid.Column<OrderVO> stateColumn;
     Grid.Column<OrderVO> timeOfOrderColumn;
-
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
+    private Grid.Column<OrderVO> extraData;
     private static String customerFilterText = "";
     private static String paymentTypeColumnFilterText = "";
     private static String stateFilterText = "";
@@ -76,6 +83,7 @@ public class OrderList extends VVerticalLayout {
     @Autowired
     public OrderList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
+        OrderVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
         this.grid = new PaginatedGrid<>(OrderVO.class);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
@@ -113,10 +121,10 @@ public class OrderList extends VVerticalLayout {
         grid.addClassName("styling");
         grid.setPartNameGenerator(orderVo -> orderVo.deleted != 0 ? "deleted" : null);
 
-        setFilteringHeaderRow();
+
 
         //region Options column
-        this.grid.addComponentColumn(order -> {
+        extraData = this.grid.addComponentColumn(order -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -158,7 +166,9 @@ public class OrderList extends VVerticalLayout {
 
             editButton.addClickListener(event -> {
                 OrderCreate.o = order.original;
-                UI.getCurrent().navigate("order/create");
+                OrderCreate oc = new OrderCreate(paginationSetting);
+                this.removeAll();
+                this.add(oc);
             });
 
             restoreButton.addClickListener(event -> {
@@ -184,24 +194,29 @@ public class OrderList extends VVerticalLayout {
 
             VHorizontalLayout actions = new VHorizontalLayout();
 
-            actions.add(odtDownload, pdfDownload, sendEmail);
             if (order.deleted == 0) {
                 actions.add(editButton, deleteButton);
             } else if (order.deleted == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
+            actions.add(odtDownload, pdfDownload, sendEmail);
             return actions;
-        }).setHeader("Options");
+        });
+
+        setFilteringHeaderRow();
 
         //endregion
 
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            OrderVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
         });
 
-        add(sftpLayout, sendSftp, grid);
+        add(sftpLayout, sendSftp, showDeletedCheckbox, grid);
     }
 
 
@@ -211,9 +226,10 @@ public class OrderList extends VVerticalLayout {
                 (paymentTypeColumnFilterText.isEmpty() || orderVO.paymentType.toLowerCase().contains(paymentTypeColumnFilterText.toLowerCase())) &&
                 (stateFilterText.isEmpty() || orderVO.state.toLowerCase().contains(stateFilterText.toLowerCase())) &&
                 (timeOfOrderFilterText.isEmpty() || orderVO.timeOfOrder.toLowerCase().contains(timeOfOrderFilterText.toLowerCase())) &&
-                (showDeleted ? (orderVO.deleted == 0 || orderVO.deleted == 1) : orderVO.deleted == 0)
+                orderVO.filterExtraData()
         );
     }
+
 
     private Component filterField(TextField filterField, String title){
         VerticalLayout res = new VerticalLayout();
@@ -265,12 +281,30 @@ public class OrderList extends VVerticalLayout {
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                OrderVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                     OrderVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(customerColumn).setComponent(filterField(customerFilter, "Customer"));
         filterRow.getCell(paymentTypeColumn).setComponent(filterField(paymentTypeFilter, "Payment type"));
         filterRow.getCell(stateColumn).setComponent(filterField(stateFilter, "State"));
         filterRow.getCell(timeOfOrderColumn).setComponent(filterField(timeOfOrderFilter, "Time of order"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
 
@@ -282,10 +316,8 @@ public class OrderList extends VVerticalLayout {
 
 
     @NeedCleanCoding
-public class OrderVO {
+public class OrderVO extends BaseVO {
         private Order original;
-        private Long deleted;
-        private Long id;
         private String state;
         private String customer;
         private String paymentType;
@@ -293,6 +325,7 @@ public class OrderVO {
         private String name;
 
         public OrderVO(Order order) {
+            super(order.id, order.getDeleted());
             this.original = order;
             this.id = order.getId();
             this.deleted = order.getDeleted();

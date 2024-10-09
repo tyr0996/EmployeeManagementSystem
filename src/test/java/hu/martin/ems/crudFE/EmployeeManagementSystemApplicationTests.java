@@ -2,12 +2,23 @@ package hu.martin.ems.crudFE;
 
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.User;
+import hu.martin.ems.model.Role;
+import hu.martin.ems.vaadin.component.BaseVO;
+import hu.martin.ems.vaadin.component.User.UserList;
+import org.apache.poi.ss.formula.functions.T;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -45,4 +56,28 @@ class EmployeeManagementSystemApplicationTests {
                 generatedSql,
                 "The generated sql not equals with the excepted");
     }
+
+    @Test
+    public void mergeMapsTest() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        LinkedHashMap<String, List<String>> a = new LinkedHashMap<>();
+        a.put("deleted", Arrays.asList("0", "1"));
+
+        LinkedHashMap<String, List<String>> b = new LinkedHashMap<>();
+        b.put("deleted", Arrays.asList("1"));
+        b.put("username", Arrays.asList("developer"));
+        Method mergeMaps = BaseVO.class.getDeclaredMethod("mergeMaps" , LinkedHashMap.class, LinkedHashMap.class);
+        mergeMaps.setAccessible(true);
+        Object o = new TestVO();
+        LinkedHashMap<String, List<String>> aMergedB = (LinkedHashMap<String, List<String>>) mergeMaps.invoke(o, a, b);
+        LinkedHashMap<String, List<String>> bMergedA = (LinkedHashMap<String, List<String>>) mergeMaps.invoke(o, b, a);
+        mergeMaps.setAccessible(false);
+        assertEquals(aMergedB, bMergedA);
+    }
+
+    protected class TestVO extends BaseVO{
+        public TestVO(){
+            super(1L, 0L);
+        }
+    }
+
 }

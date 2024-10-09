@@ -1,6 +1,10 @@
 package hu.martin.ems.vaadin.component.Supplier;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -21,22 +25,18 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
-import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.SupplierApiClient;
-import hu.martin.ems.vaadin.component.City.CityList;
+import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,6 +57,8 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
 
     private List<Supplier> suppliers;
     private List<SupplierVO> supplierVOS;
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
+    private Grid.Column<SupplierVO> extraData;
 
     Grid.Column<SupplierVO> addressColumn;
     Grid.Column<SupplierVO> nameColumn;
@@ -67,6 +69,8 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
     @Autowired
     public SupplierList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
+
+        SupplierVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(SupplierVO.class);
         grid.addClassName("styling");
@@ -82,10 +86,9 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        setFilteringHeaderRow();
 
         //region Options column
-        this.grid.addComponentColumn(supplier -> {
+        extraData = this.grid.addComponentColumn(supplier -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -127,7 +130,9 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        }).setHeader("Options");
+        });
+
+        setFilteringHeaderRow();
 
         //endregion
 
@@ -140,6 +145,9 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            SupplierVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -155,7 +163,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         return supplierVOS.stream().filter(supplierVO ->
                         (addressFilterText.isEmpty() || supplierVO.address.toLowerCase().contains(addressFilterText.toLowerCase())) &&
                         (nameFilterText.isEmpty() || supplierVO.name.toLowerCase().contains(nameFilterText.toLowerCase())) &&
-                        (showDeleted ? (supplierVO.deleted == 0 || supplierVO.deleted == 1) : supplierVO.deleted == 0)
+                        supplierVO.filterExtraData()
         );
     }
 
@@ -191,10 +199,28 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                SupplierVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    SupplierVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();;
         filterRow.getCell(addressColumn).setComponent(filterField(addressFilter, "Address"));
         filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
 
@@ -251,14 +277,13 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
     }
 
     @NeedCleanCoding
-public class SupplierVO {
+public class SupplierVO extends BaseVO {
         private Supplier original;
-        private Long deleted;
-        private Long id;
         private String address;
         private String name;
 
         public SupplierVO(Supplier supplier) {
+            super(supplier.id, supplier.getDeleted());
             this.original = supplier;
             this.id = supplier.getId();
             this.deleted = supplier.getDeleted();

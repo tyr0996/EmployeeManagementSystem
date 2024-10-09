@@ -1,6 +1,10 @@
 package hu.martin.ems.vaadin.component.Employee;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -28,14 +32,14 @@ import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmployeeApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
+import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,6 +65,8 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     Grid.Column<EmployeeVO> lastNameColumn;
     Grid.Column<EmployeeVO> roleColumn;
     Grid.Column<EmployeeVO> salaryColumn;
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
+    private Grid.Column<EmployeeVO> extraData;
 
     private String firstNameFilterText = "";
     private String lastNameFilterText = "";
@@ -69,6 +75,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     @Autowired
     public EmployeeList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
+        EmployeeVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(EmployeeVO.class);
         employees = employeeApi.findAll();
@@ -86,10 +93,8 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        setFilteringHeaderRow();
-
         //region Options column
-        this.grid.addComponentColumn(employee -> {
+        extraData = this.grid.addComponentColumn(employee -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -131,7 +136,9 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        }).setHeader("Options");
+        });
+
+        setFilteringHeaderRow();
 
         //endregion
 
@@ -144,6 +151,9 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            EmployeeVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -161,7 +171,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
                 (lastNameFilterText.isEmpty() || employeeVO.lastName.toLowerCase().contains(lastNameFilterText.toLowerCase())) &&
                 (roleFilterText.isEmpty() || employeeVO.role.toLowerCase().contains(roleFilterText.toLowerCase())) &&
                 (salaryFilterText.isEmpty() || employeeVO.salary.toString().toLowerCase().contains(salaryFilterText.toLowerCase())) &&
-                (showDeleted ? (employeeVO.deleted == 0 || employeeVO.deleted == 1) : employeeVO.deleted == 0)
+                employeeVO.filterExtraData()
         );
     }
 
@@ -215,12 +225,30 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                EmployeeVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    EmployeeVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
-        HeaderRow filterRow = grid.appendHeaderRow();;
+        HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(firstNameColumn).setComponent(filterField(firstNameFilter, "First name"));
         filterRow.getCell(lastNameColumn).setComponent(filterField(lastNameFilter, "Last name"));
         filterRow.getCell(roleColumn).setComponent(filterField(roleFilter, "Role"));
         filterRow.getCell(salaryColumn).setComponent(filterField(salaryFilter, "Salary"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
     private void updateGridItems() {
@@ -282,16 +310,15 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     }
 
     @NeedCleanCoding
-public class EmployeeVO {
+public class EmployeeVO extends BaseVO {
         private Employee original;
-        private Long deleted;
-        private Long id;
         private String firstName;
         private String lastName;
         private String role;
         private Integer salary;
 
         public EmployeeVO(Employee employee) {
+            super(employee.id, employee.getDeleted());
             this.original = employee;
             this.id = employee.getId();
             this.deleted = employee.getDeleted();

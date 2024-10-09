@@ -1,6 +1,10 @@
 package hu.martin.ems.vaadin.component.Address;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -30,6 +34,7 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
+import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
@@ -37,8 +42,7 @@ import org.apache.commons.math3.analysis.function.Add;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -66,6 +70,8 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     Grid.Column<AddressVO> houseNumberColumn;
     Grid.Column<AddressVO> streetNameColumn;
     Grid.Column<AddressVO> streetTypeColumn;
+    Grid.Column<AddressVO> extraData;
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
 
     private static String cityFilterText = "";
     private static String countryCodeFilterText = "";
@@ -77,6 +83,8 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     @Autowired
     public AddressList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
+
+        AddressVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(AddressVO.class);
         addresses = addressApi.findAll();
@@ -94,10 +102,9 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        setFilteringHeaderRow();
 
         //region Options column
-        this.grid.addComponentColumn(address -> {
+        extraData = this.grid.addComponentColumn(address -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -139,7 +146,9 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        }).setHeader("Options");
+        });
+
+        setFilteringHeaderRow();
 
         //endregion
 
@@ -152,6 +161,9 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            AddressVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -169,7 +181,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
                         (houseNumberFilterText.isEmpty() || addressVO.houseNumber.toLowerCase().contains(houseNumberFilterText.toLowerCase())) &&
                         (streetTypeFilterText.isEmpty() || addressVO.streetType.toLowerCase().contains(streetTypeFilterText.toLowerCase())) &&
                         (streetNameFilterText.isEmpty() || addressVO.streetName.toLowerCase().contains(streetNameFilterText.toLowerCase())) &&
-                        (showDeleted ? (addressVO.deleted == 0 || addressVO.deleted == 1) : addressVO.deleted == 0)
+                        addressVO.filterExtraData()
         );
     }
 
@@ -232,14 +244,32 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                AddressVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    AddressVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
 
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
-        HeaderRow filterRow = grid.appendHeaderRow();;
+        HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(cityColumn).setComponent(filterField(cityFilter, "City"));
         filterRow.getCell(countryCodeColumn).setComponent(filterField(countryCodeFilter, "Country code"));
         filterRow.getCell(houseNumberColumn).setComponent(filterField(houseNumberFilter, "House number"));
         filterRow.getCell(streetNameColumn).setComponent(filterField(streetNameFilter, "Street name"));
         filterRow.getCell(streetTypeColumn).setComponent(filterField(streetTypeFilter, "Street type"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
 
@@ -317,10 +347,8 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     }
 
     @NeedCleanCoding
-public class AddressVO {
+public class AddressVO extends BaseVO {
         private Address original;
-        private Long id;
-        private Long deleted;
         private String countryCode;
         private String city;
         private String streetType;
@@ -328,9 +356,8 @@ public class AddressVO {
         private String houseNumber;
 
         public AddressVO(Address address) {
+            super(address.id, address.getDeleted());
             this.original = address;
-            this.id = address.getId();
-            this.deleted = address.getDeleted();
             this.countryCode = original.getCountryCode().getName();
             this.city = original.getCity().getName();
             this.streetName = original.getStreetName();

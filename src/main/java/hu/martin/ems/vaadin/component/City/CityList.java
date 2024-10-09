@@ -1,7 +1,11 @@
 package hu.martin.ems.vaadin.component.City;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -34,13 +38,15 @@ import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
+import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
+import org.apache.logging.log4j.spi.ObjectThreadContextMap;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,7 +56,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
-@Route(value = "city/list", layout = MainView.class)
+@Route(value = "city/list")
 @AnonymousAllowed
 @NeedCleanCoding
 public class CityList extends VerticalLayout implements Creatable<City> {
@@ -66,6 +72,8 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     private String countryCodeFilterText = "";
     private String nameFilterText = "";
     private String zipCodeFilterText = "";
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
+    private Grid.Column<CityVO> extraData;
 
     private Grid.Column<CityVO> countryCodeColumn;
     private Grid.Column<CityVO> nameColumn;
@@ -75,6 +83,8 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     @Autowired
     public CityList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
+
+        CityVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(CityVO.class);
         List<City> cities = cityApi.findAll();
@@ -90,10 +100,8 @@ public class CityList extends VerticalLayout implements Creatable<City> {
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        setFilteringHeaderRow();
-
         //region Options column
-        Grid.Column<CityVO> options = this.grid.addComponentColumn(city -> {
+        extraData = this.grid.addComponentColumn(city -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -137,6 +145,8 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             return actions;
         });
 
+        setFilteringHeaderRow();
+
         //endregion
 
         Button create = new Button("Create");
@@ -148,6 +158,9 @@ public class CityList extends VerticalLayout implements Creatable<City> {
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            CityVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -159,14 +172,15 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     }
 
     private Stream<CityVO> getFilteredStream() {
-
         return cityVOS.stream().filter(cityVO ->
                 (zipCodeFilterText.isEmpty() || cityVO.zipCode.toLowerCase().contains(zipCodeFilterText.toLowerCase())) &&
                         (countryCodeFilterText.isEmpty() || cityVO.countryCode.toLowerCase().contains(countryCodeFilterText.toLowerCase())) &&
                         (nameFilterText.isEmpty() || cityVO.name.toLowerCase().contains(nameFilterText.toLowerCase())) &&
-                        (showDeleted ? (cityVO.deleted == 0 || cityVO.deleted == 1) : cityVO.deleted == 0)
+                        cityVO.filterExtraData()
+                        //(showDeleted ? (cityVO.deleted == 0 || cityVO.deleted == 1) : cityVO.deleted == 0)
         );
     }
+
 
     private Component filterField(TextField filterField, String title){
         VerticalLayout res = new VerticalLayout();
@@ -209,11 +223,31 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             updateGridItems();
         });
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
-        HeaderRow filterRow = grid.appendHeaderRow();;
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                CityVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    CityVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+        //extraDataFilter.setVisible(false);
+
+
+        HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(countryCodeColumn).setComponent(filterField(countryCodeFilter, "Country code"));
         filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
         filterRow.getCell(zipCodeColumn).setComponent(filterField(zipCodeFilter, "ZipCode"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
 
@@ -272,15 +306,16 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     }
 
     @NeedCleanCoding
-public class CityVO {
+public class CityVO extends BaseVO {
         private City original;
-        private Long deleted;
-        private Long id;
         private String countryCode;
         private String name;
         private String zipCode;
 
+        private LinkedHashMap<String, String> extraData;
+
         public CityVO(City city) {
+            super(city.id, city.getDeleted());
             this.original = city;
             this.id = city.getId();
             this.deleted = city.getDeleted();

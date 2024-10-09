@@ -1,6 +1,10 @@
 package hu.martin.ems.vaadin.component.AccessManagement;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -28,13 +32,13 @@ import hu.martin.ems.model.RoleXPermission;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
+import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,6 +58,10 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
 
     private Grid.Column<PermissionVO> idColumn;
     private Grid.Column<PermissionVO> nameColumn;
+    private Grid.Column<PermissionVO> extraData;
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
+
+
 
     private static String idFilterText = "";
     private static String nameFilterText = "";
@@ -61,6 +69,8 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
 
     public PermissionList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
+
+        PermissionVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(PermissionVO.class);
         List<Permission> permissions = permissionApi.findAll();
@@ -76,9 +86,8 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        setFilteringHeaderRow();
 
-        this.grid.addComponentColumn(permission -> {
+        extraData = this.grid.addComponentColumn(permission -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -120,7 +129,9 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        }).setHeader("Options");
+        });
+
+        setFilteringHeaderRow();
 
         Button create = new Button("Create");
         create.addClickListener(event -> {
@@ -131,6 +142,9 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
         Checkbox withDeletedCheckbox = new Checkbox("Show deleted");
         withDeletedCheckbox.addValueChangeListener(event -> {
             withDeleted = event.getValue();
+            List<String> newValue = withDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            PermissionVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -207,10 +221,9 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
         return permissionVOS.stream().filter(permissionVO ->
                 (idFilterText.isEmpty() || permissionVO.id.toString().toLowerCase().contains(idFilterText.toLowerCase())) &&
                         (nameFilterText.isEmpty() || permissionVO.name.toLowerCase().contains(nameFilterText.toLowerCase())) &&
-                        (withDeleted ? (permissionVO.deleted == 0 || permissionVO.deleted == 1) : permissionVO.deleted == 0)
+                        permissionVO.filterExtraData()
         );
     }
-
 
     private void setFilteringHeaderRow(){
         TextField idColumnFilter = new TextField();
@@ -231,10 +244,28 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                PermissionVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    PermissionVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();;
         filterRow.getCell(idColumn).setComponent(filterField(idColumnFilter, "ID"));
         filterRow.getCell(nameColumn).setComponent(filterField(nameColumnFilter, "Name"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
     private Component filterField(TextField filterField, String title){
@@ -251,21 +282,16 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
     }
 
 
-    public class PermissionVO{
+    public class PermissionVO extends BaseVO {
         private Permission original;
-        private Long deleted;
-        private Long id;
         private String name;
 
         public PermissionVO(Permission permission){
+            super(permission.id, permission.getDeleted());
             this.original = permission;
             this.deleted = permission.getDeleted();
             this.id = permission.getId();
             this.name = permission.getName();
         }
     }
-
-
-
-
 }

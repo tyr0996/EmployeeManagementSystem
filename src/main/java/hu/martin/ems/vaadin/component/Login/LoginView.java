@@ -14,6 +14,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinServletResponse;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
@@ -21,12 +22,17 @@ import hu.martin.ems.core.model.User;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Base64;
 
 @Route(value = "login")
 @AnonymousAllowed
@@ -44,6 +50,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Value("${rememberme.key}")
+    private String key;
 
 
     public LoginView() {
@@ -72,9 +81,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         loginForm.setForgotPassword("Forgot password");
         login.setForm(loginForm);
 
+        //loginOverlay.setAction("login"); //Azért kellett kivenni, mert különben újratölti a login formot, és nem jelennek meg a hibaüzenetek
         loginOverlay.setI18n(login);
         loginOverlay.getFooter().add(register);
-
         loginOverlay.setOpened(true);
         add(loginOverlay);
 
@@ -95,6 +104,10 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     Authentication auth = authenticationManager.authenticate(authRequest);
 
                     SecurityContextHolder.getContext().setAuthentication(auth);
+
+                    HttpServletResponse response = VaadinServletResponse.getCurrent().getHttpServletResponse();
+                    createRememberMeCookie(response, userName);
+//
                     loginOverlay.close();
                     getUI().ifPresent(ui -> ui.navigate("/"));
                 }
@@ -205,5 +218,17 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 .containsKey("error")) {
             //login.setError(true);
         }
+    }
+
+    private void createRememberMeCookie(HttpServletResponse response, String username) {
+        String tokenValue = Base64.getEncoder().encodeToString((username + ":" + key).getBytes());
+        Cookie rememberMeCookie = new Cookie("rememberMe", tokenValue);
+
+        rememberMeCookie.setMaxAge(60 * 60 * 24 * 7); // 7 nap
+        rememberMeCookie.setHttpOnly(true);
+        rememberMeCookie.setSecure(false);
+        rememberMeCookie.setPath("/");
+
+        response.addCookie(rememberMeCookie);
     }
 }

@@ -1,6 +1,10 @@
 package hu.martin.ems.vaadin.component.Customer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -28,6 +32,7 @@ import hu.martin.ems.model.Customer;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CustomerApiClient;
+import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
@@ -35,8 +40,7 @@ import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,6 +66,9 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     Grid.Column<CustomerVO> firstNameColumn;
     Grid.Column<CustomerVO> lastNameColumn;
 
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
+    private Grid.Column<CustomerVO> extraData;
+
     private String addressFilterText = "";
     private String emailFilterText = "";
     private String firstNameFilterText = "";
@@ -70,6 +77,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     @Autowired
     public CustomerList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
+        CustomerVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(CustomerVO.class);
         List<Customer> customers = customerApi.findAll();
@@ -87,10 +95,10 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        setFilteringHeaderRow();
+
 
         //region Options column
-        this.grid.addComponentColumn(customerVO -> {
+        extraData = this.grid.addComponentColumn(customerVO -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -132,8 +140,10 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        }).setHeader("Options");
+        });
 
+
+        setFilteringHeaderRow();
         //endregion
 
         Button create = new Button("Create");
@@ -145,6 +155,9 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            CustomerVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -158,15 +171,12 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     private Stream<CustomerVO> getFilteredStream() {
 
         return customerVOS.stream().filter(customerVO ->
-            {
-                boolean a1 = (addressFilterText.isEmpty() || customerVO.address.toLowerCase().contains(addressFilterText.toLowerCase()));
-                boolean a2 = (emailFilterText.isEmpty() || customerVO.email.toLowerCase().contains(emailFilterText.toLowerCase()));
-                boolean a3 = (firstNameFilterText.isEmpty() || customerVO.firstName.toLowerCase().contains(firstNameFilterText.toLowerCase()));
-                boolean a4 = (lastNameFilterText.isEmpty() || customerVO.lastName.toLowerCase().contains(lastNameFilterText.toLowerCase()));
-                boolean a5 = (showDeleted ? (customerVO.deleted == 0 || customerVO.deleted == 1) : customerVO.deleted == 0);
-                return a1 && a2 && a3 && a4 && a5;
-            }
-        );
+                (addressFilterText.isEmpty() || customerVO.address.toLowerCase().contains(addressFilterText.toLowerCase())) &&
+                (emailFilterText.isEmpty() || customerVO.email.toLowerCase().contains(emailFilterText.toLowerCase())) &&
+                (firstNameFilterText.isEmpty() || customerVO.firstName.toLowerCase().contains(firstNameFilterText.toLowerCase())) &&
+                (lastNameFilterText.isEmpty() || customerVO.lastName.toLowerCase().contains(lastNameFilterText.toLowerCase())) &&
+                customerVO.filterExtraData()
+            );
     }
 
     private Component filterField(TextField filterField, String title){
@@ -219,12 +229,30 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                CustomerVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    CustomerVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();;
         filterRow.getCell(addressColumn).setComponent(filterField(addressFilter, "Address"));
         filterRow.getCell(emailColumn).setComponent(filterField(emailFilter, "Email"));
         filterRow.getCell(firstNameColumn).setComponent(filterField(firstNameFilter, "First name"));
         filterRow.getCell(lastNameColumn).setComponent(filterField(lastNameFilter, "Last name"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
     private void updateGridItems() {
@@ -291,10 +319,8 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     }
 
     @NeedCleanCoding
-    public class CustomerVO {
+    public class CustomerVO extends BaseVO {
         private Customer original;
-        private Long deleted;
-        private Long id;
         private String address;
         private String firstName;
         private String lastName;
@@ -302,9 +328,8 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
         private String name;
 
         public CustomerVO(Customer customer) {
+            super(customer.getId(), customer.getDeleted());
             this.original = customer;
-            this.id = customer.getId();
-            this.deleted = customer.getDeleted();
             this.firstName = original.getFirstName();
             this.lastName = original.getLastName();
             this.address = original.getAddress().getName();

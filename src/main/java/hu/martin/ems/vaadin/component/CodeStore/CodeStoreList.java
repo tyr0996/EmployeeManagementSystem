@@ -1,6 +1,10 @@
 package hu.martin.ems.vaadin.component.CodeStore;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -25,14 +29,14 @@ import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
+import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,14 +61,19 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
 
     Grid.Column<CodeStoreVO> nameColumn;
     Grid.Column<CodeStoreVO> parentColumn;
+    Grid.Column<CodeStoreVO> extraData;
 
     private static String nameColumnFilterText = "";
     private static String parentColumnFilterText = "";
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
 
 
     @Autowired
     public CodeStoreList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
+
+        CodeStoreVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+
         this.grid = new PaginatedGrid<>(CodeStoreVO.class);
 
         List<CodeStore> codeStores = codeStoreApi.findAll();
@@ -78,9 +87,8 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        setFilteringHeaderRow();
 
-        this.grid.addComponentColumn(codeStoreVO -> {
+        extraData = this.grid.addComponentColumn(codeStoreVO -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -128,7 +136,9 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        }).setHeader("Options");
+        });
+
+        setFilteringHeaderRow();
 
         Button create = new Button("Create");
         create.addClickListener(event -> {
@@ -139,6 +149,9 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            CodeStoreVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
         });
 
@@ -165,10 +178,13 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         return codeStoreVOS.stream().filter(codeStoreVO ->
                 (nameColumnFilterText.isEmpty() || codeStoreVO.name.toLowerCase().contains(nameColumnFilterText.toLowerCase())) &&
                         (parentColumnFilterText.isEmpty() || codeStoreVO.parentName.toLowerCase().contains(parentColumnFilterText.toLowerCase())) &&
-                        (showDeleted ? (codeStoreVO.deleted == 0 || codeStoreVO.deleted == 1) : codeStoreVO.deleted == 0) &&
+                        //(showDeleted ? (codeStoreVO.deleted == 0 || codeStoreVO.deleted == 1) : codeStoreVO.deleted == 0) &&
+                        codeStoreVO.filterExtraData() &&
                         (showOnlyDeletable ? codeStoreVO.deletable : true)
         );
     }
+
+
 
     private Component filterField(TextField filterField, String title){
         VerticalLayout res = new VerticalLayout();
@@ -202,10 +218,28 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                CodeStoreVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    CodeStoreVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
         filterRow.getCell(parentColumn).setComponent(filterField(parentColumnFilter, "Parent"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
     public Dialog getSaveOrUpdateDialog(CodeStore entity) {
@@ -254,18 +288,15 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         return createDialog;
     }
 
-    public class CodeStoreVO{
+    public class CodeStoreVO extends BaseVO {
         private CodeStore original;
-        private long id;
-        private long deleted;
         private String name;
         private String parentName;
         private Boolean deletable;
 
         public CodeStoreVO(CodeStore codeStore){
+            super(codeStore.id, codeStore.getDeleted());
             this.original = codeStore;
-            this.id = codeStore.getId();
-            this.deleted = codeStore.getDeleted();
             this.name = codeStore.getName();
             this.parentName = codeStore.getParentCodeStore() == null ? "" : codeStore.getParentCodeStore().getName();
             this.deletable = codeStore.getDeletable();

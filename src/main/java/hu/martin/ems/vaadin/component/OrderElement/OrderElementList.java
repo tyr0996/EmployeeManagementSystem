@@ -1,7 +1,11 @@
 package hu.martin.ems.vaadin.component.OrderElement;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.FluentIterable;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -27,6 +31,7 @@ import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
+import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.Getter;
@@ -35,8 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,6 +71,8 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     private Grid.Column<OrderElementVO> taxKeyColumn;
     private Grid.Column<OrderElementVO> unitColumn;
     private Grid.Column<OrderElementVO> unitNetPriceColumn;
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
+    private Grid.Column<OrderElementVO> extraData;
 
     private static String grossPriceFilterText = "";
     private static String netPriceFilterText = "";
@@ -79,6 +85,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     @Autowired
     public OrderElementList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
+        OrderElementVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(OrderElementVO.class);
         List<OrderElement> orderElements = orderElementApi.findAll();
@@ -97,11 +104,10 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         grid.setPartNameGenerator(orderElementVO -> orderElementVO.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
-        
-        setFilteringHeaderRow();
+
 
         //region Options column
-        this.grid.addComponentColumn(orderElement -> {
+        extraData = this.grid.addComponentColumn(orderElement -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -143,7 +149,8 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        }).setHeader("Options");
+        });
+        setFilteringHeaderRow();
 
         //endregion
 
@@ -156,6 +163,9 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            OrderElementVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -175,9 +185,11 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
                 (taxKeyFilterText.isEmpty() || orderElementVO.taxKey.toLowerCase().contains(taxKeyFilterText.toLowerCase())) &&
                 (unitFilterText.isEmpty() || orderElementVO.unit.toString().toLowerCase().contains(unitFilterText.toLowerCase())) &&
                 (unitNetPriceFilterText.isEmpty() || orderElementVO.unitNetPrice.toString().toLowerCase().contains(unitNetPriceFilterText.toLowerCase())) &&
-                (showDeleted ? (orderElementVO.deleted == 0 || orderElementVO.deleted == 1) : orderElementVO.deleted == 0)
+                orderElementVO.filterExtraData()
         );
     }
+
+
 
     private Component filterField(TextField filterField, String title){
         VerticalLayout res = new VerticalLayout();
@@ -256,6 +268,24 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                OrderElementVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    OrderElementVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
+
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();;
         filterRow.getCell(grossPriceColumn).setComponent(filterField(grossPriceFilter, "Gross price"));
@@ -265,6 +295,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         filterRow.getCell(taxKeyColumn).setComponent(filterField(taxKeyFilter, "Tax key"));
         filterRow.getCell(unitColumn).setComponent(filterField(unitFilter, "Unit"));
         filterRow.getCell(unitNetPriceColumn).setComponent(filterField(unitNetPriceFilter, "Unit net price"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
     private void updateGridItems() {
@@ -347,10 +378,8 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     }
 
     @NeedCleanCoding
-public class OrderElementVO {
+public class OrderElementVO extends BaseVO {
         private OrderElement original;
-        private Long deleted;
-        private Long id;
         private String product;
         private String order;
         private String taxKey;
@@ -360,9 +389,8 @@ public class OrderElementVO {
         private Integer grossPrice;
 
         public OrderElementVO(OrderElement orderElement) {
+            super(orderElement.id, orderElement.getDeleted());
             this.original = orderElement;
-            this.id = orderElement.getId();
-            this.deleted = orderElement.getDeleted();
             this.product = original.getProduct().getName();
             this.order = original.getOrder() == null ? "" : original.getOrder().getName();
             this.unit = original.getUnit();

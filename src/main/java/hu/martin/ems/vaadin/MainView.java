@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -9,11 +10,15 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLayout;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.server.Command;
 import com.vaadin.flow.server.VaadinServletService;
+import com.vaadin.flow.server.VaadinSession;
 import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.vaadin.component.AccessManagement.AccessManagement;
 import hu.martin.ems.vaadin.component.Address.AddressList;
 import hu.martin.ems.vaadin.component.AdminTools.AdminTools;
@@ -31,6 +36,7 @@ import hu.martin.ems.vaadin.component.User.UserList;
 import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
@@ -42,11 +48,16 @@ public class MainView extends HorizontalLayout implements RouterLayout {
 
     private VerticalLayout menuLayout;
 
+    @Autowired
+    private PaginationSetting paginationSetting;
+
+    public static Div contentLayout;
+
     public MainView() {
         menuLayout = new VerticalLayout();
         menuLayout.setClassName("side-menu");
 
-        Div contentLayout = new Div();
+        contentLayout = new Div();
         contentLayout.setClassName("content-layout");
 
         addMenu(menuLayout, "Admin", "Employee", EmployeeList.class);
@@ -61,7 +72,8 @@ public class MainView extends HorizontalLayout implements RouterLayout {
         addMenu(menuLayout, "Admin", "Users", UserList.class);
         addMenu(menuLayout, "Admin", "Admin tools", AdminTools.class);
         addMenu(menuLayout, "Orders", "OrderElement", OrderElementList.class);
-        addMenu(menuLayout, "Orders", "Order", OrderCreate.class, OrderList.class);
+        addMenu(menuLayout, "Orders", "Order", OrderList.class);
+        addMenu(menuLayout, "Orders", "Order create", OrderCreate.class);
 
         addLogoutButton();
 
@@ -97,15 +109,32 @@ public class MainView extends HorizontalLayout implements RouterLayout {
                 });
 
         if (listClass != null) {
-            RouterLink listLink = new RouterLink(subMenuName, listClass);
+            Span listLink = new Span(subMenuName);
             HorizontalLayout listMenu = new HorizontalLayout(listLink);
+            listLink.addClickListener(v -> {
+                // Új komponens létrehozása
+                try {
+                    Component newComponent = (Component) listClass.getDeclaredConstructor(PaginationSetting.class).newInstance(paginationSetting);
+
+                    UI.getCurrent().accessSynchronously(() -> {
+                        contentLayout.removeAll();
+                        contentLayout.add(newComponent);
+                    });
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+
             listMenu.setVisible(false);
+
+            // Főmenü elem kattintásakor a listák megjelenítése/rejtése
             mainMenu.getElement().addEventListener("click", e -> {
                 listMenu.setVisible(!listMenu.isVisible());
             });
 
             menuLayout.add(listMenu);
         }
+
     }
 
     @Deprecated
@@ -123,6 +152,12 @@ public class MainView extends HorizontalLayout implements RouterLayout {
         if (listClass != null) {
             RouterLink listLink = new RouterLink(subMenuName, listClass);
             HorizontalLayout listMenu = new HorizontalLayout(listLink);
+            listLink.getElement().addEventListener("click", e -> {
+                listMenu.setVisible(!listMenu.isVisible());
+                UI.getCurrent().navigate(listClass, "refresh");
+                listMenu.setVisible(!listMenu.isVisible());
+            });
+
             listMenu.setVisible(false);
             mainMenu.getElement().addEventListener("click", e -> {
                 listMenu.setVisible(!listMenu.isVisible());
@@ -134,11 +169,28 @@ public class MainView extends HorizontalLayout implements RouterLayout {
             RouterLink createLink = new RouterLink(subMenuName + " create", createClass);
             HorizontalLayout createMenu = new HorizontalLayout(createLink);
             createMenu.setVisible(false);
+            createLink.getElement().addEventListener("click", e -> {
+                createMenu.setVisible(!createMenu.isVisible());
+                UI.getCurrent().navigate(listClass, "refresh");
+                createMenu.setVisible(!createMenu.isVisible());
+            });
+            createMenu.setVisible(false);
+
             mainMenu.getElement().addEventListener("click", e -> {
                 createMenu.setVisible(!createMenu.isVisible());
             });
 
             menuLayout.add(createMenu);
         }
+    }
+
+
+
+    private String getRouteFromClass(Class<? extends Component> listClass) {
+        if (listClass.isAnnotationPresent(Route.class)) {
+            Route routeAnnotation = listClass.getAnnotation(Route.class);
+            return routeAnnotation.value();
+        }
+        return null; // Ha nincs @Route annotáció, akkor visszatérünk null-lal
     }
 }

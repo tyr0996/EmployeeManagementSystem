@@ -38,3 +38,43 @@
 .register-button{
     width: 100%;
 }
+
+.main-view {
+    display: flex;
+}
+
+/*.side-menu {*/
+/*    width: 250px;*/
+/*    background-color: #ffffff;*/
+/*    border-right: 1px solid #e0e0e0;*/
+/*    padding: 20px;*/
+/*    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);*/
+/*}*/
+
+.side-menu > span {
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.side-menu > span:hover {
+    background-color: #f0f0f0;
+}
+
+.side-menu .list-menu {
+    display: none;
+    padding-left: 15px;
+}
+
+.side-menu .list-menu span {
+    display: block;
+    padding: 8px;
+    color: #007BFF;
+    cursor: pointer;
+}
+
+.side-menu .list-menu span:hover {
+    background-color: #e0e0e0;
+}
+

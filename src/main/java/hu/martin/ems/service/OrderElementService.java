@@ -20,7 +20,7 @@ public class OrderElementService extends BaseService<OrderElement, OrderElementR
     }
 
     public List<OrderElement> getByCustomer(Long customerId) {
-        return this.repo.getByCustomer(customerId).stream().filter(v -> v.getOrder() == null).collect(Collectors.toList());
+        return this.repo.getByCustomer(customerId);
     }
 
     public void permanentlyDeleteByOrder(Long orderId){

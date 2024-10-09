@@ -1,6 +1,10 @@
 package hu.martin.ems.vaadin.component.AccessManagement;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -28,6 +32,7 @@ import hu.martin.ems.model.RoleXPermission;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
+import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.AllArgsConstructor;
@@ -64,11 +69,16 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
 
     private static String roleFilterText = "";
     private static String permissionsFilterText = "";
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
+    private Grid.Column<GroupedRoleXPermissionVO> extraData;
     private Grid.Column<GroupedRoleXPermissionVO> roleColumn;
     private Grid.Column<GroupedRoleXPermissionVO> permissionsColumn;
 
     public RoleList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
+
+        GroupedRoleXPermissionVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+
         this.groupedRoleXPermissions = new ArrayList<>();
         this.createOrModifyForm = new FormLayout();
         createRoleXPermissionGrid();
@@ -97,7 +107,11 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         Checkbox withDeletedCheckbox = new Checkbox("Show deleted");
         withDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            GroupedRoleXPermissionVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
+
         });
 
         buttonsLayout = new HorizontalLayout();
@@ -182,10 +196,28 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                GroupedRoleXPermissionVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    GroupedRoleXPermissionVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(roleColumn).setComponent(filterField(roleFilter, "Role"));
         filterRow.getCell(permissionsColumn).setComponent(filterField(permissionsFilter, "Permissions"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
     private void setGridColumns(){
@@ -208,7 +240,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     }
 
     private void addOptionsColumn(){
-        this.grid.addComponentColumn(groupedRoleXPermissionVO -> {
+        extraData = this.grid.addComponentColumn(groupedRoleXPermissionVO -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -277,7 +309,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         return groupedRoleXPermissionVOS.stream().filter(groupedRoleXPermissionVO ->
                 (roleFilterText.isEmpty() || groupedRoleXPermissionVO.role.toLowerCase().contains(roleFilterText.toLowerCase())) &&
                         (permissionsFilterText.isEmpty() || groupedRoleXPermissionVO.permissions.toLowerCase().contains(permissionsFilterText.toLowerCase())) &&
-                        (showDeleted ? (groupedRoleXPermissionVO.deleted == 0 || groupedRoleXPermissionVO.deleted == 1) : groupedRoleXPermissionVO.deleted == 0)
+                        groupedRoleXPermissionVO.filterExtraData()
         );
     }
 
@@ -300,15 +332,14 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         }
     }
 
-    protected class GroupedRoleXPermissionVO {
+    protected class GroupedRoleXPermissionVO extends BaseVO {
         private GroupedRoleXPermission original;
-        private Long id;
-        private Long deleted;
 
         private String role;
         private String permissions;
 
         public GroupedRoleXPermissionVO(GroupedRoleXPermission groupedRoleXPermission){
+            super(groupedRoleXPermission.getId(), groupedRoleXPermission.getDeleted());
             this.original = groupedRoleXPermission;
             this.id = original.getId();
             this.deleted = original.getDeleted();

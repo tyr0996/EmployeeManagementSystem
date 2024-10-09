@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="All suite">
+    <suite-files>
+        <suite-file path="crudFrontEndTests.xml" />
+        <suite-file path="functionTests.xml"/>
+    </suite-files>
+</suite>

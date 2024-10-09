@@ -1,6 +1,10 @@
 package hu.martin.ems.vaadin.component.Product;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -27,14 +31,12 @@ import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
-import hu.martin.ems.vaadin.component.City.CityList;
+import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,6 +57,9 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<ProductVO, String> grid;
+
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
+    private Grid.Column<ProductVO> extraData;
 
     private List<ProductVO> productVOS;
 
@@ -83,6 +88,8 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     public ProductList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
+        ProductVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+
         this.grid = new PaginatedGrid<>(ProductVO.class);
         List<Product> products = productApi.findAll();
         productVOS = products.stream().map(ProductVO::new).collect(Collectors.toList());
@@ -101,69 +108,10 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
         
-        setFilteringHeaderRow();
+
 
         //region Options column
-        this.grid.addComponentColumn(product -> {
-            //region sellDialog
-            Dialog sellDialog = new Dialog();
-            Product p = product.original;
-            Button sellToCustomerButton = new Button("Sell to customer");
-            ComboBox<Customer> customers = new ComboBox<>("Customer");
-            NumberField unitField = new NumberField("Quantity");
-            ComboBox.ItemFilter<Customer> filterCustomer = (customer, filterString) ->
-                    customer.getName().toLowerCase().contains(filterString.toLowerCase());
-            customers.setItems(filterCustomer, customerApi.findAll());
-            customers.setItemLabelGenerator(Customer::getName);
-            sellDialog.add(customers, unitField, sellToCustomerButton);
-
-            sellToCustomerButton.addClickListener(event -> {
-                OrderElement orderElement = new OrderElement();
-                orderElement.setCustomer(customers.getValue());
-                orderElement.setUnit(unitField.getValue().intValue());
-                orderElement.setName(p.getName());
-                orderElement.setProduct(p);
-                orderElement.setDeleted(0L);
-                orderElement.setTaxKey(p.getTaxKey());
-                orderElement.setUnitNetPrice(p.getSellingPriceNet().intValue());
-                orderElement.setNetPrice(p.getSellingPriceNet().intValue() * unitField.getValue().intValue());
-                orderElement.setTaxPrice((orderElement.getNetPrice() / 100.0) * Integer.parseInt(p.getTaxKey().getName()));
-                orderElement.setGrossPrice(orderElement.getNetPrice() + orderElement.getTaxPrice().intValue());
-                orderElementApi.save(orderElement);
-                Notification.show("Order element successfully paired to customer!")
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                sellDialog.close();
-            });
-            //endregion
-            //region orderDialog
-            Dialog orderDialog = new Dialog();
-            Button buyFromSupplierButton = new Button("Order from Supllier");
-            ComboBox<Supplier> suppliers = new ComboBox<>("Supplier");
-            NumberField buyingUnitField = new NumberField("Quantity");
-            ComboBox.ItemFilter<Supplier> filterSupplier = (supplier, filterString) ->
-                    supplier.getName().toLowerCase().contains(filterString.toLowerCase());
-            suppliers.setItems(filterSupplier, supplierApi.findAll());
-            suppliers.setItemLabelGenerator(Supplier::getName);
-            orderDialog.add(suppliers, buyingUnitField, buyFromSupplierButton);
-
-            buyFromSupplierButton.addClickListener(event -> {
-                OrderElement orderElement = new OrderElement();
-                orderElement.setSupplier(suppliers.getValue());
-                orderElement.setUnit(buyingUnitField.getValue().intValue());
-                orderElement.setName(p.getName());
-                orderElement.setProduct(p);
-                orderElement.setDeleted(0L);
-                orderElement.setTaxKey(p.getTaxKey());
-                orderElement.setUnitNetPrice(p.getSellingPriceNet().intValue());
-                orderElement.setNetPrice(p.getSellingPriceNet().intValue() * buyingUnitField.getValue().intValue());
-                orderElement.setTaxPrice((orderElement.getNetPrice() / 100.0) * Integer.parseInt(p.getTaxKey().getName()));
-                orderElement.setGrossPrice(orderElement.getNetPrice() + orderElement.getTaxPrice().intValue());
-                Notification.show("Order element successfully paired to customer!")
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                orderDialog.close();
-            });
-            //endregion
-
+        extraData = this.grid.addComponentColumn(productVo -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -175,45 +123,47 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
             orderButton.addClickListener(event -> {
-                orderDialog.open();
+                getOrderFromSupplierDialog(productVo).open();
             });
             sellButton.addClickListener(event -> {
-                sellDialog.open();
+                getSellToCustomerDialog(productVo).open();
             });
             editButton.addClickListener(event -> {
-                Dialog dialog = getSaveOrUpdateDialog(product.original);
+                Dialog dialog = getSaveOrUpdateDialog(productVo.original);
                 dialog.open();
             });
 
             restoreButton.addClickListener(event -> {
-                this.productApi.restore(product.original);
-                Notification.show("Product restored: " + product.original.getName())
+                this.productApi.restore(productVo.original);
+                Notification.show("Product restored: " + productVo.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                this.productApi.delete(product.original);
-                Notification.show("Product deleted: " + product.original.getName())
+                this.productApi.delete(productVo.original);
+                Notification.show("Product deleted: " + productVo.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.productApi.permanentlyDelete(product.original.getId());
-                Notification.show("Product permanently deleted: " + product.original.getName())
+                this.productApi.permanentlyDelete(productVo.original.getId());
+                Notification.show("Product permanently deleted: " + productVo.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             HorizontalLayout actions = new HorizontalLayout();
-            if (product.original.getDeleted() == 0) {
+            if (productVo.original.getDeleted() == 0) {
                 actions.add(editButton, deleteButton, sellButton, orderButton);
-            } else if (product.original.getDeleted() == 1) {
+            } else if (productVo.original.getDeleted() == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        }).setHeader("Options");
+        });
+
+        setFilteringHeaderRow();
 
         //endregion
 
@@ -226,7 +176,10 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
-            updateGridItems();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            ProductVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
+            updateGridItems();;
         });
         HorizontalLayout hl = new HorizontalLayout();
         hl.add(showDeletedCheckbox, create);
@@ -234,6 +187,73 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         hl.setAlignSelf(Alignment.CENTER, create);
 
         add(hl, grid);
+    }
+
+    public Dialog getSellToCustomerDialog(ProductVO productVO){
+        Dialog sellDialog = new Dialog();
+        FormLayout formLayout = new FormLayout();
+        Product p = productVO.original;
+        Button sellToCustomerButton = new Button("Sell to customer");
+        ComboBox<Customer> customers = new ComboBox<>("Customer");
+        NumberField unitField = new NumberField("Quantity");
+        ComboBox.ItemFilter<Customer> filterCustomer = (customer, filterString) ->
+                customer.getName().toLowerCase().contains(filterString.toLowerCase());
+        customers.setItems(filterCustomer, customerApi.findAll());
+        customers.setItemLabelGenerator(Customer::getName);
+        formLayout.add(customers, unitField, sellToCustomerButton);
+        sellDialog.add(formLayout);
+
+        sellToCustomerButton.addClickListener(event -> {
+            OrderElement orderElement = new OrderElement();
+            orderElement.setCustomer(customers.getValue());
+            orderElement.setUnit(unitField.getValue().intValue());
+            orderElement.setName(p.getName());
+            orderElement.setProduct(p);
+            orderElement.setDeleted(0L);
+            orderElement.setTaxKey(p.getTaxKey());
+            orderElement.setUnitNetPrice(p.getSellingPriceNet().intValue());
+            orderElement.setNetPrice(p.getSellingPriceNet().intValue() * unitField.getValue().intValue());
+            orderElement.setTaxPrice((orderElement.getNetPrice() / 100.0) * Integer.parseInt(p.getTaxKey().getName()));
+            orderElement.setGrossPrice(orderElement.getNetPrice() + orderElement.getTaxPrice().intValue());
+            orderElementApi.save(orderElement);
+            Notification.show("Order element successfully paired to customer!")
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            sellDialog.close();
+        });
+        return sellDialog;
+    }
+
+    public Dialog getOrderFromSupplierDialog(ProductVO productVO){
+        Dialog orderDialog = new Dialog();
+        FormLayout formLayout = new FormLayout();
+        Button buyFromSupplierButton = new Button("Order from Supllier");
+        ComboBox<Supplier> suppliers = new ComboBox<>("Supplier");
+        NumberField buyingUnitField = new NumberField("Quantity");
+        ComboBox.ItemFilter<Supplier> filterSupplier = (supplier, filterString) ->
+                supplier.getName().toLowerCase().contains(filterString.toLowerCase());
+        suppliers.setItems(filterSupplier, supplierApi.findAll());
+        suppliers.setItemLabelGenerator(Supplier::getName);
+        formLayout.add(suppliers, buyingUnitField, buyFromSupplierButton);
+        orderDialog.add(formLayout);
+
+        buyFromSupplierButton.addClickListener(event -> {
+            OrderElement orderElement = new OrderElement();
+            orderElement.setSupplier(suppliers.getValue());
+            orderElement.setUnit(buyingUnitField.getValue().intValue());
+            orderElement.setName(productVO.original.getName());
+            orderElement.setProduct(productVO.original);
+            orderElement.setDeleted(0L);
+            orderElement.setTaxKey(productVO.original.getTaxKey());
+            orderElement.setUnitNetPrice(productVO.original.getSellingPriceNet().intValue());
+            orderElement.setNetPrice(productVO.original.getSellingPriceNet().intValue() * buyingUnitField.getValue().intValue());
+            orderElement.setTaxPrice((orderElement.getNetPrice() / 100.0) * Integer.parseInt(productVO.original.getTaxKey().getName()));
+            orderElement.setGrossPrice(orderElement.getNetPrice() + orderElement.getTaxPrice().intValue());
+            orderElementApi.save(orderElement);
+            Notification.show("Order element successfully paired to supplier!")
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            orderDialog.close();
+        });
+        return orderDialog;
     }
 
     private Stream<ProductVO> getFilteredStream() {
@@ -245,9 +265,10 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
                 (nameFilterText.isEmpty() || productVO.name.toLowerCase().contains(nameFilterText.toLowerCase())) &&
                 (sellingPriceCurrencyFilterText.isEmpty() || productVO.sellingPriceCurrency.toLowerCase().contains(sellingPriceCurrencyFilterText.toLowerCase())) &&
                 (sellingPriceNetFilterText.isEmpty() || productVO.sellingPriceNet.toString().toLowerCase().contains(sellingPriceNetFilterText.toLowerCase())) &&
-                (showDeleted ? (productVO.deleted == 0 || productVO.deleted == 1) : productVO.deleted == 0)
+                productVO.filterExtraData()
         );
     }
+
 
     private Component filterField(TextField filterField, String title){
         VerticalLayout res = new VerticalLayout();
@@ -326,6 +347,23 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                ProductVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    ProductVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
 
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();;
@@ -336,6 +374,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
         filterRow.getCell(sellingPriceCurrencyColumn).setComponent(filterField(sellingPriceCurrencyFilter, "Selling price currency"));
         filterRow.getCell(sellingPriceNetColumn).setComponent(filterField(sellingPriceNetFilter, "Selling price net"));
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
     private void updateGridItems() {
@@ -434,10 +473,8 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     }
     
     @NeedCleanCoding
-public class ProductVO {
+public class ProductVO extends BaseVO {
         private Product original;
-        private Long deleted;
-        private Long id;
         private String buyingPriceCurrency;
         private String sellingPriceCurrency;
         private String amountUnit;
@@ -447,6 +484,7 @@ public class ProductVO {
         private Double amount;
 
         public ProductVO(Product product) {
+            super(product.id, product.getDeleted());
             this.original = product;
             this.id = product.getId();
             this.deleted = product.getDeleted();

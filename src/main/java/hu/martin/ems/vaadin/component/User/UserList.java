@@ -1,6 +1,11 @@
 package hu.martin.ems.vaadin.component.User;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -30,12 +35,13 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.AccessManagement.RoleList;
+import hu.martin.ems.vaadin.component.BaseVO;
+import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.io.IOException;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,12 +67,16 @@ public class UserList extends VerticalLayout implements Creatable<User> {
 
     private Dialog createOrModifyDialog;
     private FormLayout createOrModifyForm;
+    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
 
     Grid.Column<UserVO> userNameColumn;
     Grid.Column<UserVO> passwordHashColumn;
 
+    private Grid.Column<UserVO> extraData;
+
     List<User> users;
     List<UserVO> userVOS;
+
 
     private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
@@ -74,6 +84,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     private static String passwordHashFilterText = "";
 
     public UserList(PaginationSetting paginationSetting) {
+        UserVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
         this.paginationSetting = paginationSetting;
         this.users = new ArrayList<>();
         this.createOrModifyForm = new FormLayout();
@@ -93,7 +104,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         updateGridItems();
     }
 
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() throws RuntimeException {
         TextField usernameFilter = new TextField();
         usernameFilter.setPlaceholder("Search username...");
         usernameFilter.setClearButtonVisible(true);
@@ -112,8 +123,27 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             updateGridItems();
         });
 
+        TextField extraDataFilter = new TextField();
+
+        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
+            if(extraDataFilter.getValue().isEmpty()){
+                UserVO.extraDataFilterMap.clear();
+            }
+            else{
+                try {
+                    UserVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
+                } catch (JsonProcessingException ex) {
+                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+            }
+
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
+        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
         filterRow.getCell(userNameColumn).setComponent(filterField(usernameFilter, "Username"));
         filterRow.getCell(passwordHashColumn).setComponent(filterField(passwordHashFilter, "Password hash"));
     }
@@ -141,6 +171,9 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         Checkbox withDeletedCheckbox = new Checkbox("Show deleted");
         withDeletedCheckbox.addValueChangeListener(event -> {
             showDeleted = event.getValue();
+            List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
+            UserVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+
             updateGridItems();
         });
 
@@ -198,14 +231,19 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         User user = Objects.requireNonNullElseGet(editableUser, User::new);
         if(editableUser == null && userApi.findByUsername(usernameField.getValue()) != null){
             Notification.show("Username already exists!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            createOrModifyDialog.close();
             return null;
         }
         if(!passwordField.getValue().equals(passwordAgainField.getValue())){
             Notification.show("Passwords doesn't match!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            createOrModifyDialog.close();
             return null;
         }
         else if(editableUser != null && (passwordField.getValue() == "" || passwordField.getValue() == null)){
-            user.setPassword(editableUser.getPassword());
+            Notification.show("Password is required!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            createOrModifyDialog.close();
+            return null;
+
         }
         else{
             user.setPassword(passwordField.getValue());
@@ -229,7 +267,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     }
 
     private void addOptionsColumn(){
-        this.grid.addComponentColumn(entry -> {
+        extraData = this.grid.addComponentColumn(entry -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
@@ -286,18 +324,18 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         return userVOS.stream().filter(userVO ->
                 (usernameFilterText.isEmpty() || userVO.username.toLowerCase().contains(usernameFilterText.toLowerCase())) &&
                         (passwordHashFilterText.isEmpty() || userVO.passwordHash.toLowerCase().contains(passwordHashFilterText.toLowerCase())) &&
-                        (showDeleted ? (userVO.deleted == 0 || userVO.deleted == 1) : userVO.deleted == 0)
+                        userVO.filterExtraData()
+//                        (showDeleted ? (userVO.deleted == 0 || userVO.deleted == 1) : userVO.deleted == 0)
         );
     }
 
-    protected class UserVO{
+    protected class UserVO extends BaseVO {
         private User original;
-        private Long id;
-        private Long deleted;
         private String username;
         private String passwordHash;
 
         public UserVO(User user){
+            super(user.id, user.getDeleted());
             this.original = user;
             this.id = user.getId();
             this.deleted = user.getDeleted();

@@ -15,13 +15,16 @@ public class AdminToolsTest extends BaseCrudTest {
     @BeforeClass
     public void setup() {
         new CrudTestingUtil(driver, null, null, null, null);
+        GridTestingUtil.driver = driver;
     }
+
+    private static String clearDatabaseButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-button";
 
     @Test
     public void clearDatabaseTest(){
         TestingUtils.loginWith(driver, port, "admin", "admin");
         GridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
-        WebElement button = GridTestingUtil.findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-button");
+        WebElement button = GridTestingUtil.findVisibleElementWithXpath(clearDatabaseButtonXpath);
         button.click();
     }
 }

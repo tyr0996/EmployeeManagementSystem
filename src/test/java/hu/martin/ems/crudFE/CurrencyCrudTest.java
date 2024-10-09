@@ -25,9 +25,9 @@ import static org.testng.AssertJUnit.assertNull;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class CurrencyCrudTest extends BaseCrudTest {
 
-    private static final String datePickerXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-date-picker/input";
+    private static final String datePickerXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-date-picker/input";
 
-    private static final String gridXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid";
+    private static final String gridXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
     private static CrudTestingUtil crudTestingUtil;
 
     @BeforeClass
