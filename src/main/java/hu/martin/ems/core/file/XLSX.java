@@ -1,7 +1,7 @@
 package hu.martin.ems.core.file;
 
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;

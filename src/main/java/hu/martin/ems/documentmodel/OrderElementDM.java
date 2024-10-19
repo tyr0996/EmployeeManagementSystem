@@ -1,6 +1,6 @@
 package hu.martin.ems.documentmodel;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.model.OrderElement;
 import lombok.Getter;
 

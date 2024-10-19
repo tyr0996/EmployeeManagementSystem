@@ -1,4 +1,4 @@
-package hu.martin.ems;
+package hu.martin.ems.annotations;
 
 @Deprecated
 public @interface NeedCleanCoding {

@@ -12,7 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.awt.*;
 import java.time.Duration;
+import java.util.ArrayList;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,6 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class LoginTests extends BaseCrudTest {
 
     private static WebDriverWait notificationDisappearWait;
+
+    private static String usernameFieldXpath = "/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field/input";
+    private static String passwordFieldXpath = "/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[1]/input";
+
 
 
     @BeforeClass
@@ -38,8 +44,8 @@ public class LoginTests extends BaseCrudTest {
         WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper/vaadin-button[3]")));
         registerButton.click();
 
-        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field/input")));
-        WebElement passwordField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[1]/input");
+        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath)));
+        WebElement passwordField = findClickableElementWithXpath(passwordFieldXpath);
         WebElement passwordAgainField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input");
         WebElement register = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
@@ -58,6 +64,66 @@ public class LoginTests extends BaseCrudTest {
 
         checkLoginErrorMessage("Permission error",
                 "You have no permission to log in. Contact the administrator about your roles, and try again.");
+    }
+
+    @Test
+    public void registrationFailedPasswordDoesNotMatchTest() throws InterruptedException {
+        driver.get("http://localhost:" + port + "/login");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+
+        WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper/vaadin-button[3]")));
+        registerButton.click();
+
+        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath)));
+        WebElement passwordField = findClickableElementWithXpath(passwordFieldXpath);
+        WebElement passwordAgainField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input");
+        WebElement register = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+
+        String userName = RandomGenerator.generateRandomOnlyLetterString();
+        String password = RandomGenerator.generateRandomOnlyLetterString();
+        String otherPassword = RandomGenerator.generateRandomOnlyLetterString();
+        usernameField.sendKeys(userName);
+        passwordField.sendKeys(password);
+        passwordAgainField.sendKeys(otherPassword);
+
+        register.click();
+        checkNotificationContainsTexts("The passwords doesn't match!");
+
+        Thread.sleep(2000);
+        TestingUtils.loginWith(driver, port, userName, password);
+        Thread.sleep(2000);
+
+        checkLoginErrorMessage("Incorrect username or password",
+                "Check that you have entered the correct username and password and try again.");
+    }
+
+    @Test
+    public void registrationUsernameAllreadyExists() throws InterruptedException {
+        driver.get("http://localhost:" + port + "/login");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+
+        WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper/vaadin-button[3]")));
+        registerButton.click();
+
+        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath)));
+        WebElement passwordField = findClickableElementWithXpath(passwordFieldXpath);
+        WebElement passwordAgainField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input");
+        WebElement register = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+
+        String password = RandomGenerator.generateRandomOnlyLetterString();
+        usernameField.sendKeys("admin");
+        passwordField.sendKeys(password);
+        passwordAgainField.sendKeys(password);
+
+        register.click();
+        checkNotificationContainsTexts("Username already exists!");
+
+        Thread.sleep(2000);
+        TestingUtils.loginWith(driver, port, "admin", password);
+        Thread.sleep(2000);
+
+        checkLoginErrorMessage("Incorrect username or password",
+                "Check that you have entered the correct username and password and try again.");
     }
 
     @Test
@@ -139,7 +205,19 @@ public class LoginTests extends BaseCrudTest {
     }
 
     @Test
-    public void sideMenuElementsTest() throws InterruptedException {
+    public void logoutTest() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        Thread.sleep(10);
+
+        WebElement logoutButton = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-button");
+        logoutButton.click();
+        Thread.sleep(10);
+
+        assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a kijelentkeztetés");
+    }
+
+    @Test
+    public void sideMenuElementsTest() {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         findClickableElementWithXpath(UIXpaths.SIDE_MENU);
 
@@ -212,9 +290,9 @@ public class LoginTests extends BaseCrudTest {
         SearchContext shadow = login.getShadowRoot();
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
-        WebElement errorMessage = (WebElement) js.executeScript("return arguments[0].querySelectorAll('*')[1].querySelectorAll('*')[1];", shadow);
+        WebElement errorMessage = (WebElement) js.executeScript("return arguments[0].querySelector('div[part=\"error-message\"]');", shadow);
 
-        printToConsole(errorMessage);
+
         String errorTitle = errorMessage.findElement(By.tagName("h5")).getText();
         String errorDescription = errorMessage.findElement(By.tagName("p")).getText();
 

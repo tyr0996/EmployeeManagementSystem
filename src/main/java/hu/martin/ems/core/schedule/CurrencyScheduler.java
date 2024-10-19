@@ -1,6 +1,6 @@
 package hu.martin.ems.core.schedule;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.service.CurrencyService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

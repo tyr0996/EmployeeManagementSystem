@@ -3,20 +3,21 @@ package hu.martin.ems.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hu.martin.ems.NeedCleanCoding;
-import hu.martin.ems.core.apiresponse.CurrencyAPI;
-import hu.martin.ems.core.apiresponse.CurrencyResponse;
+import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.service.BaseService;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.repository.CodeStoreRepository;
 import hu.martin.ems.repository.CurrencyRepository;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 
@@ -24,48 +25,57 @@ import java.util.LinkedHashMap;
 @Transactional
 @NeedCleanCoding
 public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
-    public CurrencyService(CurrencyRepository currencyRepository,
-                           CodeStoreRepository codeStoreRepository,
-                           RestTemplate restTemplate) {
+    public CurrencyService(CurrencyRepository currencyRepository) {
         super(currencyRepository);
-        this.restTemplate = restTemplate;
-        this.codeStoreRepository = codeStoreRepository;
     }
 
     private final ObjectMapper om = new ObjectMapper();
-    private final RestTemplate restTemplate;
-    private final CodeStoreRepository codeStoreRepository;
+
+    @Autowired
+    @Setter
+    @Getter
+    private RestTemplate restTemplate;
+
+    @Autowired
+    @Getter
+    @Setter
+    private CodeStoreRepository codeStoreRepository;
 
     @Value("${api.currency.url}")
+    @Setter
     private String apiUrl;
 
+    @Setter
     @Value("${api.currency.baseCurrency}")
     private String baseCurrency;
 
-    public Currency fetchAndSaveRates() {
-        Currency curr = this.repo.findByDate(LocalDate.now());
+    public EmsResponse fetchAndSaveRates() {
+        Currency curr = repo.findByDate(LocalDate.now());
         if(curr != null){
-            return curr;
+            return new EmsResponse(200, curr, "");
         }
         try{
-            Object response = restTemplate.getForObject(apiUrl + baseCurrency, Object.class);
-            String json = om.writeValueAsString(response);
-            CurrencyAPI c = om.readValue(json, CurrencyAPI.class);
-            LinkedHashMap<String, Double> map = om.convertValue(c.getRates(), LinkedHashMap.class);
-            map.forEach((k, v) -> map.replace(k, Double.valueOf(new DecimalFormat("#0.000").format((1.0 / v)).replace(",", "."))));
-            c.setRates(om.convertValue(map, CurrencyResponse.class));
-
+            LinkedHashMap<String, Object> response = restTemplate.getForObject(apiUrl + baseCurrency, LinkedHashMap.class);
+            String fixedRates = response.get("rates").toString().replaceAll("\\b[A-Z]+\\b", "\"$0\"") //Belerakja idézőjelbe
+                                                                .replaceAll("=", ":");
             Currency currency = new Currency();
-            currency.setBaseCurrency(codeStoreRepository.findByName(c.getBase()));
-            currency.setRateJson(om.writeValueAsString(c.getRates()));
-            currency.setValidDate(c.getValidDate());
+            currency.setBaseCurrency(codeStoreRepository.findByName(response.get("base").toString()));
+            currency.setRateJson(fixedRates);
+            currency.setValidDate(getValidDate(response.get("date").toString()));
             currency.setDeleted(0L);
-            return this.repo.customSave(currency);
+            Object saved = this.repo.customSave(currency);
+            return new EmsResponse(200, saved, "");
         } catch (RestClientException e){
-            return null;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return new EmsResponse(500, EmsResponse.Description.FETCHING_CURRENCIES_FAILED);
         }
+    }
+
+    public LocalDate getValidDate(String lastUpdated) {
+        String[] date = lastUpdated.split("-");
+        LocalDate ld = LocalDate.of(Integer.parseInt(date[0]),
+                Integer.parseInt(date[1]),
+                Integer.parseInt(date[2]));
+        return ld;
     }
 
     public Double convert(LocalDate date, String from, String to, Double amount) {

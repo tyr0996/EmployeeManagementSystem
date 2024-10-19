@@ -23,7 +23,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Permission;
@@ -33,9 +33,8 @@ import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
-import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.constraints.NotNull;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.*;
@@ -61,9 +60,8 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
     private Grid.Column<PermissionVO> extraData;
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
 
-
-
     private static String idFilterText = "";
+
     private static String nameFilterText = "";
     List<PermissionVO> permissionVOS;
 
@@ -125,7 +123,7 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
             HorizontalLayout actions = new HorizontalLayout();
             if (permission.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (permission.deleted == 1) {
+            } else {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -197,12 +195,7 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
             for(int i = 0; i < selectedRoles.size(); i++){
                 RoleXPermission rxp = new RoleXPermission(selectedRoles.get(i), permission);
                 rxp.setDeleted(0L);
-                if(entity != null){
-                    roleXPermissionApi.update(rxp);
-                }
-                else{
-                    roleXPermissionApi.save(rxp);
-                }
+                roleXPermissionApi.save(rxp);
             }
 
             Notification.show("Permission " + (entity == null ? "saved: " : "updated: ") + permission.getName())
@@ -283,6 +276,7 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
 
 
     public class PermissionVO extends BaseVO {
+        @NotNull
         private Permission original;
         private String name;
 

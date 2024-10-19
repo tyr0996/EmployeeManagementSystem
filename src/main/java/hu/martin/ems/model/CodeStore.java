@@ -1,6 +1,6 @@
 package hu.martin.ems.model;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,7 +15,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @NeedCleanCoding
 public class CodeStore extends BaseEntity {
     @Column(nullable = false)

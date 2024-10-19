@@ -1,6 +1,6 @@
 package hu.martin.ems.core.config;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.PaginationSetting;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

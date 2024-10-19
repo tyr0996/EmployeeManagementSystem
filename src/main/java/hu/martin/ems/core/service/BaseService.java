@@ -1,8 +1,10 @@
 package hu.martin.ems.core.service;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.repository.BaseRepository;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -10,6 +12,8 @@ import java.util.List;
 @NeedCleanCoding
 public class BaseService<T, R extends BaseRepository<T, Long>> {
 
+    @Setter
+    @Getter
     protected R repo;
 
     public T save(T entity) {
@@ -45,4 +49,8 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
     }
 
     public void clearDatabaseTable(){ repo.customClearDatabaseTable(); }
+
+    public void forcePermanentlyDelete(Long entityId) {
+        repo.customForcePermanentlyDelete(entityId);
+    }
 }

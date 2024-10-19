@@ -1,6 +1,6 @@
 package hu.martin.ems.core.service;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.User;
 import hu.martin.ems.core.repository.UserRepository;
 import org.springframework.stereotype.Service;

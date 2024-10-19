@@ -1,7 +1,7 @@
 package hu.martin.ems.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;

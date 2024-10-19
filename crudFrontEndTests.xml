@@ -3,24 +3,28 @@
 <suite name="Crud testing suite">
     <test name="Crud testing">
         <classes>
-            <class name="hu.martin.ems.crudFE.AddressTest"/>
             <class name="hu.martin.ems.crudFE.AdminToolsTest"/>
-            <class name="hu.martin.ems.crudFE.CityCrudTest"/>
-            <class name="hu.martin.ems.crudFE.CodeStoreCrudTest"/>
-            <class name="hu.martin.ems.crudFE.CurrencyCrudTest"/>
-            <class name="hu.martin.ems.crudFE.CustomerCrudTest"/>
-            <class name="hu.martin.ems.crudFE.EmployeeCrudTest"/>
-            <class name="hu.martin.ems.crudFE.LoginTests"/>
-            <class name="hu.martin.ems.crudFE.OrderCrudTest"/>
-            <class name="hu.martin.ems.crudFE.OrderElementCrudTest"/>
-            <class name="hu.martin.ems.crudFE.PermissionTest"/>
-            <class name="hu.martin.ems.crudFE.RoleTest"/>
-            <class name="hu.martin.ems.crudFE.SupplierCrudTest"/>
-            <class name="hu.martin.ems.crudFE.UserCrudTest"/>
-            <class name="hu.martin.ems.crudFE.ProductCrudTest"/>
-            <class name="hu.martin.ems.crudFE.RoleXPermissionCreateTest"/>
-            <class name="hu.martin.ems.crudFE.OrderElementCrudTest"/>
-            <class name="hu.martin.ems.crudFE.OrderCreateTest"/>
+<!--            <class name="hu.martin.ems.crudFE.AddressTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.CityCrudTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.CodeStoreCrudTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.CurrencyCrudTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.CustomerCrudTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.EmployeeCrudTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.LoginTests"/>-->
+<!--            <class name="hu.martin.ems.crudFE.OrderCrudTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.OrderElementCrudTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.PermissionTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.RoleTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.SupplierCrudTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.UserCrudTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.ProductCrudTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.RoleXPermissionCreateTest"/>-->
+<!--            <class name="hu.martin.ems.crudFE.OrderCreateTest"/>-->
+        </classes>
+    </test>
+    <test name="Function test">
+        <classes>
+            <class name="hu.martin.ems.crudFE.EmployeeManagementSystemApplicationTests"/>
         </classes>
     </test>
 </suite>

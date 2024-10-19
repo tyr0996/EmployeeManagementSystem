@@ -1,6 +1,7 @@
 package hu.martin.ems.vaadin.component;
 
 import com.vaadin.ui.Link;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +9,7 @@ import java.util.*;
 
 public abstract class BaseVO {
     public Long id;
+    @NotNull
     public Long deleted;
     public static LinkedHashMap<String, List<String>> showDeletedCheckboxFilter = new LinkedHashMap<>();
     public static LinkedHashMap<String, List<String>> extraDataFilterMap = new LinkedHashMap<>();
@@ -28,13 +30,18 @@ public abstract class BaseVO {
     public boolean filterExtraData() {
         LinkedHashMap<String, List<String>> merged = mergeMaps(showDeletedCheckboxFilter, extraDataFilterMap);
 
-
         Boolean filteredResult = true;
         String[] keys = merged.keySet().toArray(new String[0]);
         for(int i = 0; i < merged.size(); i++){
-            if(keys[i].equals("deleted")){
-                filteredResult = filteredResult && merged.get(merged.keySet().toArray(new String[0])[i]).contains(this.deleted.toString());
-            }
+//            Ki kellett kommentelnem az if-t. Az lenne a lényeg, hogyha majd új filterek jönnek be, akkor
+//            if(keys[i].equals("deleted")){
+                Boolean matchingDeleted = merged.get(keys[i]).contains(this.deleted.toString());
+                if(!matchingDeleted){
+                    return false;
+                }
+                else{}
+//            }
+//            else{}
         }
         return filteredResult;
     }
@@ -56,7 +63,8 @@ public abstract class BaseVO {
             }
             else if (map1.containsKey(key)) {
                 mergedValues.addAll(map1.get(key));
-            } else if (map2.containsKey(key)) {
+            }
+            else {
                 mergedValues.addAll(map2.get(key));
             }
 

@@ -2,24 +2,17 @@ package hu.martin.ems.vaadin.component.AdminTools;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
-import hu.martin.ems.core.model.BaseEntity;
+import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.vaadin.MainView;
-import hu.martin.ems.vaadin.api.EmsApiClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AssignableTypeFilter;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Set;
+import hu.martin.ems.vaadin.api.AdminToolsApi;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
@@ -27,40 +20,16 @@ import java.util.Set;
 @AnonymousAllowed
 @NeedCleanCoding
 public class AdminTools extends VerticalLayout {
+    private final AdminToolsApi adminToolsApi = BeanProvider.getBean(AdminToolsApi.class);
 
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    public AdminTools(PaginationSetting paginationSetting){
-        Button b = new Button("b");
+    public AdminTools(PaginationSetting paginationSetting) {
+        Button b = new Button("Clear database");
         add(b);
 
         b.addClickListener(v -> {
-            ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
-            provider.addIncludeFilter(new AssignableTypeFilter(EmsApiClient.class));
-
-            Set<BeanDefinition> components = provider.findCandidateComponents("hu/martin/ems/vaadin/api");
-            for (BeanDefinition component : components)
-            {
-                try {
-                    Class apiClient = Class.forName(component.getBeanClassName());
-                    Object o = apiClient.getDeclaredConstructor().newInstance();
-                    applicationContext.getAutowireCapableBeanFactory().autowireBean(o);
-                    Method m = apiClient.getMethod("clearDatabaseTable");
-                    m.invoke(o);
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                } catch (InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                } catch (InstantiationException e) {
-                    throw new RuntimeException(e);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                } catch (NoSuchMethodException e) {
-                    throw new RuntimeException(e);
-                }
-                // use class cls found
-            }
+            EmsResponse response = adminToolsApi.clearDatabase();
+            Notification.show(response.getDescription()).addThemeVariants(
+                    response.getCode() == 200 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
         });
     }
 }

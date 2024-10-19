@@ -24,7 +24,7 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.PaginationSetting;
@@ -157,7 +157,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
             HorizontalLayout actions = new HorizontalLayout();
             if (productVo.original.getDeleted() == 0) {
                 actions.add(editButton, deleteButton, sellButton, orderButton);
-            } else if (productVo.original.getDeleted() == 1) {
+            } else {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;

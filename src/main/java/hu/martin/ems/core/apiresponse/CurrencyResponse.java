@@ -1,7 +1,6 @@
 package hu.martin.ems.core.apiresponse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import hu.martin.ems.NeedCleanCoding;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

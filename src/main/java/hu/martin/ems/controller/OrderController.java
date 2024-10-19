@@ -2,6 +2,7 @@ package hu.martin.ems.controller;
 
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.controller.BaseController;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.repository.OrderRepository;
 import hu.martin.ems.service.OrderElementService;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 
 @RestController
 @RequestMapping("/api/order")
@@ -39,10 +42,15 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
         return new ResponseEntity<>(service.generateHTMLEmail(order), HttpStatus.OK);
     }
 
-    @PostMapping(path = "/sendReport")
-    public ResponseEntity<String> sendReport(@RequestBody LocalDate from, LocalDate to) {
-        service.sendReport(from, to);
-        return new ResponseEntity<>("", HttpStatus.OK); //TODO
+    @PutMapping(path = "/sendReportSFTPToAccountant")
+    public ResponseEntity<String> sendReportSFTPToAccountant(@RequestBody LinkedHashMap<String, LocalDate> data) {
+        boolean res = service.sendReportSFTPToAccountant(data.get("from"), data.get("to"));
+        if(res){
+            return new ResponseEntity<>(EmsResponse.Description.SFTP_SENDING_SUCCESS, HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>(EmsResponse.Description.SFTP_SENDING_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override

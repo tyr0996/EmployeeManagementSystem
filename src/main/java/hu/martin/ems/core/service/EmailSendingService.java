@@ -1,7 +1,8 @@
 package hu.martin.ems.core.service;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmailAttachment;
+import hu.martin.ems.core.model.EmailData;
 import hu.martin.ems.core.model.EmailProperties;
 import jakarta.activation.DataHandler;
 import jakarta.mail.*;
@@ -13,7 +14,8 @@ import jakarta.mail.util.ByteArrayDataSource;
 import org.eclipse.angus.mail.util.MailConnectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.Properties;
@@ -21,38 +23,37 @@ import java.util.Properties;
 @Service
 @NeedCleanCoding
 public class EmailSendingService {
+    private static final Properties props = new Properties();
 
-    @Value("${mail.smtp.host}")
-    private String host;
+    @Autowired
+    protected Environment env;
 
-    @Value("${mail.smtp.starttls.enable}")
-    private Boolean startTlsEnable;
-
-    @Value("${mail.smtp.auth}")
-    private Boolean auth;
-
-    @Value("${mail.smtp.port}")
-    private Integer port;
-
-    @Value("${mail.smtp.ssl.trust}")
-    private String sslTrust;
-
-    @Value("${mail.smtp.sending.address}")
-    private String sendingAddress;
-
-    @Value("${mail.smtp.sending.password}")
-    private String sendingPassword;
+    @Autowired
+    protected EmailData emailData;
 
     private Logger logger = LoggerFactory.getLogger(EmailSendingService.class);
 
-
     public boolean send(EmailProperties emailProperties) {
-        Properties props = new Properties();
-        props.put("mail.smtp.host", host);
-        props.put("mail.smtp.auth", auth);
-        props.put("mail.smtp.port", port);
-        props.put("mail.smtp.ssl.trust", sslTrust);
-        props.put("mail.smtp.starttls.enable", startTlsEnable);
+
+        //String sendingPassword = env.getProperty("mail.smtp.sending.password");
+//        System.out.println(props);
+//        System.out.println(env);
+        //.out.println(env.getProperty("mail.smtp.host"));
+
+//        props.put("mail.smtp.host", env.getProperty("mail.smtp.host"));
+//        props.put("mail.smtp.auth", env.getProperty("mail.smtp.auth"));
+//        props.put("mail.smtp.port", env.getProperty("mail.smtp.port"));
+//        props.put("mail.smtp.ssl.trust", env.getProperty("mail.smtp.ssl.trust"));
+//        props.put("mail.smtp.starttls.enable", env.getProperty("mail.smtp.starttls.enable"));
+
+        props.put("mail.smtp.host", emailData.getHost());
+        props.put("mail.smtp.auth", emailData.getAuth());
+        props.put("mail.smtp.port", emailData.getPort());
+        props.put("mail.smtp.ssl.trust", emailData.getSslTrust());
+        props.put("mail.smtp.starttls.enable", emailData.getStartTlsEnable());
+
+        String sendingAddress = emailData.getSendingAddress();
+        String sendingPassword = emailData.getSendingPassword();
 
         Session session = Session.getDefaultInstance(props,
                 new jakarta.mail.Authenticator() {

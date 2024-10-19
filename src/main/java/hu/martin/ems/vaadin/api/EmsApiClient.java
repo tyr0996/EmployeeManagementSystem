@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -46,9 +45,6 @@ public abstract class EmsApiClient<T> {
     }
 
     private String decapitalizeFirstLetter(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
-        }
         return input.substring(0, 1).toLowerCase() + input.substring(1);
     }
 
@@ -221,6 +217,15 @@ public abstract class EmsApiClient<T> {
             return null;
             //TODO
         }
+    }
+
+    public void forcePermanentlyDelete(Long id){
+        initWebClient();
+        webClient.delete()
+                .uri("forcePermanentlyDelete?id={id}", id)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
     }
 
     public void initWebClient(){

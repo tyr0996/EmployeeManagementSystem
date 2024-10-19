@@ -1,6 +1,6 @@
 package hu.martin.ems.core.model;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.model.Role;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;

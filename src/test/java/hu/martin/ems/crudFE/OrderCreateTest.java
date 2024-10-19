@@ -53,6 +53,20 @@ public class OrderCreateTest extends BaseCrudTest {
         createOrder();
     }
 
+    @Test
+    public void customerNotSelectedShowPreviouslyGridIsEmptyTest() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_CREATE_SUBMENU);
+        Thread.sleep(100);
+        int originalRows = countVisibleGridDataRows(createOrderGridXpath);
+
+        WebElement previously = findVisibleElementWithXpath(previouslyOrderedCheckboxXpath);
+        setCheckboxStatus(previouslyOrderedCheckboxXpath, true);
+        assertEquals(0, countVisibleGridDataRows(createOrderGridXpath));
+        setCheckboxStatus(previouslyOrderedCheckboxXpath, false);
+        assertEquals(originalRows, countVisibleGridDataRows(createOrderGridXpath));
+    }
+
     public static void createOrder() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
@@ -60,12 +74,11 @@ public class OrderCreateTest extends BaseCrudTest {
 
         int originalOrderNumber = countVisibleGridDataRows(createOrderGridXpath);
 
-
         navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_CREATE_SUBMENU);
         Thread.sleep(100);
 
         WebElement customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
-        selectElementByTextFromComboBox(customerComboBox, "Gálber Martin");
+        String customerName = selectRandomFromComboBox(customerComboBox);
         int originalOrderElements = countVisibleGridDataRows(createOrderGridXpath);
 
         navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
@@ -73,7 +86,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
         findVisibleElementWithXpath(orderElementGridXpath);
         LinkedHashMap<String, String> sameUser = new LinkedHashMap<>();
-        sameUser.put("Customer", "Gálber Martin");
+        sameUser.put("Customer", customerName);
         sameUser.put("Supplier", "");
         orderElementCrudTestingUtil.createTest(sameUser, null, true);
         orderElementCrudTestingUtil.createTest(sameUser, null, true);
@@ -83,12 +96,13 @@ public class OrderCreateTest extends BaseCrudTest {
         Thread.sleep(100);
 
         customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
-        selectElementByTextFromComboBox(customerComboBox, "Gálber Martin");
-        Thread.sleep(100);
+        selectElementByTextFromComboBox(customerComboBox, customerName);
+        //selectRandomFromComboBox(customerComboBox);
+        Thread.sleep(200);
         findVisibleElementWithXpath(createOrderGridXpath);
         assertEquals(originalOrderElements + 3, countVisibleGridDataRows(createOrderGridXpath)); //TODO valamiért ez mindig 0-ra jön ki éles futáskor.
 
-        selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath);
+        selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath, 2);
         selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
         selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
 

@@ -23,16 +23,14 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
-import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -132,7 +130,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             HorizontalLayout actions = new HorizontalLayout();
             if (codeStoreVO.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (codeStoreVO.deleted == 1) {
+            } else {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -176,7 +174,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
 
     private Stream<CodeStoreVO> getFilteredStream() {
         return codeStoreVOS.stream().filter(codeStoreVO ->
-                (nameColumnFilterText.isEmpty() || codeStoreVO.name.toLowerCase().contains(nameColumnFilterText.toLowerCase())) &&
+                (nameColumnFilterText.isEmpty() || codeStoreVO.name.toLowerCase().equals(nameColumnFilterText.toLowerCase())) && //TODO: lehet, hogy erre érdemes lenne felhívni a felhasználó figyelmét, hogy az ebben történő szűrés teljes egyezést néz
                         (parentColumnFilterText.isEmpty() || codeStoreVO.parentName.toLowerCase().contains(parentColumnFilterText.toLowerCase())) &&
                         //(showDeleted ? (codeStoreVO.deleted == 0 || codeStoreVO.deleted == 1) : codeStoreVO.deleted == 0) &&
                         codeStoreVO.filterExtraData() &&

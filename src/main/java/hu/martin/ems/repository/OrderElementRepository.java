@@ -2,6 +2,7 @@ package hu.martin.ems.repository;
 
 import hu.martin.ems.core.repository.BaseRepository;
 import hu.martin.ems.model.OrderElement;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,7 +19,9 @@ public interface OrderElementRepository extends BaseRepository<OrderElement, Lon
             "WHERE oe.customer.id = :customerId")
     List<OrderElement> getByCustomer(@Param("customerId") Long customerId);
 
-    @Query("DELETE FROM OrderElement oe " +
+    @Modifying
+    @Query("UPDATE OrderElement oe " +
+           "SET oe.deleted = 2 " +
            "WHERE oe.order.id = :orderId")
     void customPermanentlyDeleteByOrder(@Param("orderId") Long orderId);
 }

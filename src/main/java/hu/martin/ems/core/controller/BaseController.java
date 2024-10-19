@@ -6,6 +6,7 @@ import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.BaseEntity;
 import hu.martin.ems.core.repository.BaseRepository;
 import hu.martin.ems.core.service.BaseService;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 public abstract class BaseController<T extends BaseEntity, S extends BaseService<T, R>, R extends BaseRepository<T, Long>> {
-
+    @Setter
     protected S service;
 
     @Autowired
@@ -68,5 +69,10 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     public ResponseEntity<String> clearDatabaseTable() {
         service.clearDatabaseTable();
         return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
+    }
+
+    @DeleteMapping(path = "/forcePermanentlyDelete")
+    public void forcePermanentlyDelete(@RequestParam(value = "id") Long entityId){
+        service.forcePermanentlyDelete(entityId);
     }
 }

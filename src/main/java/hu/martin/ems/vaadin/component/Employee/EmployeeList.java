@@ -24,7 +24,7 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Employee;
@@ -33,9 +33,7 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmployeeApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
-import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -132,7 +130,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             HorizontalLayout actions = new HorizontalLayout();
             if (employee.original.getDeleted() == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (employee.original.getDeleted() == 1) {
+            } else {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;

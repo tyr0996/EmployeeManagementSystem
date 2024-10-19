@@ -1531,37 +1531,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Aruba",
-      "deletable": false,
-      "linkname": "Aruba"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Africa Eastern and Southern",
-      "deletable": false,
-      "linkname": "Africa Eastern and Southern"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Afghanistan",
       "deletable": false,
       "linkname": "Afghanistan"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Africa Western and Central",
-      "deletable": false,
-      "linkname": "Africa Western and Central"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Angola",
-      "deletable": false,
-      "linkname": "Angola"
     },
     {
       "deleted": 0,
@@ -1573,6 +1545,13 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
+      "name": "Algeria",
+      "deletable": false,
+      "linkname": "Algeria"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
       "name": "Andorra",
       "deletable": false,
       "linkname": "Andorra"
@@ -1580,16 +1559,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Arab World",
+      "name": "Angola",
       "deletable": false,
-      "linkname": "Arab World"
+      "linkname": "Angola"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "United Arab Emirates",
+      "name": "Antigua and Barbuda",
       "deletable": false,
-      "linkname": "United Arab Emirates"
+      "linkname": "Antigua and Barbuda"
     },
     {
       "deleted": 0,
@@ -1604,20 +1583,6 @@
       "name": "Armenia",
       "deletable": false,
       "linkname": "Armenia"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "American Samoa",
-      "deletable": false,
-      "linkname": "American Samoa"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Antigua and Barbuda",
-      "deletable": false,
-      "linkname": "Antigua and Barbuda"
     },
     {
       "deleted": 0,
@@ -1643,44 +1608,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Burundi",
+      "name": "The Bahamas",
       "deletable": false,
-      "linkname": "Burundi"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Belgium",
-      "deletable": false,
-      "linkname": "Belgium"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Benin",
-      "deletable": false,
-      "linkname": "Benin"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Burkina Faso",
-      "deletable": false,
-      "linkname": "Burkina Faso"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Bangladesh",
-      "deletable": false,
-      "linkname": "Bangladesh"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Bulgaria",
-      "deletable": false,
-      "linkname": "Bulgaria"
+      "linkname": "The Bahamas"
     },
     {
       "deleted": 0,
@@ -1692,51 +1622,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Bahamas, The",
+      "name": "Bangladesh",
       "deletable": false,
-      "linkname": "Bahamas, The"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Bosnia and Herzegovina",
-      "deletable": false,
-      "linkname": "Bosnia and Herzegovina"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Belarus",
-      "deletable": false,
-      "linkname": "Belarus"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Belize",
-      "deletable": false,
-      "linkname": "Belize"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Bermuda",
-      "deletable": false,
-      "linkname": "Bermuda"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Bolivia",
-      "deletable": false,
-      "linkname": "Bolivia"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Brazil",
-      "deletable": false,
-      "linkname": "Brazil"
+      "linkname": "Bangladesh"
     },
     {
       "deleted": 0,
@@ -1748,9 +1636,30 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Brunei Darussalam",
+      "name": "Belarus",
       "deletable": false,
-      "linkname": "Brunei Darussalam"
+      "linkname": "Belarus"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Belgium",
+      "deletable": false,
+      "linkname": "Belgium"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Belize",
+      "deletable": false,
+      "linkname": "Belize"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Benin",
+      "deletable": false,
+      "linkname": "Benin"
     },
     {
       "deleted": 0,
@@ -1762,6 +1671,20 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
+      "name": "Bolivia",
+      "deletable": false,
+      "linkname": "Bolivia"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Bosnia and Herzegovina",
+      "deletable": false,
+      "linkname": "Bosnia and Herzegovina"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
       "name": "Botswana",
       "deletable": false,
       "linkname": "Botswana"
@@ -1769,9 +1692,58 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Central African Republic",
+      "name": "Brazil",
       "deletable": false,
-      "linkname": "Central African Republic"
+      "linkname": "Brazil"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Brunei",
+      "deletable": false,
+      "linkname": "Brunei"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Bulgaria",
+      "deletable": false,
+      "linkname": "Bulgaria"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Burkina Faso",
+      "deletable": false,
+      "linkname": "Burkina Faso"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Burundi",
+      "deletable": false,
+      "linkname": "Burundi"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Cabo Verde",
+      "deletable": false,
+      "linkname": "Cabo Verde"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Cambodia",
+      "deletable": false,
+      "linkname": "Cambodia"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Cameroon",
+      "deletable": false,
+      "linkname": "Cameroon"
     },
     {
       "deleted": 0,
@@ -1783,23 +1755,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Central Europe and the Baltics",
+      "name": "Central African Republic",
       "deletable": false,
-      "linkname": "Central Europe and the Baltics"
+      "linkname": "Central African Republic"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Switzerland",
+      "name": "Chad",
       "deletable": false,
-      "linkname": "Switzerland"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Channel Islands",
-      "deletable": false,
-      "linkname": "Channel Islands"
+      "linkname": "Chad"
     },
     {
       "deleted": 0,
@@ -1818,34 +1783,6 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Cote d'Ivoire",
-      "deletable": false,
-      "linkname": "Cote d'Ivoire"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Cameroon",
-      "deletable": false,
-      "linkname": "Cameroon"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Congo, Dem. Rep.",
-      "deletable": false,
-      "linkname": "Congo, Dem. Rep."
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Congo, Rep.",
-      "deletable": false,
-      "linkname": "Congo, Rep."
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Colombia",
       "deletable": false,
       "linkname": "Colombia"
@@ -1860,9 +1797,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Cabo Verde",
+      "name": "Congo, Democratic Republic of the",
       "deletable": false,
-      "linkname": "Cabo Verde"
+      "linkname": "Congo, Democratic Republic of the"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Congo, Republic of the",
+      "deletable": false,
+      "linkname": "Congo, Republic of the"
     },
     {
       "deleted": 0,
@@ -1874,9 +1818,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Caribbean small states",
+      "name": "Côte d’Ivoire",
       "deletable": false,
-      "linkname": "Caribbean small states"
+      "linkname": "Côte d’Ivoire"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Croatia",
+      "deletable": false,
+      "linkname": "Croatia"
     },
     {
       "deleted": 0,
@@ -1888,20 +1839,6 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Curacao",
-      "deletable": false,
-      "linkname": "Curacao"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Cayman Islands",
-      "deletable": false,
-      "linkname": "Cayman Islands"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Cyprus",
       "deletable": false,
       "linkname": "Cyprus"
@@ -1909,16 +1846,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Czechia",
+      "name": "Czech Republic",
       "deletable": false,
-      "linkname": "Czechia"
+      "linkname": "Czech Republic"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Germany",
+      "name": "Denmark",
       "deletable": false,
-      "linkname": "Germany"
+      "linkname": "Denmark"
     },
     {
       "deleted": 0,
@@ -1937,13 +1874,6 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Denmark",
-      "deletable": false,
-      "linkname": "Denmark"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Dominican Republic",
       "deletable": false,
       "linkname": "Dominican Republic"
@@ -1951,44 +1881,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Algeria",
+      "name": "East Timor (Timor-Leste)",
       "deletable": false,
-      "linkname": "Algeria"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "East Asia & Pacific (excluding high income)",
-      "deletable": false,
-      "linkname": "East Asia & Pacific (excluding high income)"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Early-demographic dividend",
-      "deletable": false,
-      "linkname": "Early-demographic dividend"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "East Asia & Pacific",
-      "deletable": false,
-      "linkname": "East Asia & Pacific"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Europe & Central Asia (excluding high income)",
-      "deletable": false,
-      "linkname": "Europe & Central Asia (excluding high income)"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Europe & Central Asia",
-      "deletable": false,
-      "linkname": "Europe & Central Asia"
+      "linkname": "East Timor (Timor-Leste)"
     },
     {
       "deleted": 0,
@@ -2000,16 +1895,23 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Egypt, Arab Rep.",
+      "name": "Egypt",
       "deletable": false,
-      "linkname": "Egypt, Arab Rep."
+      "linkname": "Egypt"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Euro area",
+      "name": "El Salvador",
       "deletable": false,
-      "linkname": "Euro area"
+      "linkname": "El Salvador"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Equatorial Guinea",
+      "deletable": false,
+      "linkname": "Equatorial Guinea"
     },
     {
       "deleted": 0,
@@ -2021,16 +1923,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Spain",
+      "name": "Estonia",
       "deletable": false,
-      "linkname": "Spain"
+      "linkname": "Estonia"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Estonia",
+      "name": "Eswatini",
       "deletable": false,
-      "linkname": "Estonia"
+      "linkname": "Eswatini"
     },
     {
       "deleted": 0,
@@ -2042,16 +1944,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "European Union",
+      "name": "Fiji",
       "deletable": false,
-      "linkname": "European Union"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Fragile and conflict affected situations",
-      "deletable": false,
-      "linkname": "Fragile and conflict affected situations"
+      "linkname": "Fiji"
     },
     {
       "deleted": 0,
@@ -2063,30 +1958,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Fiji",
-      "deletable": false,
-      "linkname": "Fiji"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "France",
       "deletable": false,
       "linkname": "France"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Faroe Islands",
-      "deletable": false,
-      "linkname": "Faroe Islands"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Micronesia, Fed. Sts.",
-      "deletable": false,
-      "linkname": "Micronesia, Fed. Sts."
     },
     {
       "deleted": 0,
@@ -2098,9 +1972,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "United Kingdom",
+      "name": "The Gambia",
       "deletable": false,
-      "linkname": "United Kingdom"
+      "linkname": "The Gambia"
     },
     {
       "deleted": 0,
@@ -2112,44 +1986,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
+      "name": "Germany",
+      "deletable": false,
+      "linkname": "Germany"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
       "name": "Ghana",
       "deletable": false,
       "linkname": "Ghana"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Gibraltar",
-      "deletable": false,
-      "linkname": "Gibraltar"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Guinea",
-      "deletable": false,
-      "linkname": "Guinea"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Gambia, The",
-      "deletable": false,
-      "linkname": "Gambia, The"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Guinea-Bissau",
-      "deletable": false,
-      "linkname": "Guinea-Bissau"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Equatorial Guinea",
-      "deletable": false,
-      "linkname": "Equatorial Guinea"
     },
     {
       "deleted": 0,
@@ -2168,13 +2014,6 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Greenland",
-      "deletable": false,
-      "linkname": "Greenland"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Guatemala",
       "deletable": false,
       "linkname": "Guatemala"
@@ -2182,9 +2021,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Guam",
+      "name": "Guinea",
       "deletable": false,
-      "linkname": "Guam"
+      "linkname": "Guinea"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Guinea-Bissau",
+      "deletable": false,
+      "linkname": "Guinea-Bissau"
     },
     {
       "deleted": 0,
@@ -2196,16 +2042,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "High income",
+      "name": "Haiti",
       "deletable": false,
-      "linkname": "High income"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Hong Kong SAR, China",
-      "deletable": false,
-      "linkname": "Hong Kong SAR, China"
+      "linkname": "Haiti"
     },
     {
       "deleted": 0,
@@ -2217,27 +2056,6 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Heavily indebted poor countries (HIPC)",
-      "deletable": false,
-      "linkname": "Heavily indebted poor countries (HIPC)"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Croatia",
-      "deletable": false,
-      "linkname": "Croatia"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Haiti",
-      "deletable": false,
-      "linkname": "Haiti"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Hungary",
       "deletable": false,
       "linkname": "Hungary"
@@ -2245,51 +2063,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "IBRD only",
+      "name": "Iceland",
       "deletable": false,
-      "linkname": "IBRD only"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "IDA & IBRD total",
-      "deletable": false,
-      "linkname": "IDA & IBRD total"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "IDA total",
-      "deletable": false,
-      "linkname": "IDA total"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "IDA blend",
-      "deletable": false,
-      "linkname": "IDA blend"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Indonesia",
-      "deletable": false,
-      "linkname": "Indonesia"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "IDA only",
-      "deletable": false,
-      "linkname": "IDA only"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Isle of Man",
-      "deletable": false,
-      "linkname": "Isle of Man"
+      "linkname": "Iceland"
     },
     {
       "deleted": 0,
@@ -2301,23 +2077,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Not classified",
+      "name": "Indonesia",
       "deletable": false,
-      "linkname": "Not classified"
+      "linkname": "Indonesia"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Ireland",
+      "name": "Iran",
       "deletable": false,
-      "linkname": "Ireland"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Iran, Islamic Rep.",
-      "deletable": false,
-      "linkname": "Iran, Islamic Rep."
+      "linkname": "Iran"
     },
     {
       "deleted": 0,
@@ -2329,9 +2098,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Iceland",
+      "name": "Ireland",
       "deletable": false,
-      "linkname": "Iceland"
+      "linkname": "Ireland"
     },
     {
       "deleted": 0,
@@ -2357,16 +2126,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Jordan",
+      "name": "Japan",
       "deletable": false,
-      "linkname": "Jordan"
+      "linkname": "Japan"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Japan",
+      "name": "Jordan",
       "deletable": false,
-      "linkname": "Japan"
+      "linkname": "Jordan"
     },
     {
       "deleted": 0,
@@ -2385,20 +2154,6 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Kyrgyz Republic",
-      "deletable": false,
-      "linkname": "Kyrgyz Republic"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Cambodia",
-      "deletable": false,
-      "linkname": "Cambodia"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Kiribati",
       "deletable": false,
       "linkname": "Kiribati"
@@ -2406,16 +2161,23 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "St. Kitts and Nevis",
+      "name": "Korea, North",
       "deletable": false,
-      "linkname": "St. Kitts and Nevis"
+      "linkname": "Korea, North"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Korea, Rep.",
+      "name": "Korea, South",
       "deletable": false,
-      "linkname": "Korea, Rep."
+      "linkname": "Korea, South"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Kosovo",
+      "deletable": false,
+      "linkname": "Kosovo"
     },
     {
       "deleted": 0,
@@ -2427,16 +2189,23 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Latin America & Caribbean (excluding high income)",
+      "name": "Kyrgyzstan",
       "deletable": false,
-      "linkname": "Latin America & Caribbean (excluding high income)"
+      "linkname": "Kyrgyzstan"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Lao PDR",
+      "name": "Laos",
       "deletable": false,
-      "linkname": "Lao PDR"
+      "linkname": "Laos"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Latvia",
+      "deletable": false,
+      "linkname": "Latvia"
     },
     {
       "deleted": 0,
@@ -2444,6 +2213,13 @@
       "name": "Lebanon",
       "deletable": false,
       "linkname": "Lebanon"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Lesotho",
+      "deletable": false,
+      "linkname": "Lesotho"
     },
     {
       "deleted": 0,
@@ -2462,72 +2238,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "St. Lucia",
-      "deletable": false,
-      "linkname": "St. Lucia"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Latin America & Caribbean",
-      "deletable": false,
-      "linkname": "Latin America & Caribbean"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Least developed countries: UN classification",
-      "deletable": false,
-      "linkname": "Least developed countries: UN classification"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Low income",
-      "deletable": false,
-      "linkname": "Low income"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Liechtenstein",
       "deletable": false,
       "linkname": "Liechtenstein"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Sri Lanka",
-      "deletable": false,
-      "linkname": "Sri Lanka"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Lower middle income",
-      "deletable": false,
-      "linkname": "Lower middle income"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Low & middle income",
-      "deletable": false,
-      "linkname": "Low & middle income"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Lesotho",
-      "deletable": false,
-      "linkname": "Lesotho"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Late-demographic dividend",
-      "deletable": false,
-      "linkname": "Late-demographic dividend"
     },
     {
       "deleted": 0,
@@ -2546,163 +2259,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Latvia",
-      "deletable": false,
-      "linkname": "Latvia"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Macao SAR, China",
-      "deletable": false,
-      "linkname": "Macao SAR, China"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "St. Martin (French part)",
-      "deletable": false,
-      "linkname": "St. Martin (French part)"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Morocco",
-      "deletable": false,
-      "linkname": "Morocco"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Monaco",
-      "deletable": false,
-      "linkname": "Monaco"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Moldova",
-      "deletable": false,
-      "linkname": "Moldova"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Madagascar",
       "deletable": false,
       "linkname": "Madagascar"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Maldives",
-      "deletable": false,
-      "linkname": "Maldives"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Middle East & North Africa",
-      "deletable": false,
-      "linkname": "Middle East & North Africa"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Mexico",
-      "deletable": false,
-      "linkname": "Mexico"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Marshall Islands",
-      "deletable": false,
-      "linkname": "Marshall Islands"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Middle income",
-      "deletable": false,
-      "linkname": "Middle income"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "North Macedonia",
-      "deletable": false,
-      "linkname": "North Macedonia"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Mali",
-      "deletable": false,
-      "linkname": "Mali"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Malta",
-      "deletable": false,
-      "linkname": "Malta"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Myanmar",
-      "deletable": false,
-      "linkname": "Myanmar"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Middle East & North Africa (excluding high income)",
-      "deletable": false,
-      "linkname": "Middle East & North Africa (excluding high income)"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Montenegro",
-      "deletable": false,
-      "linkname": "Montenegro"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Mongolia",
-      "deletable": false,
-      "linkname": "Mongolia"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Northern Mariana Islands",
-      "deletable": false,
-      "linkname": "Northern Mariana Islands"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Mozambique",
-      "deletable": false,
-      "linkname": "Mozambique"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Mauritania",
-      "deletable": false,
-      "linkname": "Mauritania"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Mauritius",
-      "deletable": false,
-      "linkname": "Mauritius"
     },
     {
       "deleted": 0,
@@ -2721,9 +2280,107 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "North America",
+      "name": "Maldives",
       "deletable": false,
-      "linkname": "North America"
+      "linkname": "Maldives"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Mali",
+      "deletable": false,
+      "linkname": "Mali"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Malta",
+      "deletable": false,
+      "linkname": "Malta"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Marshall Islands",
+      "deletable": false,
+      "linkname": "Marshall Islands"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Mauritania",
+      "deletable": false,
+      "linkname": "Mauritania"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Mauritius",
+      "deletable": false,
+      "linkname": "Mauritius"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Mexico",
+      "deletable": false,
+      "linkname": "Mexico"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Micronesia, Federated States of",
+      "deletable": false,
+      "linkname": "Micronesia, Federated States of"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Moldova",
+      "deletable": false,
+      "linkname": "Moldova"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Monaco",
+      "deletable": false,
+      "linkname": "Monaco"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Mongolia",
+      "deletable": false,
+      "linkname": "Mongolia"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Montenegro",
+      "deletable": false,
+      "linkname": "Montenegro"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Morocco",
+      "deletable": false,
+      "linkname": "Morocco"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Mozambique",
+      "deletable": false,
+      "linkname": "Mozambique"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Myanmar (Burma)",
+      "deletable": false,
+      "linkname": "Myanmar (Burma)"
     },
     {
       "deleted": 0,
@@ -2735,9 +2392,37 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "New Caledonia",
+      "name": "Nauru",
       "deletable": false,
-      "linkname": "New Caledonia"
+      "linkname": "Nauru"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Nepal",
+      "deletable": false,
+      "linkname": "Nepal"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Netherlands",
+      "deletable": false,
+      "linkname": "Netherlands"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "New Zealand",
+      "deletable": false,
+      "linkname": "New Zealand"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Nicaragua",
+      "deletable": false,
+      "linkname": "Nicaragua"
     },
     {
       "deleted": 0,
@@ -2756,16 +2441,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Nicaragua",
+      "name": "North Macedonia",
       "deletable": false,
-      "linkname": "Nicaragua"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Netherlands",
-      "deletable": false,
-      "linkname": "Netherlands"
+      "linkname": "North Macedonia"
     },
     {
       "deleted": 0,
@@ -2777,44 +2455,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Nepal",
-      "deletable": false,
-      "linkname": "Nepal"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Nauru",
-      "deletable": false,
-      "linkname": "Nauru"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "New Zealand",
-      "deletable": false,
-      "linkname": "New Zealand"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "OECD members",
-      "deletable": false,
-      "linkname": "OECD members"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Oman",
       "deletable": false,
       "linkname": "Oman"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Other small states",
-      "deletable": false,
-      "linkname": "Other small states"
     },
     {
       "deleted": 0,
@@ -2826,9 +2469,30 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
+      "name": "Palau",
+      "deletable": false,
+      "linkname": "Palau"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
       "name": "Panama",
       "deletable": false,
       "linkname": "Panama"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Papua New Guinea",
+      "deletable": false,
+      "linkname": "Papua New Guinea"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Paraguay",
+      "deletable": false,
+      "linkname": "Paraguay"
     },
     {
       "deleted": 0,
@@ -2847,20 +2511,6 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Palau",
-      "deletable": false,
-      "linkname": "Palau"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Papua New Guinea",
-      "deletable": false,
-      "linkname": "Papua New Guinea"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Poland",
       "deletable": false,
       "linkname": "Poland"
@@ -2868,65 +2518,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Pre-demographic dividend",
-      "deletable": false,
-      "linkname": "Pre-demographic dividend"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Puerto Rico",
-      "deletable": false,
-      "linkname": "Puerto Rico"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Korea, Dem. People's Rep.",
-      "deletable": false,
-      "linkname": "Korea, Dem. People's Rep."
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
       "name": "Portugal",
       "deletable": false,
       "linkname": "Portugal"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Paraguay",
-      "deletable": false,
-      "linkname": "Paraguay"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "West Bank and Gaza",
-      "deletable": false,
-      "linkname": "West Bank and Gaza"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Pacific island small states",
-      "deletable": false,
-      "linkname": "Pacific island small states"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Post-demographic dividend",
-      "deletable": false,
-      "linkname": "Post-demographic dividend"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "French Polynesia",
-      "deletable": false,
-      "linkname": "French Polynesia"
     },
     {
       "deleted": 0,
@@ -2945,9 +2539,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Russian Federation",
+      "name": "Russia",
       "deletable": false,
-      "linkname": "Russian Federation"
+      "linkname": "Russia"
     },
     {
       "deleted": 0,
@@ -2959,58 +2553,30 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "South Asia",
+      "name": "Saint Kitts and Nevis",
       "deletable": false,
-      "linkname": "South Asia"
+      "linkname": "Saint Kitts and Nevis"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Saudi Arabia",
+      "name": "Saint Lucia",
       "deletable": false,
-      "linkname": "Saudi Arabia"
+      "linkname": "Saint Lucia"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Sudan",
+      "name": "Saint Vincent and the Grenadines",
       "deletable": false,
-      "linkname": "Sudan"
+      "linkname": "Saint Vincent and the Grenadines"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Senegal",
+      "name": "Samoa",
       "deletable": false,
-      "linkname": "Senegal"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Singapore",
-      "deletable": false,
-      "linkname": "Singapore"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Solomon Islands",
-      "deletable": false,
-      "linkname": "Solomon Islands"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Sierra Leone",
-      "deletable": false,
-      "linkname": "Sierra Leone"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "El Salvador",
-      "deletable": false,
-      "linkname": "El Salvador"
+      "linkname": "Samoa"
     },
     {
       "deleted": 0,
@@ -3022,9 +2588,23 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Somalia",
+      "name": "Sao Tome and Principe",
       "deletable": false,
-      "linkname": "Somalia"
+      "linkname": "Sao Tome and Principe"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Saudi Arabia",
+      "deletable": false,
+      "linkname": "Saudi Arabia"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Senegal",
+      "deletable": false,
+      "linkname": "Senegal"
     },
     {
       "deleted": 0,
@@ -3036,51 +2616,30 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Sub-Saharan Africa (excluding high income)",
+      "name": "Seychelles",
       "deletable": false,
-      "linkname": "Sub-Saharan Africa (excluding high income)"
+      "linkname": "Seychelles"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "South Sudan",
+      "name": "Sierra Leone",
       "deletable": false,
-      "linkname": "South Sudan"
+      "linkname": "Sierra Leone"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Sub-Saharan Africa",
+      "name": "Singapore",
       "deletable": false,
-      "linkname": "Sub-Saharan Africa"
+      "linkname": "Singapore"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Small states",
+      "name": "Slovakia",
       "deletable": false,
-      "linkname": "Small states"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Sao Tome and Principe",
-      "deletable": false,
-      "linkname": "Sao Tome and Principe"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Suriname",
-      "deletable": false,
-      "linkname": "Suriname"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Slovak Republic",
-      "deletable": false,
-      "linkname": "Slovak Republic"
+      "linkname": "Slovakia"
     },
     {
       "deleted": 0,
@@ -3092,6 +2651,62 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
+      "name": "Solomon Islands",
+      "deletable": false,
+      "linkname": "Solomon Islands"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Somalia",
+      "deletable": false,
+      "linkname": "Somalia"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "South Africa",
+      "deletable": false,
+      "linkname": "South Africa"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Spain",
+      "deletable": false,
+      "linkname": "Spain"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Sri Lanka",
+      "deletable": false,
+      "linkname": "Sri Lanka"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Sudan",
+      "deletable": false,
+      "linkname": "Sudan"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Sudan, South",
+      "deletable": false,
+      "linkname": "Sudan, South"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Suriname",
+      "deletable": false,
+      "linkname": "Suriname"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
       "name": "Sweden",
       "deletable": false,
       "linkname": "Sweden"
@@ -3099,72 +2714,23 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Eswatini",
+      "name": "Switzerland",
       "deletable": false,
-      "linkname": "Eswatini"
+      "linkname": "Switzerland"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Sint Maarten (Dutch part)",
+      "name": "Syria",
       "deletable": false,
-      "linkname": "Sint Maarten (Dutch part)"
+      "linkname": "Syria"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Seychelles",
+      "name": "Taiwan",
       "deletable": false,
-      "linkname": "Seychelles"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Syrian Arab Republic",
-      "deletable": false,
-      "linkname": "Syrian Arab Republic"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Turks and Caicos Islands",
-      "deletable": false,
-      "linkname": "Turks and Caicos Islands"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Chad",
-      "deletable": false,
-      "linkname": "Chad"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "East Asia & Pacific (IDA & IBRD countries)",
-      "deletable": false,
-      "linkname": "East Asia & Pacific (IDA & IBRD countries)"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Europe & Central Asia (IDA & IBRD countries)",
-      "deletable": false,
-      "linkname": "Europe & Central Asia (IDA & IBRD countries)"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Togo",
-      "deletable": false,
-      "linkname": "Togo"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Thailand",
-      "deletable": false,
-      "linkname": "Thailand"
+      "linkname": "Taiwan"
     },
     {
       "deleted": 0,
@@ -3176,30 +2742,23 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Turkmenistan",
+      "name": "Tanzania",
       "deletable": false,
-      "linkname": "Turkmenistan"
+      "linkname": "Tanzania"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Latin America & the Caribbean (IDA & IBRD countries)",
+      "name": "Thailand",
       "deletable": false,
-      "linkname": "Latin America & the Caribbean (IDA & IBRD countries)"
+      "linkname": "Thailand"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Timor-Leste",
+      "name": "Togo",
       "deletable": false,
-      "linkname": "Timor-Leste"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Middle East & North Africa (IDA & IBRD countries)",
-      "deletable": false,
-      "linkname": "Middle East & North Africa (IDA & IBRD countries)"
+      "linkname": "Togo"
     },
     {
       "deleted": 0,
@@ -3207,20 +2766,6 @@
       "name": "Tonga",
       "deletable": false,
       "linkname": "Tonga"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "South Asia (IDA & IBRD)",
-      "deletable": false,
-      "linkname": "South Asia (IDA & IBRD)"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Sub-Saharan Africa (IDA & IBRD countries)",
-      "deletable": false,
-      "linkname": "Sub-Saharan Africa (IDA & IBRD countries)"
     },
     {
       "deleted": 0,
@@ -3239,9 +2784,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Turkiye",
+      "name": "Turkey",
       "deletable": false,
-      "linkname": "Turkiye"
+      "linkname": "Turkey"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
+      "name": "Turkmenistan",
+      "deletable": false,
+      "linkname": "Turkmenistan"
     },
     {
       "deleted": 0,
@@ -3249,13 +2801,6 @@
       "name": "Tuvalu",
       "deletable": false,
       "linkname": "Tuvalu"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Tanzania",
-      "deletable": false,
-      "linkname": "Tanzania"
     },
     {
       "deleted": 0,
@@ -3274,16 +2819,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Upper middle income",
+      "name": "United Arab Emirates",
       "deletable": false,
-      "linkname": "Upper middle income"
+      "linkname": "United Arab Emirates"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Uruguay",
+      "name": "United Kingdom",
       "deletable": false,
-      "linkname": "Uruguay"
+      "linkname": "United Kingdom"
     },
     {
       "deleted": 0,
@@ -3295,44 +2840,16 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
+      "name": "Uruguay",
+      "deletable": false,
+      "linkname": "Uruguay"
+    },
+    {
+      "deleted": 0,
+      "parentcodestore_codestore_id": 6,
       "name": "Uzbekistan",
       "deletable": false,
       "linkname": "Uzbekistan"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "St. Vincent and the Grenadines",
-      "deletable": false,
-      "linkname": "St. Vincent and the Grenadines"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Venezuela, RB",
-      "deletable": false,
-      "linkname": "Venezuela, RB"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "British Virgin Islands",
-      "deletable": false,
-      "linkname": "British Virgin Islands"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Virgin Islands (U.S.)",
-      "deletable": false,
-      "linkname": "Virgin Islands (U.S.)"
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "Viet Nam",
-      "deletable": false,
-      "linkname": "Viet Nam"
     },
     {
       "deleted": 0,
@@ -3344,37 +2861,30 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "World",
+      "name": "Vatican City",
       "deletable": false,
-      "linkname": "World"
+      "linkname": "Vatican City"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Samoa",
+      "name": "Venezuela",
       "deletable": false,
-      "linkname": "Samoa"
+      "linkname": "Venezuela"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Kosovo",
+      "name": "Vietnam",
       "deletable": false,
-      "linkname": "Kosovo"
+      "linkname": "Vietnam"
     },
     {
       "deleted": 0,
       "parentcodestore_codestore_id": 6,
-      "name": "Yemen, Rep.",
+      "name": "Yemen",
       "deletable": false,
-      "linkname": "Yemen, Rep."
-    },
-    {
-      "deleted": 0,
-      "parentcodestore_codestore_id": 6,
-      "name": "South Africa",
-      "deletable": false,
-      "linkname": "South Africa"
+      "linkname": "Yemen"
     },
     {
       "deleted": 0,

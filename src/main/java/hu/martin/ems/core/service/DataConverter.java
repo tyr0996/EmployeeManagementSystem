@@ -1,6 +1,6 @@
 package hu.martin.ems.core.service;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 
 import java.util.List;
 

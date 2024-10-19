@@ -1,7 +1,8 @@
 package hu.martin.ems.core.model;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @NeedCleanCoding
+@EqualsAndHashCode
 public class EmailProperties {
     private String to;
     private String subject;

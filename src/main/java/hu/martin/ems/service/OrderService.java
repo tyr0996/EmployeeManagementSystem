@@ -1,7 +1,5 @@
 package hu.martin.ems.service;
 
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import fr.opensagres.xdocreport.converter.ConverterTypeTo;
 import fr.opensagres.xdocreport.converter.ConverterTypeVia;
 import fr.opensagres.xdocreport.converter.Options;
@@ -11,7 +9,7 @@ import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.IContext;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import fr.opensagres.xdocreport.template.formatter.FieldsMetadata;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.file.XLSX;
 import hu.martin.ems.core.service.BaseService;
 import hu.martin.ems.core.service.DataConverter;
@@ -22,6 +20,8 @@ import hu.martin.ems.documentmodel.OrderElementDM;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.repository.OrderRepository;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,20 +37,20 @@ import java.util.List;
 @Transactional
 @NeedCleanCoding
 public class OrderService extends BaseService<Order, OrderRepository> {
-    public OrderService(OrderRepository orderRepository,
-                        CurrencyService currencyService,
-                        SftpSender sender) {
+    public OrderService(OrderRepository orderRepository){
         super(orderRepository);
-        this.currencyService = currencyService;
-        this.sender = sender;
     }
 
     public List<OrderElement> getOrderElements(Order o) {
         return this.repo.getOrderElements(o.getId());
     }
 
-    private final CurrencyService currencyService;
-    private final SftpSender sender;
+    @Autowired
+    private CurrencyService currencyService;
+
+    @Setter
+    @Autowired
+    private SftpSender sender;
     @Override
     public Order save(Order o){
         if ((o.getCustomer() != null && o.getSupplier() == null) || (o.getCustomer() == null || o.getSupplier() != null)) {
@@ -107,7 +107,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         }
     }
 
-    public void sendReport(LocalDate from, LocalDate to){
+    public boolean sendReportSFTPToAccountant(LocalDate from, LocalDate to){
         LocalDate current = from;
         List<String> sheetNames = new ArrayList<>();
         List<String[][]> tableDatas = new ArrayList<>();
@@ -143,8 +143,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
 
         byte[] res = XLSX.createExcelFile(sheetNames, tableDatas);
         boolean sent = sender.send(res,  "orders_" + from + "_" + to + ".xlsx");
-        Notification.show(sent ? "Report sent" : "Report unable to send! Check logs!")
-                .addThemeVariants(sent ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+        return sent;
     }
 
 

@@ -1,6 +1,6 @@
 package hu.martin.ems.model;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;

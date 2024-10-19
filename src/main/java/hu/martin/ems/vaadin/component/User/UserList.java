@@ -2,7 +2,6 @@ package hu.martin.ems.vaadin.component.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
@@ -25,22 +24,18 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
 import hu.martin.ems.model.Role;
-import hu.martin.ems.model.RoleXPermission;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
-import hu.martin.ems.vaadin.component.AccessManagement.RoleList;
 import hu.martin.ems.vaadin.component.BaseVO;
-import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -234,16 +229,17 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             createOrModifyDialog.close();
             return null;
         }
+
         if(!passwordField.getValue().equals(passwordAgainField.getValue())){
             Notification.show("Passwords doesn't match!").addThemeVariants(NotificationVariant.LUMO_ERROR);
             createOrModifyDialog.close();
             return null;
         }
-        else if(editableUser != null && (passwordField.getValue() == "" || passwordField.getValue() == null)){
+        else if(passwordField.getValue() == "") {
+            String passwordValue = passwordField.getValue();
             Notification.show("Password is required!").addThemeVariants(NotificationVariant.LUMO_ERROR);
             createOrModifyDialog.close();
             return null;
-
         }
         else{
             user.setPassword(passwordField.getValue());
@@ -306,7 +302,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             HorizontalLayout actions = new HorizontalLayout();
             if (entry.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (entry.deleted == 1) {
+            } else {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;

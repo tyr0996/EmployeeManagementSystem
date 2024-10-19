@@ -1,6 +1,7 @@
 package hu.martin.ems.vaadin.component.Currency;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -14,22 +15,19 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.date.Date;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Currency;
-import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CurrencyApi;
-import hu.martin.ems.vaadin.component.Supplier.SupplierList;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import java.text.DecimalFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,7 +42,7 @@ public class CurrencyList extends VerticalLayout {
     private final CurrencyApi currencyApi = BeanProvider.getBean(CurrencyApi.class);
     private boolean showDeleted = false;
     private PaginatedGrid<CurrencyVO, String> grid;
-    private final ObjectMapper om = new ObjectMapper();
+    private final ObjectMapper om = BeanProvider.getBean(ObjectMapper.class);
     private final PaginationSetting paginationSetting;
 
     List<Currency> currencies;
@@ -68,10 +66,7 @@ public class CurrencyList extends VerticalLayout {
 
         Button fetch = new Button("Fetch currencies");
         fetch.addClickListener(event -> {
-            Currency c = currencyApi.fetchAndSaveRates();
-            Notification.show(c == null ? "Error happened while fetching exchange rates" :
-                                            "Fetching exchange rates was successful!")
-                    .addThemeVariants(c == null ? NotificationVariant.LUMO_ERROR : NotificationVariant.LUMO_SUCCESS);
+            updateGrid(true);
         });
 
         datePicker = new DatePicker("Date");
@@ -93,45 +88,51 @@ public class CurrencyList extends VerticalLayout {
         add(fetch, datePicker, grid);
     }
 
-    private void correctDateFormat(String enteredDate) {
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.M.d");
-            LocalDate parsedDate = LocalDate.parse(enteredDate, formatter);
-            datePicker.setValue(parsedDate);
-        } catch (DateTimeParseException ex) {
-            Notification.show("Invalid date format!", 3000, Notification.Position.MIDDLE);
-        }
+    public void updateGrid(){
+        updateGrid(false);
     }
 
-    public void updateGrid() {
+    public void updateGrid(Boolean fetchButtonClicked) {
         LocalDate date = datePicker.getValue();
         Currency currency = currencyApi.findByDate(date);
+        Boolean needFetch = currency == null;
 
-        if (currency == null) {
+        if (needFetch) {
             if (date.isEqual(LocalDate.now())) {
-                currency = currencyApi.fetchAndSaveRates();
-                if(currency == null){
-                    Notification.show("Error happened while fetching exchange rates")
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    return;
+                EmsResponse response = currencyApi.fetchAndSaveRates();
+                switch (response.getCode()){
+                    case 200 :{
+                        currency = om.convertValue(response.getResponseData(), new TypeReference<Currency>() {});
+                        break;
+                    }
+                    case 500 : Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR); return;
                 }
             } else {
                 Notification.show("Exchange rates cannot be downloaded retroactively!")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 datePicker.setValue(LocalDate.now());
                 updateGrid();
+                return;
             }
+        }
+        else if (fetchButtonClicked){
+            Notification.show("Currencies already fetched").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
         }
         currencyVOS = new ArrayList<>();
         String baseCurrency = currency.getBaseCurrency().getName();
         try {
-            LinkedHashMap<String, Double> map = om.readValue(currency.getRateJson(), LinkedHashMap.class);
+            LinkedHashMap<String, Number> map = om.readValue(currency.getRateJson(), LinkedHashMap.class);
             map.forEach((k, v) -> currencyVOS.add(new CurrencyVO(k, v, baseCurrency)));
 
             List<CurrencyVO> curr = getFilteredStream().collect(Collectors.toList());
+            if(needFetch){
+                Notification.show("Fetching exchange rates was successful!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            }
             this.grid.setItems(curr);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            Notification.show("Currencies fetched successfully, but the currency server sent bad data").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            currencyApi.forcePermanentlyDelete(currency.getId());
+            System.out.println("Kiscica");
         }
     }
 
@@ -185,9 +186,9 @@ public class CurrencyVO {
         private String name;
         private String val;
 
-        public CurrencyVO(String name, Double val, String baseCurrency) {
+        public CurrencyVO(String name, Number val, String baseCurrency) {
             this.name = name;
-            this.val = val.toString() + " " + baseCurrency;
+            this.val = new DecimalFormat("#.###").format(1.0 / val.doubleValue()) + " " + baseCurrency;
         }
     }
 }

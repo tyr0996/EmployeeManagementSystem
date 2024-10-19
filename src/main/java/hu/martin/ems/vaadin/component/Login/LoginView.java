@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.Login;
 
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.login.LoginI18n;
@@ -16,10 +15,9 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinServletResponse;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.User;
-import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import jakarta.servlet.http.Cookie;
@@ -201,24 +199,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         return d;
     }
 
-    private ComboBox<Role> createRoleComboBox() {
-        ComboBox<Role> roles = new ComboBox<>("Role");
-        ComboBox.ItemFilter<Role> filter = (role, filterString) ->
-                role.getName().toLowerCase().contains(filterString.toLowerCase());
-        roles.setItems(filter, roleApi.findAll());
-        roles.setItemLabelGenerator(Role::getName);
-        return roles;
-    }
 
     @Override
-    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-        if(beforeEnterEvent.getLocation()
-                .getQueryParameters()
-                .getParameters()
-                .containsKey("error")) {
-            //login.setError(true);
-        }
-    }
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {}
 
     private void createRememberMeCookie(HttpServletResponse response, String username) {
         String tokenValue = Base64.getEncoder().encodeToString((username + ":" + key).getBytes());

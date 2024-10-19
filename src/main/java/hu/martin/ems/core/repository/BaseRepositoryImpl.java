@@ -1,31 +1,20 @@
 package hu.martin.ems.core.repository;
 
-import hu.martin.ems.NeedCleanCoding;
-import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.JPAConfig;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
-import jakarta.validation.ConstraintDeclarationException;
-import jakarta.validation.ConstraintViolationException;
-import org.hibernate.JDBCException;
-import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.provider.HibernateUtils;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.logging.Level;
 
 @NoRepositoryBean
 @NeedCleanCoding
@@ -135,6 +124,39 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
             clearedElements += deleteEntity(tempEm, element);
         }
         logger.info(clearedElements + " element(s) successfully removed from database table.");
+    }
+
+    @Override
+    @Transactional
+    public void customForcePermanentlyDelete(Long entityId) {
+        EntityManagerFactory factory = entityManager.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
+
+        EntityTransaction transaction = tempEm.getTransaction();
+        try{
+            transaction.begin();
+            T en = tempEm.find(type, entityId);
+            tempEm.remove(en);
+            transaction.commit();
+            logger.info("Entity with ID " + entityId + " forced to permanently delete");
+        }
+        catch (Exception e){
+            if (e.getCause().getMessage().contains("violates foreign key constraint")) {
+                logger.info("Entity with ID " + entityId + " is not deletable due to it has reference(s) in other table(s)");
+            }
+            else{
+                logger.error("Entity with ID " + entityId + " is not deletable due to a fatal error. It needs to be debugged.");
+                e.getCause().printStackTrace();
+                if(transaction.isActive()){
+                    transaction.rollback();
+                }
+            }
+        }
+        finally{
+            if(tempEm.isOpen()){
+                tempEm.clear();
+            }
+        }
     }
 
     public int deleteEntity(EntityManager tempEm, T entity) {

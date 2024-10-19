@@ -136,11 +136,6 @@ public class CrudTestingUtil {
         if(withData == null){
             withData = new LinkedHashMap<>();
         }
-        fields.forEach(v -> {
-            System.out.println("*****************");
-            printToConsole(v);
-            System.out.println("****************");
-        });
         String previousPasswordFieldValue = null;
         for(int i = 0; i < fields.size(); i++){
             String fieldLabel = "";
@@ -318,7 +313,8 @@ public class CrudTestingUtil {
     public void readTest(String[] data, String extraDataFilter, Boolean withInDeleted, NotificationCheck notificationCheck) throws InterruptedException {
         if(data == null || data.length == 0){
             findVisibleElementWithXpath(gridXpath);
-            data = getDataFromRowLocation(gridXpath, getRandomLocationFromGrid(gridXpath));
+            ElementLocation randomLocation = getRandomLocationFromGrid(gridXpath);
+            data = getDataFromRowLocation(gridXpath, randomLocation);
         }
         findVisibleElementWithXpath(gridXpath);
         int originalVisible = countVisibleGridDataRows(gridXpath);
@@ -350,7 +346,11 @@ public class CrudTestingUtil {
         if(extraDataFilter != null){
             setExtraDataFilterValue(gridXpath, extraDataFilter, notificationCheck);
         }
-        assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, data));
+        int filteredResultCount = countElementResultsFromGridWithFilter(gridXpath, data);
+        if(filteredResultCount != 1){
+            System.out.println("kiscica");
+        }
+        assertEquals(1, filteredResultCount); //TODO Ha van olyan, hogy showOnlyDeletable, akkor ide más érték is jöhet!
         if(extraDataFilter != null){
             clearExtraDataFilter(gridXpath);
         }

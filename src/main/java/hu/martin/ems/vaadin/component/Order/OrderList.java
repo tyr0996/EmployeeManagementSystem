@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -22,21 +21,18 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Order;
-import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
 import hu.martin.ems.vaadin.api.OrderApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
-import hu.martin.ems.vaadin.component.City.CityList;
-import hu.martin.ems.vaadin.component.Supplier.SupplierList;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.firitin.components.DynamicFileDownloader;
 import org.vaadin.firitin.components.orderedlayout.VHorizontalLayout;
@@ -59,8 +55,9 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.*;
 @NeedCleanCoding
 public class OrderList extends VVerticalLayout {
 
-    private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
-    private final EmailSendingApi emailSendingApi = BeanProvider.getBean(EmailSendingApi.class);
+    private OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
+
+    private EmailSendingApi emailSendingApi = BeanProvider.getBean(EmailSendingApi.class);
     private boolean showDeleted = false;
     private PaginatedGrid<OrderVO, String> grid;
 
@@ -77,14 +74,13 @@ public class OrderList extends VVerticalLayout {
     private static String stateFilterText = "";
     private static String timeOfOrderFilterText = "";
 
-    @Autowired
     private final PaginationSetting paginationSetting;
 
     @Autowired
     public OrderList(PaginationSetting paginationSetting) {
-        this.paginationSetting = paginationSetting;
         OrderVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
         this.grid = new PaginatedGrid<>(OrderVO.class);
+        this.paginationSetting = paginationSetting;
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
@@ -103,9 +99,24 @@ public class OrderList extends VVerticalLayout {
             to.setMin(event.getValue());
         });
 
+        from.addValueChangeListener(v -> {
+            if(v.getValue() != null && to.getValue() != null && v.getValue().toEpochDay() > to.getValue().toEpochDay()){
+                from.setValue(to.getValue());
+            } else{}
+        });
+        to.addValueChangeListener(v -> {
+//            if(v.getValue() != null && from.getValue() != null && v.getValue().toEpochDay() < from.getValue().toEpochDay()){
+            if(v.getValue() != null && from.getValue() != null && v.getValue().toEpochDay() < from.getValue().toEpochDay()){
+                to.setValue(from.getValue());
+            } else{}
+        });
+
         Button sendSftp = new Button("Send report to accountant via SFTP");
         sendSftp.addClickListener(event -> {
-            orderApi.send(from.getValue(), to.getValue());
+            EmsResponse response = orderApi.sendReportSFTPToAccountant(from.getValue(), to.getValue());
+            Notification.show(response.getDescription()).addThemeVariants(
+                    response.getCode() == 200 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR
+            );
         });
         HorizontalLayout sftpLayout = new HorizontalLayout();
         sftpLayout.add(sendSftp, from, to);
@@ -165,10 +176,10 @@ public class OrderList extends VVerticalLayout {
             });
 
             editButton.addClickListener(event -> {
-                OrderCreate.o = order.original;
+                OrderCreate.editObject = order.original;
                 OrderCreate oc = new OrderCreate(paginationSetting);
-                this.removeAll();
-                this.add(oc);
+                MainView.contentLayout.removeAll();
+                MainView.contentLayout.add(oc);
             });
 
             restoreButton.addClickListener(event -> {
@@ -196,7 +207,7 @@ public class OrderList extends VVerticalLayout {
 
             if (order.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (order.deleted == 1) {
+            } else {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             actions.add(odtDownload, pdfDownload, sendEmail);

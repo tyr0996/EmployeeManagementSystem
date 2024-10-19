@@ -1,10 +1,11 @@
 package hu.martin.ems.service;
 
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.service.BaseService;
 import hu.martin.ems.model.Employee;
 import hu.martin.ems.repository.EmployeeRepository;
 import hu.martin.ems.repository.RoleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,11 +31,10 @@ public class EmployeeService extends BaseService<Employee, EmployeeRepository> {
 
     private static final Random RANDOM = new Random();
 
+    @Autowired
     private RoleRepository roleRepository;
 
-    public EmployeeService(EmployeeRepository employeeRepository,
-                           RoleRepository roleRepository) {
+    public EmployeeService(EmployeeRepository employeeRepository) {
         super(employeeRepository);
-        this.roleRepository = roleRepository;
     }
 }

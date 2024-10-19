@@ -24,7 +24,7 @@ import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
@@ -33,10 +33,7 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CustomerApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
-import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
-import lombok.Getter;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -136,7 +133,9 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
             HorizontalLayout actions = new HorizontalLayout();
             if (customerVO.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (customerVO.deleted == 1) {
+            }
+            else{
+                //} else if (customerVO.deleted == 1) {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -277,6 +276,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
 
         EmailField emailField = new EmailField();
         emailField.setLabel("Email address");
+        emailField.setManualValidation(true);
         emailField.setErrorMessage("Enter a valid email address");
         emailField.setClearButtonVisible(true);
 

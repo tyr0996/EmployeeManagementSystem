@@ -23,7 +23,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
@@ -126,7 +126,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             HorizontalLayout actions = new HorizontalLayout();
             if (supplier.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (supplier.deleted == 1) {
+            } else {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;

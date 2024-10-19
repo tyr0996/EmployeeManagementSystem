@@ -1,17 +1,14 @@
 package hu.martin.ems.crudFE;
 
+import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.StaticDatas;
-import hu.martin.ems.core.model.User;
-import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.component.BaseVO;
-import hu.martin.ems.vaadin.component.User.UserList;
 import org.apache.poi.ss.formula.functions.T;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
-import java.awt.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.lang.reflect.InvocationTargetException;
@@ -20,16 +17,16 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.testng.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-class EmployeeManagementSystemApplicationTests {
+public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
 
-
-    @BeforeAll
-    static void setUp() {
+    @BeforeClass
+    public void setUp() {
         DataProvider.saveAllSqlsFromJsons();
     }
+
 
     @Test
     public void testSqlFileCount() {
@@ -58,7 +55,7 @@ class EmployeeManagementSystemApplicationTests {
     }
 
     @Test
-    public void mergeMapsTest() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public void mergeMapsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         LinkedHashMap<String, List<String>> a = new LinkedHashMap<>();
         a.put("deleted", Arrays.asList("0", "1"));
 
@@ -74,9 +71,44 @@ class EmployeeManagementSystemApplicationTests {
         assertEquals(aMergedB, bMergedA);
     }
 
+    @Test
+    public void equalsTest(){
+        TestVO a = new TestVO(2, 0);
+        TestVO b = new TestVO(2, 1);
+        TestVO2 a2 = new TestVO2(2, 0);
+        TestVO2 b2 = new TestVO2(2, 1);
+
+        assertEquals(true, a.equals(b));
+        assertEquals(true, b.equals(a));
+        assertEquals(false, b2.equals(a));
+        assertEquals(false, a2.equals(a));
+        assertEquals(false, b2.equals(b));
+        assertEquals(false, a2.equals(b));
+        assertEquals(true, b2.equals(a2));
+        assertEquals(true, b2.equals(a2));
+        assertEquals(true, b2.equals(b2));
+        assertEquals(true, a2.equals(a2));
+        assertEquals(true, b.equals(b));
+        assertEquals(true, a.equals(a));
+    }
+
     protected class TestVO extends BaseVO{
         public TestVO(){
             super(1L, 0L);
+        }
+
+        public TestVO(long id, long deleted) {
+            super(id, deleted);
+        }
+    }
+
+    protected class TestVO2 extends BaseVO {
+        public TestVO2(){
+            super(1L, 0L);
+        }
+
+        public TestVO2(long id, long deleted) {
+            super(id, deleted);
         }
     }
 

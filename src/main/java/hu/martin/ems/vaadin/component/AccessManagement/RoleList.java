@@ -23,7 +23,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.NeedCleanCoding;
+import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Permission;
@@ -33,7 +33,6 @@ import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
-import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.AllArgsConstructor;
 import org.vaadin.klaudeta.PaginatedGrid;
@@ -291,7 +290,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             HorizontalLayout actions = new HorizontalLayout();
             if (groupedRoleXPermissionVO.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            } else if (groupedRoleXPermissionVO.deleted == 1) {
+            } else {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
