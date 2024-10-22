@@ -2,6 +2,7 @@ package hu.martin.ems.core.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hu.martin.ems.core.config.JacksonConfig;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.BaseEntity;
 import hu.martin.ems.core.repository.BaseRepository;
@@ -15,11 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 public abstract class BaseController<T extends BaseEntity, S extends BaseService<T, R>, R extends BaseRepository<T, Long>> {
-    @Setter
     protected S service;
 
-    @Autowired
-    protected ObjectMapper om;
+    protected ObjectMapper om = new JacksonConfig().objectMapper();
 
     public BaseController(S service){
         this.service = service;

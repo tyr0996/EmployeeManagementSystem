@@ -12,7 +12,7 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.vaadin.MainView;
-import hu.martin.ems.vaadin.api.AdminToolsApi;
+import hu.martin.ems.vaadin.api.AdminToolsApiClient;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
@@ -20,14 +20,14 @@ import hu.martin.ems.vaadin.api.AdminToolsApi;
 @AnonymousAllowed
 @NeedCleanCoding
 public class AdminTools extends VerticalLayout {
-    private final AdminToolsApi adminToolsApi = BeanProvider.getBean(AdminToolsApi.class);
+    private final AdminToolsApiClient adminToolsApiClient = BeanProvider.getBean(AdminToolsApiClient.class);
 
     public AdminTools(PaginationSetting paginationSetting) {
         Button b = new Button("Clear database");
         add(b);
 
         b.addClickListener(v -> {
-            EmsResponse response = adminToolsApi.clearDatabase();
+            EmsResponse response = adminToolsApiClient.clearDatabase();
             Notification.show(response.getDescription()).addThemeVariants(
                     response.getCode() == 200 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
         });

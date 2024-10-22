@@ -26,6 +26,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
 import hu.martin.ems.model.Role;
@@ -34,6 +35,8 @@ import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.*;
@@ -77,6 +80,8 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private static String usernameFilterText = "";
     private static String passwordHashFilterText = "";
+
+    private Logger logger = LoggerFactory.getLogger(UserList.class);
 
     public UserList(PaginationSetting paginationSetting) {
         UserVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
@@ -183,19 +188,32 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         createOrModifyDialog = new Dialog((editableUser == null ? "Create" : "Modify") + " user");
         createSaveOrUpdateForm();
         saveButton.addClickListener(event -> {
-            User user = saveUser();
-            if(user != null){
-                Notification.show("User " + (editableUser == null ? "saved: " : "updated: ") + user.getUsername())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                usernameField.clear();
-                passwordField.clear();
-                passwordAgainField.clear();
-                createOrModifyDialog.close();
-                updateGridItems();
-                createOrModifyDialog.close();
+            EmsResponse response = saveUser();
+            switch (response.getCode()){
+                case 200:
+                    Notification.show("User " + (editableUser == null ? "saved: " : "updated: ") + ((User) response.getResponseData()).getUsername())
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    usernameField.clear();
+                    passwordField.clear();
+                    passwordAgainField.clear();
+                    createOrModifyDialog.close();
+                    updateGridItems();
+                    break;
+                case 400:
+                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    break;
+                case 500:
+                    logger.info("User " + (editableUser == null ? "saving" : "modifing") + " failed");
+                    Notification.show("User " + (editableUser == null ? "saving" : "modifing") + " failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    createOrModifyDialog.close();
+                    break;
+                default:
+                    Notification.show("Not expected status-code in " + (editableUser == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    logger.warn("Invalid status code in UserList: {}", response.getCode());
+                    createOrModifyDialog.close();
             }
+            editableUser = null;
         });
-
         createOrModifyDialog.add(this.createOrModifyForm);
     }
 
@@ -222,24 +240,27 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         createOrModifyForm.add(usernameField, passwordField, passwordAgainField, roles, saveButton);
     }
 
-    private User saveUser(){
+    private EmsResponse saveUser(){
         User user = Objects.requireNonNullElseGet(editableUser, User::new);
-        if(editableUser == null && userApi.findByUsername(usernameField.getValue()) != null){
-            Notification.show("Username already exists!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+//        if(editableUser == null && userApi.userExists(usernameField.getValue()) != null){
+        if(userApi.userExists(usernameField.getValue()) != null){
             createOrModifyDialog.close();
-            return null;
+            editableUser = null;
+            return new EmsResponse(400, "Username already exists!");
         }
 
         if(!passwordField.getValue().equals(passwordAgainField.getValue())){
-            Notification.show("Passwords doesn't match!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            //Notification.show("Passwords doesn't match!").addThemeVariants(NotificationVariant.LUMO_ERROR);
             createOrModifyDialog.close();
-            return null;
+            editableUser = null;
+            return new EmsResponse(400, "Passwords doesn't match!");
         }
         else if(passwordField.getValue() == "") {
             String passwordValue = passwordField.getValue();
-            Notification.show("Password is required!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            //Notification.show("Password is required!").addThemeVariants(NotificationVariant.LUMO_ERROR);
             createOrModifyDialog.close();
-            return null;
+            editableUser = null;
+            return new EmsResponse(400, "Password is required!");
         }
         else{
             user.setPassword(passwordField.getValue());
@@ -247,13 +268,14 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         user.setDeleted(0L);
         user.setUsername(usernameField.getValue());
         user.setRoleRole(roles.getValue());
-
+        EmsResponse response = null;
         if(editableUser != null){
-            return userApi.update(user);
+            response = userApi.update(user);
         }
         else{
-            return userApi.save(user);
+            response = userApi.save(user);
         }
+        return response;
     }
 
     private void setGridColumns(){

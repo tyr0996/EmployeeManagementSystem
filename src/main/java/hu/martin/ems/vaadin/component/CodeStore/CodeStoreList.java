@@ -25,6 +25,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.vaadin.MainView;
@@ -143,19 +144,16 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             Dialog d = getSaveOrUpdateDialog(null);
             d.open();
         });
-
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+            showDeleted = !showDeleted;
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             CodeStoreVO.showDeletedCheckboxFilter.replace("deleted", newValue);
-
             updateGridItems();
         });
-
         Checkbox showOnlyDeletableCodeStores = new Checkbox("Show only deletable codestores");
         showOnlyDeletableCodeStores.addValueChangeListener(event -> {
-            showOnlyDeletable = event.getValue();
+            showOnlyDeletable = !showOnlyDeletable;
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -267,10 +265,14 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             codeStore.setDeletable(deletable.getValue());
             codeStore.setDeleted(0L);
             codeStore.setParentCodeStore(parentCodeStore.getValue());
-            codeStoreApi.save(codeStore);
+            EmsResponse response = codeStoreApi.save(codeStore);
 
-            Notification.show("CodeStore " + (entity == null ? "saved: " : "updated: ") + codeStore.getName())
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            switch (response.getCode()){
+                case 200: Notification.show("CodeStore " + (entity == null ? "saved: " : "updated: ") + ((CodeStore) response.getResponseData()).getName())
+                                      .addThemeVariants(NotificationVariant.LUMO_SUCCESS); break;
+                case 500: Notification.show( "Codestore saving failed").addThemeVariants();
+            }
+
 
             updateGridItems();
 

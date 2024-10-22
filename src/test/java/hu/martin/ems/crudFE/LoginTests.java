@@ -5,6 +5,10 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.RandomGenerator;
+import hu.martin.ems.vaadin.MainView;
+import hu.martin.ems.vaadin.component.Order.OrderCreate;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -58,9 +62,9 @@ public class LoginTests extends BaseCrudTest {
         register.click();
         checkNotificationContainsTexts("Registration successful!");
 
-        Thread.sleep(2000);
+        Thread.sleep(200);
         TestingUtils.loginWith(driver, port, userName, password);
-        Thread.sleep(2000);
+        Thread.sleep(200);
 
         checkLoginErrorMessage("Permission error",
                 "You have no permission to log in. Contact the administrator about your roles, and try again.");
@@ -89,9 +93,9 @@ public class LoginTests extends BaseCrudTest {
         register.click();
         checkNotificationContainsTexts("The passwords doesn't match!");
 
-        Thread.sleep(2000);
+        Thread.sleep(200);
         TestingUtils.loginWith(driver, port, userName, password);
-        Thread.sleep(2000);
+        Thread.sleep(200);
 
         checkLoginErrorMessage("Incorrect username or password",
                 "Check that you have entered the correct username and password and try again.");
@@ -118,9 +122,9 @@ public class LoginTests extends BaseCrudTest {
         register.click();
         checkNotificationContainsTexts("Username already exists!");
 
-        Thread.sleep(2000);
+        Thread.sleep(200);
         TestingUtils.loginWith(driver, port, "admin", password);
-        Thread.sleep(2000);
+        Thread.sleep(200);
 
         checkLoginErrorMessage("Incorrect username or password",
                 "Check that you have entered the correct username and password and try again.");
@@ -131,7 +135,7 @@ public class LoginTests extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "unauthorized", "unauthorized");
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
 
-        Thread.sleep(1000);
+        Thread.sleep(200);
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
 
@@ -166,7 +170,7 @@ public class LoginTests extends BaseCrudTest {
         WebElement registerButton = driver.findElement(By.xpath("//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[3]"));
 
         forgotPasswordButton.click();
-        Thread.sleep(500);
+        Thread.sleep(200);
         WebElement forgotPasswordDialog = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout");
         WebElement usernameField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field/input");
         WebElement nextButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
@@ -174,7 +178,7 @@ public class LoginTests extends BaseCrudTest {
         usernameField.sendKeys(userName);
         nextButton.click();
 
-        Thread.sleep(500);
+        Thread.sleep(200);
         WebElement forgotPasswordForDialog = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout");
         WebElement passwordField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-password-field[1]/input");
         WebElement passwordAgainField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-password-field[2]/input");
@@ -189,9 +193,9 @@ public class LoginTests extends BaseCrudTest {
     public void forgotPassword_success() throws InterruptedException {
         modifyPassword("admin", "asdf", "asdf");
         checkNotificationContainsTexts("Password changed successfully!");
-        Thread.sleep(2000);
+        Thread.sleep(200);
         TestingUtils.loginWith(driver, port, "admin", "asdf");
-        Thread.sleep(2000);
+        Thread.sleep(200);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem engedett be az új felhasználónév-jelszó párossal!");
         modifyPassword("admin", "admin", "admin");
         checkNotificationContainsTexts("Password changed successfully!");
@@ -200,7 +204,7 @@ public class LoginTests extends BaseCrudTest {
     @Test
     public void authorizedCredidentalsTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        Thread.sleep(2000);
+        Thread.sleep(400);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
     }
 
@@ -214,6 +218,15 @@ public class LoginTests extends BaseCrudTest {
         Thread.sleep(10);
 
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a kijelentkeztetés");
+    }
+
+    @Test
+    public void pageLoadFailedIllegalAccessException() throws IllegalAccessException, InterruptedException {
+        Mockito.doThrow(IllegalAccessException.class).when(spyComponentManager).setEditObjectFieldToNull(Mockito.any());
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_CREATE_SUBMENU);
+        Thread.sleep(100);
+        checkNotificationText("Error happened while load the clearing page!");
     }
 
     @Test

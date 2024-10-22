@@ -15,6 +15,7 @@ import hu.martin.ems.annotations.EditObject;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Customer;
@@ -138,11 +139,16 @@ public class OrderCreate extends VerticalLayout {
             order.setPaymentType(paymentTypes.getValue());
             order.setDeleted(0L);
             order.setCurrency(currencies.getValue());
+            EmsResponse response = null;
             if(editObject != null){
-                order = orderApi.update(order);
+                response = orderApi.update(order);
             }
             else{
-                order = orderApi.save(order);
+                response =  orderApi.save(order);
+            }
+            switch (response.getCode()){
+                case 200: break;
+                case 500: Notification.show("Order saving failed").addThemeVariants(NotificationVariant.LUMO_ERROR); break;
             }
             for(OrderElementVO oeVo : grid.getSelectedItems()){
                 OrderElement oe = oeVo.getOriginal();
@@ -202,7 +208,6 @@ public class OrderCreate extends VerticalLayout {
             UI.getCurrent().access(() -> {
                 selected.forEach(v -> {
                     grid.getSelectionModel().select(v);
-
                 });
             });
             //UI.getCurrent().push(); // Kliens-szerver szinkronizálás kényszerítése

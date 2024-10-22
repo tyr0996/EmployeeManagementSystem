@@ -25,6 +25,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
@@ -73,7 +74,7 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
         this.grid = new PaginatedGrid<>(PermissionVO.class);
         List<Permission> permissions = permissionApi.findAll();
         permissionVOS = permissions.stream().map(PermissionVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().toList());
+        this.grid.setItems(getFilteredStream().toList());km jkl
 
         idColumn = grid.addColumn(v -> v.id);
         nameColumn = grid.addColumn(v -> v.name);
@@ -184,22 +185,32 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
             Permission permission = Objects.requireNonNullElseGet(entity, Permission::new);
             permission.setDeleted(0L);
             permission.setName(nameField.getValue());
+            EmsResponse permissionResponse = null;
             if(entity != null){
-                permission = permissionApi.update(permission);
+                permissionResponse = permissionApi.update(permission);
             }
             else{
-                permission = permissionApi.save(permission);
+                permissionResponse = permissionApi.save(permission);
+            }
+            switch (permissionResponse.getCode()){
+                case 200: break;
+                case 500: Notification.show(permissionResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR); createDialog.close(); return;
             }
             roleXPermissionApi.removeAllRolesFrom(entity);
             List<Role> selectedRoles = roles.getSelectedItems().stream().toList();
             for(int i = 0; i < selectedRoles.size(); i++){
                 RoleXPermission rxp = new RoleXPermission(selectedRoles.get(i), permission);
                 rxp.setDeleted(0L);
-                roleXPermissionApi.save(rxp);
+                EmsResponse roleXPermissionResponse = roleXPermissionApi.save(rxp);
+                switch (roleXPermissionResponse.getCode()){
+                    case 200: break;
+                    case 500: Notification.show(roleXPermissionResponse.getDescription()); createDialog.close(); return;
+                }
             }
 
             Notification.show("Permission " + (entity == null ? "saved: " : "updated: ") + permission.getName())
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
             nameField.clear();
             createDialog.close();
             updateGridItems();

@@ -62,6 +62,9 @@ public class OrderCrudTest extends BaseCrudTest {
 
     private static final String createButtonXpath = null;
 
+    private static final String mainMenu = UIXpaths.ORDERS_MENU;
+    private static final String subMenu = UIXpaths.ORDER_SUBMENU;
+
     @Mock
     public EmailSendingService emailSendingService;
 
@@ -79,7 +82,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void generateODTTest() throws Exception {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
 
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
@@ -98,7 +101,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void generatePDFTest() throws Exception {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
 
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
@@ -117,7 +120,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void sendSFTPFailedTest(){
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXpath);
 
         findVisibleElementWithXpath(sendReportViaSFTPButtonXpath).click();
@@ -128,7 +131,7 @@ public class OrderCrudTest extends BaseCrudTest {
     public void
     sendSFTPFailedJsonTest() throws JsonProcessingException {
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+//        navigateMenu(mainMenu, subMenu);
 //        findVisibleElementWithXpath(gridXpath);
 //        //Mockito.doThrow(JsonProcessingException.class).when(om).writeValueAsString(Mockito.any(Object.class));
 //
@@ -141,7 +144,7 @@ public class OrderCrudTest extends BaseCrudTest {
         BeanProvider.getBean(OrderService.class).setSender(sftpSender);
         Mockito.doReturn(true).when(sftpSender).send(any(byte[].class), any(String.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXpath);
 
         findVisibleElementWithXpath(sendReportViaSFTPButtonXpath).click();
@@ -156,7 +159,7 @@ public class OrderCrudTest extends BaseCrudTest {
         Mockito.doReturn(true).when(emailSendingService).send(Mockito.any(EmailProperties.class));
 
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
 
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
@@ -177,7 +180,7 @@ public class OrderCrudTest extends BaseCrudTest {
     public void sendEmailFailedTest() throws InterruptedException {
 
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
 
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
@@ -195,14 +198,14 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void deleteOrderTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
     }
 
     @Test
     public void modifyOrderTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
 
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
@@ -233,7 +236,7 @@ public class OrderCrudTest extends BaseCrudTest {
         Thread.sleep(100);
 
 
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
         assertEquals(0, countElementResultsFromGridWithFilter(gridXpath, originalData));
         assertEquals(original, countVisibleGridDataRows(gridXpath));
@@ -241,11 +244,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
     @Test
     public void deleteOrderElementWhatMemberOfAnOrder() throws InterruptedException {
-
-
-
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         int originalVisibleRows = countVisibleGridDataRows(gridXpath);
 
         WebElement deleteButton = getDeleteButton(gridXpath, 0);
@@ -297,7 +297,7 @@ public class OrderCrudTest extends BaseCrudTest {
             oeDeleteButtonCreatedOrder = getDeleteButton(oeGridXpath, 0);
         }
 
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         Thread.sleep(20);
         getModifyButton(gridXpath, 0).click(); //TODO megcsinálni, hogy előtte nézze meg a szerkesztésben, hogy látja-e őket.
         Thread.sleep(1000);
@@ -307,7 +307,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void restoreOrderTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         int originalInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedXpath);
         if(originalInvisibleRows == 0) {
             OrderCreateTest.setupTest();
@@ -320,7 +320,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void permanentlyDeleteOrderTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         int originalInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedXpath);
         if(originalInvisibleRows == 0) {
             OrderCreateTest.setupTest();
@@ -333,7 +333,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void fromToDateSelectorFromIsLaterThenTo(){
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         WebElement grid = findVisibleElementWithXpath(gridXpath);
 
         LocalDate a = LocalDate.of(2024, 1, 15);
@@ -367,7 +367,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void extraFilterInvalidValue() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
 

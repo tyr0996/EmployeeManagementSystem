@@ -28,6 +28,11 @@ public class PermissionTest extends BaseCrudTest {
     private static final String rolesButtonXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button[1]";
     private static final String permissionsButtonXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button[2]";
     private static final String roleXPermisisonPairingButtonXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button[3]";
+
+    private static final String mainMenu = UIXpaths.ADMIN_MENU;
+    private static final String subMenu = UIXpaths.ACESS_MANAGEMENT_SUBMENU;
+
+
     @BeforeClass
     public void setup() {
         crudTestingUtil = new CrudTestingUtil(driver, "Permission", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
@@ -37,7 +42,7 @@ public class PermissionTest extends BaseCrudTest {
     @Test
     public void permissionCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ACESS_MANAGEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
         Thread.sleep(100);
         crudTestingUtil.createTest();
@@ -46,7 +51,7 @@ public class PermissionTest extends BaseCrudTest {
     @Test
     public void permissionReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ACESS_MANAGEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
         crudTestingUtil.readTest();
         Thread.sleep(100);
@@ -56,7 +61,7 @@ public class PermissionTest extends BaseCrudTest {
     @Test
     public void permissionDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ACESS_MANAGEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
         Thread.sleep(100);
         crudTestingUtil.deleteTest();
@@ -65,7 +70,7 @@ public class PermissionTest extends BaseCrudTest {
     @Test
     public void permissionUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ACESS_MANAGEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
         Thread.sleep(100);
         crudTestingUtil.updateTest();
@@ -74,7 +79,7 @@ public class PermissionTest extends BaseCrudTest {
     @Test
     public void permissionRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ACESS_MANAGEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
         Thread.sleep(100);
         crudTestingUtil.restoreTest();
@@ -83,7 +88,7 @@ public class PermissionTest extends BaseCrudTest {
     @Test
     public void permissionPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ACESS_MANAGEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
         Thread.sleep(100);
         crudTestingUtil.permanentlyDeleteTest();
@@ -92,10 +97,16 @@ public class PermissionTest extends BaseCrudTest {
     @Test
     public void extraFilterInvalidValue() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ACESS_MANAGEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+    }
+
+    @Test
+    public void createFailedTest() throws JsonProcessingException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        crudTestingUtil.createFailedTest(port, spyPermissionApiClient, mainMenu, subMenu, permissionsButtonXPath);
     }
 }

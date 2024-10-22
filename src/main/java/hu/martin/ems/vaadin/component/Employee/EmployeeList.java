@@ -26,6 +26,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Employee;
 import hu.martin.ems.model.Role;
@@ -284,14 +285,18 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             employee.setDeleted(0L);
             employee.setSalary(salaryField.getValue().intValue());
             employee.setRole(roles.getValue());
+            EmsResponse response = null;
             if(entity != null){
-                employeeApi.update(employee);
+                response = employeeApi.update(employee);
             }
             else{
-                employeeApi.save(employee);
+                response = employeeApi.save(employee);
             }
-            Notification.show("Employee " + (entity == null ? "saved: " : "updated: ") + employee.getFirstName() + " " + employee.getLastName())
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            switch (response.getCode()){
+                case 200: Notification.show("Employee " + (entity == null ? "saved: " : "updated: ") + employee.getFirstName() + " " + employee.getLastName())
+                                      .addThemeVariants(NotificationVariant.LUMO_SUCCESS); break;
+                default: Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
 
             firstNameField.clear();
             lastNameField.clear();

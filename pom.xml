@@ -221,6 +221,12 @@
             <version>1.11.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>2.0.9</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -296,7 +302,6 @@
                             <compilerArgument>-proc:none</compilerArgument>
                             <includes>
                                 <include>hu/martin/ems/annotations/EditObjectValidator.java</include>
-                                <!--include dependencies required for LogMeCustomAnnotationProcessor -->
                             </includes>
                         </configuration>
                     </execution>

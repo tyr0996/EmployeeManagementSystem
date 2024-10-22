@@ -17,6 +17,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.config.JacksonConfig;
 import hu.martin.ems.core.date.Date;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
@@ -42,7 +43,7 @@ public class CurrencyList extends VerticalLayout {
     private final CurrencyApi currencyApi = BeanProvider.getBean(CurrencyApi.class);
     private boolean showDeleted = false;
     private PaginatedGrid<CurrencyVO, String> grid;
-    private final ObjectMapper om = BeanProvider.getBean(ObjectMapper.class);
+    private final ObjectMapper om = new JacksonConfig().objectMapper();
     private final PaginationSetting paginationSetting;
 
     List<Currency> currencies;
@@ -101,10 +102,7 @@ public class CurrencyList extends VerticalLayout {
             if (date.isEqual(LocalDate.now())) {
                 EmsResponse response = currencyApi.fetchAndSaveRates();
                 switch (response.getCode()){
-                    case 200 :{
-                        currency = om.convertValue(response.getResponseData(), new TypeReference<Currency>() {});
-                        break;
-                    }
+                    case 200 : currency = om.convertValue(response.getResponseData(), new TypeReference<Currency>() {}); break;
                     case 500 : Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR); return;
                 }
             } else {

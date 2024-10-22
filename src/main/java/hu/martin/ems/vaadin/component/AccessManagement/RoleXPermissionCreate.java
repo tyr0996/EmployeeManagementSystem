@@ -10,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.model.RoleXPermission;
@@ -82,7 +83,11 @@ public class RoleXPermissionCreate extends VerticalLayout {
         selectedPermissions.forEach(permission -> {
             RoleXPermission roleXPermission = new RoleXPermission(selectedRole, permission);
             roleXPermission.setDeleted(0L);
-            roleXPermissionApi.save(roleXPermission);
+            EmsResponse response = roleXPermissionApi.save(roleXPermission);
+            switch (response.getCode()){
+                case 200: break;
+                case 500: Notification.show("Role-permission pairing failed").addThemeVariants(NotificationVariant.LUMO_ERROR); return;
+            }
         });
 
         clearForm(roleComboBox, permissionComboBox);

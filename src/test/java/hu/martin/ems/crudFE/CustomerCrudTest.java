@@ -23,6 +23,9 @@ public class CustomerCrudTest extends BaseCrudTest {
     private static final String showDeletedChecBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
     private static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
     private static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
+    
+    private static final String mainMenu = UIXpaths.ADMIN_MENU;
+    private static final String subMenu = UIXpaths.CUSTOMER_SUBMENU;
 
     @BeforeClass
     public void setup() {
@@ -33,51 +36,57 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void customerCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
     }
 
     @Test
     public void customerReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.readTest();
     }
 
     @Test
     public void customerDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
     }
 
     @Test
     public void customerUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest();
     }
 
     @Test
     public void customerRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.restoreTest();
     }
 
     @Test
     public void customerPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
     }
 
     @Test
     public void extraFilterInvalidValue() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CUSTOMER_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+    }
+
+    @Test
+    public void createFailedTest() throws JsonProcessingException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        crudTestingUtil.createFailedTest(port, spyCustomerApiClient, mainMenu, subMenu);
     }
 }

@@ -33,6 +33,7 @@ public class RoleXPermissionController extends BaseController<RoleXPermission, R
         return new ResponseEntity<>(om.writeValueAsString(service.findAllPermission(roleId)), HttpStatus.OK);
     }
 
+    //TODO a sima withUsed nem használjuk
     @GetMapping(path = "findAllWithUnused")
     public ResponseEntity<String> findAllWithUnused(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) throws JsonProcessingException {
         List<RoleXPermission> rxps = withDeleted ? service.findAllWithUnusedWithDeleted() : service.findAllWithUnused();

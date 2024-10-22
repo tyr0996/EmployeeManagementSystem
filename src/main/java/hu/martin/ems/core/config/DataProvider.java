@@ -97,7 +97,7 @@ public class DataProvider {
 
     public static String generateSqlFromJson(File jsonFile) {
         try{
-            ObjectMapper om = new ObjectMapper();
+            ObjectMapper om = new JacksonConfig().objectMapper();
             JsonFile json = om.readValue(jsonFile, JsonFile.class);
             return json.toSQL();
         } catch (IOException e) {
@@ -120,7 +120,7 @@ public class DataProvider {
         if (loaded.contains(jsonFile)) {
             return;
         } else {
-            ObjectMapper om = new ObjectMapper();
+            ObjectMapper om = new JacksonConfig().objectMapper();
             try {
                 JsonFile json = om.readValue(jsonFile, JsonFile.class);
                 List<String> required;

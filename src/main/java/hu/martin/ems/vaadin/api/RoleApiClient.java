@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.model.Role;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,10 @@ public class RoleApiClient extends EmsApiClient<Role> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        return convertResponseToEntity(response);
+        try {
+            return convertResponseToEntity(response);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

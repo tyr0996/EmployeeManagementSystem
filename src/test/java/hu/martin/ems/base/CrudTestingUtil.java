@@ -1,14 +1,31 @@
 package hu.martin.ems.base;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
+import hu.martin.ems.UITests.PaginationData;
+import hu.martin.ems.UITests.UIXpaths;
+import hu.martin.ems.core.model.BaseEntity;
+import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.crudFE.EmployeeCrudTest;
+import hu.martin.ems.model.Employee;
+import hu.martin.ems.vaadin.api.EmsApiClient;
+import hu.martin.ems.vaadin.api.UserApiClient;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.*;
+import org.springframework.security.core.parameters.P;
+import org.testng.annotations.Test;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Random;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 
 public class CrudTestingUtil {
 
@@ -20,6 +37,8 @@ public class CrudTestingUtil {
     private LinkedHashMap<String, String> createOrUpdateDialogPartXpaths;
     private final String className;
     private final String showOnlyDeletableCheckboxXpath;
+    
+    private GridTestingUtil gridTestingUtil;
 
     public CrudTestingUtil(WebDriver driver,
                            String className,
@@ -39,7 +58,6 @@ public class CrudTestingUtil {
         this.className = className;
         this.createButtonXpath = createButtonXpath;
         GridTestingUtil.driver = driver;
-
         this.showDeletedCheckBoxXpath = showDeletedCheckBoxXpath;
         this.showOnlyDeletableCheckboxXpath = showOnlyDeletableCheckboxXpath;
         this.gridXpath = gridXpath;
@@ -106,6 +124,7 @@ public class CrudTestingUtil {
 
         WebElement createButton = findClickableElementWithXpath(createButtonXpath);
         createButton.click();
+        Thread.sleep(200);
 
         fillCreateOrUpdateForm(withData);
 
@@ -113,16 +132,27 @@ public class CrudTestingUtil {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].click()", saveButton);
 
-        checkNotificationContainsTexts(saveNotificationText == null ? className + " saved: " : saveNotificationText);
+        if(requiredSuccess){
+            checkNotificationContainsTexts(saveNotificationText == null ? className + " saved: " : saveNotificationText);
+        }
+        else{
+            checkNotificationContainsTexts(saveNotificationText == null ? className + " saving failed" : saveNotificationText);
+        }
+
         findVisibleElementWithXpath(gridXpath);
         assertEquals(requiredSuccess ? originalVisible + 1 : originalVisible, countVisibleGridDataRows(gridXpath));
         assertEquals(originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
         if(showOnlyDeletableCheckboxXpath != null){
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
-            assertEquals(requiredSuccess ? origivalVisibleOnlyDeletable + 1 : originalVisible, countVisibleGridDataRows(gridXpath), "solve1: use refresh grid after enter save button in the vaadin class");
+            Thread.sleep(10);
+            assertEquals(requiredSuccess ? origivalVisibleOnlyDeletable + 1 : origivalVisibleOnlyDeletable, countVisibleGridDataRows(gridXpath), "solve1: use refresh grid after enter save button in the vaadin class");
             assertEquals(originalInvisibleOnlyDeletable, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+            Thread.sleep(10);
         }
+
+        assertEquals(requiredSuccess ? originalVisible + 1 : originalVisible, countVisibleGridDataRows(gridXpath), "solve1: use refresh grid after enter save button in the vaadin class");
+        assertEquals(originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
     }
 
     /**
@@ -194,6 +224,7 @@ public class CrudTestingUtil {
         Thread.sleep(200);
         WebElement deleteButton = getDeleteButton(gridXpath, rowLocation.getRowIndex());
         deleteButton.click();
+        Thread.sleep(100);
         checkNotificationContainsTexts(className + " deleted: ");
         if(this.showOnlyDeletableCheckboxXpath != null){
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
@@ -305,11 +336,89 @@ public class CrudTestingUtil {
         }
     }
 
+
+    public List<String[]> getAllDataLinesFull() throws InterruptedException {
+        PaginationData pd = getGridPaginationData(gridXpath);
+        List<String[]> allFullData = new ArrayList<>();
+
+        for(int i = 0; i < pd.getTotalElements(); i++){
+            String[] data = getDataFromRowLocation(gridXpath, new ElementLocation((i % pd.getPageSize()) + 1, i - (i % pd.getPageSize())));
+            Boolean goodData = true;
+            for(int j = 0; j < data.length; j++){
+               if(data[j].equals("") || data[j] == null){
+                    goodData = false;
+                    break;
+               }
+            }
+            if(goodData){
+                allFullData.add(data);
+            }
+        }
+
+
+        return allFullData;
+
+    }
+
+    public List<String[]> getAllDataLinesWithEmpty() throws InterruptedException {
+        PaginationData pd = getGridPaginationData(gridXpath);
+        List<String[]> allLinesWithEmpty = new ArrayList<>();
+
+        for(int i = 0; i < pd.getTotalElements(); i++){
+            ElementLocation elementLocation = new ElementLocation((i / pd.getPageSize()) + 1, i % pd.getPageSize());
+            String[] data = getDataFromRowLocation(gridXpath, elementLocation);
+            Boolean goodData = false;
+            for(int j = 0; j < data.length; j++){
+                if(data[j].equals("") || data[j] == null){
+                    goodData = true;
+                    break;
+                }
+            }
+            if(goodData){
+                allLinesWithEmpty.add(data);
+            }
+        }
+        return allLinesWithEmpty;
+    }
+
     public void readTest() throws InterruptedException {
         ElementLocation randomLocation = getRandomLocationFromGrid(gridXpath);
         readTest(getDataFromRowLocation(gridXpath, randomLocation), null, false, null); //TODO
     }
 
+    public void createFailedTest(int port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath, String subSubButtonXpath) throws InterruptedException, JsonProcessingException {
+        MockitoAnnotations.openMocks(this);
+        if(spyApiClient instanceof UserApiClient){
+            Mockito.doCallRealMethod().doThrow(JsonProcessingException.class).when(spyApiClient).writeValueAsString(any(BaseEntity.class));
+        }
+        else{
+            Mockito.doThrow(JsonProcessingException.class).when(spyApiClient).writeValueAsString(any(BaseEntity.class));
+        }
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenuXpath, subMenuXpath);
+        Thread.sleep(10);
+        findClickableElementWithXpathWithWaiting(subSubButtonXpath).click();
+        Thread.sleep(100);
+        createTest(null, "", false);
+    }
+
+    public void createFailedTest(int port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath) throws JsonProcessingException, InterruptedException {
+        MockitoAnnotations.openMocks(this);
+        Mockito.doThrow(JsonProcessingException.class).when(spyApiClient).writeValueAsString(any(BaseEntity.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenuXpath, subMenuXpath);
+        Thread.sleep(10);
+        createTest(null, "", false);
+    }
+
+    /**
+     *
+     * @param data
+     * @param extraDataFilter Ha null, akkor nem kell a NotificationCheck
+     * @param withInDeleted
+     * @param notificationCheck Ha null, akkor lehet, hogy meghal az extraDataFilter szűrés
+     * @throws InterruptedException
+     */
     public void readTest(String[] data, String extraDataFilter, Boolean withInDeleted, NotificationCheck notificationCheck) throws InterruptedException {
         if(data == null || data.length == 0){
             findVisibleElementWithXpath(gridXpath);
@@ -346,11 +455,7 @@ public class CrudTestingUtil {
         if(extraDataFilter != null){
             setExtraDataFilterValue(gridXpath, extraDataFilter, notificationCheck);
         }
-        int filteredResultCount = countElementResultsFromGridWithFilter(gridXpath, data);
-        if(filteredResultCount != 1){
-            System.out.println("kiscica");
-        }
-        assertEquals(1, filteredResultCount); //TODO Ha van olyan, hogy showOnlyDeletable, akkor ide más érték is jöhet!
+        assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, data)); //TODO Ha van olyan, hogy showOnlyDeletable, akkor ide más érték is jöhet!
         if(extraDataFilter != null){
             clearExtraDataFilter(gridXpath);
         }
@@ -397,5 +502,14 @@ public class CrudTestingUtil {
         int newInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
         assertEquals(originalVisibleRows + 1, newVisibleRows);
         assertEquals(originalInvisibleRows - 1, newInvisibleRows);
+    }
+
+    public void modifyFailedTest(Integer port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath) throws InterruptedException, JsonProcessingException {
+        MockitoAnnotations.openMocks(this);
+        Mockito.doThrow(JsonProcessingException.class).when(spyApiClient).writeValueAsString(any(BaseEntity.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenuXpath, subMenuXpath);
+        Thread.sleep(10);
+        updateTest(null, "", false);
     }
 }

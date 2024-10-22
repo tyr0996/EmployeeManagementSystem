@@ -35,3 +35,5 @@ target
 
 node_modules
 /htmlReport
+/src/test/java/hu/martin/ems/sql
+/src/test/java/hu/martin/ems/sql

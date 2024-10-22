@@ -3,6 +3,8 @@ package hu.martin.ems.vaadin.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hu.martin.ems.core.config.JacksonConfig;
+import hu.martin.ems.core.model.EmsResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +33,7 @@ public abstract class EmsApiClient<T> {
 
     protected Logger logger;
 
-    @Autowired
-    protected ObjectMapper om;
+    protected ObjectMapper om = new JacksonConfig().objectMapper();
 
     @Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
@@ -48,43 +49,40 @@ public abstract class EmsApiClient<T> {
         return input.substring(0, 1).toLowerCase() + input.substring(1);
     }
 
-    public T save(T entity) {
+    public EmsResponse save(T entity) {
         initWebClient();
         try{
             String response =  webClient.post()
                     .uri("save")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(om.writeValueAsString(entity))
+                    .bodyValue(writeValueAsString(entity))
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return convertResponseToEntity(response);
+            return new EmsResponse(200, convertResponseToEntity(response), "");
         }
         catch(JsonProcessingException ex){
             logger.error("Saving entity failed due to failing convert it to json. Entity type: " + this.entityName);
-            //TODO
-            ex.printStackTrace();
-            return null;
+            return new EmsResponse(500, "Saving " + this.entityName + " failed");
         }
+
     }
 
-    public T update(T entity) {
+    public EmsResponse update(T entity) {
         initWebClient();
         try{
             String response =  webClient.put()
                     .uri("update")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(om.writeValueAsString(entity))
+                    .bodyValue(writeValueAsString(entity))
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return convertResponseToEntity(response);
+            return new EmsResponse(200, convertResponseToEntity(response), "");
         }
         catch(JsonProcessingException ex){
             logger.error("Updating entity failed due to failing convert it to json. Entity type: " + this.entityName);
-            //TODO
-            ex.printStackTrace();
-            return null;
+            return new EmsResponse(500, "Updating " + this.entityName + " failed");
         }
     }
 
@@ -94,7 +92,7 @@ public abstract class EmsApiClient<T> {
             String response = webClient.put()
                     .uri("restore")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(om.writeValueAsString(entity))
+                    .bodyValue(writeValueAsString(entity))
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
@@ -113,7 +111,7 @@ public abstract class EmsApiClient<T> {
             webClient.put()
                     .uri("delete")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(om.writeValueAsString(entity))
+                    .bodyValue(writeValueAsString(entity))
                     .retrieve()
                     .bodyToMono(Void.class)
                     .block();
@@ -152,44 +150,40 @@ public abstract class EmsApiClient<T> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        return convertResponseToEntityList(jsonResponse);
+        try{
+            return convertResponseToEntityList(jsonResponse);
+        } catch (JsonProcessingException e) {
+            logger.error("JsonProcessingException for String: " + jsonResponse);
+            throw new RuntimeException(e);
+        }
     }
 
-    protected List<T> convertResponseToEntityList(String jsonResponse){
+    public List<T> convertResponseToEntityList(String jsonResponse) throws JsonProcessingException {
         return convertResponseToEntityList(jsonResponse, this.entityType);
     }
 
-    protected <X> List<X> convertResponseToEntityList(String jsonResponse, Class<X> resultEntityType) {
+    public <X> List<X> convertResponseToEntityList(String jsonResponse, Class<X> resultEntityType) throws JsonProcessingException {
         if(jsonResponse.startsWith("{")){
             jsonResponse = "[" + jsonResponse + "]";
         }
-        try {
-            List<LinkedHashMap<String, Object>> mapList = om.readValue(jsonResponse, new TypeReference<List<LinkedHashMap<String, Object>>>() {});
-            List<X> resultList = new ArrayList<>();
-            mapList.forEach(v -> {
-                resultList.add(om.convertValue(v, resultEntityType));
-            });
-            return resultList;
-        } catch (JsonProcessingException ex) {
-            ex.printStackTrace();
-            //TODO
-            return null;
-        }
+        List<LinkedHashMap<String, Object>> mapList = om.readValue(jsonResponse, new TypeReference<List<LinkedHashMap<String, Object>>>() {});
+        List<X> resultList = new ArrayList<>();
+        mapList.forEach(v -> {
+            resultList.add(om.convertValue(v, resultEntityType));
+        });
+        return resultList;
     }
 
-    protected T convertResponseToEntity(String jsonResponse){
-        try{
-            return convertResponseToEntityList("[" + jsonResponse + "]").get(0);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-            //TODO
-            return null;
-        }
+    public T convertResponseToEntity(String jsonResponse) throws JsonProcessingException {
+        return convertResponseToEntityList("[" + jsonResponse + "]").get(0);
+    }
+
+    public String writeValueAsString(T entity) throws JsonProcessingException {
+        return om.writeValueAsString(entity);
     }
 
 
-    public List<T> findAllWithDeleted(){
+    public List<T> findAllWithDeleted() {
         initWebClient();
         String jsonResponse = webClient.mutate().codecs(
                         configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
@@ -199,7 +193,11 @@ public abstract class EmsApiClient<T> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        return convertResponseToEntityList(jsonResponse);
+        try {
+            return convertResponseToEntityList(jsonResponse);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public T findById(Long id) {

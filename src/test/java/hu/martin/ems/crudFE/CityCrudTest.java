@@ -25,6 +25,9 @@ public class CityCrudTest extends BaseCrudTest {
 
     private static final String createButtonXpath =       "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
 
+    private static final String subMenu = UIXpaths.CITY_SUBMENU;
+    private static final String mainMenu = UIXpaths.ADMIN_MENU;
+
 
     @BeforeClass
     public void setup() {
@@ -35,51 +38,56 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void cityCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CITY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
     }
 
     @Test
     public void cityReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CITY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.readTest();
     }
 
     @Test
     public void cityDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CITY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
     }
 
     @Test
     public void cityUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CITY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest();
     }
 
     @Test
     public void cityRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CITY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.restoreTest();
     }
 
     @Test
     public void cityPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CITY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
     }
 
     @Test
     public void extraFilterInvalidValue() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CITY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+    }
+
+    @Test
+    public void createFailedTest() throws JsonProcessingException, InterruptedException {
+        crudTestingUtil.createFailedTest(port, spyCityApiClient, mainMenu, subMenu);
     }
 }

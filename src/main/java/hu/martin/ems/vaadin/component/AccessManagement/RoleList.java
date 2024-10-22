@@ -25,6 +25,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
@@ -35,6 +36,8 @@ import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.*;
@@ -72,6 +75,8 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     private Grid.Column<GroupedRoleXPermissionVO> extraData;
     private Grid.Column<GroupedRoleXPermissionVO> roleColumn;
     private Grid.Column<GroupedRoleXPermissionVO> permissionsColumn;
+
+    private Logger logger = LoggerFactory.getLogger(RoleList.class);
 
     public RoleList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
@@ -125,9 +130,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         createOrModifyDialog = new Dialog((editableRole == null ? "Create" : "Modify") + " role");
         createSaveOrUpdateForm();
         saveButton.addClickListener(event -> {
-            GroupedRoleXPermission grxp = saveRoleWithPermissions();
-            Notification.show("Role " + (editableRole == null ? "saved: " : "updated: ") + grxp.getName())
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            saveRoleWithPermissions();
             nameField.clear();
             createOrModifyDialog.close();
             updateGridItems();
@@ -157,23 +160,52 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         createOrModifyForm.add(nameField, permissions, saveButton);
     }
 
-    private GroupedRoleXPermission saveRoleWithPermissions(){
+    private void saveRoleWithPermissions(){
         Role role = Objects.requireNonNullElseGet(editableRole, Role::new);
         role.setName(nameField.getValue());
         role.setDeleted(0L);
+        EmsResponse response = null;
+
         if(editableRole != null){
-            role = roleApi.update(role);
+            response = roleApi.update(role);
         }
         else{
-            role = roleApi.save(role);
+            response = roleApi.save(role);
+        }
+        switch (response.getCode()){
+            case 200: role = (Role) response.getResponseData(); break;
+            case 500:
+                Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                createOrModifyDialog.close();
+                return;
+            default:
+                Notification.show("Not expected status-code in " + (editableRole == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                logger.warn("Invalid status code in RoleList: {}", response.getCode());
+                createOrModifyDialog.close();
+                return;
         }
         roleXPermissionApi.removeAllPermissionsFrom(role);
         for(Permission p : permissions.getSelectedItems()){
             RoleXPermission rxp = new RoleXPermission(role, p);
             rxp.setDeleted(0L);
-            roleXPermissionApi.save(rxp);
+            EmsResponse responseRoleXPermission = roleXPermissionApi.save(rxp);
+            switch (responseRoleXPermission.getCode()){
+                case 200:
+                    break;
+                case 500:
+                    Notification.show(responseRoleXPermission.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    createOrModifyDialog.close();
+                    return;
+                default:
+                    Notification.show("Not expected status-code in " + (editableRole == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    logger.warn("Invalid status code in RoleList: {}", response.getCode());
+                    createOrModifyDialog.close();
+                    return;
+            }
         }
-        return new GroupedRoleXPermission(role, permissions.getSelectedItems().stream().toList());
+        GroupedRoleXPermission grxp =  new GroupedRoleXPermission(role, permissions.getSelectedItems().stream().toList());
+        Notification.show("Role " + (editableRole == null ? "saved: " : "updated: ") + grxp.getName())
+                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
 
     private void setFilteringHeaderRow(){

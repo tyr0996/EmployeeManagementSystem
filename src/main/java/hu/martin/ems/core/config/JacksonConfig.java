@@ -10,11 +10,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @NeedCleanCoding
 public class JacksonConfig {
-    @Bean
+    public JacksonConfig(){}
+
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.registerModule(new JSR310Module());
         return mapper;
     }
+
 }

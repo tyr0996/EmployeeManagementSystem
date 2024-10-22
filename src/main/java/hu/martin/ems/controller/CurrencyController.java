@@ -31,11 +31,12 @@ public class CurrencyController extends BaseController<Currency, CurrencyService
     @GetMapping(path = "fetchAndSaveRates")
     public ResponseEntity<String> fetchAndSaveRates() throws JsonProcessingException {
         EmsResponse emsResponse = service.fetchAndSaveRates();
-
-        switch (emsResponse.getCode()){
-            case 200 : return new ResponseEntity<>(om.writeValueAsString(emsResponse), HttpStatus.valueOf(emsResponse.getCode()));
-            case 500: return new ResponseEntity<>(emsResponse.getDescription(), HttpStatusCode.valueOf(emsResponse.getCode()));
-            default: return null;
+        int code = emsResponse.getCode();
+        if(code == 200){
+            return new ResponseEntity<>(om.writeValueAsString(emsResponse), HttpStatus.valueOf(emsResponse.getCode()));
+        }
+        else {
+            return new ResponseEntity<>(emsResponse.getDescription(), HttpStatusCode.valueOf(emsResponse.getCode()));
         }
     }
 

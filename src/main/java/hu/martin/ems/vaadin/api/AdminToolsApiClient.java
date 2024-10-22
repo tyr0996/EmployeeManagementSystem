@@ -12,18 +12,18 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 @Service
 @Slf4j
-public class AdminToolsApi {
+public class AdminToolsApiClient {
     protected WebClient webClient;
 
     private WebClient.Builder webClientBuilder;
 
-    private Logger logger = LoggerFactory.getLogger(AdminToolsApi.class);
+    private Logger logger = LoggerFactory.getLogger(AdminToolsApiClient.class);
 
 
     @Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
 
-    public AdminToolsApi(){
+    public AdminToolsApiClient(){
         this.webClientBuilder = WebClient.builder();
     }
 

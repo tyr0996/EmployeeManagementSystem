@@ -72,4 +72,6 @@ public class AdminToolsTest extends BaseCrudTest {
         Mockito.reset(adminToolsService);
         BeanProvider.getBean(AdminToolsController.class).setAdminToolsService(originalAdminToolsService);
     }
+
+
 }

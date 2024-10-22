@@ -29,4 +29,15 @@ public class UserController extends BaseController<User, UserService, UserReposi
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping(path = "/userExists", produces = StaticDatas.Produces.JSON)
+    public ResponseEntity<String> userExists(@RequestParam String username) {
+        User user = service.userExists(username);
+        try{
+            return new ResponseEntity<>(om.writeValueAsString(user), HttpStatus.OK);
+        }
+        catch(JsonProcessingException e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package hu.martin.ems.crudFE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
@@ -9,10 +10,10 @@ import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.RandomGenerator;
 import hu.martin.ems.controller.CurrencyController;
-import hu.martin.ems.core.apiresponse.CurrencyAPI;
 import hu.martin.ems.core.apiresponse.CurrencyResponse;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.date.Date;
+import hu.martin.ems.core.model.BaseEntity;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Currency;
@@ -42,8 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -56,7 +56,9 @@ public class CurrencyCrudTest extends BaseCrudTest {
 
     private static final String fetchButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-button";
     private static CrudTestingUtil crudTestingUtil;
-
+    
+    private static final String mainMenu = UIXpaths.ADMIN_MENU;
+    private static final String subMenu = UIXpaths.CURRENCY_SUBMENU;
 
     @BeforeClass
     public void setup() {
@@ -68,7 +70,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     public void selectDateRetroactively_NotSavedDate() throws InterruptedException {
         spyCurrencyRepository.customClearDatabaseTable();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CURRENCY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXPath);
         LocalDate today = LocalDate.now();
         String todayString = today.format(DateTimeFormatter.ofPattern("yyyy. MM. dd"));
@@ -87,7 +89,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     //@Test
     public void tryToEnterAllPossibleGoodDateFormats() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CURRENCY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXPath);
         LocalDate today = LocalDate.now();
         String todayString = today.format(DateTimeFormatter.ofPattern("yyyy. MM. dd"));
@@ -108,7 +110,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     public void checkEuroExistsInGrid() throws InterruptedException {
         clearCurrencyDatabaseTable();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CURRENCY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXPath);
         Thread.sleep(100);
         assertEquals(1, countElementResultsFromGridWithFilter(gridXPath,  "EUR", ""));
@@ -118,7 +120,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     public void checkEuroValueExistsInGrid() throws InterruptedException {
         clearCurrencyDatabaseTable();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CURRENCY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXPath);
         Thread.sleep(100);
         applyFilter(gridXPath, "EUR");
@@ -136,7 +138,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         Mockito.doReturn(null).when(spyCurrencyRepository).findByDate(Mockito.any(LocalDate.class));
 
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CURRENCY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXPath);
         checkNotificationText(EmsResponse.Description.FETCHING_CURRENCIES_FAILED);
         assertEquals(0, countVisibleGridDataRows(gridXPath));
@@ -154,7 +156,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     public void fetchingCurrenciesSuccessTest() throws InterruptedException {
         clearCurrencyDatabaseTable();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CURRENCY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXPath);
         checkNotificationText("Fetching exchange rates was successful!");
         assertEquals(true, countVisibleGridDataRows(gridXPath) > 0);
@@ -188,18 +190,13 @@ public class CurrencyCrudTest extends BaseCrudTest {
         Mockito.doReturn(badResponse).doReturn(badResponse).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
         Mockito.doReturn(null).when(spyCurrencyRepository).findByDate(Mockito.any(LocalDate.class));
 
-//        BeanProvider.getBean(CurrencyController.class).setService(injectedCurrencyService);
-
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CURRENCY_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXPath);
         checkNotificationText("Currencies fetched successfully, but the currency server sent bad data");
-        //checkNotificationText(EmsResponse.Description.PARSING_CURRENCIES_FAILED);
 
         findVisibleElementWithXpath(fetchButtonXpath).click();
         checkNotificationText("Currencies fetched successfully, but the currency server sent bad data");
-
-//        BeanProvider.getBean(CurrencyController.class).setService(originalService);
     }
 
     private void clearCurrencyDatabaseTable(){

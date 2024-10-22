@@ -12,4 +12,7 @@ public interface UserRepository extends BaseRepository<User, Long>{
 
     @Query("SELECT u FROM User u WHERE u.username = :userName AND u.deleted = 0")
     User findByUserName(@Param("userName") String userName);
+
+    @Query("SELECT u FROM User u WHERE u.username = :userName AND (u.deleted = 1 OR u.deleted = 0)")
+    User userExists(@Param("userName") String userName);
 }

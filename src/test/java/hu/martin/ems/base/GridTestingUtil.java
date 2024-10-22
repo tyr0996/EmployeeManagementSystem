@@ -438,6 +438,7 @@ public class GridTestingUtil {
 
     public static void setCheckboxStatus(String checkboxXpath, boolean selected) throws InterruptedException {
         Boolean checkboxStatus = getCheckboxStatus(checkboxXpath);
+        Thread.sleep(100);
         if(checkboxStatus != selected){
             findClickableElementWithXpathWithWaiting(checkboxXpath).click();
         }
@@ -652,7 +653,7 @@ public class GridTestingUtil {
 
     public static void checkNotificationContainsTexts(String text){
         WebElement notification = findVisibleElementWithXpath("/html/body/vaadin-notification-container/vaadin-notification-card");
-        Assert.assertThat(notification.getText(), CoreMatchers.containsString(text));
+        Assert.assertThat(notification.getText().toLowerCase(), CoreMatchers.containsString(text.toLowerCase()));
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].remove();", notification);
     }
@@ -661,6 +662,13 @@ public class GridTestingUtil {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(timeoutInMillis));
         WebElement notification = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/vaadin-notification-container/vaadin-notification-card")));
         Assert.assertThat(notification.getText(), CoreMatchers.containsString(text));
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].remove();", notification);
+    }
+
+    public static void closeNotification(long timeoutInMillis){
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(timeoutInMillis));
+        WebElement notification = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/vaadin-notification-container/vaadin-notification-card")));
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].remove();", notification);
     }

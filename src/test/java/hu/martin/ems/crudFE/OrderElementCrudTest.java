@@ -12,6 +12,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Random;
 
 import static hu.martin.ems.base.GridTestingUtil.navigateMenu;
 
@@ -24,6 +26,9 @@ public class OrderElementCrudTest extends BaseCrudTest {
     public static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
     public static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
 
+    private static final String mainMenu = UIXpaths.ORDERS_MENU;
+    private static final String subMenu = UIXpaths.ORDER_ELEMENT_SUBMENU;
+
     @BeforeClass
     public void setup() {
         crudTestingUtil = new CrudTestingUtil(driver, "OrderElement", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
@@ -34,21 +39,36 @@ public class OrderElementCrudTest extends BaseCrudTest {
     //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/products.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void orderElementCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
     }
 
     @Test
     public void orderElementReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
-        crudTestingUtil.readTest();
+        navigateMenu(mainMenu, subMenu);
+        List<String[]> allFullLines = crudTestingUtil.getAllDataLinesFull();
+        List<String[]> allNonOrderedLines = crudTestingUtil.getAllDataLinesWithEmpty();
+        if(allFullLines.size() == 0){
+            OrderCreateTest.createOrder();
+            navigateMenu(mainMenu, subMenu);
+            allFullLines = crudTestingUtil.getAllDataLinesFull();
+        }
+
+        if(allNonOrderedLines.size() == 0){
+            orderElementCreateTest();
+            navigateMenu(mainMenu, subMenu);
+            allNonOrderedLines = crudTestingUtil.getAllDataLinesWithEmpty();
+        }
+
+        crudTestingUtil.readTest(allFullLines.get(new Random().nextInt(allFullLines.size())), null, false, null);
+        crudTestingUtil.readTest(allNonOrderedLines.get(new Random().nextInt(allNonOrderedLines.size())), null, false, null);
     }
 
     @Test
     public void orderElementDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
     }
 
@@ -57,30 +77,36 @@ public class OrderElementCrudTest extends BaseCrudTest {
     //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/products.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void orderElementUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest();
     }
 
     @Test
     public void orderElementRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.restoreTest();
     }
 
     @Test
     public void orderElementPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
     }
 
     @Test
     public void extraFilterInvalidValue() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+    }
+
+    @Test
+    public void createFailedTest() throws JsonProcessingException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        crudTestingUtil.createFailedTest(port, spyOrderElementApiClient, mainMenu, subMenu);
     }
 }

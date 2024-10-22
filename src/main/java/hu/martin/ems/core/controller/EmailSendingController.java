@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.config.JacksonConfig;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.service.EmailSendingService;
@@ -17,14 +18,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@AllArgsConstructor
 @RequestMapping(path = "/api/emailSending")
 @AnonymousAllowed
 @NeedCleanCoding
 public class EmailSendingController {
     @Setter
     private EmailSendingService service;
-    private ObjectMapper om;
+
+    public EmailSendingController(EmailSendingService service){
+        this.service = service;
+    }
+
+    private ObjectMapper om = new JacksonConfig().objectMapper();
 
 
     @PostMapping(path = "/sendEmail", consumes = StaticDatas.Consumes.JSON)

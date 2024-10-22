@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.OrderElement;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,11 @@ public class OrderElementApiClient extends EmsApiClient<OrderElement> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        return convertResponseToEntityList(jsonResponse);
-        //TODO valamiért null :(
+        try{
+            return convertResponseToEntityList(jsonResponse);
+        }
+        catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

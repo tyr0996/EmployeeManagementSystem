@@ -41,6 +41,6 @@ public class EmsResponse {
         String CLEAR_DATABASE_SUCCESS = "Clearing database was successful";
         String CLEAR_DATABASE_FAILED = "Clearing database failed for one or more table";
         String FETCHING_CURRENCIES_FAILED = "Error happened while fetching exchange rates";
-        String PARSING_CURRENCIES_FAILED = "Error happened while parsing exchange rates";
+        String PARSING_CURRENCIES_FAILED = "Currencies fetched successfully, but the currency server sent bad data";
     }
 }

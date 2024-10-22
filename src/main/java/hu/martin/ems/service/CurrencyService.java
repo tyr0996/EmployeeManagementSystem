@@ -2,8 +2,11 @@ package hu.martin.ems.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.apiresponse.CurrencyResponse;
+import hu.martin.ems.core.config.JacksonConfig;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.service.BaseService;
 import hu.martin.ems.model.Currency;
@@ -29,7 +32,7 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
         super(currencyRepository);
     }
 
-    private final ObjectMapper om = new ObjectMapper();
+    private ObjectMapper om;
 
     @Autowired
     @Setter
@@ -50,6 +53,7 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     private String baseCurrency;
 
     public EmsResponse fetchAndSaveRates() {
+        om = new JacksonConfig().objectMapper();
         Currency curr = repo.findByDate(LocalDate.now());
         if(curr != null){
             return new EmsResponse(200, curr, "");
@@ -60,7 +64,9 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
                                                                 .replaceAll("=", ":");
             Currency currency = new Currency();
             currency.setBaseCurrency(codeStoreRepository.findByName(response.get("base").toString()));
+            //CurrencyResponse cr = om.readValue(fixedRates, CurrencyResponse.class);
             currency.setRateJson(fixedRates);
+
             currency.setValidDate(getValidDate(response.get("date").toString()));
             currency.setDeleted(0L);
             Object saved = this.repo.customSave(currency);
@@ -99,6 +105,7 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     }
 
     public Double get(LocalDate date, String currency) {
+        om = new JacksonConfig().objectMapper();
         Currency c = this.repo.findByDate(date);
         if (c != null) {
             LinkedHashMap<String, Double> map = null;

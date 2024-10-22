@@ -21,6 +21,7 @@ import hu.martin.ems.vaadin.component.Address.AddressList;
 import hu.martin.ems.vaadin.component.AdminTools.AdminTools;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.CodeStore.CodeStoreList;
+import hu.martin.ems.vaadin.component.ComponentManager;
 import hu.martin.ems.vaadin.component.Currency.CurrencyList;
 import hu.martin.ems.vaadin.component.Customer.CustomerList;
 import hu.martin.ems.vaadin.component.Employee.EmployeeList;
@@ -53,6 +54,9 @@ public class MainView extends HorizontalLayout implements RouterLayout {
 
     @Autowired
     private PaginationSetting paginationSetting;
+
+    @Autowired
+    private ComponentManager componentManager;
 
     public static Div contentLayout;
 
@@ -114,18 +118,7 @@ public class MainView extends HorizontalLayout implements RouterLayout {
         Span listLink = new Span(subMenuName);
         HorizontalLayout listMenu = new HorizontalLayout(listLink);
         listLink.addClickListener(v -> {
-            // Új komponens létrehozása
-            try {
-                setEditObjectAnnotatedFieldToNull(listClass);
-                Component newComponent = (Component) listClass.getDeclaredConstructor(PaginationSetting.class).newInstance(paginationSetting);
-
-                UI.getCurrent().accessSynchronously(() -> {
-                    contentLayout.removeAll();
-                    contentLayout.add(newComponent);
-                });
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            componentManager.reloadComponent(listClass, contentLayout);
         });
 
         listMenu.setVisible(false);
@@ -138,27 +131,5 @@ public class MainView extends HorizontalLayout implements RouterLayout {
         menuLayout.add(listMenu);
     }
 
-    private void setEditObjectAnnotatedFieldToNull(Class c){
 
-        Field editObjectField = null;
-        try {
-            editObjectField = java.util.Arrays.stream(c.getDeclaredFields())
-                    .filter(field -> field.isAnnotationPresent(EditObject.class))
-                    .findFirst()
-                    .orElse(null);
-        } catch (SecurityException e) {
-            logger.error("SecurityException happened while getting fields! " + e.getMessage());
-        }
-        if(editObjectField != null){
-            try {
-                editObjectField.setAccessible(true);
-                editObjectField.set(null, null);
-            } catch (IllegalAccessException e) {
-                System.err.println("Hiba a mező beállításakor: " + e.getMessage());
-            }
-        }
-        else{
-            logger.warn("There wasn't any field annotated with @EditObject in class " + c.getSimpleName());
-        }
-    }
 }

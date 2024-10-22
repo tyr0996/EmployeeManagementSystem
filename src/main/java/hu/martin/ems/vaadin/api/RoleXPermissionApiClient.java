@@ -26,7 +26,11 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        return convertResponseToEntityList(jsonResponse, RoleXPermission.class);
+        try{
+            return convertResponseToEntityList(jsonResponse, RoleXPermission.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<RoleXPermission> findAllRoleXPermissionByPermission(Permission p){
@@ -35,7 +39,11 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        return convertResponseToEntityList(jsonResponse, RoleXPermission.class);
+        try {
+            return convertResponseToEntityList(jsonResponse, RoleXPermission.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<Role> findAllPairedRoleTo(Permission p){
@@ -44,7 +52,11 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        return convertResponseToEntityList(jsonResponse, Role.class);
+        try {
+            return convertResponseToEntityList(jsonResponse, Role.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<Permission> findAllPairedPermissionsTo(Role r){
@@ -54,7 +66,11 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        return convertResponseToEntityList(jsonResponse, Permission.class);
+        try {
+            return convertResponseToEntityList(jsonResponse, Permission.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void removeAllRolesFrom(Permission p){
@@ -100,6 +116,10 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        return convertResponseToEntityList(jsonResponse);
+        try {
+            return convertResponseToEntityList(jsonResponse);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

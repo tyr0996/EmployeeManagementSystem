@@ -24,6 +24,8 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     private static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
     private static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
     private static final String showOnlyDeletableCodeStores = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-checkbox";
+    private static final String mainMenu = UIXpaths.ADMIN_MENU;
+    private static final String subMenu = UIXpaths.CODESTORE_SUBMENU;
     @BeforeClass
     public void setup() {
         crudTestingUtil = new CrudTestingUtil(driver, "CodeStore", showDeletedChecBoxXpath, gridXpath, createButtonXpath, showOnlyDeletableCodeStores);
@@ -33,51 +35,58 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void codestoreCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CODESTORE_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
     }
 
     @Test
     public void codestoreReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CODESTORE_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.readTest();
     }
 
     @Test
     public void codestoreDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CODESTORE_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
     }
 
     @Test
     public void codestoreUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CODESTORE_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest();
     }
 
     @Test
     public void codestoreRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CODESTORE_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.restoreTest();
     }
 
     @Test
     public void codestorePermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CODESTORE_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
     }
 
     @Test
     public void extraFilterInvalidValue() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.CODESTORE_SUBMENU);
+        navigateMenu(mainMenu, subMenu);
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+    }
+
+    @Test
+    public void createFailedTest() throws JsonProcessingException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.createFailedTest(port, spyCodeStoreApiClient, mainMenu, subMenu);
     }
 }

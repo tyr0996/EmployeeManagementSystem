@@ -1,22 +1,20 @@
 package hu.martin.ems;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.martin.ems.core.config.DataProvider;
-import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.crudFE.CurrencyCrudTest;
+import hu.martin.ems.model.CodeStore;
+import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.repository.CurrencyRepository;
 import hu.martin.ems.service.CurrencyService;
-import lombok.Getter;
-import org.atmosphere.config.service.Get;
-import org.mockito.*;
+import hu.martin.ems.vaadin.api.*;
+import hu.martin.ems.vaadin.component.ComponentManager;
+import org.mockito.Spy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.boot.test.mock.mockito.SpyBeans;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -27,6 +25,8 @@ import java.util.HashMap;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class BaseCrudTest extends AbstractTestNGSpringContextTests {
+
+    //TODO megcsinálni, hogy ha módosítottunk egy elemet vagy valamit, akkor ellenőrizzük a létrehozás gombot! fontos, hogy üres legyen a form és létrehozás legyen a címben!
 
     protected static WebDriver driver;
 
@@ -56,15 +56,78 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     @SpyBean
     protected static CurrencyService injectedCurrencyService;
 
+    @SpyBean
+    @Autowired
+    protected static ComponentManager spyComponentManager;
+
+    @SpyBean
+    @Autowired
+    protected static EmployeeApiClient spyEmployeeApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static AddressApiClient spyAddressApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static AdminToolsApiClient spyAdminToolsApiClientClient;
+
+    @SpyBean
+    @Autowired
+    protected static CityApiClient spyCityApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static CodeStoreApiClient spyCodeStoreApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static CurrencyApi spyCurrencyApiClient; // TODO rename to CurrencyApiClient the class
+
+    @SpyBean
+    @Autowired
+    protected static CustomerApiClient spyCustomerApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static EmailSendingApi spyEmailSendingApi;
+
+    @SpyBean
+    @Autowired
+    protected static OrderApiClient spyOrderApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static OrderElementApiClient spyOrderElementApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static PermissionApiClient spyPermissionApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static ProductApiClient spyProductApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static RoleApiClient spyRoleApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static RoleXPermissionApiClient spyRoleXPermissionApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static SupplierApiClient spySupplierApiClient;
+
+    @SpyBean
+    @Autowired
+    protected static UserApiClient spyUserApiClient;
+
+
     protected static String fetchingCurrencyApiUrl;
 
     protected static String baseCurrency;
-
-//    @Autowired
-//    @SpyBean
-//    protected static ObjectMapper om;
-
-
 
 
     @BeforeSuite(alwaysRun = true)

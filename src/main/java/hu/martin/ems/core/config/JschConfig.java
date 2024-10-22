@@ -31,7 +31,6 @@ public class JschConfig {
     @Value("${sftp.port}")
     private int sftpPort;
 
-    @Getter
     @Value("${sftp.user.tester}")
     private String sftpUser;
 
