@@ -7,14 +7,22 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
+import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.model.Address;
+import hu.martin.ems.model.Supplier;
+import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
 
-import static hu.martin.ems.base.GridTestingUtil.navigateMenu;
+import static hu.martin.ems.base.GridTestingUtil.*;
+import static hu.martin.ems.base.GridTestingUtil.countHiddenGridDataRows;
+import static org.testng.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class SupplierCrudTest extends BaseCrudTest {
@@ -91,4 +99,42 @@ public class SupplierCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         crudTestingUtil.createFailedTest(port, spySupplierApiClient, mainMenu, subMenu);
     }
+
+    @Test
+    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.createNotExpectedStatusCodeSave(spySupplierApiClient, Supplier.class);
+    }
+
+    @Test
+    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.updateNotExpectedStatusCode(spySupplierApiClient, Supplier.class);
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingAllSuppliers() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spySupplierApiClient).findAll();
+        Mockito.doReturn(new EmsResponse(522, "")).when(spySupplierApiClient).findAllWithDeleted();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(100);
+        checkNotificationText("Error happened while getting suppliers");
+        assertEquals(0, countVisibleGridDataRows(gridXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingAddresses() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyAddressApiClient).findAll();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+        failedFieldData.put("Address", "Error happened while getting addresses");
+
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+    }
+
 }

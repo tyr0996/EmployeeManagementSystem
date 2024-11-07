@@ -6,14 +6,21 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
+import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.model.Address;
+import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
 
-import static hu.martin.ems.base.GridTestingUtil.navigateMenu;
+import static hu.martin.ems.base.GridTestingUtil.*;
+import static hu.martin.ems.base.GridTestingUtil.countHiddenGridDataRows;
+import static org.testng.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class AddressTest extends BaseCrudTest {
@@ -87,5 +94,64 @@ public class AddressTest extends BaseCrudTest {
     public void createFailedTest() throws JsonProcessingException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         crudTestingUtil.createFailedTest(port, spyAddressApiClient, mainMenu, subMenu);
+    }
+
+    @Test
+    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.createNotExpectedStatusCodeSave(spyAddressApiClient, Address.class);
+    }
+
+    @Test
+    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.updateNotExpectedStatusCode(spyAddressApiClient, Address.class);
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingAllAddress() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyAddressApiClient).findAll();
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyAddressApiClient).findAllWithDeleted();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(100);
+        checkNotificationText("Error happened while getting addresses");
+        assertEquals(0, countVisibleGridDataRows(gridXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingStreetTypes() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "Error happened while getting street types")).when(spyCodeStoreApiClient).getChildren(StaticDatas.STREET_TYPES_CODESTORE_ID);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+        failedFieldData.put("Street type", "Error happened while getting street types");
+
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingCities() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "Error happened while getting cities")).when(spyCityApiClient).findAll();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+        failedFieldData.put("City", "Error happened while getting cities");
+
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingCountries() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "Error happened while getting countries")).when(spyCodeStoreApiClient).getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+        failedFieldData.put("Country code", "Error happened while getting countries");
+
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
     }
 }

@@ -2,6 +2,7 @@ package hu.martin.ems.vaadin.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Role;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +13,7 @@ public class RoleApiClient extends EmsApiClient<Role> {
         super(Role.class);
     }
 
-    public Role findByName(String name) {
+    public EmsResponse findByName(String name) {
         initWebClient();
         String response = webClient.get()
                 .uri("findByName?name={name}", name)
@@ -20,9 +21,9 @@ public class RoleApiClient extends EmsApiClient<Role> {
                 .bodyToMono(String.class)
                 .block();
         try {
-            return convertResponseToEntity(response);
+            return new EmsResponse(200, convertResponseToEntity(response), "");
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return new EmsResponse(500, "JsonProcessingException");
         }
     }
 }

@@ -1,27 +1,35 @@
 package hu.martin.ems.crudFE;
 
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.RandomGenerator;
+import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.component.Order.OrderCreate;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.awt.*;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -32,35 +40,54 @@ public class LoginTests extends BaseCrudTest {
     private static String usernameFieldXpath = "/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field/input";
     private static String passwordFieldXpath = "/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[1]/input";
 
-
-
     @BeforeClass
     public void setup() {
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
         GridTestingUtil.driver = driver;
     }
 
-    @Test
-    public void registrationSuccessButNoPermissionTest() throws InterruptedException {
+    private void register(String username, String password, String passwordAgain, String notification) throws InterruptedException {
+        register(username, password, passwordAgain, notification, true);
+    }
+
+    private void register(String username, String password, String passwordAgain) throws InterruptedException {
+        register(username, password, passwordAgain, "Registration successful!", true);
+    }
+
+    private void register(String username, String password, String passwordAgain, String notification, Boolean requireOpening) throws InterruptedException {
         driver.get("http://localhost:" + port + "/login");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
 
         WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper/vaadin-button[3]")));
         registerButton.click();
+        Thread.sleep(100);
 
-        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath)));
-        WebElement passwordField = findClickableElementWithXpath(passwordFieldXpath);
-        WebElement passwordAgainField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input");
-        WebElement register = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        if(requireOpening){
+            WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath)));
+            WebElement passwordField = findClickableElementWithXpath(passwordFieldXpath);
+            WebElement passwordAgainField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input");
+            WebElement register = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
+            usernameField.sendKeys(username);
+            passwordField.sendKeys(password);
+            passwordAgainField.sendKeys(passwordAgain);
+
+            register.click();
+        } else{
+            assertThrows(TimeoutException.class, () -> wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath))));
+            assertEquals(null, findClickableElementWithXpath(passwordFieldXpath));
+            assertEquals(null, findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input"));
+            assertEquals(null, findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button"));
+        }
+
+        checkNotificationContainsTexts(notification);
+    }
+
+    @Test
+    public void registrationSuccessButNoPermissionTest() throws InterruptedException {
         String userName = RandomGenerator.generateRandomOnlyLetterString();
         String password = RandomGenerator.generateRandomOnlyLetterString();
-        usernameField.sendKeys(userName);
-        passwordField.sendKeys(password);
-        passwordAgainField.sendKeys(password);
-
-        register.click();
-        checkNotificationContainsTexts("Registration successful!");
+        register(userName, password, password);
 
         Thread.sleep(200);
         TestingUtils.loginWith(driver, port, userName, password);
@@ -72,26 +99,12 @@ public class LoginTests extends BaseCrudTest {
 
     @Test
     public void registrationFailedPasswordDoesNotMatchTest() throws InterruptedException {
-        driver.get("http://localhost:" + port + "/login");
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
-
-        WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper/vaadin-button[3]")));
-        registerButton.click();
-
-        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath)));
-        WebElement passwordField = findClickableElementWithXpath(passwordFieldXpath);
-        WebElement passwordAgainField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input");
-        WebElement register = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
         String userName = RandomGenerator.generateRandomOnlyLetterString();
         String password = RandomGenerator.generateRandomOnlyLetterString();
         String otherPassword = RandomGenerator.generateRandomOnlyLetterString();
-        usernameField.sendKeys(userName);
-        passwordField.sendKeys(password);
-        passwordAgainField.sendKeys(otherPassword);
 
-        register.click();
-        checkNotificationContainsTexts("The passwords doesn't match!");
+        register(userName, password, otherPassword, "The passwords doesn't match!");
 
         Thread.sleep(200);
         TestingUtils.loginWith(driver, port, userName, password);
@@ -103,24 +116,8 @@ public class LoginTests extends BaseCrudTest {
 
     @Test
     public void registrationUsernameAllreadyExists() throws InterruptedException {
-        driver.get("http://localhost:" + port + "/login");
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
-
-        WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper/vaadin-button[3]")));
-        registerButton.click();
-
-        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath)));
-        WebElement passwordField = findClickableElementWithXpath(passwordFieldXpath);
-        WebElement passwordAgainField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input");
-        WebElement register = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
-
         String password = RandomGenerator.generateRandomOnlyLetterString();
-        usernameField.sendKeys("admin");
-        passwordField.sendKeys(password);
-        passwordAgainField.sendKeys(password);
-
-        register.click();
-        checkNotificationContainsTexts("Username already exists!");
+        register("admin", password, password, "Username already exists!");
 
         Thread.sleep(200);
         TestingUtils.loginWith(driver, port, "admin", password);
@@ -222,7 +219,7 @@ public class LoginTests extends BaseCrudTest {
 
     @Test
     public void pageLoadFailedIllegalAccessException() throws IllegalAccessException, InterruptedException {
-        Mockito.doThrow(IllegalAccessException.class).when(spyComponentManager).setEditObjectFieldToNull(Mockito.any());
+        Mockito.doThrow(IllegalAccessException.class).when(spyComponentManager).setEditObjectFieldToNull(any());
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_CREATE_SUBMENU);
         Thread.sleep(100);
@@ -261,6 +258,47 @@ public class LoginTests extends BaseCrudTest {
         adminMenu.click();
         assertEquals(true, adminSubMenusVisible());
         assertEquals(true, ordersSubMenusVisible());
+    }
+
+    @Test
+    public void invalidStatusCodeWhenGettingAllRoles() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findByName(any(String.class));
+        String username = RandomGenerator.generateRandomOnlyLetterString();
+        String password = RandomGenerator.generateRandomOnlyLetterString();
+        register(username, password, password, "Error happened while getting roles", false);
+        Thread.sleep(10);
+        TestingUtils.loginWith(driver, port, username, password);
+        Thread.sleep(10);
+        assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
+        Thread.sleep(300);
+        checkLoginErrorMessage("Incorrect username or password",
+                "Check that you have entered the correct username and password and try again.");
+    }
+
+    @Test
+    public void invalidStatusCodeWhenGettingUserByUsernameNewRegistrationTheRegistrationWasSuccess() throws InterruptedException {
+        Mockito.doCallRealMethod().doReturn(new EmsResponse(522, "")).when(spyUserApiClient).findByUsername(any(String.class));
+        String username = RandomGenerator.generateRandomOnlyLetterString();
+        String password = RandomGenerator.generateRandomOnlyLetterString();
+        register(username, password, password);
+        Thread.sleep(10);
+        TestingUtils.loginWith(driver, port, username, password);
+        Thread.sleep(10);
+        assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
+        Thread.sleep(300);
+        checkLoginErrorMessage("Incorrect username or password",
+                "Check that you have entered the correct username and password and try again.");
+    }
+
+    @Test
+    public void invalidStatusCodeWhenGettingUserByUsernameNewRegistrationExistingUser() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyUserApiClient).findByUsername(any(String.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        Thread.sleep(10);
+        assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
+        Thread.sleep(300);
+        checkLoginErrorMessage("Incorrect username or password",
+                "Check that you have entered the correct username and password and try again.");
     }
 
     private boolean adminSubMenusVisible(){

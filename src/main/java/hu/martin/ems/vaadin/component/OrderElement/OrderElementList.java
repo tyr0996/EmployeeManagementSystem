@@ -26,12 +26,15 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -76,6 +79,11 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     private static String taxKeyFilterText = "";
     private static String unitFilterText = "";
     private static String unitNetPriceFilterText = "";
+    List<OrderElement> orderElementList;
+    List<Product> productList;
+    List<Customer> customerList;
+    List<Supplier> supplierList;
+    Logger logger = LoggerFactory.getLogger(OrderElement.class);
 
     @Autowired
     public OrderElementList(PaginationSetting paginationSetting) {
@@ -83,9 +91,14 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         OrderElementVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(OrderElementVO.class);
-        List<OrderElement> orderElements = orderElementApi.findAll();
-        orderElementVOS = orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().toList());
+        setupOrderElements();
+        if(orderElementList == null){
+            Notification.show("Error happened while getting order elements")
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            orderElementList = new ArrayList<>();
+        }
+
+        updateGridItems();
 
         grossPriceColumn = grid.addColumn(v -> v.grossPrice);
         netPriceColumn = grid.addColumn(v -> v.netPrice);
@@ -120,6 +133,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
                 this.orderElementApi.restore(orderElement.original);
                 Notification.show("OrderElement restored: " + orderElement.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupOrderElements();
                 updateGridItems();
             });
 
@@ -127,6 +141,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
                 this.orderElementApi.delete(orderElement.original);
                 Notification.show("OrderElement deleted: " + orderElement.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupOrderElements();
                 updateGridItems();
             });
 
@@ -134,6 +149,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
                 this.orderElementApi.permanentlyDelete(orderElement.original.getId());
                 Notification.show("OrderElement permanently deleted: " + orderElement.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupOrderElements();
                 updateGridItems();
             });
 
@@ -160,7 +176,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             showDeleted = event.getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             OrderElementVO.showDeletedCheckboxFilter.replace("deleted", newValue);
-
+            setupOrderElements();
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -169,6 +185,19 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         hl.setAlignSelf(Alignment.CENTER, create);
 
         add(hl, grid);
+    }
+
+    private void setupOrderElements() {
+        EmsResponse response = orderElementApi.findAllWithDeleted();
+        switch (response.getCode()){
+            case 200:
+                orderElementList = (List<OrderElement>) response.getResponseData();
+                break;
+            default:
+                orderElementList = null;
+                logger.error("OrderElement findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
     }
 
     private Stream<OrderElementVO> getFilteredStream() {
@@ -294,42 +323,69 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     }
 
     private void updateGridItems() {
-        List<OrderElement> orderElements = orderElementApi.findAllWithDeleted();
-        orderElementVOS = orderElements.stream().map(OrderElementVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        if(orderElementList == null){
+            Notification.show("Getting order elements failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+        else{
+            orderElementVOS = orderElementList.stream().map(OrderElementVO::new).collect(Collectors.toList());
+            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        }
     }
 
     public Dialog getSaveOrUpdateDialog(OrderElement entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " order element");
         FormLayout formLayout = new FormLayout();
 
+        Button saveButton = new Button("Save");
+
+        setupProducts();
         ComboBox<Product> products = new ComboBox<>("Product");
         ComboBox.ItemFilter<Product> productFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        products.setItems(productFilter, productApi.findAll());
-        products.setItemLabelGenerator(Product::getName);
-//
-//        ComboBox<Order> orders = new ComboBox<>("Order");
-//        ComboBox.ItemFilter<Order> orderFilter = (element, filterString) ->
-//                element.getName().toLowerCase().contains(filterString.toLowerCase());
-//        orders.setItems(orderFilter, orderApi.findAll());
-//        orders.setItemLabelGenerator(Order::getName);
+        if(productList == null){
+            products.setInvalid(true);
+            products.setEnabled(false);
+            products.setErrorMessage("Error happened while getting products");
+            saveButton.setEnabled(false);
+        }
+        else {
+            products.setItems(productFilter, productList);
+            products.setItemLabelGenerator(Product::getName);
+        }
 
+        setupCustomers();
         ComboBox<Customer> customer = new ComboBox<>("Customer");
         ComboBox.ItemFilter<Customer> customerFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        customer.setItems(customerFilter, customerApi.findAll());
-        customer.setItemLabelGenerator(Customer::getName);
 
+        if(customerList == null){
+            customer.setInvalid(true);
+            customer.setEnabled(false);
+            customer.setErrorMessage("Error happened while getting customers");
+            saveButton.setEnabled(false);
+        }
+        else{
+            customer.setItems(customerFilter, customerList);
+            customer.setItemLabelGenerator(Customer::getName);
+        }
+
+        setupSuppliers();
         ComboBox<Supplier> supplier = new ComboBox<>("Supplier");
         ComboBox.ItemFilter<Supplier> supplierFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        supplier.setItems(supplierFilter, supplierApi.findAll());
-        supplier.setItemLabelGenerator(Supplier::getName);
+        if(supplierList == null){
+            supplier.setInvalid(true);
+            supplier.setEnabled(false);
+            supplier.setErrorMessage("Error happened while getting suppliers");
+            saveButton.setEnabled(false);
+        }
+        else{
+            supplier.setItems(supplierFilter, supplierList);
+            supplier.setItemLabelGenerator(Supplier::getName);
+        }
 
         NumberField unitField = new NumberField("Unit");
 
-        Button saveButton = new Button("Save");
 
         if (entity != null) {
             products.setValue(entity.getProduct());
@@ -352,24 +408,73 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             orderElement.setDeleted(0L);
             orderElement.setName(products.getValue().getName());
             orderElement.setTaxPrice(orderElement.getGrossPrice().doubleValue() - orderElement.getNetPrice().doubleValue());
+            EmsResponse response = null;
             if(entity != null){
-                orderElementApi.update(orderElement);
+                response = orderElementApi.update(orderElement);
             }
             else{
-                orderElementApi.save(orderElement);
+                response = orderElementApi.save(orderElement);
+            }
+            switch (response.getCode()){
+                case 200:
+                    Notification.show("OrderElement " + (entity == null ? "saved: " : "updated: ") + orderElement)
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    break; //TODO
+                default: Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR); break; //TODO
             }
 
-            Notification.show("OrderElement " + (entity == null ? "saved: " : "updated: ") + orderElement)
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            products.clear();
-            unitField.clear();
+
+            products.setValue(null);
+            unitField.setValue(null);
             createDialog.close();
+            setupOrderElements();
             updateGridItems();
         });
 
         formLayout.add(products, unitField, supplier, customer, saveButton);
         createDialog.add(formLayout);
         return createDialog;
+    }
+
+    private void setupSuppliers() {
+        EmsResponse response = supplierApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                supplierList = (List<Supplier>) response.getResponseData();
+                break;
+            default:
+                supplierList = null;
+                logger.error("Supplier findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                Notification.show("Error happened while getting suppliers")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                break;
+        }
+    }
+
+    private void setupCustomers() {
+        EmsResponse response = customerApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                customerList = (List<Customer>) response.getResponseData();
+                break;
+            default:
+                customerList = null;
+                logger.error("Customers findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
+    private void setupProducts() {
+        EmsResponse response = productApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                productList = (List<Product>) response.getResponseData();
+                break;
+            default:
+                productList = null;
+                logger.error("Product findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
     }
 
     @NeedCleanCoding

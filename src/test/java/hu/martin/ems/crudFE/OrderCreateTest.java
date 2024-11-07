@@ -3,25 +3,24 @@ package hu.martin.ems.crudFE;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
+import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
-import hu.martin.ems.model.Employee;
-import hu.martin.ems.model.Order;
-import org.checkerframework.checker.units.qual.C;
+import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.model.*;
 import org.mockito.Mockito;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class OrderCreateTest extends BaseCrudTest {
@@ -42,16 +41,18 @@ public class OrderCreateTest extends BaseCrudTest {
 
     public static final String createOrderGridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
 
+
     private static final String mainMenu = UIXpaths.ORDERS_MENU;
     private static final String subMenu = UIXpaths.ORDER_CREATE_SUBMENU;
 
+
     @BeforeClass
-    public void setup() {
-        setupTest();
+    public static void setupTest(){
+        init();
     }
 
-    public static void setupTest(){
-        crudTestingUtil = new CrudTestingUtil(driver, "Order", null, null, null);
+    private static void init(){
+        crudTestingUtil = new CrudTestingUtil(driver, "Order", null, createOrderGridXpath, null);
         orderElementCrudTestingUtil = new CrudTestingUtil(driver, "OrderElement", orderElementShowDeletedXpath, orderElementGridXpath, orderElementCreateButtonXpath);
         GridTestingUtil.driver = driver;
     }
@@ -80,6 +81,7 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     public static void createOrder(String notificationText, Boolean requiredSuccess) throws InterruptedException {
+        init();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
         Thread.sleep(100);
@@ -147,5 +149,152 @@ public class OrderCreateTest extends BaseCrudTest {
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(10);
         createOrder(Order.class.getSimpleName() + " saving failed", false);
+    }
+
+    @Test
+    public void createFailedTestOrderElement() throws JsonProcessingException, InterruptedException {
+
+        Mockito.doCallRealMethod()
+                .doCallRealMethod()
+                .doCallRealMethod()
+                .doThrow(JsonProcessingException.class).when(spyOrderElementApiClient).writeValueAsString(any(OrderElement.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(10);
+        createOrder("Order element saving failed", false);
+    }
+
+
+    @Test
+    public void apiSendInvalidStatusCodeWhenSaveOrder() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyOrderApiClient).save(any(Order.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        createOrder("Not expected status-code in saving", false);
+    }
+
+    @Test
+    public void apiSendInvalidStatusCodeWhenSaveOrderElement() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyOrderElementApiClient).update(any(OrderElement.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        createOrder("Not expected status-code in saving order element", false);
+    }
+
+    @Test
+    public void apiSendInvalidStatusCodeWhenCreateOrder() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyOrderElementApiClient).update(any(OrderElement.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        createOrder("Not expected status-code in saving order element", false);
+    }
+
+    @Test
+    public void gettingCustomersFailedTest() {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyCustomerApiClient).findAll();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        checkField(customerComboBoxXpath, "Error happened while getting customers");
+        checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    public void getOrderElementsByCustomerFailedTest() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderElementApiClient).getByCustomer(any(Customer.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        selectRandomFromComboBox(findVisibleElementWithXpath(customerComboBoxXpath));
+        Thread.sleep(100);
+        checkNotificationText("Error happened while getting order elements to the customer");
+        assertEquals(0, countVisibleGridDataRows(createOrderGridXpath));
+    }
+
+    @Test
+    public void getPendingCodeStoreFailedTest() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getAllByName("Pending");
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        createOrder("Error happened while getting \"Pending\" status", false);
+    }
+
+    @Test
+    public void getPaymentTypesFailedTest(){
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        checkField(paymentMethodComboBoxXpath, "Error happened while getting payment methods");
+        checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    public void getCurrencyTypesFailedTest(){
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        checkField(currencyComboBoxXpath, "Error happened while getting currencies");
+        checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    public void updateOrder() throws InterruptedException {
+        updateOrder(null, true);
+    }
+
+    public static void updateOrder(String notificationText, Boolean requiredSuccess) throws InterruptedException {
+        init();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        Thread.sleep(100);
+        int originalOrderNumber = countVisibleGridDataRows(createOrderGridXpath);
+        if(originalOrderNumber == 0){
+            createOrder();
+        }
+
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        Thread.sleep(100);
+        ElementLocation randomLocation = getRandomLocationFromGrid(createOrderGridXpath);
+        goToPageInPaginatedGrid(createOrderGridXpath, randomLocation.getPageNumber());
+        String[] originalData = getDataFromRowLocation(createOrderGridXpath, randomLocation);
+        applyFilter(createOrderGridXpath, originalData);
+        assertEquals(1, countVisibleGridDataRows(createOrderGridXpath));
+        resetFilter(createOrderGridXpath);
+
+        getModifyButton(createOrderGridXpath, randomLocation.getRowIndex()).click();
+
+        Thread.sleep(200);
+        findVisibleElementWithXpath(createOrderGridXpath);
+
+        selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath, 1);
+        selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
+        selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
+
+        findClickableElementWithXpath(orderCreateOrderButtonXpath).click();
+        if(notificationText == null){
+            checkNotificationContainsTexts("Order updated:");
+        }
+        else{
+            checkNotificationText(notificationText);
+        }
+
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        Thread.sleep(100);
+        if(requiredSuccess){
+            assertEquals(originalOrderNumber, countVisibleGridDataRows(createOrderGridXpath));
+            applyFilter(createOrderGridXpath, originalData);
+            assertEquals(0, countVisibleGridDataRows(createOrderGridXpath));
+            resetFilter(createOrderGridXpath);
+        }
+        else{
+            assertEquals(originalOrderNumber, countVisibleGridDataRows(createOrderGridXpath));
+            applyFilter(createOrderGridXpath, originalData);
+            assertEquals(1, countVisibleGridDataRows(createOrderGridXpath));
+            resetFilter(createOrderGridXpath);
+        }
+    }
+
+    private void checkField(String fieldXpath, String errorMessage){
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(fieldXpath)), false);
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(orderCreateOrderButtonXpath)), false);
+        assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(fieldXpath)), errorMessage);
     }
 }

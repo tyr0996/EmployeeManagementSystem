@@ -42,6 +42,7 @@ public class RoleXPermissionService extends BaseService<RoleXPermission, RoleXPe
         this.repo.removeAllRolesFrom(p.id);
     }
 
+
     public List<RoleXPermission> findAlRoleXPermissionByRole(Long roleId){
         return this.repo.findAlRoleXPermissionByRole(roleId);
     }

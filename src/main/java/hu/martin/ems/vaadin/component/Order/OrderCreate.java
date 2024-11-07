@@ -17,10 +17,7 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.CodeStore;
-import hu.martin.ems.model.Customer;
-import hu.martin.ems.model.Order;
-import hu.martin.ems.model.OrderElement;
+import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.api.CustomerApiClient;
@@ -30,11 +27,15 @@ import hu.martin.ems.vaadin.component.BaseVO;
 import com.vaadin.flow.component.UI;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import org.checkerframework.checker.units.qual.C;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -59,10 +60,18 @@ public class OrderCreate extends VerticalLayout {
     ComboBox<CodeStore> paymentTypes;
     ComboBox<CodeStore> currencies;
 
+    private Logger logger = LoggerFactory.getLogger(Order.class);
+
+    List<Customer> customerList;
+    List<CodeStore> paymentTypeList;
+    List<CodeStore> currencyList;
+
     //The autowired here is need because the MainView addmenu function
     @Autowired
     public OrderCreate(PaginationSetting paginationSetting) {
         FormLayout formLayout = new FormLayout();
+
+        Button saveButton = new Button("Create order");
 
         grid = new PaginatedGrid<>(OrderElementVO.class);
         grid.setItems(new ArrayList<>());
@@ -73,12 +82,21 @@ public class OrderCreate extends VerticalLayout {
         ComboBox<Customer> customers = new ComboBox<>("Customer");
         ComboBox.ItemFilter<Customer> customerFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        customers.setItems(customerFilter, customerApi.findAll());
-        customers.setItemLabelGenerator(Customer::getName);
+        setupCustomers();
+        if(customerList == null){
+            customers.setEnabled(false);
+            customers.setInvalid(true);
+            customers.setErrorMessage("Error happened while getting customers");
+            saveButton.setEnabled(false);
+        }
+        else{
+            customers.setItems(customerFilter, customerList);
+            customers.setItemLabelGenerator(Customer::getName);
+        }
 
         customers.addValueChangeListener(event -> {
             if (event.getValue() != null) {
-                orderElementVOS = orderElementApi.getByCustomer(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList());
+                orderElementVOS = getOrderElementsByCustomer(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList());
             } else {
                 orderElementVOS = new ArrayList<>();
             }
@@ -96,7 +114,7 @@ public class OrderCreate extends VerticalLayout {
             }
             orderElementVOS = customers.getValue() == null ?
                     new ArrayList<>() :
-                    orderElementApi.getByCustomer(customers.getValue()).stream().map(OrderElementVO::new).toList();
+                    getOrderElementsByCustomer(customers.getValue()).stream().map(OrderElementVO::new).toList();
             if(editObject != null){
                 grid.setSelectionMode(Grid.SelectionMode.MULTI);
             }
@@ -106,34 +124,72 @@ public class OrderCreate extends VerticalLayout {
         hl.add(showPreviouslyOrderedElements);
         hl.setAlignSelf(Alignment.CENTER, showPreviouslyOrderedElements);
 
-
+        setupPaymentTypes();
         paymentTypes = new ComboBox<>("Payment type");
         ComboBox.ItemFilter<CodeStore> paymentTypeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        paymentTypes.setItems(paymentTypeFilter, codeStoreApi.getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID));
-        paymentTypes.setItemLabelGenerator(CodeStore::getName);
+        if(paymentTypeList == null){
+            paymentTypes.setErrorMessage("Error happened while getting payment methods");
+            paymentTypes.setEnabled(false);
+            paymentTypes.setInvalid(true);
+            saveButton.setEnabled(false);
+        }
+        else{
+            paymentTypes.setItems(paymentTypeFilter, paymentTypeList);
+            paymentTypes.setItemLabelGenerator(CodeStore::getName);
+        }
 
+        setupCurrencies();
         currencies = new ComboBox<>("Currency");
         ComboBox.ItemFilter<CodeStore> currencyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        currencies.setItems(currencyFilter, codeStoreApi.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID));
-        currencies.setItemLabelGenerator(CodeStore::getName);
+        if(currencyList == null){
+            currencies.setEnabled(false);
+            currencies.setInvalid(true);
+            currencies.setErrorMessage("Error happened while getting currencies");
+            saveButton.setEnabled(false);
+        }
+        else{
+            currencies.setItems(currencyFilter, currencyList);
+            currencies.setItemLabelGenerator(CodeStore::getName);
+        }
+
 
         if(editObject != null){
             customers.setValue(editObject.getCustomer());
             showPreviouslyOrderedElements.setValue(true);
             paymentTypes.setValue(editObject.getPaymentType());
             currencies.setValue(editObject.getCurrency());
-            orderElementVOS = orderElementApi.getByCustomer(editObject.getCustomer()).stream().map(OrderElementVO::new).collect(Collectors.toList());
+            orderElementVOS = getOrderElementsByCustomer(editObject.getCustomer()).stream().map(OrderElementVO::new).collect(Collectors.toList());
             updateGridItems();
             grid.setSelectionMode(Grid.SelectionMode.MULTI);
         }
 
-        Button saveButton = new Button("Create order");
 
         saveButton.addClickListener(event -> {
+            CodeStore pending = getPendingCodeStore();
+            if(pending == null){
+                Notification.show("Error happened while getting \"Pending\" status").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return;
+            }
+            List<OrderElement> originalOrderElements = null;
+            Order originalOrder = null;
+            if(editObject != null){
+                originalOrderElements = orderApi.getOrderElements(editObject.getId());
+                originalOrder = new Order();
+                originalOrder.setTimeOfOrder(editObject.getTimeOfOrder());
+                originalOrder.setState(editObject.getState());
+                originalOrder.setCurrency(editObject.getCurrency());
+                originalOrder.setCustomer(editObject.getCustomer());
+                originalOrder.setDeleted(editObject.getDeleted());
+                originalOrder.setSupplier(editObject.getSupplier());
+                originalOrder.setPaymentType(editObject.getPaymentType());
+                originalOrder.setName(editObject.getName());
+                originalOrder.id = editObject.getId();
+            }
+
             Order order = Objects.requireNonNullElseGet(editObject, Order::new);
-            order.setState(codeStoreApi.getAllByName("Pending").get(0));
+            order.setState(pending);
             order.setTimeOfOrder(LocalDateTime.now());
             order.setCustomer(customers.getValue());
             order.setPaymentType(paymentTypes.getValue());
@@ -147,18 +203,55 @@ public class OrderCreate extends VerticalLayout {
                 response =  orderApi.save(order);
             }
             switch (response.getCode()){
-                case 200: break;
-                case 500: Notification.show("Order saving failed").addThemeVariants(NotificationVariant.LUMO_ERROR); break;
+                case 200:
+                    order = (Order) response.getResponseData();
+                    break;
+                case 500:
+                    Notification.show("Order saving failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    updateGridItems();
+                    return;
+                default:
+                    Notification.show("Not expected status-code in saving").addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    updateGridItems();
+                    return;
             }
+            List<OrderElement> savedOrderElements = new ArrayList<>();
             for(OrderElementVO oeVo : grid.getSelectedItems()){
                 OrderElement oe = oeVo.getOriginal();
-                oe.setOrder(order);
-                orderElementApi.save(oe);
+                oe.setOrder((Order)response.getResponseData());
+                EmsResponse responseOrderElement = orderElementApi.update(oe);
+                switch (responseOrderElement.getCode()){
+                    case 200:
+                        savedOrderElements.add((OrderElement) responseOrderElement.getResponseData());
+                        break;
+                    case 500:
+                        Notification.show("Order element " + (editObject == null ? "saving" : "modifying") + " failed");
+                        if(editObject != null){
+                            undoUpdate(originalOrder, originalOrderElements);
+                        }
+                        else {
+                            undoSave(order);
+                        }
+                        updateGridItems();
+                        return;
+                    default:
+                        Notification.show("Not expected status-code in saving order element").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        if(editObject != null){
+                            undoUpdate(originalOrder, originalOrderElements);
+                        }
+                        else {
+                            undoSave(order);
+                        }
+                        updateGridItems();
+                        return;
+                }
             }
+
             Notification.show("Order " + (editObject == null ? "saved: " : "updated: ") + order)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            customers.clear();
-            paymentTypes.clear();
+
+            customers.setValue(customers.getEmptyValue());
+            paymentTypes.setValue(paymentTypes.getEmptyValue());
         });
 
         formLayout.add(customers);
@@ -168,9 +261,95 @@ public class OrderCreate extends VerticalLayout {
         add(formLayout, hl, grid, formLayout1);
     }
 
+    private void setupCustomers() {
+        EmsResponse response = customerApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                customerList = (List<Customer>) response.getResponseData();
+                break;
+            default:
+                customerList = null;
+                logger.error("Customer findAllError. [payment types] Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
+    private CodeStore getPendingCodeStore() {
+        EmsResponse response = codeStoreApi.getAllByName("Pending");
+        switch (response.getCode()){
+            case 200:
+                return ((List<CodeStore>) response.getResponseData()).get(0);
+            default:
+                logger.error("CodeStore getChildrenError. [status] Code: {}, Description: {}", response.getCode(), response.getDescription());
+                return null;
+        }
+    }
+
+    private List<OrderElement> getOrderElementsByCustomer(Customer customer) {
+        EmsResponse response = orderElementApi.getByCustomer(customer);
+        switch (response.getCode()){
+            case 200:
+                return (List<OrderElement>) response.getResponseData();
+            default:
+                logger.error("OrderElement getOrderElementsByCustomerError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                Notification.show("Error happened while getting order elements to the customer")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return new ArrayList<>();
+        }
+
+    }
+
+    private void setupPaymentTypes() {
+        EmsResponse response = codeStoreApi.getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID);
+        switch (response.getCode()){
+            case 200:
+                paymentTypeList = (List<CodeStore>) response.getResponseData();
+                break;
+            default:
+                paymentTypeList = null;
+                logger.error("CodeStore getChildrenError. [payment types] Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
+    private void setupCurrencies() {
+        EmsResponse response = codeStoreApi.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
+        switch (response.getCode()){
+            case 200:
+                currencyList = (List<CodeStore>) response.getResponseData();
+                break;
+            default:
+                currencyList = null;
+                logger.error("CodeStore getChildrenError [currencies]. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
+    private void undoUpdate(Order originalOrder, List<OrderElement> originalOrderElements) {
+        orderApi.update(originalOrder);
+        orderApi.getOrderElements(originalOrder.getId()).forEach(v -> {
+            v.setOrder(null);
+            orderElementApi.update(v);
+        });
+        originalOrderElements.forEach(v -> orderElementApi.update(v));
+        logger.info("Undo order update successful");
+        updateGridItems();
+    }
+
+    private void undoSave(Order order){
+        List<OrderElement> orderElements = orderApi.getOrderElements(order.getId());
+        orderElements.forEach(v -> {
+            v.setOrder(null);
+            orderElementApi.update(v);
+        });
+        orderApi.forcePermanentlyDelete(order.getId());
+        logger.info("Undo order create successful");
+        updateGridItems();
+    }
+
     private Stream<OrderElementVO> getFilteredStream() {
         if(editObject != null){
-            orderElementVOS = orderElementApi.getByCustomer(editObject.getCustomer()).stream().map(OrderElementVO::new).collect(Collectors.toList());
+            orderElementVOS = getOrderElementsByCustomer(editObject.getCustomer()).stream().map(OrderElementVO::new).collect(Collectors.toList());
         }
 
         return orderElementVOS.stream().filter(orderElementVO ->

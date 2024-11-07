@@ -28,5 +28,6 @@ public class RoleXPermission extends BaseEntity {
     public RoleXPermission(Role r, Permission p) {
         this.role = r;
         this.permission = p;
+        this.setDeleted(r.getDeleted());
     }
 }

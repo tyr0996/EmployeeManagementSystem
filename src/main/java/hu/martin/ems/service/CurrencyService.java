@@ -1,5 +1,6 @@
 package hu.martin.ems.service;
 
+import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -58,10 +59,14 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
         if(curr != null){
             return new EmsResponse(200, curr, "");
         }
-        try{
+        try {
             LinkedHashMap<String, Object> response = restTemplate.getForObject(apiUrl + baseCurrency, LinkedHashMap.class);
+            LinkedHashMap<String, Object> rates = (LinkedHashMap<String, Object>) response.get("rates");
+            rates.forEach((k, v) -> {
+                rates.replace(k, Double.parseDouble(v.toString()));
+            });
             String fixedRates = response.get("rates").toString().replaceAll("\\b[A-Z]+\\b", "\"$0\"") //Belerakja idézőjelbe
-                                                                .replaceAll("=", ":");
+                    .replaceAll("=", ":");
             Currency currency = new Currency();
             currency.setBaseCurrency(codeStoreRepository.findByName(response.get("base").toString()));
             //CurrencyResponse cr = om.readValue(fixedRates, CurrencyResponse.class);
@@ -71,6 +76,8 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
             currency.setDeleted(0L);
             Object saved = this.repo.customSave(currency);
             return new EmsResponse(200, saved, "");
+        } catch (ClassCastException e){
+            return new EmsResponse(500, EmsResponse.Description.PARSING_CURRENCIES_FAILED);
         } catch (RestClientException e){
             return new EmsResponse(500, EmsResponse.Description.FETCHING_CURRENCIES_FAILED);
         }

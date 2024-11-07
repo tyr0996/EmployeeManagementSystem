@@ -6,12 +6,15 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 @NeedCleanCoding
 public class JacksonConfig {
     public JacksonConfig(){}
 
+    @Bean
+    @Primary
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());

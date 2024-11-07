@@ -8,7 +8,6 @@ import oshi.util.FileUtil;
 
 @Getter
 public abstract class AbstractDM {
-
     public static final String TEMPLATE_DIRECTORY = "src/main/resources/templates/";
 
     private byte[] template;

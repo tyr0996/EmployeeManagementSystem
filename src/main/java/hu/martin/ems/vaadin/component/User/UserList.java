@@ -29,6 +29,7 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
+import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.RoleApiClient;
@@ -74,6 +75,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
 
     List<User> users;
     List<UserVO> userVOS;
+    List<Role> roleList;
 
 
     private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
@@ -174,7 +176,9 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             UserVO.showDeletedCheckboxFilter.replace("deleted", newValue);
 
-            updateGridItems();
+            userVOS = users.stream().map(UserVO::new).collect(Collectors.toList());
+            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+
         });
 
         buttonsLayout = new HorizontalLayout();
@@ -219,17 +223,24 @@ public class UserList extends VerticalLayout implements Creatable<User> {
 
     private void createSaveOrUpdateForm(){
         this.createOrModifyForm.removeAll();
+        saveButton = new Button("Save");
         usernameField = new TextField("Username");
         passwordField = new PasswordField("Password");
         passwordAgainField = new PasswordField("Password again");
         roles = new ComboBox<>("Role");
         ComboBox.ItemFilter<Role> filterUser = (role, filterString) ->
                 role.getName().toLowerCase().contains(filterString.toLowerCase());
-        List<Role> savedRoles = roleApi.findAll();
-        roles.setItems(filterUser, savedRoles);
-        roles.setItemLabelGenerator(Role::getName);
-
-        saveButton = new Button("Save");
+        setupRoles();
+        if(roleList != null){
+            roles.setItems(filterUser, roleList);
+            roles.setItemLabelGenerator(Role::getName);
+        }
+        else{
+            roles.setEnabled(false);
+            roles.setInvalid(true);
+            saveButton.setEnabled(false);
+            roles.setErrorMessage("Error happened while getting roles");
+        }
 
         if (editableUser != null) {
             usernameField.setValue(editableUser.getUsername());
@@ -240,10 +251,23 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         createOrModifyForm.add(usernameField, passwordField, passwordAgainField, roles, saveButton);
     }
 
+    private void setupRoles() {
+        EmsResponse response = roleApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                roleList = (List<Role>) response.getResponseData();
+                break;
+            default:
+                roleList = null;
+                logger.error("Role findAll. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
     private EmsResponse saveUser(){
         User user = Objects.requireNonNullElseGet(editableUser, User::new);
-//        if(editableUser == null && userApi.userExists(usernameField.getValue()) != null){
-        if(userApi.userExists(usernameField.getValue()) != null){
+//        if((editableUser == null || ) && usernameCheck(usernameField.getValue())){
+        if(!usernameCheck(usernameField.getValue())){
             createOrModifyDialog.close();
             editableUser = null;
             return new EmsResponse(400, "Username already exists!");
@@ -276,6 +300,21 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             response = userApi.save(user);
         }
         return response;
+    }
+
+    private Boolean usernameCheck(String username){
+        EmsResponse response = userApi.userExists(username);
+        if(response.getResponseData() != null && editableUser != null) {
+            User u = (User) response.getResponseData();
+            return u.getId() == editableUser.getId();
+        }
+        else if(response.getResponseData() != null){
+            return false;
+        }
+        else if(editableUser != null){
+            return true;
+        }
+        return true;
     }
 
     private void setGridColumns(){
@@ -332,10 +371,27 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     }
 
     private void updateGridItems() {
-        users.clear();
-        this.users = userApi.findAllWithDeleted();
-        userVOS = users.stream().map(UserVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        setupUsers();
+        if(users != null){
+            userVOS = users.stream().map(UserVO::new).collect(Collectors.toList());
+            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        }
+        else{
+            Notification.show("Getting users failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
+    private void setupUsers(){
+        EmsResponse response = userApi.findAllWithDeleted();
+        switch (response.getCode()){
+            case 200:
+                users = (List<User>) response.getResponseData();
+                break;
+            default:
+                logger.error("User findAllWithDeleted error in UserList");
+                users = null;
+                break;
+        }
     }
 
     private Stream<UserVO> getFilteredStream() {

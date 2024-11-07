@@ -18,13 +18,18 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.JacksonConfig;
+import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.date.Date;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Currency;
+import hu.martin.ems.model.Permission;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CurrencyApi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.text.DecimalFormat;
@@ -43,7 +48,8 @@ public class CurrencyList extends VerticalLayout {
     private final CurrencyApi currencyApi = BeanProvider.getBean(CurrencyApi.class);
     private boolean showDeleted = false;
     private PaginatedGrid<CurrencyVO, String> grid;
-    private final ObjectMapper om = new JacksonConfig().objectMapper();
+
+    private ObjectMapper om = BeanProvider.getBean(ObjectMapper.class);
     private final PaginationSetting paginationSetting;
 
     List<Currency> currencies;
@@ -55,6 +61,7 @@ public class CurrencyList extends VerticalLayout {
     private static String valFilterText = "";
 
     private DatePicker datePicker;
+    Logger logger = LoggerFactory.getLogger(CurrencyList.class);
 
 
     @Autowired
@@ -95,15 +102,23 @@ public class CurrencyList extends VerticalLayout {
 
     public void updateGrid(Boolean fetchButtonClicked) {
         LocalDate date = datePicker.getValue();
-        Currency currency = currencyApi.findByDate(date);
+        Currency currency = getCurrencyByDate(date);
         Boolean needFetch = currency == null;
 
         if (needFetch) {
             if (date.isEqual(LocalDate.now())) {
                 EmsResponse response = currencyApi.fetchAndSaveRates();
                 switch (response.getCode()){
-                    case 200 : currency = om.convertValue(response.getResponseData(), new TypeReference<Currency>() {}); break;
-                    case 500 : Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR); return;
+                    case 200 :
+                        currency = om.convertValue(response.getResponseData(), new TypeReference<Currency>() {});
+                        break;
+                    case 500 :
+                        Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                    default:
+                        Notification.show("Not expected status-code in fetching currencies").addThemeVariants(NotificationVariant.LUMO_WARNING);
+                        logger.warn("Invalid status code in CurrencyList: {}", response.getCode());
+                        return;
                 }
             } else {
                 Notification.show("Exchange rates cannot be downloaded retroactively!")
@@ -128,9 +143,21 @@ public class CurrencyList extends VerticalLayout {
             }
             this.grid.setItems(curr);
         } catch (JsonProcessingException e) {
-            Notification.show("Currencies fetched successfully, but the currency server sent bad data").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            Notification.show(EmsResponse.Description.PARSING_CURRENCIES_FAILED).addThemeVariants(NotificationVariant.LUMO_ERROR);
             currencyApi.forcePermanentlyDelete(currency.getId());
-            System.out.println("Kiscica");
+        }
+    }
+
+    private Currency getCurrencyByDate(LocalDate date) {
+        EmsResponse response = currencyApi.findByDate(date);
+        switch (response.getCode()){
+            case 200:
+                return (Currency) response.getResponseData();
+            default:
+                logger.error("Currency findByDateError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                Notification.show("Error happened while getting currencies by date")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return null;
         }
     }
 

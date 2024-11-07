@@ -127,7 +127,6 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     }
 
     @Override
-    @Transactional
     public void customForcePermanentlyDelete(Long entityId) {
         EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
@@ -151,10 +150,12 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
                     transaction.rollback();
                 }
             }
+
         }
         finally{
             if(tempEm.isOpen()){
                 tempEm.clear();
+                tempEm.close();
             }
         }
     }

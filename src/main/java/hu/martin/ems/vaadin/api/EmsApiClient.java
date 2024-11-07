@@ -140,7 +140,7 @@ public abstract class EmsApiClient<T> {
                 .block();
     }
 
-    public List<T> findAll(){
+    public EmsResponse findAll(){
         initWebClient();
         String jsonResponse = webClient.mutate().codecs(
                     configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
@@ -151,10 +151,10 @@ public abstract class EmsApiClient<T> {
                 .bodyToMono(String.class)
                 .block();
         try{
-            return convertResponseToEntityList(jsonResponse);
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         } catch (JsonProcessingException e) {
             logger.error("JsonProcessingException for String: " + jsonResponse);
-            throw new RuntimeException(e);
+            return new EmsResponse(500, "JsonProcessingException");
         }
     }
 
@@ -183,7 +183,7 @@ public abstract class EmsApiClient<T> {
     }
 
 
-    public List<T> findAllWithDeleted() {
+    public EmsResponse findAllWithDeleted() {
         initWebClient();
         String jsonResponse = webClient.mutate().codecs(
                         configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
@@ -194,9 +194,9 @@ public abstract class EmsApiClient<T> {
                 .bodyToMono(String.class)
                 .block();
         try {
-            return convertResponseToEntityList(jsonResponse);
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return new EmsResponse(500, "JsonProcessingException");
         }
     }
 

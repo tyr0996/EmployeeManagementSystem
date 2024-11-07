@@ -3,6 +3,7 @@ package hu.martin.ems.base;
 import reactor.core.publisher.Flux;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
 public class RandomGenerator {
@@ -34,11 +35,7 @@ public class RandomGenerator {
         return r;
     }
 
-    public static String generateRandomDate() {
-        LocalDate today = LocalDate.now();
-        return random.nextInt(2000, today.getYear()) + ". " +
-                random.nextInt(1, today.getMonthValue()) + ". " +
-                random.nextInt(1, today.getDayOfMonth())+ ".";
-
+    public static LocalDate generateRandomDate(){
+        return LocalDate.now().minusDays(random.nextInt(1, 365));
     }
 }

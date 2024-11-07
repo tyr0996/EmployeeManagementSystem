@@ -1,12 +1,16 @@
 package hu.martin.ems;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.martin.ems.core.config.DataProvider;
+import hu.martin.ems.core.config.JacksonConfig;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.repository.CurrencyRepository;
 import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.vaadin.api.*;
 import hu.martin.ems.vaadin.component.ComponentManager;
+import org.checkerframework.checker.units.qual.A;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -124,6 +128,10 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     @Autowired
     protected static UserApiClient spyUserApiClient;
 
+    @SpyBean
+    @Autowired
+    protected static ObjectMapper spyObjectMapper;
+
 
     protected static String fetchingCurrencyApiUrl;
 
@@ -138,19 +146,59 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
         downloadPath = env.getProperty("chrome.download.path");
         fetchingCurrencyApiUrl = env.getProperty("api.currency.url");
         baseCurrency = env.getProperty("api.currency.baseCurrency");
+
         ChromeOptions options = new ChromeOptions();
         HashMap<String, Object> chromePref = new HashMap<>();
+
         chromePref.put("download.default_directory", downloadPath);
         chromePref.put("download.prompt_for_download", false);
         chromePref.put("directory_upgrade", true);
         options.setExperimentalOption("prefs", chromePref);
+        //options.addArguments("--headless");
 
         driver = new ChromeDriver(options);
         driver.manage().window().maximize();
         port = webServerAppCtxt.getWebServer().getPort();
         dp = dataProvider;
-//
-//        MockitoAnnotations.openMocks(CurrencyCrudTest.class);
+    }
+
+    @AfterMethod(alwaysRun = true)
+    @BeforeMethod(alwaysRun = true)
+    public void afterTest(){
+        Mockito.reset(
+                spyPermissionApiClient,
+                spyRoleXPermissionApiClient,
+                spyRoleApiClient,
+                spyUserApiClient,
+                spyOrderApiClient,
+                spyOrderElementApiClient,
+                spyAddressApiClient,
+                spyCityApiClient,
+                spyCodeStoreApiClient,
+                spyCustomerApiClient,
+                spyEmployeeApiClient,
+                spyCurrencyApiClient,
+                spyProductApiClient,
+                spySupplierApiClient
+        );
+
+        Mockito.clearInvocations(
+                spyPermissionApiClient,
+                spyRoleXPermissionApiClient,
+                spyRoleApiClient,
+                spyUserApiClient,
+                spyOrderApiClient,
+                spyOrderElementApiClient,
+                spyAddressApiClient,
+                spyCityApiClient,
+                spyCodeStoreApiClient,
+                spyCustomerApiClient,
+                spyEmployeeApiClient,
+                spyCurrencyApiClient,
+                spyProductApiClient,
+                spySupplierApiClient
+        );
+        logger.info("Mockito reset and clear happened");
     }
 
     @AfterSuite

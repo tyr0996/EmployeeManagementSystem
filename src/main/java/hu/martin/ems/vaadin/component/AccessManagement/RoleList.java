@@ -30,6 +30,7 @@ import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.model.RoleXPermission;
+import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
@@ -70,13 +71,14 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
 
     private static String roleFilterText = "";
-    private static String permissionsFilterText = "";
+    private static Set<Permission> permissionsFilterSet = new HashSet<>();
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<GroupedRoleXPermissionVO> extraData;
     private Grid.Column<GroupedRoleXPermissionVO> roleColumn;
     private Grid.Column<GroupedRoleXPermissionVO> permissionsColumn;
 
     private Logger logger = LoggerFactory.getLogger(RoleList.class);
+    List<Permission> permissionList;
 
     public RoleList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
@@ -114,8 +116,10 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             GroupedRoleXPermissionVO.showDeletedCheckboxFilter.replace("deleted", newValue);
 
-            updateGridItems();
-
+            if(groupedRoleXPermissionVOS == null){
+                groupedRoleXPermissionVOS = new ArrayList<>();
+            }
+            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
         });
 
         buttonsLayout = new HorizontalLayout();
@@ -126,7 +130,6 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     }
 
     public void generateSaveOrUpdateDialog() {
-        RoleXPermissionCreate rxpc = new RoleXPermissionCreate();
         createOrModifyDialog = new Dialog((editableRole == null ? "Create" : "Modify") + " role");
         createSaveOrUpdateForm();
         saveButton.addClickListener(event -> {
@@ -148,20 +151,92 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         permissions = new MultiSelectComboBox<>("Permission");
         ComboBox.ItemFilter<Permission> filterPermission = (permission, filterString) ->
                 permission.getName().toLowerCase().contains(filterString.toLowerCase());
-        List<Permission> savedPermissions = permissionApi.findAll();
-        permissions.setItems(filterPermission, savedPermissions);
-        permissions.setItemLabelGenerator(Permission::getName);
-
-        if (editableRole != null) {
-            nameField.setValue(editableRole.getName());
-            List<Permission> editableRolePermissions = roleXPermissionApi.findAllPairedPermissionsTo(editableRole);
-            permissions.setValue(editableRolePermissions);
+        setupPermissions();
+        if(permissionList == null){
+            permissions.setInvalid(true);
+            permissions.setErrorMessage("Error happened while getting permissions");
+            permissions.setEnabled(false);
+            saveButton.setEnabled(false);
+        }
+        else{
+            saveButton.setEnabled(true);
+            permissions.setInvalid(false);
+            permissions.setEnabled(true);
+            permissions.setItems(filterPermission, permissionList);
+            permissions.setItemLabelGenerator(Permission::getName);
+            if (editableRole != null) {
+                nameField.setValue(editableRole.getName());
+                List<Permission> editableRolePermissions = getAllPairedPermissionsTo(editableRole);
+                if(editableRolePermissions == null){
+                    permissions.setEnabled(false);
+                    permissions.setInvalid(true);
+                    permissions.setEnabled(false);
+                    permissions.setErrorMessage("Error happened while getting paired permissions to role");
+                    saveButton.setEnabled(false);
+                }
+                else{
+                    permissions.setValue(editableRolePermissions);
+                }
+            }
         }
         createOrModifyForm.add(nameField, permissions, saveButton);
     }
 
+    private void setupPermissions() {
+        EmsResponse response = permissionApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                permissionList = (List<Permission>) response.getResponseData();
+                break;
+            default:
+                permissionList = null;
+                logger.error("Permission findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
+    private List<Permission> getAllPairedPermissionsTo(Role editableRole) {
+        EmsResponse response = roleXPermissionApi.findAllPairedPermissionsTo(editableRole);
+        switch (response.getCode()){
+            case 200:
+                return (List<Permission>) response.getResponseData();
+            default:
+                logger.error("RoleXPermission findAllPairedPermissionsToError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+//                Notification.show("Error happened while getting permissions to role")
+//                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return null;
+        }
+    }
+
     private void saveRoleWithPermissions(){
-        Role role = Objects.requireNonNullElseGet(editableRole, Role::new);
+        Role originalRole = null;
+        List<Permission> originalPermissions = null;
+
+        if(editableRole != null){
+            originalRole = editableRole;
+//            originalPermissions = roleXPermissionApi.findAllPairedPermissionsTo(editableRole);
+            originalPermissions = getAllPairedPermissionsTo(editableRole);
+            if(originalPermissions == null){
+                Notification.show("Error happened while getting permissions to role")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return;
+            }
+        }
+
+        List<Role> savedRoles = new ArrayList<>();
+        List<Permission> savedPermissions = new ArrayList<>();
+        List<RoleXPermission> savedRoleXPermissions = new ArrayList<>();
+
+        Role role = null;
+        if(editableRole == null){
+            role = new Role();
+        }
+        else{
+            role = new Role();
+            role.setDeleted(editableRole.getDeleted());
+            role.setName(editableRole.getName());
+            role.id = editableRole.getId();
+        }
         role.setName(nameField.getValue());
         role.setDeleted(0L);
         EmsResponse response = null;
@@ -173,15 +248,20 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             response = roleApi.save(role);
         }
         switch (response.getCode()){
-            case 200: role = (Role) response.getResponseData(); break;
+            case 200:
+                role = (Role) response.getResponseData();
+                break;
             case 500:
                 Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                 createOrModifyDialog.close();
+                updateGridItems();
                 return;
             default:
                 Notification.show("Not expected status-code in " + (editableRole == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 logger.warn("Invalid status code in RoleList: {}", response.getCode());
                 createOrModifyDialog.close();
+
+                updateGridItems();
                 return;
         }
         roleXPermissionApi.removeAllPermissionsFrom(role);
@@ -191,21 +271,78 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             EmsResponse responseRoleXPermission = roleXPermissionApi.save(rxp);
             switch (responseRoleXPermission.getCode()){
                 case 200:
+                    savedRoleXPermissions.add((RoleXPermission) responseRoleXPermission.getResponseData());
                     break;
                 case 500:
                     Notification.show(responseRoleXPermission.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createOrModifyDialog.close();
+                    if(editableRole == null){
+                        undoSave(role);
+                    }
+                    else{
+                        undoUpdate(originalRole, originalPermissions);
+                    }
+
+                    updateGridItems();
                     return;
                 default:
-                    Notification.show("Not expected status-code in " + (editableRole == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    logger.warn("Invalid status code in RoleList: {}", response.getCode());
+                    Notification.show("Not expected status-code in " + (editableRole == null ? "saving permission to role" : "modifying permission to role")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    logger.warn("Invalid status code in RoleList, RoleXPermission saving: {}", responseRoleXPermission.getCode());
                     createOrModifyDialog.close();
+                    if(editableRole == null){
+                        undoSave(role);
+                    }
+                    else{
+                        undoUpdate(originalRole, originalPermissions);
+                    }
+
+                    updateGridItems();
                     return;
             }
         }
+
+
         GroupedRoleXPermission grxp =  new GroupedRoleXPermission(role, permissions.getSelectedItems().stream().toList());
+
+
+        updateGridItems();
         Notification.show("Role " + (editableRole == null ? "saved: " : "updated: ") + grxp.getName())
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+    }
+
+    private void undoUpdate(Role originalRole, List<Permission> originalPermissions){
+        roleApi.update(originalRole);
+        roleXPermissionApi.removeAllPermissionsFrom(originalRole);
+        logger.info("OriginalPermissions-ök száma:" + originalPermissions.size());
+        originalPermissions.forEach(v -> {
+            roleXPermissionApi.save(new RoleXPermission(originalRole, v));
+        });
+        logger.info("Role restored from update");
+    }
+
+    private void undoSave(Role r){
+        roleApi.forcePermanentlyDelete(r.getId());
+        List<RoleXPermission> roleXPermissions = getAlRoleXPermissionByRole(r);
+        if(roleXPermissions != null){
+            roleXPermissions.forEach(v -> roleXPermissionApi.forcePermanentlyDelete(v.getId()));
+            logger.info("Role restored from creating");
+        }
+        else{
+            logger.info("Role restoring failed due to server error when getAlRoleXPermissionByRole in RoleList");
+        }
+
+    }
+
+    private List<RoleXPermission> getAlRoleXPermissionByRole(Role r) {
+        EmsResponse response = roleXPermissionApi.findAlRoleXPermissionByRole(r);
+        switch (response.getCode()){
+            case 200:
+                return (List<RoleXPermission>) response.getResponseData();
+            default:
+                logger.error("RoleXPermission findAlRoleXPermissionByRoleError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                return null;
+        }
     }
 
     private void setFilteringHeaderRow(){
@@ -218,11 +355,24 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             updateGridItems();
         });
 
-        TextField permissionsFilter = new TextField();
-        permissionsFilter.setPlaceholder("Permissions name...");
-        permissionsFilter.setClearButtonVisible(true);
-        permissionsFilter.addValueChangeListener(event -> {
-            permissionsFilterText = event.getValue().trim();
+        MultiSelectComboBox<Permission> permissionsFilter = new MultiSelectComboBox();
+        ComboBox.ItemFilter<Permission> filterPermission = (permission, filterString) ->
+                permission.getName().toLowerCase().contains(filterString.toLowerCase());
+        setupPermissions();
+        if(permissionList == null){
+            permissionsFilter.setInvalid(true);
+            permissionsFilter.setErrorMessage("Error happened while getting permissions");
+            permissionsFilter.setEnabled(false);
+        }
+        else{
+            permissionsFilter.setInvalid(false);
+            permissionsFilter.setEnabled(true);
+            permissionsFilter.setItems(filterPermission, permissionList);
+            permissionsFilter.setItemLabelGenerator(Permission::getName);
+        }
+
+        permissionsFilter.addSelectionListener(v -> {
+            permissionsFilterSet = v.getAllSelectedItems();
             grid.getDataProvider().refreshAll();
             updateGridItems();
         });
@@ -257,7 +407,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         addOptionsColumn();
     }
 
-    private Component filterField(TextField filterField, String title){
+    private Component filterField(Component filterField, String title){
         VerticalLayout res = new VerticalLayout();
         res.getStyle().set("padding", "0px")
                 .set("display", "flex")
@@ -288,29 +438,45 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
 
             restoreButton.addClickListener(event -> {
                 roleApi.restore(groupedRoleXPermissionVO.original.role);
-                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermissionVO.original.role);
-                for(RoleXPermission rxp : rxps){
-                    roleXPermissionApi.restore(rxp);
+                List<RoleXPermission> rxps = getAlRoleXPermissionByRole(groupedRoleXPermissionVO.original.role);
+                if(rxps == null){
+                    Notification.show("Role restore failed")
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    groupedRoleXPermissionVO.original.role.setDeleted(0L);
+                    roleApi.delete(groupedRoleXPermissionVO.original.role);
                 }
-                Notification.show("Role restored: " + groupedRoleXPermissionVO.role)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                updateGridItems();
+                else{
+                    for(RoleXPermission rxp : rxps){
+                        roleXPermissionApi.restore(rxp);
+                    }
+                    Notification.show("Role restored: " + groupedRoleXPermissionVO.role)
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    updateGridItems();
+                }
             });
 
             deleteButton.addClickListener(event -> {
                 roleApi.delete(groupedRoleXPermissionVO.original.role);
-                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermissionVO.original.role);
-                for(RoleXPermission rxp : rxps){
-                    roleXPermissionApi.delete(rxp);
+                List<RoleXPermission> rxps = getAlRoleXPermissionByRole(groupedRoleXPermissionVO.original.role);
+                if(rxps == null){
+                    Notification.show("Role-permission pair deleting failed")
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    groupedRoleXPermissionVO.original.role.setDeleted(1L);
+                    roleApi.restore(groupedRoleXPermissionVO.original.role);
                 }
-                Notification.show("Role deleted: " + groupedRoleXPermissionVO.role)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                updateGridItems();
+                else{
+                    for(RoleXPermission rxp : rxps){
+                        roleXPermissionApi.delete(rxp);
+                    }
+                    Notification.show("Role deleted: " + groupedRoleXPermissionVO.role)
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    updateGridItems();
+                }
             });
 
             permanentDeleteButton.addClickListener(event -> {
                 roleApi.permanentlyDelete(groupedRoleXPermissionVO.id);
-                List<RoleXPermission> rxps = roleXPermissionApi.findAlRoleXPermissionByRole(groupedRoleXPermissionVO.original.role);
+                List<RoleXPermission> rxps = getAlRoleXPermissionByRole(groupedRoleXPermissionVO.original.role);
                 for(RoleXPermission rxp : rxps){
                     roleXPermissionApi.permanentlyDelete(rxp.id);
                 }
@@ -330,35 +496,59 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     }
 
     private void updateGridItems() {
-        groupedRoleXPermissions.clear();
+        groupedRoleXPermissions = new ArrayList<>();
         setGroupedRoleXPermissions();
-        groupedRoleXPermissionVOS = groupedRoleXPermissions.stream().map(GroupedRoleXPermissionVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        if(groupedRoleXPermissions != null){
+            groupedRoleXPermissionVOS = groupedRoleXPermissions.stream().map(GroupedRoleXPermissionVO::new).collect(Collectors.toList());
+            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        }
+        else{
+            Notification.show("Error happened while getting role-permission pairs");
+        }
     }
 
     private Stream<GroupedRoleXPermissionVO> getFilteredStream() {
         return groupedRoleXPermissionVOS.stream().filter(groupedRoleXPermissionVO ->
                 (roleFilterText.isEmpty() || groupedRoleXPermissionVO.role.toLowerCase().contains(roleFilterText.toLowerCase())) &&
-                        (permissionsFilterText.isEmpty() || groupedRoleXPermissionVO.permissions.toLowerCase().contains(permissionsFilterText.toLowerCase())) &&
+                        groupedRoleXPermissionVO.permissionSet.containsAll(permissionsFilterSet) &&
                         groupedRoleXPermissionVO.filterExtraData()
         );
     }
 
     private void setGroupedRoleXPermissions(){
-        List<RoleXPermission> rxps = roleXPermissionApi.findAllWithUnused(true);
-        Map<Role, List<Permission>> gridData = new HashMap<>();
-        for (RoleXPermission rxp : rxps) {
-            Role role = rxp.getRole();
-            addRoleIfNotExists(gridData, role);
+        List<RoleXPermission> rxps = getAllWithUnused(true);
+        if(rxps != null){
+            Map<Role, List<Permission>> gridData = new HashMap<>();
+            for (RoleXPermission rxp : rxps) {
+                Role role = rxp.getRole();
+                addRoleIfNotExists(gridData, role);
+            }
+            gridData.forEach((role, permissionList) -> {
+                this.groupedRoleXPermissions.add(new GroupedRoleXPermission(role, permissionList));
+            });
         }
-        gridData.forEach((role, permissionList) -> {
-            this.groupedRoleXPermissions.add(new GroupedRoleXPermission(role, permissionList));
-        });
+        else{
+            this.groupedRoleXPermissions = null;
+        }
+    }
+
+    private List<RoleXPermission> getAllWithUnused(Boolean withDeleted){
+        EmsResponse response = roleXPermissionApi.findAllWithUnused(withDeleted);
+        switch (response.getCode()){
+            case 200:
+                return (List<RoleXPermission>) response.getResponseData();
+            default:
+                logger.error("RoleXPermission findAllWithUnusedError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                return null;
+        }
     }
 
     private void addRoleIfNotExists(Map<Role, List<Permission>> gridData, Role role) {
         if (!gridData.containsKey(role)) {
-            List<Permission> permissions = roleXPermissionApi.findAllPairedPermissionsTo(role);
+            List<Permission> permissions = getAllPairedPermissionsTo(role);
+            if(permissions == null){
+                //TODO: ide adjunk hibaüzenetet?
+            }
             gridData.put(role, permissions);
         }
     }
@@ -369,6 +559,8 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         private String role;
         private String permissions;
 
+        private Set<Permission> permissionSet;
+
         public GroupedRoleXPermissionVO(GroupedRoleXPermission groupedRoleXPermission){
             super(groupedRoleXPermission.getId(), groupedRoleXPermission.getDeleted());
             this.original = groupedRoleXPermission;
@@ -376,6 +568,8 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             this.deleted = original.getDeleted();
             this.role = groupedRoleXPermission.roleAsString();
             this.permissions = groupedRoleXPermission.permissionsAsString();
+            this.permissionSet = new HashSet<>();
+            groupedRoleXPermission.permissions.forEach(v -> this.permissionSet.add(v));
         }
     }
 

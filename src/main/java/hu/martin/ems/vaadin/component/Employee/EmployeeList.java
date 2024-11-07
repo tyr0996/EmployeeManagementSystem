@@ -28,13 +28,14 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.Employee;
-import hu.martin.ems.model.Role;
+import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmployeeApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -71,15 +72,16 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     private String lastNameFilterText = "";
     private String roleFilterText = "";
     private String salaryFilterText = "";
+    private Logger logger = LoggerFactory.getLogger(Employee.class);
+    List<Role> roleList;
     @Autowired
     public EmployeeList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
         EmployeeVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(EmployeeVO.class);
-        employees = employeeApi.findAll();
-        employeeVOS = employees.stream().map(EmployeeVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().toList());
+        setupEmployees();
+        updateGridItems();
 
 //        this.grid.removeAllColumns(); // TODO megnézni az összesnél, hogy így nézzen ki
         firstNameColumn = this.grid.addColumn(v -> v.firstName);
@@ -111,6 +113,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
                 this.employeeApi.restore(employee.original);
                 Notification.show("Employee restored: " + employee.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupEmployees();
                 updateGridItems();
             });
 
@@ -118,6 +121,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
                 this.employeeApi.delete(employee.original);
                 Notification.show("Employee deleted: " + employee.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupEmployees();
                 updateGridItems();
             });
 
@@ -125,6 +129,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
                 this.employeeApi.permanentlyDelete(employee.original.getId());
                 Notification.show("Employee permanently deleted: " + employee.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupEmployees();
                 updateGridItems();
             });
 
@@ -152,7 +157,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             showDeleted = event.getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             EmployeeVO.showDeletedCheckboxFilter.replace("deleted", newValue);
-
+            setupEmployees();
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -161,6 +166,19 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         hl.setAlignSelf(Alignment.CENTER, create);
 
         add(hl, grid);
+    }
+
+    private void setupEmployees() {
+        EmsResponse response = employeeApi.findAllWithDeleted();
+        switch (response.getCode()){
+            case 200:
+                employees = (List<Employee>) response.getResponseData();
+                break;
+            default:
+                employees = null;
+                logger.error("Employee findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
     }
 
     private Stream<EmployeeVO> getFilteredStream() {
@@ -251,7 +269,11 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     }
 
     private void updateGridItems() {
-        List<Employee> employees = employeeApi.findAllWithDeleted();
+        if(employees == null){
+            Notification.show("Error happened while getting employees")
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            employees = new ArrayList<>();
+        }
         employeeVOS = employees.stream().map(EmployeeVO::new).collect(Collectors.toList());
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
@@ -260,14 +282,26 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " employee");
         FormLayout formLayout = new FormLayout();
 
+        Button saveButton = new Button("Save");
+
         TextField firstNameField = new TextField("First Name");
         TextField lastNameField = new TextField("Last Name");
         NumberField salaryField = new NumberField("Salary");
+
+        setupRoles();
         ComboBox<Role> roles = new ComboBox<>("Role");
         ComboBox.ItemFilter<Role> filter = (role, filterString) ->
                 role.getName().toLowerCase().contains(filterString.toLowerCase());
-        roles.setItems(filter, roleApi.findAll());
-        roles.setItemLabelGenerator(Role::getName);
+        if(roleList == null){
+            roles.setEnabled(false);
+            roles.setErrorMessage("Error happened while getting roles");
+            roles.setInvalid(true);
+            saveButton.setEnabled(false);
+        }
+        else{
+            roles.setItems(filter, roleList);
+            roles.setItemLabelGenerator(Role::getName);
+        }
 
         if (entity != null) {
             firstNameField.setValue(entity.getFirstName());
@@ -275,8 +309,6 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             salaryField.setValue(entity.getSalary().doubleValue());
             roles.setValue(entity.getRole());
         }
-
-        Button saveButton = new Button("Save");
 
         saveButton.addClickListener(event -> {
             Employee employee = Objects.requireNonNullElseGet(entity, Employee::new);
@@ -293,9 +325,23 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
                 response = employeeApi.save(employee);
             }
             switch (response.getCode()){
-                case 200: Notification.show("Employee " + (entity == null ? "saved: " : "updated: ") + employee.getFirstName() + " " + employee.getLastName())
-                                      .addThemeVariants(NotificationVariant.LUMO_SUCCESS); break;
-                default: Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                case 200:
+                    Notification.show("Employee " + (entity == null ? "saved: " : "updated: ") + ((Employee)response.getResponseData()).getName())
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    break;
+                case 500:
+                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    createDialog.close();
+                    setupEmployees();
+                    updateGridItems();
+                    return;
+                default:
+                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    logger.warn("Invalid status code in EmployeeList: {}", response.getCode());
+                    createDialog.close();
+                    setupEmployees();
+                    updateGridItems();
+                    return;
             }
 
             firstNameField.clear();
@@ -303,6 +349,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             salaryField.clear();
             roles.clear();
             createDialog.close();
+            setupEmployees();
             updateGridItems();
         });
 
@@ -310,6 +357,19 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
 
         createDialog.add(formLayout);
         return createDialog;
+    }
+
+    private void setupRoles() {
+        EmsResponse emsResponse = roleApi.findAll();
+        switch (emsResponse.getCode()){
+            case 200:
+                roleList = (List<Role>) emsResponse.getResponseData();
+                break;
+            default:
+                roleList = null;
+                logger.error("Role findAllError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
+                break;
+        }
     }
 
     @NeedCleanCoding

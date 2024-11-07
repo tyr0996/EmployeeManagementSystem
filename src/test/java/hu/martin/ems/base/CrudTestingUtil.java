@@ -4,24 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.PaginationData;
-import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.core.model.BaseEntity;
-import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.crudFE.EmployeeCrudTest;
-import hu.martin.ems.model.Employee;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.vaadin.api.EmsApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.*;
-import org.springframework.security.core.parameters.P;
-import org.testng.annotations.Test;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Random;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -65,10 +58,14 @@ public class CrudTestingUtil {
     }
 
     public void updateTest() throws InterruptedException {
-        updateTest(null, null, true);
+        updateTest(null, null, true, null);
     }
 
     public void updateTest(LinkedHashMap<String, String> withData, String updateNotificationText, Boolean requiredSuccess) throws InterruptedException {
+        updateTest(withData, updateNotificationText, requiredSuccess, null);
+    }
+
+    public void updateTest(LinkedHashMap<String, String> withData, String updateNotificationText, Boolean requiredSuccess, String showOnlyDeletableCheckboxXpath) throws InterruptedException {
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         if(showOnlyDeletableCheckboxXpath != null){
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
@@ -91,14 +88,16 @@ public class CrudTestingUtil {
 
         WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
         WebElement saveEmployeeButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+
         fillCreateOrUpdateForm(withData);
 
         saveEmployeeButton.click();
 
         checkNotificationContainsTexts(updateNotificationText == null ? className + " updated: " : updateNotificationText);
+        Thread.sleep(100);
         assertEquals(requiredSuccess ? 0 : 1, countElementResultsFromGridWithFilter(gridXpath, originalData));
 
-        Thread.sleep(500);
+        Thread.sleep(100);
     }
 
     public void createTest() throws InterruptedException {
@@ -136,10 +135,12 @@ public class CrudTestingUtil {
             checkNotificationContainsTexts(saveNotificationText == null ? className + " saved: " : saveNotificationText);
         }
         else{
+
             checkNotificationContainsTexts(saveNotificationText == null ? className + " saving failed" : saveNotificationText);
         }
 
         findVisibleElementWithXpath(gridXpath);
+        setCheckboxStatus(showDeletedCheckBoxXpath, false);
         assertEquals(requiredSuccess ? originalVisible + 1 : originalVisible, countVisibleGridDataRows(gridXpath));
         assertEquals(originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
         if(showOnlyDeletableCheckboxXpath != null){
@@ -155,13 +156,34 @@ public class CrudTestingUtil {
         assertEquals(originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
     }
 
+
+    public void createNotExpectedStatusCodeSave(EmsApiClient spyClient, Class<?> objectClass) throws InterruptedException {
+        MockitoAnnotations.openMocks(this);
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyClient).save(any(objectClass));
+        createTest(null, "Not expected status-code in saving", false);
+    }
+
+    public void updateNotExpectedStatusCode(EmsApiClient spyClient, Class<?> objectClass) throws InterruptedException {
+        updateNotExpectedStatusCode(spyClient, objectClass, null);
+    }
+
+    public void updateNotExpectedStatusCode(EmsApiClient spyClient, Class<?> objectClass, String showOnlyDeletableCheckboxXpath) throws InterruptedException {
+        MockitoAnnotations.openMocks(this);
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyClient).update(any(objectClass));
+        updateTest(null, "not expected status-code in modifying", false, showOnlyDeletableCheckboxXpath);
+    }
+
+    public void fillCreateOrUpdateForm(LinkedHashMap<String, String> withData) throws InterruptedException {
+        fillCreateOrUpdateForm(withData, null);
+    }
+
     /**
      * Fill the create or update form.
-     * @param withData: The key value is the label of the field. It will fill the element with the value, if
-     *                the key value is the label of the field
+     * @param withData The key value is the label of the field. The value is the required value.
+     * @param disabledFields The labels of the fields, which must be disabled at the state.
      * @throws InterruptedException
      */
-    public void fillCreateOrUpdateForm(LinkedHashMap<String, String> withData) throws InterruptedException {
+    public void fillCreateOrUpdateForm(LinkedHashMap<String, String> withData, LinkedHashMap<String, String> disabledFields) throws InterruptedException {
         List<WebElement> fields = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout").findElements(By.xpath("./*"));
         if(withData == null){
             withData = new LinkedHashMap<>();
@@ -175,16 +197,26 @@ public class CrudTestingUtil {
             }
             catch (NoSuchElementException ignore) {}
 
-            if(previousPasswordFieldValue == null){
-                previousPasswordFieldValue = fillElementWith(fields.get(i), showOnlyDeletableCheckboxXpath != null, null, withData.get(fieldLabel));
+            if(disabledFields != null && disabledFields.get(fieldLabel) != null){
+                assertEquals(false, isEnabled(fields.get(i)), "Field must be disabled, but it is enabled: " + fieldLabel);
+                assertEquals(disabledFields.get(fieldLabel), getFieldErrorMessage(fields.get(i)), "The field is disabled, but the error message doesn't match");
             }
-            else{
-                fillElementWith(fields.get(i), showOnlyDeletableCheckboxXpath != null,  previousPasswordFieldValue, withData.get(fieldLabel));
+            else {
+                if(previousPasswordFieldValue == null){
+                    previousPasswordFieldValue = fillElementWith(fields.get(i), showOnlyDeletableCheckboxXpath != null, null, withData.get(fieldLabel));
+                }
+                else{
+                    fillElementWith(fields.get(i), showOnlyDeletableCheckboxXpath != null,  previousPasswordFieldValue, withData.get(fieldLabel));
+                }
             }
         }
     }
 
     public void deleteTest() throws InterruptedException {
+        deleteTest(null, true);
+    }
+
+    public void deleteTest(String notification, Boolean requiredSuccess) throws InterruptedException {
         findVisibleElementWithXpath(gridXpath);
         int originalVisible = countVisibleGridDataRows(gridXpath);
         int originalInvisible = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
@@ -225,22 +257,22 @@ public class CrudTestingUtil {
         WebElement deleteButton = getDeleteButton(gridXpath, rowLocation.getRowIndex());
         deleteButton.click();
         Thread.sleep(100);
-        checkNotificationContainsTexts(className + " deleted: ");
+        checkNotificationContainsTexts(notification == null ? className + " deleted: " : notification);
         if(this.showOnlyDeletableCheckboxXpath != null){
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
         }
         Thread.sleep(2000);
         findVisibleElementWithXpath(gridXpath);
 
-        assertEquals(0, countElementResultsFromGridWithFilter(gridXpath, deletedData));
+        assertEquals(requiredSuccess ? 0 : 1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
         findVisibleElementWithXpath(gridXpath);
         setCheckboxStatus(showDeletedCheckBoxXpath, false);
         Thread.sleep(2000);
         if(showOnlyDeletableCheckboxXpath != null){
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
         }
-        assertEquals(originalVisible - 1, countVisibleGridDataRows(gridXpath));
-        assertEquals(originalInvisible + 1, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+        assertEquals(requiredSuccess ? originalVisible - 1 : originalVisible, countVisibleGridDataRows(gridXpath));
+        assertEquals(requiredSuccess ? originalInvisible + 1 : originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
         setCheckboxStatus(showDeletedCheckBoxXpath, true);
         assertEquals(originalInvisible + originalVisible, countVisibleGridDataRows(gridXpath));
         assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
@@ -248,8 +280,8 @@ public class CrudTestingUtil {
 
         if(showOnlyDeletableCheckboxXpath != null){
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
-            assertEquals(originalVisibleDeletable - 1, countVisibleGridDataRows(gridXpath));
-            assertEquals(originalInvisibleDeletable + 1, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+            assertEquals(requiredSuccess ? originalVisibleDeletable - 1 : originalVisibleDeletable, countVisibleGridDataRows(gridXpath));
+            assertEquals(requiredSuccess ? originalInvisibleDeletable + 1 : originalInvisibleDeletable, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
             setCheckboxStatus(showDeletedCheckBoxXpath, true);
             assertEquals(originalInvisibleDeletable + originalVisibleDeletable, countVisibleGridDataRows(gridXpath));
             assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
@@ -321,6 +353,7 @@ public class CrudTestingUtil {
         Thread.sleep(500);
 
         assertEquals(originalInvisible - 1, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+        setCheckboxStatus(showDeletedCheckBoxXpath, false);
         assertEquals(originalVisible, countVisibleGridDataRows(gridXpath));
 
         if(this.showOnlyDeletableCheckboxXpath != null){
@@ -342,7 +375,8 @@ public class CrudTestingUtil {
         List<String[]> allFullData = new ArrayList<>();
 
         for(int i = 0; i < pd.getTotalElements(); i++){
-            String[] data = getDataFromRowLocation(gridXpath, new ElementLocation((i % pd.getPageSize()) + 1, i - (i % pd.getPageSize())));
+            ElementLocation el = new ElementLocation((i / pd.getPageSize()) + 1, i % pd.getPageSize());
+            String[] data = getDataFromRowLocation(gridXpath, el);
             Boolean goodData = true;
             for(int j = 0; j < data.length; j++){
                if(data[j].equals("") || data[j] == null){
@@ -383,16 +417,20 @@ public class CrudTestingUtil {
 
     public void readTest() throws InterruptedException {
         ElementLocation randomLocation = getRandomLocationFromGrid(gridXpath);
+        if(randomLocation == null){
+            createTest();
+            randomLocation = new ElementLocation(1, 0);
+        }
         readTest(getDataFromRowLocation(gridXpath, randomLocation), null, false, null); //TODO
     }
 
     public void createFailedTest(int port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath, String subSubButtonXpath) throws InterruptedException, JsonProcessingException {
         MockitoAnnotations.openMocks(this);
         if(spyApiClient instanceof UserApiClient){
-            Mockito.doCallRealMethod().doThrow(JsonProcessingException.class).when(spyApiClient).writeValueAsString(any(BaseEntity.class));
+            Mockito.doCallRealMethod().doThrow(JsonProcessingException.class).doCallRealMethod().when(spyApiClient).writeValueAsString(any(BaseEntity.class));
         }
         else{
-            Mockito.doThrow(JsonProcessingException.class).when(spyApiClient).writeValueAsString(any(BaseEntity.class));
+            Mockito.doThrow(JsonProcessingException.class).doCallRealMethod().when(spyApiClient).writeValueAsString(any(BaseEntity.class));
         }
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenuXpath, subMenuXpath);
@@ -404,7 +442,7 @@ public class CrudTestingUtil {
 
     public void createFailedTest(int port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath) throws JsonProcessingException, InterruptedException {
         MockitoAnnotations.openMocks(this);
-        Mockito.doThrow(JsonProcessingException.class).when(spyApiClient).writeValueAsString(any(BaseEntity.class));
+        Mockito.doThrow(JsonProcessingException.class).doCallRealMethod().when(spyApiClient).writeValueAsString(any(BaseEntity.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenuXpath, subMenuXpath);
         Thread.sleep(10);
@@ -455,7 +493,11 @@ public class CrudTestingUtil {
         if(extraDataFilter != null){
             setExtraDataFilterValue(gridXpath, extraDataFilter, notificationCheck);
         }
-        assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, data)); //TODO Ha van olyan, hogy showOnlyDeletable, akkor ide más érték is jöhet!
+        int elements = countElementResultsFromGridWithFilter(gridXpath, data);
+        if(elements != 1){
+            System.out.println("SANYI");
+        }
+        assertEquals(1, elements);
         if(extraDataFilter != null){
             clearExtraDataFilter(gridXpath);
         }
@@ -463,6 +505,10 @@ public class CrudTestingUtil {
     }
 
     public void restoreTest() throws InterruptedException {
+        restoreTest(null, true);
+    }
+
+    public void restoreTest(String notification, Boolean needSuccess) throws InterruptedException {
         int originalVisibleRows = countVisibleGridDataRows(gridXpath);
         int originalInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
         WebElement showDeletedButton = findClickableElementWithXpath(showDeletedCheckBoxXpath);
@@ -478,38 +524,93 @@ public class CrudTestingUtil {
         setCheckboxStatus(showDeletedCheckBoxXpath, true);
 
         String[] deletedData = getRandomDataDeletedStatusFromGrid(gridXpath, showDeletedCheckBoxXpath);
-        //assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
         applyFilter(gridXpath, deletedData);
         ElementLocation deleted = new ElementLocation(1, 0);
 
-        //ElementLocation el = getRandomLocationDeletedStatusFromGrid(gridXpath, showDeletedCheckBoxXpath);
-        //WebElement showDeleted = findClickableElementWithXpath(showDeletedCheckBoxXpath);
-//        setCheckboxStatus(showDeletedCheckBoxXpath, true);
-//        Thread.sleep(500);
-//        goToPageInPaginatedGrid(gridXpath, el.getPageNumber());
-//        String[] originalData = getDataFromRowLocation(gridXpath, el);
-//        //assertNotNull(lookingForElementInGrid(gridXpath, originalData));
-//        goToPageInPaginatedGrid(gridXpath, el.getPageNumber());
-
         WebElement restoreButton = getRestoreButton(gridXpath, deleted.getRowIndex());
         restoreButton.click();
-        checkNotificationContainsTexts(className + " restored: ");
+        checkNotificationContainsTexts(notification == null ? className + " restored: " : notification);
         resetFilter(gridXpath);
         setCheckboxStatus(showDeletedCheckBoxXpath, false);
-        assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
+        if(needSuccess){
+            assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
 
-        int newVisibleRows = countVisibleGridDataRows(gridXpath);
-        int newInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
-        assertEquals(originalVisibleRows + 1, newVisibleRows);
-        assertEquals(originalInvisibleRows - 1, newInvisibleRows);
+            int newVisibleRows = countVisibleGridDataRows(gridXpath);
+            int newInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+            assertEquals(originalVisibleRows + 1, newVisibleRows);
+            assertEquals(originalInvisibleRows - 1, newInvisibleRows);
+        }
+        else{
+            assertEquals(0, countElementResultsFromGridWithFilter(gridXpath, deletedData));
+
+            int newVisibleRows = countVisibleGridDataRows(gridXpath);
+            int newInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+            assertEquals(originalVisibleRows, newVisibleRows);
+            assertEquals(originalInvisibleRows, newInvisibleRows);
+        }
+
     }
 
-    public void modifyFailedTest(Integer port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath) throws InterruptedException, JsonProcessingException {
+    public void modifyFailedTest(Integer port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath, String subsubmenuButtonXpath) throws InterruptedException, JsonProcessingException {
         MockitoAnnotations.openMocks(this);
-        Mockito.doThrow(JsonProcessingException.class).when(spyApiClient).writeValueAsString(any(BaseEntity.class));
+        Mockito.doThrow(JsonProcessingException.class).doCallRealMethod().when(spyApiClient).writeValueAsString(any(BaseEntity.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenuXpath, subMenuXpath);
         Thread.sleep(10);
+        if(subsubmenuButtonXpath != null){
+            findVisibleElementWithXpath(subsubmenuButtonXpath).click();
+            Thread.sleep(10);
+        }
         updateTest(null, "", false);
+    }
+
+    public void modifyFailedTest(Integer port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath) throws InterruptedException, JsonProcessingException {
+        modifyFailedTest(port, spyApiClient, mainMenuXpath, subMenuXpath, null);
+    }
+
+    /**
+     * Use this method, when you want to test if some data fetching from database failed, so the save button not available
+     * @param failedFieldData key: the label of the field
+     *                        value: required error message of the field
+     */
+    public void createUnexpectedResponseCodeWhileGettingData(LinkedHashMap<String, String> withData, LinkedHashMap<String, String> failedFieldData) throws InterruptedException {
+        WebElement createButton = findClickableElementWithXpath(createButtonXpath);
+        createButton.click();
+        Thread.sleep(200);
+
+        fillCreateOrUpdateForm(withData, failedFieldData);
+
+        WebElement saveButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+
+        assertEquals(false, isEnabled(saveButton));
+    }
+
+    public void updateUnexpectedResponseCodeWhileGettingData(LinkedHashMap<String, String> withData, LinkedHashMap<String, String> failedFieldData) throws InterruptedException {
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
+        }
+        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        if(rowLocation == null){
+            createTest();
+            rowLocation = new ElementLocation(1, 0);
+        }
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
+        }
+
+        String[] originalData = getDataFromRowLocation(gridXpath, rowLocation);
+
+        goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
+        WebElement modifyButton = getModifyButton(gridXpath, rowLocation.getRowIndex());
+        Thread.sleep(200);
+        modifyButton.click();
+        Thread.sleep(200);
+
+        fillCreateOrUpdateForm(withData, failedFieldData);
+
+        WebElement saveButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+
+        assertEquals(false, isEnabled(saveButton));
     }
 }

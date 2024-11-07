@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Order;
+import hu.martin.ems.model.OrderElement;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 @Component
 @NeedCleanCoding
@@ -90,6 +92,24 @@ public class OrderApiClient extends EmsApiClient<Order> {
         catch(JsonProcessingException ex){
             logger.error("Json processing error - Status: {}", 400);
             return new EmsResponse(400, "Data processing error");
+        }
+    }
+
+    public List<OrderElement> getOrderElements(Long id) {
+        initWebClient();
+        String jsonResponse = webClient.mutate().codecs(
+                        configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
+                .build()
+                .get()
+                .uri("getOrderElements?orderId={id}", id)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+        try{
+            return convertResponseToEntityList(jsonResponse, OrderElement.class);
+        } catch (JsonProcessingException e) {
+            logger.error("JsonProcessingException for String: " + jsonResponse);
+            return null;
         }
     }
 }

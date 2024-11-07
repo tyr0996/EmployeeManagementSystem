@@ -7,6 +7,10 @@ import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
+import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.model.Product;
+import org.mockito.Mockito;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
@@ -16,8 +20,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
+import static org.testng.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class ProductCrudTest extends BaseCrudTest {
@@ -127,5 +133,106 @@ public class ProductCrudTest extends BaseCrudTest {
     public void createFailedTest() throws JsonProcessingException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         crudTestingUtil.createFailedTest(port, spyProductApiClient, mainMenu, subMenu);
+    }
+
+    @Test
+    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.createNotExpectedStatusCodeSave(spyProductApiClient, Product.class);
+    }
+
+    @Test
+    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.updateNotExpectedStatusCode(spyProductApiClient, Product.class);
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingAllCustomers() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyCustomerApiClient).findAll();
+        LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
+        failedData.put("Customer", "Error happened while getting customers");
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+        WebElement sellToCustomerButton = GridTestingUtil.getOptionButton(gridXpath, getRandomLocationFromGrid(gridXpath), 3);
+        findVisibleElementWithXpath(gridXpath);
+        WebElement sellButtonContainer = sellToCustomerButton.getShadowRoot().findElement(By.className("vaadin-button-container"));
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].click()", sellButtonContainer);
+
+        WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
+        WebElement orderButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        crudTestingUtil.fillCreateOrUpdateForm(null, failedData);
+        assertEquals(false, GridTestingUtil.isEnabled(orderButton));
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingAllSuppliers() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spySupplierApiClient).findAll();
+        LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
+        failedData.put("Supplier", "Error happened while getting suppliers");
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        WebElement orderFromSupplierButton = GridTestingUtil.getOptionButton(gridXpath, getRandomLocationFromGrid(gridXpath), 4);
+        findVisibleElementWithXpath(gridXpath);
+        WebElement supplierButtonContainer = orderFromSupplierButton.getShadowRoot().findElement(By.className("vaadin-button-container"));
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].click()", supplierButtonContainer);
+
+        WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
+        WebElement orderButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        crudTestingUtil.fillCreateOrUpdateForm(null, failedData);
+        assertEquals(false, GridTestingUtil.isEnabled(orderButton));
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingAllProducts() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyProductApiClient).findAll();
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyProductApiClient).findAllWithDeleted();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(100);
+        checkNotificationText("Error happened while getting products");
+        assertEquals(0, countVisibleGridDataRows(gridXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingCurrenciesNames() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+        failedFieldData.put("Buying price currency", "Error happened while getting currencies");
+        failedFieldData.put("Selling price currency", "Error happened while getting currencies");
+
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingTaxKeys() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.TAXKEYS_CODESTORE_ID);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+        failedFieldData.put("Tax key", "Error happened while getting tax keys");
+
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenGettingAmountUnits() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+        failedFieldData.put("Amount unit", "Error happened while getting amount units");
+
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
     }
 }

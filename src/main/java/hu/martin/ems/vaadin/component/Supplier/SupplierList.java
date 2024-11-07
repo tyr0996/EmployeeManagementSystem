@@ -25,14 +25,17 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.Address;
-import hu.martin.ems.model.Supplier;
+import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.SupplierApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -65,6 +68,10 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
     private static String addressFilterText = "";
     private static String nameFilterText = "";
 
+    private Logger logger = LoggerFactory.getLogger(Supplier.class);
+    List<Supplier> supplierList;
+
+    List<Address> addressList;
 
     @Autowired
     public SupplierList(PaginationSetting paginationSetting) {
@@ -74,8 +81,8 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
 
         this.grid = new PaginatedGrid<>(SupplierVO.class);
         grid.addClassName("styling");
-        List<Supplier> suppliers = supplierApi.findAll();
-        List<SupplierVO> data = suppliers.stream().map(SupplierVO::new).collect(Collectors.toList());
+        setupSuppliers();
+        List<SupplierVO> data = supplierList.stream().map(SupplierVO::new).collect(Collectors.toList());
 
         this.grid.setItems(data);
 
@@ -159,6 +166,21 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         add(hl, grid);
     }
 
+    private void setupSuppliers() {
+        EmsResponse response = supplierApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                supplierList = (List<Supplier>) response.getResponseData();
+                break;
+            default:
+                supplierList = new ArrayList<>();
+                logger.error("Supplier findAll [currency]. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                Notification.show("Error happened while getting suppliers")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                break;
+        }
+    }
+
     private Stream<SupplierVO> getFilteredStream() {
         return supplierVOS.stream().filter(supplierVO ->
                         (addressFilterText.isEmpty() || supplierVO.address.toLowerCase().contains(addressFilterText.toLowerCase())) &&
@@ -225,12 +247,24 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
 
 
     private void updateGridItems() {
-        List<Supplier> suppliers = supplierApi.findAllWithDeleted();
+        EmsResponse response = supplierApi.findAllWithDeleted();
+        List<Supplier> suppliers;
+        switch (response.getCode()){
+            case 200:
+                suppliers = (List<Supplier>) response.getResponseData();
+                break;
+            default:
+                Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                suppliers = new ArrayList<>();
+                break;
+        }
         supplierVOS = suppliers.stream().map(SupplierVO::new).collect(Collectors.toList());
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
     public Dialog getSaveOrUpdateDialog(Supplier entity) {
+
+        Button saveButton = new Button("Save");
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " supplier");
         FormLayout formLayout = new FormLayout();
 
@@ -239,10 +273,19 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         ComboBox<Address> addresses = new ComboBox<>("Address");
         ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        addresses.setItems(addressFilter, addressApi.findAll());
-        addresses.setItemLabelGenerator(Address::getName);
-
-        Button saveButton = new Button("Save");
+        setupAddresses();
+        if(addressList == null){
+            addresses.setInvalid(true);
+            addresses.setErrorMessage("Error happened while getting addresses");
+            addresses.setEnabled(false);
+            saveButton.setEnabled(false);
+        }
+        else {
+            addresses.setInvalid(false);
+            addresses.setEnabled(true);
+            addresses.setItems(addressFilter, addressList);
+            addresses.setItemLabelGenerator(Address::getName);
+        }
 
         if (entity != null) {
             nameField.setValue(entity.getName());
@@ -255,16 +298,32 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             supplier.setAddress(addresses.getValue());
             supplier.setDeleted(0L);
 
+            EmsResponse response = null;
             if(entity != null){
-                supplierApi.update(supplier);
+                response = supplierApi.update(supplier);
             }
             else{
-                supplierApi.save(supplier);
+                response = supplierApi.save(supplier);
             }
 
+            switch (response.getCode()){
+                case 200:
+                    Notification.show("Supplier " + (entity == null ? "saved: " : "updated: ") + ((Supplier) response.getResponseData()).getName())
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    break;
+                case 500:
+                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    createDialog.close();
+                    updateGridItems();
+                    return;
+                default:
+                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    logger.warn("Invalid status code in SupplierList: {}", response.getCode());
+                    createDialog.close();
+                    updateGridItems();
+                    return;
+            }
 
-            Notification.show("Supplier " + (entity == null ? "saved: " : "updated: ") + supplier)
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             nameField.clear();
             addresses.clear();
             createDialog.close();
@@ -274,6 +333,19 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         formLayout.add(nameField, addresses, saveButton);
         createDialog.add(formLayout);
         return createDialog;
+    }
+
+    private void setupAddresses() {
+        EmsResponse response = addressApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                addressList = (List<Address>) response.getResponseData();
+                break;
+            default:
+                addressList = null;
+                logger.error("Address findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
     }
 
     @NeedCleanCoding

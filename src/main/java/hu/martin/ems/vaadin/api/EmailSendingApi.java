@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.JacksonConfig;
 import hu.martin.ems.core.model.EmailProperties;
+import hu.martin.ems.core.model.EmsResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
@@ -32,7 +33,7 @@ public class EmailSendingApi {
         this.webClient = WebClient.builder().baseUrl("http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/api/emailSending/").build();
     }
 
-    public Boolean send(EmailProperties emailProperties) {
+    public EmsResponse send(EmailProperties emailProperties) {
         try{
             String response =  webClient.post()
                     .uri("sendEmail")
@@ -41,9 +42,14 @@ public class EmailSendingApi {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return Boolean.valueOf(response);
+            if(Boolean.valueOf(response)){
+                return new EmsResponse(200, true, "");
+            }
+            else{
+                return new EmsResponse(200, false, "Email sending failed");
+            }
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return new EmsResponse(500, false, "JsonProcessingException");
         }
     }
 }

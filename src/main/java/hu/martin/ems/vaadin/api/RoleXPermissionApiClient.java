@@ -3,6 +3,7 @@ package hu.martin.ems.vaadin.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.model.RoleXPermission;
@@ -20,46 +21,53 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
 
     private final RoleApiClient roleApiClient = BeanProvider.getBean(RoleApiClient.class);
 
-    public List<RoleXPermission> findAlRoleXPermissionByRole(Role r){
+    public EmsResponse findAlRoleXPermissionByRole(Role r){
+        initWebClient();
         String jsonResponse = webClient.get()
                 .uri("findAlRoleXPermissionByRole?roleId=" + r.getId())
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
         try{
-            return convertResponseToEntityList(jsonResponse, RoleXPermission.class);
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse, RoleXPermission.class), "");
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            logger.error("JsonProcessingException while findAlRoleXPermissionByRole");
+            return new EmsResponse(500, "JsonProcessingException");
         }
     }
 
-    public List<RoleXPermission> findAllRoleXPermissionByPermission(Permission p){
+    public EmsResponse findAllRoleXPermissionByPermission(Permission p){
+        initWebClient();
         String jsonResponse = webClient.get()
                 .uri("findAllRoleXPermissionByPermission?permissionId=" + p.getId())
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
         try {
-            return convertResponseToEntityList(jsonResponse, RoleXPermission.class);
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse, RoleXPermission.class), "");
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            logger.error("JsonProcessingException while findAllRoleXPermissionByPermission");
+            return new EmsResponse(500, "JsonProcessingException");
         }
     }
 
-    public List<Role> findAllPairedRoleTo(Permission p){
+    public EmsResponse findAllPairedRoleTo(Permission p){
+        initWebClient();
         String jsonResponse = webClient.get()
                 .uri("findAllPairedRoleTo?permissionId=" + p.getId())
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
         try {
-            return convertResponseToEntityList(jsonResponse, Role.class);
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse, Role.class), "");
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+
+            logger.error("JsonProcessingException while findAllPairedRoleTo");
+            return new EmsResponse(500, "JsonProcessingException");
         }
     }
 
-    public List<Permission> findAllPairedPermissionsTo(Role r){
+    public EmsResponse findAllPairedPermissionsTo(Role r){
         initWebClient();
         String jsonResponse = webClient.get()
                 .uri("findAllPairedPermissionsTo?roleId=" + r.getId())
@@ -67,9 +75,10 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
                 .bodyToMono(String.class)
                 .block();
         try {
-            return convertResponseToEntityList(jsonResponse, Permission.class);
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse, Permission.class), "");
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            logger.error("JsonProcessingException while findAllPairedPermissionsTo");
+            return new EmsResponse(500, "JsonProcessingException");
         }
     }
 
@@ -109,7 +118,7 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
         }
     }
 
-    public List<RoleXPermission> findAllWithUnused(Boolean withDeleted) {
+    public EmsResponse findAllWithUnused(Boolean withDeleted) {
         initWebClient();
         String jsonResponse = webClient.get()
                 .uri("findAllWithUnused?withDeleted=" + withDeleted)
@@ -117,9 +126,10 @@ public class RoleXPermissionApiClient extends EmsApiClient<RoleXPermission> {
                 .bodyToMono(String.class)
                 .block();
         try {
-            return convertResponseToEntityList(jsonResponse);
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            logger.error("JsonProcessingException while findAllWithUnused");
+            return new EmsResponse(500, "JsonProcessingException");
         }
     }
 }

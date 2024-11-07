@@ -1,10 +1,16 @@
 package hu.martin.ems.crudFE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
+import hu.martin.ems.base.GridTestingUtil;
+import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.model.Permission;
+import hu.martin.ems.model.Role;
 import hu.martin.ems.model.RoleXPermission;
 import hu.martin.ems.vaadin.component.AccessManagement.RoleXPermissionCreate;
 import org.mockito.Mockito;
@@ -14,9 +20,13 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.mockito.ArgumentMatchers.any;
+
+import static org.testng.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class RoleXPermissionCreateTest extends BaseCrudTest {
@@ -59,6 +69,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         fillElementWith(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath), false, "");
         findClickableElementWithXpath(saveButtonXpath).click();
         checkNotificationContainsTexts("Role successfully paired!");
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
@@ -72,5 +83,65 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         fillElementWith(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath), false, "");
         findClickableElementWithXpath(saveButtonXpath).click();
         checkNotificationContainsTexts("Role-permission pairing failed");
+        checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    public void notExpectedStatusCodeWhileGettingPariedPermissionsTo() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleXPermissionApiClient).findAllPairedPermissionsTo(any(Role.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
+        Thread.sleep(100);
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), true);
+        assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "");
+        fillElementWith(findVisibleElementWithXpath(roleDropboxXpath), false, "");
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), false);
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(saveButtonXpath)), false);
+        assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "Error happened while getting paired permissions");
+        checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    public void notExpectedStatusCodeWhileGettingAllPermissions() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionApiClient).findAll();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
+        Thread.sleep(100);
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), false);
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(saveButtonXpath)), false);
+        assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "Error happened while getting permissions");
+        fillElementWith(findVisibleElementWithXpath(roleDropboxXpath), false, "");
+        checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    public void notExpectedStatusCodeWhileGettingAllRoles() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findAll();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
+        Thread.sleep(100);
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(roleDropboxXpath)), false);
+        assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(roleDropboxXpath)), "Error happened while getting roles");
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(saveButtonXpath)), false);
+        checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    public void notExpectedStatusCodeWhileGettingAllPermissionsAndRoles() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionApiClient).findAll();
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findAll();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
+        Thread.sleep(100);
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), false);
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(roleDropboxXpath)), false);
+        assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "Error happened while getting permissions");
+        assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(roleDropboxXpath)), "Error happened while getting roles");
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(saveButtonXpath)), false);
+        checkNoMoreNotificationsVisible();
     }
 }

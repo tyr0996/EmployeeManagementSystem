@@ -13,6 +13,7 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.controller.EmailSendingController;
 import hu.martin.ems.core.model.EmailData;
 import hu.martin.ems.core.model.EmailProperties;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.model.OrderElement;
@@ -155,8 +156,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
     @Test
     public void sendEmailSuccessTest() throws InterruptedException {
-        BeanProvider.getBean(EmailSendingController.class).setService(emailSendingService);
-        Mockito.doReturn(true).when(emailSendingService).send(Mockito.any(EmailProperties.class));
+        //BeanProvider.getBean(EmailSendingController.class).setService(emailSendingService);
+        Mockito.doReturn(new EmsResponse(200, true, "")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
 
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -172,8 +173,31 @@ public class OrderCrudTest extends BaseCrudTest {
         WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
         sendEmailButton.click();
         Thread.sleep(100);
-        checkNotificationContainsTexts("Email sikeresen elküldve!", 5000);
+        checkNotificationContainsTexts("Email sent!", 5000);
 
+    }
+
+
+    @Test
+    public void sendEmailFailedBut200Test() throws InterruptedException {
+        String responseDescription = "Failed, because foobar";
+        Mockito.doReturn(new EmsResponse(522, false, responseDescription)).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        if(rowLocation == null) {
+            OrderCreateTest.setupTest();
+            OrderCreateTest.createOrder();
+            rowLocation = new ElementLocation(1, 0);
+        }
+
+        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
+        sendEmailButton.click();
+        Thread.sleep(100);
+        checkNotificationContainsTexts(responseDescription, 5000);
     }
 
     @Test
@@ -192,7 +216,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
         WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
         sendEmailButton.click();
-        checkNotificationContainsTexts("Email küldése sikertelen", 5000);
+        checkNotificationContainsTexts("Email sending failed", 5000);
     }
 
     @Test
@@ -204,6 +228,56 @@ public class OrderCrudTest extends BaseCrudTest {
 
     @Test
     public void modifyOrderTest() throws InterruptedException {
+        modifyOrder(null, true);
+    }
+
+    @Test
+    public void apiSendInvalidStatusCodeWhenUpdateOrderElement() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyOrderElementApiClient).update(any(OrderElement.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        modifyOrder("Not expected status-code in saving order element", false);
+    }
+
+    @Test
+    public void updateFailedTestOrderElement() throws JsonProcessingException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        if(rowLocation == null) {
+            Mockito.doCallRealMethod()
+                    .doCallRealMethod()
+                    .doCallRealMethod()
+                    .doThrow(JsonProcessingException.class).doCallRealMethod().when(spyOrderElementApiClient).writeValueAsString(any(OrderElement.class));
+        }
+        else{
+            Mockito.doThrow(JsonProcessingException.class).doCallRealMethod().when(spyOrderElementApiClient).writeValueAsString(any(OrderElement.class));
+        }
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(10);
+        modifyOrder("Order element modifying failed", false);
+    }
+
+
+    @Test
+    public void orderCreateFailedNotFirstOrderElementUpdate() throws InterruptedException, JsonProcessingException {
+        Mockito.doCallRealMethod()
+                .doCallRealMethod()
+                .doCallRealMethod()
+                .doCallRealMethod()
+                .doThrow(JsonProcessingException.class).doCallRealMethod().when(spyOrderElementApiClient).writeValueAsString(any(OrderElement.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(10);
+        OrderCreateTest.setupTest();
+        OrderCreateTest.createOrder("Order element saving failed", false);
+    }
+
+    public void modifyOrder(String notificationText, Boolean needSuccess) throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
 
@@ -219,6 +293,7 @@ public class OrderCrudTest extends BaseCrudTest {
         String[] originalData = getDataFromRowLocation(gridXpath, rowLocation);
 
         goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
+        Thread.sleep(200);
         WebElement modifyButton = getModifyButton(gridXpath, rowLocation.getRowIndex());
         Thread.sleep(200);
         modifyButton.click();
@@ -232,13 +307,14 @@ public class OrderCrudTest extends BaseCrudTest {
         selectRandomFromComboBox(findVisibleElementWithXpath(createOrderCurrencyComboBox));
         selectRandomFromComboBox(findVisibleElementWithXpath(createOrderPaymentComboBox));
         findClickableElementWithXpath(createOrderSaveOrderButton).click();
-        checkNotificationContainsTexts("Order updated:");
+        checkNotificationContainsTexts(notificationText == null ? "Order updated:" : notificationText);
+
         Thread.sleep(100);
 
 
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
-        assertEquals(0, countElementResultsFromGridWithFilter(gridXpath, originalData));
+        assertEquals(needSuccess ? 0 : 1, countElementResultsFromGridWithFilter(gridXpath, originalData));
         assertEquals(original, countVisibleGridDataRows(gridXpath));
     }
 
@@ -251,16 +327,14 @@ public class OrderCrudTest extends BaseCrudTest {
         WebElement deleteButton = getDeleteButton(gridXpath, 0);
         while(deleteButton != null){
             deleteButton.click();
-            //removeNotification(); //TODO létrehozni egy ilyen függvényt, ami csak szimplán bezárja a notification-t
-            Thread.sleep(5);
+            closeNotification(200);
             deleteButton = getDeleteButton(gridXpath, 0);
         }
         setCheckboxStatus(showDeletedXpath, true);
         WebElement permanentlyDeleteButton = getPermanentlyDeleteButton(gridXpath, 0);
         while(permanentlyDeleteButton != null){
             permanentlyDeleteButton.click();
-            //removeNotification(); //TODO létrehozni egy ilyen függvényt, ami csak szimplán bezárja a notification-t
-            Thread.sleep(5);
+            closeNotification(200);
             permanentlyDeleteButton = getPermanentlyDeleteButton(gridXpath, 0);
         }
 
@@ -271,7 +345,7 @@ public class OrderCrudTest extends BaseCrudTest {
         WebElement oeDeleteButton = getDeleteButton(oeGridXpath, 0);
         while(oeDeleteButton != null){
             oeDeleteButton.click();
-            //removeNotification(); //TODO létrehozni egy ilyen függvényt, ami csak szimplán bezárja a notification-t
+            closeNotification(200);
             Thread.sleep(5);
             oeDeleteButton = getDeleteButton(oeGridXpath, 0);
         }
@@ -279,7 +353,7 @@ public class OrderCrudTest extends BaseCrudTest {
         WebElement oePermanentlyDeleteButton = getPermanentlyDeleteButton(oeGridXpath, 0);
         while(oePermanentlyDeleteButton != null){
             oePermanentlyDeleteButton.click();
-            //removeNotification(); //TODO létrehozni egy ilyen függvényt, ami csak szimplán bezárja a notification-t
+            closeNotification(200);
             Thread.sleep(5);
             oePermanentlyDeleteButton = getPermanentlyDeleteButton(gridXpath, 0);
         }
@@ -379,6 +453,18 @@ public class OrderCrudTest extends BaseCrudTest {
         }
 
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+    }
+
+    @Test
+    public void gettingOrdersFailed() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).findAllWithDeleted();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        checkNotificationText("Error happened while getting orders");
+        checkNoMoreNotificationsVisible();
+        assertEquals(0, countVisibleGridDataRows(gridXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedXpath));
+        checkNoMoreNotificationsVisible();
     }
 
     private boolean waitForDownload(String fileNameRegex, int timeOut) throws Exception {

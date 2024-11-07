@@ -27,11 +27,15 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.model.Address;
 import hu.martin.ems.model.CodeStore;
+import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -65,7 +69,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
     private static String nameColumnFilterText = "";
     private static String parentColumnFilterText = "";
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
-
+    private Logger logger = LoggerFactory.getLogger(CodeStore.class);
 
     @Autowired
     public CodeStoreList(PaginationSetting paginationSetting) {
@@ -75,9 +79,8 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
 
         this.grid = new PaginatedGrid<>(CodeStoreVO.class);
 
-        List<CodeStore> codeStores = codeStoreApi.findAll();
-        codeStoreVOS = codeStores.stream().map(CodeStoreVO::new).collect(Collectors.toList());
-        this.grid.setItems(codeStoreVOS);
+        setupCodeStores();
+        updateGridItems();
 
         nameColumn = this.grid.addColumn(v -> v.name);
         parentColumn = this.grid.addColumn(v -> v.parentName);
@@ -105,6 +108,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
                 codeStoreApi.restore(codeStoreVO.original);
                 Notification.show("CodeStore restored: " + codeStoreVO.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupCodeStores();
                 updateGridItems();
             });
 
@@ -112,6 +116,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
                 codeStoreApi.delete(codeStoreVO.original);
                 Notification.show("CodeStore deleted: " + codeStoreVO.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupCodeStores();
                 updateGridItems();
             });
 
@@ -119,6 +124,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
                 codeStoreApi.permanentlyDelete(codeStoreVO.id);
                 Notification.show("CodeStore permanently deleted: " + codeStoreVO.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupCodeStores();
                 updateGridItems();
             });
             if (!codeStoreVO.deletable) {
@@ -164,10 +170,29 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         add(hl, showOnlyDeletableCodeStores, grid);
     }
 
+    private void setupCodeStores() {
+        EmsResponse response = codeStoreApi.findAllWithDeleted();
+        switch (response.getCode()){
+            case 200:
+                codeStores = (List<CodeStore>) response.getResponseData();
+                break;
+            default:
+                codeStores = null;
+                logger.error("CodeStore findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+
+                break;
+        }
+    }
+
     private void updateGridItems() {
-        codeStores = codeStoreApi.findAllWithDeleted();
-        codeStoreVOS = codeStores.stream().map(CodeStoreVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        if(codeStores == null){
+            Notification.show("Error happened while getting codestores")
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+        else{
+            codeStoreVOS = codeStores.stream().map(CodeStoreVO::new).collect(Collectors.toList());
+            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        }
     }
 
     private Stream<CodeStoreVO> getFilteredStream() {
@@ -246,7 +271,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         ComboBox<CodeStore> parentCodeStore = new ComboBox<>("Parent");
         ComboBox.ItemFilter<CodeStore> filter = (codeStore, filterString) ->
                 codeStore.getName().toLowerCase().contains(filterString.toLowerCase());
-        parentCodeStore.setItems(filter, codeStoreApi.findAll());
+        parentCodeStore.setItems(filter, codeStores);
         parentCodeStore.setItemLabelGenerator(CodeStore::getName);
 
         Checkbox deletable = new Checkbox("Deletable");
@@ -259,21 +284,42 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         Button saveButton = new Button("Save");
 
         saveButton.addClickListener(event -> {
-            CodeStore codeStore = Objects.requireNonNullElseGet(entity, CodeStore::new);
-            codeStore.setLinkName(codeStore.getLinkName() == null ? nameTextField.getValue() : codeStore.getLinkName());
+            CodeStore codeStore = new CodeStore();
+            codeStore.id = entity == null ? null : entity.getId();
+            if(entity != null){
+                codeStore.id = entity.getId();
+            }
+            codeStore.setLinkName(entity == null ? nameTextField.getValue() : entity.getLinkName());
             codeStore.setName(nameTextField.getValue());
             codeStore.setDeletable(deletable.getValue());
             codeStore.setDeleted(0L);
             codeStore.setParentCodeStore(parentCodeStore.getValue());
-            EmsResponse response = codeStoreApi.save(codeStore);
+            EmsResponse response = null;
+            if(entity == null){
+                response = codeStoreApi.save(codeStore);
+            }
+            else{
+                response = codeStoreApi.update(codeStore);
+            }
 
             switch (response.getCode()){
                 case 200: Notification.show("CodeStore " + (entity == null ? "saved: " : "updated: ") + ((CodeStore) response.getResponseData()).getName())
-                                      .addThemeVariants(NotificationVariant.LUMO_SUCCESS); break;
-                case 500: Notification.show( "Codestore saving failed").addThemeVariants();
+                                      .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                break;
+                case 500:
+                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    createDialog.close();
+                    updateGridItems();
+                    return;
+                default:
+                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    logger.warn("Invalid status code in AddressList: {}", response.getCode());
+                    createDialog.close();
+                    updateGridItems();
+                    break;
             }
 
-
+            setupCodeStores();
             updateGridItems();
 
             nameTextField.clear();

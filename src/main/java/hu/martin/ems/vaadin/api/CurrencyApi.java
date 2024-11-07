@@ -30,8 +30,7 @@ public class CurrencyApi extends EmsApiClient<Currency>{
         catch (JsonProcessingException ex) {
             logger.error("Finding entity failed due to failing convert it from json. Entity type: Currency");
             ex.printStackTrace();
-            return null;
-            //TODO
+            return new EmsResponse(500, "JsonProcessingException");
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
@@ -39,7 +38,7 @@ public class CurrencyApi extends EmsApiClient<Currency>{
         }
     }
 
-    public Currency findByDate(LocalDate date) {
+    public EmsResponse findByDate(LocalDate date) {
         initWebClient();
         try{
             String response = webClient.get()
@@ -47,11 +46,11 @@ public class CurrencyApi extends EmsApiClient<Currency>{
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return om.readValue(response, new TypeReference<Currency>(){});
+            return new EmsResponse(200, om.readValue(response, new TypeReference<Currency>(){}), "");
         } catch (JsonProcessingException ex) {
             logger.error("Finding entity failed due to failing convert it from json. Entity type: Currency");
             ex.printStackTrace();
-            return null;
+            return new EmsResponse(500, "JsonProcessingException");
             //TODO
         }
     }

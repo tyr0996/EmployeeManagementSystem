@@ -41,8 +41,8 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         super(orderRepository);
     }
 
-    public List<OrderElement> getOrderElements(Order o) {
-        return this.repo.getOrderElements(o.getId());
+    public List<OrderElement> getOrderElements(Long orderId) {
+        return this.repo.getOrderElements(orderId);
     }
 
     @Autowired
@@ -118,7 +118,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
             lines.add(Arrays.stream(colNames).toList());
             for (Order order : orders) {
                 List<List<String>> linesOfOrder = new ArrayList<>();
-                for(OrderElement oe : getOrderElements(order)){
+                for(OrderElement oe : getOrderElements(order.getId())){
                     List<String> line = new ArrayList<>();
                     line.add(order.getName());
                     line.add(oe.getProduct().getName());
@@ -157,7 +157,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         IContext ctx = report.createContext();
         OrderDM order = new OrderDM(o);
         String currency = o.getCurrency().getName();
-        ctx.put("r", getOrderElements(o).stream().map(v -> {
+        ctx.put("r", getOrderElements(o.getId()).stream().map(v -> {
             Double unitNetPrice = currencyService.convert(LocalDate.now(), v.getProduct().getSellingPriceCurrency().getName(), currency, v.getUnitNetPrice().doubleValue());
             Double netPrice = currencyService.convert(LocalDate.now(), v.getProduct().getSellingPriceCurrency().getName(), currency, v.getNetPrice().doubleValue());
             Double tax = currencyService.convert(LocalDate.now(), v.getProduct().getSellingPriceCurrency().getName(), currency, v.getTaxPrice().doubleValue());

@@ -1,5 +1,6 @@
 package hu.martin.ems.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.core.model.EmsResponse;
@@ -59,5 +60,10 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
         orderElementService.permanentlyDeleteByOrder(entityId);
         service.permanentlyDelete(entityId);
         return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
+    }
+
+    @GetMapping(path = "getOrderElements", produces = StaticDatas.Produces.JSON)
+    public ResponseEntity<String> getOrderElements(@RequestParam(value = "orderId") Long orderId) throws JsonProcessingException {
+        return new ResponseEntity<>(om.writeValueAsString(service.getOrderElements(orderId)), HttpStatus.OK);
     }
 }

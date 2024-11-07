@@ -2,6 +2,7 @@ package hu.martin.ems.vaadin.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.CodeStore;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,7 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
         super(CodeStore.class);
     }
 
-    public List<CodeStore> getChildren(Long parentCodeStoreId){
+    public EmsResponse getChildren(Long parentCodeStoreId){
         initWebClient();
         String jsonResponse = webClient.get()
                 .uri("getChildren?parentCodeStoreId=" + parentCodeStoreId)
@@ -22,13 +23,13 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
                 .bodyToMono(String.class)
                 .block();
         try{
-            return convertResponseToEntityList(jsonResponse);
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return new EmsResponse(500, "JsonProcessingException");
         }
     }
 
-    public List<CodeStore> getAllByName(String name){
+    public EmsResponse getAllByName(String name){
         initWebClient();
         String jsonResponse = webClient.get()
                 .uri("getByName?name=" + name)
@@ -36,9 +37,9 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
                 .bodyToMono(String.class)
                 .block();
         try{
-            return convertResponseToEntityList(jsonResponse);
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return new EmsResponse(500, "JsonProcessingException");
         }
     }
 }

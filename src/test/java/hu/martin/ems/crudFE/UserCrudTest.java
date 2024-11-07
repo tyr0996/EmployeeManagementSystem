@@ -1,5 +1,6 @@
 package hu.martin.ems.crudFE;
 
+import com.beust.ah.A;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
@@ -10,6 +11,7 @@ import hu.martin.ems.base.NotificationCheck;
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.User;
+import hu.martin.ems.model.Address;
 import hu.martin.ems.model.Role;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -49,7 +51,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     public void clearUsers() throws InterruptedException {
-        dp.executeSQL("DELETE FROM loginuser WHERE id = 1");
+        dp.executeSQL("DELETE FROM loginuser");
         dp.executeSQL("INSERT INTO loginuser (id, deleted, username, password, role_role_id) VALUES ('1', '0', 'admin', 'admin', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1))");
         logger.info("Admin user successfully recovered");
         Thread.sleep(1000);
@@ -58,83 +60,82 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/addresses.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void userCreateTest() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-         navigateMenu(mainMenu, subMenu);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
+        clearUsers();
     }
 
     @Test
     public void useReadTest() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-         navigateMenu(mainMenu, subMenu);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.readTest();
+        clearUsers();
     }
 
     @Test
     public void userDeleteTest() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-         navigateMenu(mainMenu, subMenu);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
+        clearUsers();
     }
 
     @Test
     public void userUpdateTest() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-         navigateMenu(mainMenu, subMenu);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest();
+        clearUsers();
     }
 
     @Test
     public void userRestoreTest() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-         navigateMenu(mainMenu, subMenu);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.restoreTest();
+        clearUsers();
     }
 
     @Test
     public void userPermanentlyDeleteTest() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-         navigateMenu(mainMenu, subMenu);
+        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
+        clearUsers();
     }
 
     @Test
     public void createUserAllreadyExists() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-         navigateMenu(mainMenu, subMenu);
+        navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Username", "admin");
         crudTestingUtil.createTest(withData, "Username already exists!", false);
+        clearUsers();
     }
 
     @Test
     public void apiSendInvalidStatusCodeWhenSave() throws InterruptedException {
         Mockito.doReturn(new EmsResponse(522, "")).when(spyUserApiClient).save(any(User.class));
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
+        clearUsers();
     }
 
     @Test
     public void apiSendInvalidStatusCodeWhenModify() throws InterruptedException {
         Mockito.doReturn(new EmsResponse(522, "")).when(spyUserApiClient).update(any(User.class));
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
+        clearUsers();
     }
 
     @Test
     public void modifyUserAllreadyExists() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
@@ -146,62 +147,99 @@ public class UserCrudTest extends BaseCrudTest {
         }
         crudTestingUtil.createTest();
         crudTestingUtil.updateTest(withData, "Username already exists!", false);
+        clearUsers();
     }
 
 
     @Test
     public void createUserPasswordDoesntMatch() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-         navigateMenu(mainMenu, subMenu);
+        navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Password", "asdf");
         withData.put("Password again", "asd");
         crudTestingUtil.createTest(withData, "Passwords doesn't match!", false);
+        clearUsers();
     }
 
     @Test
     public void updateUserEmptyPassword() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
          navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Password", "");
         withData.put("Password again", "");
         crudTestingUtil.updateTest(withData, "Password is required!", false);
+        clearUsers();
     }
 
     @Test
     public void updateUserPasswordDouesntMatch() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Password", "asdf");
         withData.put("Password again", "asd");
         crudTestingUtil.updateTest(withData, "Passwords doesn't match!", false);
+        clearUsers();
     }
 
 
     @Test
     public void extraFilterInvalidValue() throws InterruptedException {
-        clearUsers();
         TestingUtils.loginWith(driver, port, "admin", "admin");
-         navigateMenu(mainMenu, subMenu);
+        navigateMenu(mainMenu, subMenu);
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+        clearUsers();
     }
 
     @Test
     public void createFailedTest() throws JsonProcessingException, InterruptedException {
-        clearUsers();
         crudTestingUtil.createFailedTest(port, spyUserApiClient, mainMenu, subMenu);
+        clearUsers();
     }
 
     @Test
     public void modifyFailedTest() throws JsonProcessingException, InterruptedException {
-        clearUsers();
         crudTestingUtil.modifyFailedTest(port, spyUserApiClient, mainMenu, subMenu);
+        clearUsers();
+    }
+
+    @Test
+    public void finalAllWithDeletedUnexpectedResponse() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyUserApiClient).findAllWithDeleted();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(500);
+        checkNotificationText("Getting users failed");
+        checkNoMoreNotificationsVisible();
+        clearUsers();
+    }
+
+    @Test
+    public void updateUserButUsernameNotChanged() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        LinkedHashMap<String, String> withData = new LinkedHashMap<>();
+        withData.put("Username", "admin");
+        crudTestingUtil.updateTest(withData, null, true);
+        checkNoMoreNotificationsVisible();
+        clearUsers();
+    }
+
+    @Test
+    public void findAllRoleUnexpectedResponse() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findAll();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(500);
+        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+        failedFieldData.put("Role", "Error happened while getting roles");
+
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+        checkNoMoreNotificationsVisible();
+        clearUsers();
     }
 }

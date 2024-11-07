@@ -28,9 +28,9 @@ public class AccessManagement extends VerticalLayout {
     @Autowired
     public AccessManagement(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
-        this.roleList = new RoleList(paginationSetting);
-        this.permissionList = new PermissionList(paginationSetting);
-        this.roleXPermissionCreate = new RoleXPermissionCreate();
+//        this.roleList = new RoleList(paginationSetting);
+//        this.permissionList = new PermissionList(paginationSetting);
+//        this.roleXPermissionCreate = new RoleXPermissionCreate();
         this.buttonsLayout = new HorizontalLayout();
         initButtons();
         addClickListeners();
@@ -48,15 +48,13 @@ public class AccessManagement extends VerticalLayout {
 
     private void addClickListeners() {
         listRoles.addClickListener(event ->{
-            this.roleList.generateSaveOrUpdateDialog();
-            refreshLayout(this.roleList);
+            refreshLayout(new RoleList(paginationSetting));
         });
         listPermissions.addClickListener(event -> {
-            this.permissionList.getSaveOrUpdateDialog(null);
-            refreshLayout(permissionList);
+            refreshLayout(new PermissionList(paginationSetting));
         });
         pairRolesWithPermissions.addClickListener(event -> {
-            refreshLayout(roleXPermissionCreate);
+            refreshLayout(new RoleXPermissionCreate());
         });
     }
 

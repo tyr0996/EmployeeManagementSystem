@@ -26,13 +26,18 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.City;
 import hu.martin.ems.model.CodeStore;
+import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import org.checkerframework.checker.units.qual.C;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -58,6 +63,10 @@ public class CityList extends VerticalLayout implements Creatable<City> {
 
     List<CityVO> cityVOS;
 
+
+    List<City> cityList;
+    List<CodeStore> countries;
+
     private String countryCodeFilterText = "";
     private String nameFilterText = "";
     private String zipCodeFilterText = "";
@@ -67,6 +76,8 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     private Grid.Column<CityVO> countryCodeColumn;
     private Grid.Column<CityVO> nameColumn;
     private Grid.Column<CityVO> zipCodeColumn;
+    private Logger logger = LoggerFactory.getLogger(City.class);
+
 
 
     @Autowired
@@ -76,9 +87,9 @@ public class CityList extends VerticalLayout implements Creatable<City> {
         CityVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(CityVO.class);
-        List<City> cities = cityApi.findAll();
-        cityVOS = cities.stream().map(CityVO::new).collect(Collectors.toList());
-        grid.setItems(getFilteredStream().toList());
+        setupCountries();
+        setupCities();
+        updateGridItems();
 
         countryCodeColumn = grid.addColumn(v -> v.countryCode);
         nameColumn = grid.addColumn(v -> v.name);
@@ -108,6 +119,7 @@ public class CityList extends VerticalLayout implements Creatable<City> {
                 this.cityApi.restore(city.original);
                 Notification.show("City restored: " + city.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupCities();
                 updateGridItems();
             });
 
@@ -115,6 +127,7 @@ public class CityList extends VerticalLayout implements Creatable<City> {
                 this.cityApi.delete(city.original);
                 Notification.show("City deleted: " + city.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupCities();
                 updateGridItems();
             });
 
@@ -122,6 +135,7 @@ public class CityList extends VerticalLayout implements Creatable<City> {
                 this.cityApi.permanentlyDelete(city.original.getId());
                 Notification.show("City permanently deleted: " + city.original.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupCities();
                 updateGridItems();
             });
 
@@ -158,6 +172,19 @@ public class CityList extends VerticalLayout implements Creatable<City> {
         hl.setAlignSelf(Alignment.CENTER, create);
 
         add(hl, grid);
+    }
+
+    private void setupCities() {
+        EmsResponse response = cityApi.findAllWithDeleted();
+        switch (response.getCode()){
+            case 200:
+                cityList = (List<City>) response.getResponseData();
+                break;
+            default:
+                cityList = null;
+                logger.error("City findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
     }
 
     private Stream<CityVO> getFilteredStream() {
@@ -241,22 +268,36 @@ public class CityList extends VerticalLayout implements Creatable<City> {
 
 
     private void updateGridItems() {
-        List<City> cities = cityApi.findAllWithDeleted();
-        cityVOS = cities.stream().map(CityVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
-        //this.grid.setItems(cities.stream().map(CityVO::new).collect(Collectors.toList()));
+        if(cityList != null){
+            cityVOS = cityList.stream().map(CityVO::new).collect(Collectors.toList());
+            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        }
+        else {
+            Notification.show("Getting cities failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
     public Dialog getSaveOrUpdateDialog(City entity){
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " city");
+
+        Button saveButton = new Button("Save");
         FormLayout fl = new FormLayout();
         TextField nameField = new TextField("Name");
 
         ComboBox<CodeStore> countryCodes = new ComboBox<>("Country code");
         ComboBox.ItemFilter<CodeStore> countryCodeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        countryCodes.setItems(countryCodeFilter, codeStoreApi.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID));
-        countryCodes.setItemLabelGenerator(CodeStore::getName);
+        setupCountries();
+        if(countries == null){
+            countryCodes.setErrorMessage("Error happened while getting countries");
+            countryCodes.setEnabled(false);
+            countryCodes.setInvalid(true);
+            saveButton.setEnabled(false);
+        }
+        else{
+            countryCodes.setItems(countryCodeFilter, countries);
+            countryCodes.setItemLabelGenerator(CodeStore::getName);
+        }
 
         TextField zipCodeField = new TextField("Zip code");
 
@@ -266,7 +307,6 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             zipCodeField.setValue(entity.getZipCode());
         }
 
-        Button saveButton = new Button("Save");
         fl.add(nameField, countryCodes, zipCodeField, saveButton);
         createDialog.add(fl);
 
@@ -276,22 +316,56 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             city.setCountryCode(countryCodes.getValue());
             city.setZipCode(zipCodeField.getValue());
             city.setDeleted(0L);
+            EmsResponse response = null;
             if(entity != null){
-                cityApi.update(city);
+                response = cityApi.update(city);
             }
             else{
-                cityApi.save(city);
+                response = cityApi.save(city);
+            }
+            switch (response.getCode()){
+                case 200:
+                    Notification.show("City " + (entity == null ? "saved: " : "updated: ") + city.getName())
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    setupCities();
+                    updateGridItems();
+                    break;
+                case 500:
+                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    createDialog.close();
+                    setupCities();
+                    updateGridItems();
+                    return;
+                default:
+                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    logger.warn("Invalid status code in CityList: {}", response.getCode());
+                    createDialog.close();
+                    setupCities();
+                    updateGridItems();
+                    return;
             }
             updateGridItems();
 
-            Notification.show("City " + (entity == null ? "saved: " : "updated: ") + city.getName())
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
             nameField.clear();
             countryCodes.clear();
             zipCodeField.clear();
             createDialog.close();
         });
         return createDialog;
+    }
+
+    private void setupCountries() {
+        EmsResponse response = codeStoreApi.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
+        switch (response.getCode()){
+            case 200:
+                countries = (List<CodeStore>) response.getResponseData();
+                break;
+            default:
+                countries = null;
+                logger.error("CodeStore getChildrenError [countries]. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
     }
 
     @NeedCleanCoding

@@ -3,6 +3,7 @@ package hu.martin.ems.vaadin.component.Address;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.helger.commons.state.ESuccess;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -26,16 +27,22 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.City;
 import hu.martin.ems.model.CodeStore;
+import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import org.apache.commons.math3.analysis.function.Add;
+import org.checkerframework.checker.units.qual.A;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -76,6 +83,15 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     private static String streetNameFilterText = "";
     private static String streetTypeFilterText = "";
 
+    private Button createOrModifySaveButton = new Button("Save");
+
+    private Logger logger = LoggerFactory.getLogger(Address.class);
+    List<City> cityList;
+    List<CodeStore> streetTypeList;
+    List<CodeStore> countryList;
+
+    private Button saveButton;
+
 
     @Autowired
     public AddressList(PaginationSetting paginationSetting) {
@@ -84,7 +100,9 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         AddressVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(AddressVO.class);
-        addresses = addressApi.findAll();
+        setupAddresses();
+
+
         List<AddressVO> data = addresses.stream().map(AddressVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
 
@@ -169,6 +187,21 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         hl.setAlignSelf(Alignment.CENTER, create);
 
         add(hl, grid);
+    }
+
+    private void setupAddresses() {
+        EmsResponse emsResponse = addressApi.findAll();
+        switch (emsResponse.getCode()){
+            case 200:
+                addresses = (List<Address>) emsResponse.getResponseData();
+                break;
+            default:
+                addresses = new ArrayList<>();
+                logger.error("Address findAllError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
+                Notification.show("Error happened while getting addresses")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                break;
+        }
     }
 
     private Stream<AddressVO> getFilteredStream() {
@@ -258,8 +291,6 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
             updateGridItems();
         });
 
-
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(cityColumn).setComponent(filterField(cityFilter, "City"));
         filterRow.getCell(countryCodeColumn).setComponent(filterField(countryCodeFilter, "Country code"));
@@ -271,7 +302,17 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
 
 
     private void updateGridItems() {
-        List<Address> addresses = addressApi.findAllWithDeleted();
+        EmsResponse response = addressApi.findAllWithDeleted();
+        List<Address> addresses;
+        switch (response.getCode()){
+            case 200:
+                addresses = (List<Address>) response.getResponseData();
+                break;
+            default:
+                Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                addresses = new ArrayList<>();
+                break;
+        }
         addressVOS = addresses.stream().map(AddressVO::new).collect(Collectors.toList());
         List<AddressVO> data = getFilteredStream().collect(Collectors.toList());
         this.grid.setItems(data);
@@ -279,35 +320,19 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
 
     public Dialog getSaveOrUpdateDialog(Address entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " address");
+        saveButton = new Button("Save");
         FormLayout formLayout = new FormLayout();
 
-        ComboBox<CodeStore> countryCodes = new ComboBox<>("Country code");
-        ComboBox.ItemFilter<CodeStore> countryCodeFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        countryCodes.setItems(countryCodeFilter, codeStoreApi.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID));
-        countryCodes.setItemLabelGenerator(CodeStore::getName);
-
-        ComboBox<City> citys = new ComboBox<>("City");
-        ComboBox.ItemFilter<City> cityFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        citys.setItems(cityFilter, cityApi.findAll());
-        citys.setItemLabelGenerator(City::getName);
-
+        ComboBox<CodeStore> countryCodes = createCountryCodesComboBox();
         TextField streetNameField = new TextField("Street name");
-
-        ComboBox<CodeStore> streetTypes = new ComboBox<>("Street type");
-        ComboBox.ItemFilter<CodeStore> streetTypeFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        streetTypes.setItems(streetTypeFilter, codeStoreApi.getChildren(StaticDatas.STREET_TYPES_CODESTORE_ID));
-        streetTypes.setItemLabelGenerator(CodeStore::getName);
+        ComboBox<City> cities = createCitiesComboBox();
+        ComboBox<CodeStore> streetTypes = createStreetTypesComboBox();
 
         TextField houseNumberField = new TextField("House number");
 
-        Button saveButton = new Button("Save");
-
         if (entity != null) {
             countryCodes.setValue(entity.getCountryCode());
-            citys.setValue(entity.getCity());
+            cities.setValue(entity.getCity());
             streetNameField.setValue(entity.getStreetName());
             streetTypes.setValue(entity.getStreetType());
             houseNumberField.setValue(entity.getHouseNumber());
@@ -316,31 +341,146 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         saveButton.addClickListener(event -> {
             Address address = Objects.requireNonNullElseGet(entity, Address::new);
             address.setCountryCode(countryCodes.getValue());
-            address.setCity(citys.getValue());
+            address.setCity(cities.getValue());
             address.setStreetName(streetNameField.getValue());
             address.setStreetType(streetTypes.getValue());
             address.setDeleted(0L);
             address.setHouseNumber(houseNumberField.getValue());
+            EmsResponse response = null;
             if(entity != null){
-                addressApi.update(entity);
+                response = addressApi.update(entity);
             }
             else{
-                addressApi.save(address);
+                response = addressApi.save(address);
+            }
+            switch (response.getCode()){
+                case 200:
+                    Notification.show("Address " + (entity == null ? "saved: " : "updated: ") + address.getName())
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    break;
+                case 500:
+                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    createDialog.close();
+                    updateGridItems();
+                    break;
+                default:
+                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    logger.warn("Invalid status code in AddressList: {}", response.getCode());
+                    createDialog.close();
+                    break;
             }
 
-            Notification.show("Address " + (entity == null ? "saved: " : "updated: ") + address.getName())
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            countryCodes.clear();
-            citys.clear();
+            countryCodes.setValue(null);
+            cities.setValue(null);
             streetNameField.clear();
-            streetTypes.clear();
+            streetTypes.setValue(null);
             houseNumberField.clear();
             createDialog.close();
             updateGridItems();
         });
-        formLayout.add(countryCodes, citys, streetNameField, streetTypes, houseNumberField, saveButton);
+        formLayout.add(countryCodes, cities, streetNameField, streetTypes, houseNumberField, saveButton);
         createDialog.add(formLayout);
         return createDialog;
+    }
+
+    private ComboBox<CodeStore> createStreetTypesComboBox() {
+        setupStreetTypes();
+        ComboBox<CodeStore> streetTypes = new ComboBox<>("Street type");
+        ComboBox.ItemFilter<CodeStore> streetTypeFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        if(streetTypeList == null){
+            streetTypes.setInvalid(true);
+            streetTypes.setErrorMessage("Error happened while getting street types");
+            streetTypes.setEnabled(false);
+            saveButton.setEnabled(false);
+        }
+        else {
+            streetTypes.setInvalid(false);
+            streetTypes.setEnabled(true);
+            streetTypes.setItems(streetTypeFilter, streetTypeList);
+            streetTypes.setItemLabelGenerator(CodeStore::getName);
+        }
+
+        return streetTypes;
+    }
+
+    private ComboBox<City> createCitiesComboBox() {
+        setupCities();
+        ComboBox<City> cities = new ComboBox<>("City");
+        ComboBox.ItemFilter<City> cityFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        if(cityList == null){
+            cities.setInvalid(true);
+            cities.setErrorMessage("Error happened while getting cities");
+            cities.setEnabled(false);
+            saveButton.setEnabled(false);
+        }
+        else {
+            cities.setInvalid(false);
+            cities.setEnabled(true);
+            cities.setItems(cityFilter, cityList);
+            cities.setItemLabelGenerator(City::getName);
+        }
+        return cities;
+    }
+
+    private ComboBox<CodeStore> createCountryCodesComboBox(){
+        setupCountries();
+        ComboBox<CodeStore> countryCodes = new ComboBox<>("Country code");
+        ComboBox.ItemFilter<CodeStore> countryCodeFilter = (element, filterString) ->
+                element.getName().toLowerCase().contains(filterString.toLowerCase());
+        if(countryList == null){
+            countryCodes.setInvalid(true);
+            countryCodes.setErrorMessage("Error happened while getting countries");
+            countryCodes.setEnabled(false);
+            saveButton.setEnabled(false);
+        }
+        else {
+            countryCodes.setInvalid(false);
+            countryCodes.setEnabled(true);
+            countryCodes.setItems(countryCodeFilter, countryList);
+            countryCodes.setItemLabelGenerator(CodeStore::getName);
+        }
+        return countryCodes;
+    }
+
+    private void setupCities() {
+        EmsResponse response = cityApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                cityList = (List<City>) response.getResponseData();
+                break;
+            default:
+                cityList = null;
+                logger.error("City findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
+    private void setupCountries() {
+        EmsResponse response = codeStoreApi.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
+        switch (response.getCode()){
+            case 200:
+                countryList = (List<CodeStore>) response.getResponseData();
+                break;
+            default:
+                countryList = null;
+                logger.error("CodeStore getChildrenError [country]. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
+    private void setupStreetTypes() {
+        EmsResponse response = codeStoreApi.getChildren(StaticDatas.STREET_TYPES_CODESTORE_ID);
+        switch (response.getCode()){
+            case 200:
+                streetTypeList = (List<CodeStore>) response.getResponseData();
+                break;
+            default:
+                streetTypeList = null;
+                logger.error("CodeStore getChildrenError [street type]. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
     }
 
     @NeedCleanCoding

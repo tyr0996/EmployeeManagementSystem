@@ -27,12 +27,15 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -84,6 +87,15 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     
     private final PaginationSetting paginationSetting;
 
+    private Logger logger = LoggerFactory.getLogger(Product.class);
+
+    List<Product> productList;
+    List<Customer> customerList;
+    List<CodeStore> amountUnitList;
+    List<CodeStore> currencyList;
+    List<CodeStore> taxKeyList;
+    List<Supplier> supplierList;
+
     @Autowired
     public ProductList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
@@ -91,8 +103,8 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         ProductVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(ProductVO.class);
-        List<Product> products = productApi.findAll();
-        productVOS = products.stream().map(ProductVO::new).collect(Collectors.toList());
+        setupProducts();
+        productVOS = productList.stream().map(ProductVO::new).collect(Collectors.toList());
         this.grid.setItems(productVOS);
 
        amountColumn = grid.addColumn(v -> v.amount);
@@ -189,6 +201,21 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         add(hl, grid);
     }
 
+    private void setupProducts() {
+        EmsResponse response = productApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                productList = (List<Product>) response.getResponseData();
+                break;
+            default:
+                productList = new ArrayList<>();
+                logger.error("Product findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                Notification.show("Error happened while getting products")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                break;
+        }
+    }
+
     public Dialog getSellToCustomerDialog(ProductVO productVO){
         Dialog sellDialog = new Dialog();
         FormLayout formLayout = new FormLayout();
@@ -198,8 +225,21 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         NumberField unitField = new NumberField("Quantity");
         ComboBox.ItemFilter<Customer> filterCustomer = (customer, filterString) ->
                 customer.getName().toLowerCase().contains(filterString.toLowerCase());
-        customers.setItems(filterCustomer, customerApi.findAll());
-        customers.setItemLabelGenerator(Customer::getName);
+        setupCustomers();
+        if(customerList == null){
+            customers.setInvalid(true);
+            customers.setErrorMessage("Error happened while getting customers");
+            customers.setEnabled(false);
+            sellToCustomerButton.setEnabled(false);
+        }
+        else{
+            sellToCustomerButton.setEnabled(true);
+            customers.setInvalid(false);
+            customers.setEnabled(true);
+            customers.setItems(filterCustomer, customerList);
+            customers.setItemLabelGenerator(Customer::getName);
+        }
+
         formLayout.add(customers, unitField, sellToCustomerButton);
         sellDialog.add(formLayout);
 
@@ -223,6 +263,21 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         return sellDialog;
     }
 
+    private void setupCustomers() {
+        EmsResponse response = customerApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                customerList = (List<Customer>) response.getResponseData();
+                break;
+            default:
+                customerList = null;
+                logger.error("Customer findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                Notification.show("")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                break;
+        }
+    }
+
     public Dialog getOrderFromSupplierDialog(ProductVO productVO){
         Dialog orderDialog = new Dialog();
         FormLayout formLayout = new FormLayout();
@@ -231,8 +286,21 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         NumberField buyingUnitField = new NumberField("Quantity");
         ComboBox.ItemFilter<Supplier> filterSupplier = (supplier, filterString) ->
                 supplier.getName().toLowerCase().contains(filterString.toLowerCase());
-        suppliers.setItems(filterSupplier, supplierApi.findAll());
-        suppliers.setItemLabelGenerator(Supplier::getName);
+        setupSuppliers();
+        if(supplierList == null){
+            suppliers.setInvalid(true);
+            suppliers.setErrorMessage("Error happened while getting suppliers");
+            suppliers.setEnabled(false);
+            buyFromSupplierButton.setEnabled(false);
+        }
+        else{
+            buyFromSupplierButton.setEnabled(true);
+            suppliers.setInvalid(false);
+            suppliers.setEnabled(true);
+            suppliers.setItems(filterSupplier, supplierList);
+            suppliers.setItemLabelGenerator(Supplier::getName);
+        }
+
         formLayout.add(suppliers, buyingUnitField, buyFromSupplierButton);
         orderDialog.add(formLayout);
 
@@ -256,6 +324,21 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         return orderDialog;
     }
 
+    private void setupSuppliers() {
+        EmsResponse response = supplierApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                supplierList = (List<Supplier>) response.getResponseData();
+                break;
+            default:
+                supplierList = null;
+                logger.error("Supplier findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                Notification.show("Error happened while getting suppliers")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                break;
+        }
+    }
+
     private Stream<ProductVO> getFilteredStream() {
         return productVOS.stream().filter(productVO ->
                 (amountFilterText.isEmpty() || productVO.amount.toString().toLowerCase().contains(amountFilterText.toLowerCase())) &&
@@ -268,7 +351,6 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
                 productVO.filterExtraData()
         );
     }
-
 
     private Component filterField(TextField filterField, String title){
         VerticalLayout res = new VerticalLayout();
@@ -378,7 +460,17 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     }
 
     private void updateGridItems() {
-        List<Product> products = productApi.findAllWithDeleted();
+        EmsResponse response = productApi.findAllWithDeleted();
+        List<Product> products;
+        switch (response.getCode()){
+            case 200:
+                products = (List<Product>) response.getResponseData();
+                break;
+            default:
+                Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                products = new ArrayList<>();
+                break;
+        }
         productVOS = products.stream().map(ProductVO::new).collect(Collectors.toList());
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
@@ -387,39 +479,83 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " product");
         FormLayout formLayout = new FormLayout();
 
+        Button saveButton = new Button("Save");
+
         TextField nameField = new TextField("Name");
 
         NumberField buyingPriceNetField = new NumberField("Buying price net");
 
+
         ComboBox<CodeStore> buyingPriceCurrencys = new ComboBox<>("Buying price currency");
         ComboBox.ItemFilter<CodeStore> buyingPriceCurrencyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        buyingPriceCurrencys.setItems(buyingPriceCurrencyFilter, codeStoreApi.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID));
-        buyingPriceCurrencys.setItemLabelGenerator(CodeStore::getName);
+        setupCurrencies();
+        if(currencyList == null){
+            buyingPriceCurrencys.setInvalid(true);
+            buyingPriceCurrencys.setErrorMessage("Error happened while getting currencies");
+            buyingPriceCurrencys.setEnabled(false);
+            saveButton.setEnabled(false);
+        }
+        else {
+            buyingPriceCurrencys.setInvalid(false);
+            buyingPriceCurrencys.setEnabled(true);
+            buyingPriceCurrencys.setItems(buyingPriceCurrencyFilter, currencyList);
+            buyingPriceCurrencys.setItemLabelGenerator(CodeStore::getName);
+        }
 
         NumberField sellingPriceNetField = new NumberField("Selling price net");
 
         ComboBox<CodeStore> sellingPriceCurrencies = new ComboBox<>("Selling price currency");
         ComboBox.ItemFilter<CodeStore> sellingPriceCurrencyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        sellingPriceCurrencies.setItems(sellingPriceCurrencyFilter, codeStoreApi.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID));
-        sellingPriceCurrencies.setItemLabelGenerator(CodeStore::getName);
+        if(currencyList == null){
+            sellingPriceCurrencies.setInvalid(true);
+            sellingPriceCurrencies.setErrorMessage("Error happened while getting currencies");
+            sellingPriceCurrencies.setEnabled(false);
+            saveButton.setEnabled(false);
+        }
+        else {
+            sellingPriceCurrencies.setInvalid(false);
+            sellingPriceCurrencies.setEnabled(true);
+            sellingPriceCurrencies.setItems(sellingPriceCurrencyFilter, currencyList);
+            sellingPriceCurrencies.setItemLabelGenerator(CodeStore::getName);
+        }
 
         ComboBox<CodeStore> taxKeys = new ComboBox<>("Tax key");
         ComboBox.ItemFilter<CodeStore> taxKeyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        taxKeys.setItems(taxKeyFilter, codeStoreApi.getChildren(StaticDatas.TAXKEYS_CODESTORE_ID));
-        taxKeys.setItemLabelGenerator(CodeStore::getName);
+        setupTaxKeys();
+        if(taxKeyList == null){
+            taxKeys.setInvalid(true);
+            taxKeys.setErrorMessage("Error happened while getting tax keys");
+            taxKeys.setEnabled(false);
+            saveButton.setEnabled(false);
+        }
+        else {
+            taxKeys.setInvalid(false);
+            taxKeys.setEnabled(true);
+            taxKeys.setItems(taxKeyFilter, taxKeyList);
+            taxKeys.setItemLabelGenerator(CodeStore::getName);
+        }
 
         ComboBox<CodeStore> amountUnits = new ComboBox<>("Amount unit");
         ComboBox.ItemFilter<CodeStore> amountUnitFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        amountUnits.setItems(amountUnitFilter, codeStoreApi.getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID));
-        amountUnits.setItemLabelGenerator(CodeStore::getName);
+        setupAmountUnits();
+        if(amountUnitList == null){
+            amountUnits.setInvalid(true);
+            amountUnits.setErrorMessage("Error happened while getting amount units");
+            amountUnits.setEnabled(false);
+            saveButton.setEnabled(false);
+        }
+        else {
+            amountUnits.setInvalid(false);
+            amountUnits.setEnabled(true);
+            amountUnits.setItems(amountUnitFilter, amountUnitList);
+            amountUnits.setItemLabelGenerator(CodeStore::getName);
+        }
 
         NumberField amountField = new NumberField("Amount");
-
-        Button saveButton = new Button("Save");
 
         if (entity != null) {
             nameField.setValue(entity.getName());
@@ -443,15 +579,29 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
             product.setAmount(amountField.getValue());
             product.setDeleted(0L);
             product.setTaxKey(taxKeys.getValue());
+            EmsResponse response = null;
             if(entity != null){
-                productApi.update(product);
+                response = productApi.update(product);
             }
             else{
-                productApi.save(product);
+                response = productApi.save(product);
             }
-
-            Notification.show("Product " + (entity == null ? "saved: " : "updated: ") + product)
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            switch (response.getCode()){
+                case 200:
+                    Notification.show("Product  " + (entity == null ? "saved: " : "updated: ") + ((Product) response.getResponseData()).getName())
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    break;
+                case 500:
+                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    createDialog.close();
+                    updateGridItems();
+                    return;
+                default:
+                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    logger.warn("Invalid status code in ProductList: {}", response.getCode());
+                    createDialog.close();
+                    return;
+            }
 
             updateGridItems();
 
@@ -471,7 +621,46 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         updateGridItems();
         return createDialog;
     }
-    
+
+    private void setupAmountUnits() {
+        EmsResponse response = codeStoreApi.getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID);
+        switch (response.getCode()){
+            case 200:
+                amountUnitList = (List<CodeStore>) response.getResponseData();
+                break;
+            default:
+                amountUnitList = null;
+                logger.error("CodeStore getChildrenError [amount unit]. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
+    private void setupTaxKeys() {
+        EmsResponse response = codeStoreApi.getChildren(StaticDatas.TAXKEYS_CODESTORE_ID);
+        switch (response.getCode()){
+            case 200:
+                taxKeyList = (List<CodeStore>) response.getResponseData();
+                break;
+            default:
+                taxKeyList = null;
+                logger.error("CodeStore getChildrenError [tax key]. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
+    private void setupCurrencies() {
+        EmsResponse response = codeStoreApi.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
+        switch (response.getCode()){
+            case 200:
+                currencyList = (List<CodeStore>) response.getResponseData();
+                break;
+            default:
+                currencyList = null;
+                logger.error("CodeStore getChildrenError [currency]. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
     @NeedCleanCoding
 public class ProductVO extends BaseVO {
         private Product original;

@@ -17,11 +17,15 @@ import com.vaadin.flow.server.VaadinServletResponse;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.User;
+import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -52,6 +56,8 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     @Value("${rememberme.key}")
     private String key;
 
+    Logger logger = LoggerFactory.getLogger(User.class);
+
 
     public LoginView() {
         NO_ROLE_USER.setTitle("Permission error");
@@ -61,9 +67,14 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
         Button register = new Button("Register");
         register.setClassName("register-button");
+
+        Role r = getRoleByName("NO_ROLE");
+
         register.addClickListener(event -> {
-            Dialog registerDialog = getRegistrationDialog();
-            registerDialog.open();
+            Dialog registerDialog = getRegistrationDialog(r);
+            if(r != null) {
+                registerDialog.open();
+            }
         });
 
         LoginOverlay loginOverlay = new LoginOverlay();
@@ -88,14 +99,14 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         loginOverlay.addLoginListener(e -> {
             String userName = e.getUsername();
             String password = e.getPassword();
-            User user = userApi.findByUsername(userName);
+            User user = getByUserName(userName);
             if(user != null && user.getRoleRole().getName().equals("NO_ROLE")){
                 login.setErrorMessage(NO_ROLE_USER);
                 loginOverlay.setI18n(login);
                 loginOverlay.setError(true);
                 loginOverlay.setEnabled(true);
             }
-            else {
+            else if(user != null){
                 try {
                     UsernamePasswordAuthenticationToken authRequest =
                             new UsernamePasswordAuthenticationToken(userName, password);
@@ -116,6 +127,12 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     loginOverlay.setEnabled(true);
                 }
             }
+            else{
+                login.setErrorMessage(BAD_CREDIDENTALS);
+                loginOverlay.setI18n(login);
+                loginOverlay.setError(true);
+                loginOverlay.setEnabled(true);
+            }
         });
 
         loginOverlay.addForgotPasswordListener(e -> {
@@ -123,15 +140,32 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         });
     }
 
-    private Dialog getRegistrationDialog() {
+    private User getByUserName(String username){
+        EmsResponse emsResponse = userApi.findByUsername(username);
+        switch (emsResponse.getCode()){
+            case 200:
+                return (User) emsResponse.getResponseData();
+            default:
+                logger.error("User findByUsernameError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
+                Notification.show("Error happened while getting username")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return null;
+        }
+    }
+
+    private Dialog getRegistrationDialog(Role noRole) {
         Dialog d = new Dialog("Registration");
         FormLayout form = new FormLayout();
         TextField userName = new TextField("Username");
         PasswordField password = new PasswordField("Password");
         PasswordField passwordAgain = new PasswordField("Password again");
         Button register = new Button("Register");
+
+        form.add(userName, password, passwordAgain, register);
+        d.add(form);
+
         register.addClickListener(event -> {
-            User allreadyUser = userApi.findByUsername(userName.getValue());
+            User allreadyUser = getByUserName(userName.getValue());
             if(allreadyUser != null){
                 Notification.show("Username already exists!").addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
@@ -144,15 +178,13 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     newUser.setPassword(password.getValue());
                     newUser.setUsername(userName.getValue());
                     newUser.setDeleted(0L);
-                    newUser.setRoleRole(roleApi.findByName("NO_ROLE"));
+                    newUser.setRoleRole(noRole);
                     userApi.save(newUser);
                     Notification.show("Registration successful!");
                     d.close();
                 }
             }
         });
-        form.add(userName, password, passwordAgain, register);
-        d.add(form);
         return d;
     }
 
@@ -180,7 +212,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         d.add(form);
         submit.addClickListener(event -> {
             if(pw1.getValue().equals(pw2.getValue())){
-                User user = userApi.findByUsername(userName);
+                User user = getByUserName(userName);
                 if(user == null){
                     Notification.show("User not found!").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
@@ -199,6 +231,18 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         return d;
     }
 
+    private Role getRoleByName(String roleName){
+        EmsResponse response = roleApi.findByName(roleName);
+        switch (response.getCode()){
+            case 200:
+                return (Role) response.getResponseData();
+            default:
+                logger.error("Role findByNameError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                Notification.show("Error happened while getting roles")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return null;
+        }
+    }
 
     @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {}

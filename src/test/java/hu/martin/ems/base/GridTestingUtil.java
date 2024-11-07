@@ -1,14 +1,12 @@
 package hu.martin.ems.base;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.martin.ems.PaginatorComponents;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.PaginationData;
 import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.core.date.Date;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.openqa.selenium.*;
@@ -16,22 +14,26 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.AssertJUnit;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GridTestingUtil {
 
     public static WebDriver driver;
+
+    public static void checkNoMoreNotificationsVisible(){
+        WebElement notification = findVisibleElementWithXpath("/html/body/vaadin-notification-container/vaadin-notification-card");
+        String notificationText = "";
+        if(notification != null){
+            notificationText = notification.getText();
+        }
+        assertEquals(null, notification, "No more notification expected but there was one or more. The last one was \"" + notificationText + "\"");
+    }
 
     public static WebElement goToPageInPaginatedGrid(String gridXpath, int requiredPageNumber) throws InterruptedException {
         WebElement grid = findVisibleElementWithXpath(gridXpath);
@@ -177,21 +179,8 @@ public class GridTestingUtil {
         try{
             WebElement grid = findVisibleElementWithXpath(gridXpath);
             int optionsColumnIndex = getGridColumnNumber(gridXpath) - 1;
-//            WebElement optionsCell = getVisibleGridCell(gridXpath, rowIndex, optionsColumnIndex).findElements(By.xpath(".//*")).get(0);
-//            //WebElement restoreButton = optionsCell.findElements(By.xpath("//vaadin-icon[@icon='vaadin:backwards']/parent::vaadin-button")).get(rowIndex);
-//            List<WebElement> buttons = optionsCell.findElements(By.xpath(".//*"));
-//            for(int i = 0; i < buttons.size(); i++){
-//                if(buttons.get(i).findElement(By.tagName("vaadin-icon")).getDomAttribute("icon").equals("vaadin:backwards")){
-//                    return buttons.get(i);
-//                }
-//            }
-//
-//            Oszlopok = 4;
-//            sorindex = 4;
-//            optionscolumnIndex = 3;
-//
+
 //            2*oszlopok (üres) + 1*oszlopok (fejléc) + sorindex * oszlopok + oszlopindex + 1
-//
             int gridCellIndex = (3 + rowIndex) * getGridColumnNumber(gridXpath) + optionsColumnIndex + 1;
 
             return findClickableElementWithXpath(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
@@ -250,6 +239,9 @@ public class GridTestingUtil {
     }
 
     public static int countHiddenGridDataRows(String gridXpath, String showDeletedXpath) throws InterruptedException {
+        if(showDeletedXpath == null){
+            return 0;
+        }
         WebElement showDeletedElement = findClickableElementWithXpath(showDeletedXpath);
         setCheckboxStatus(showDeletedXpath, false);
         int visible = countVisibleGridDataRows(gridXpath);
@@ -383,6 +375,7 @@ public class GridTestingUtil {
     public static String fillElementWith(WebElement element, Boolean hasDeletableField, String previousPasswordFieldValue, String withData) throws InterruptedException {
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
+
         switch (element.getTagName()){
             case "vaadin-text-field": {
                 js.executeScript("arguments[0].value = '';", element);
@@ -409,7 +402,9 @@ public class GridTestingUtil {
                 }
                 return null;
             }
-            case "vaadin-multi-select-combo-box": selectRandomFromMultiSelectComboBox(element); return null;
+            case "vaadin-multi-select-combo-box":
+                selectRandomFromMultiSelectComboBox(element, false);
+                return null;
             case "vaadin-button", "style": return null;
             case "vaadin-email-field": {
                 String email = withData == null ? RandomGenerator.generateRandomEmailAddress() : withData;
@@ -436,6 +431,14 @@ public class GridTestingUtil {
         }
     }
 
+    public static String getFieldErrorMessage(WebElement webElement) {
+        return webElement.findElement(By.tagName("div")).getText();
+    }
+
+    public static Boolean isEnabled(WebElement element){
+        return element.getDomAttribute("disabled") == null;
+    }
+
     public static void setCheckboxStatus(String checkboxXpath, boolean selected) throws InterruptedException {
         Boolean checkboxStatus = getCheckboxStatus(checkboxXpath);
         Thread.sleep(100);
@@ -456,19 +459,19 @@ public class GridTestingUtil {
             comboBox.click();
             Thread.sleep(200);
             List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
-            if(comboBoxOptions.size() == 0){
-                System.err.println("Nincs elem a combo boxban!");
-                printToConsole(comboBox);
+            while(comboBoxOptions.size() == 0){
+                System.err.println("Nincs elem a combo boxban! újrapróbálom");
+                Thread.sleep(1000);
+                comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
             }
-            else{
-                for(WebElement comboBoxElement : comboBoxOptions){
-                    if(comboBoxElement.getText().equals(text)){
-                        JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
-                        jsExecutor.executeScript("arguments[0].click();", comboBoxElement);
-                        break;
-                    }
+            for(WebElement comboBoxElement : comboBoxOptions){
+                if(comboBoxElement.getText().equals(text)){
+                    JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
+                    jsExecutor.executeScript("arguments[0].click();", comboBoxElement);
+                    break;
                 }
             }
+
         }
     }
 
@@ -500,7 +503,7 @@ public class GridTestingUtil {
         }
     }
 
-    public static void selectRandomFromMultiSelectComboBox(WebElement multiSelectComboBox) throws InterruptedException {
+    public static void selectRandomFromMultiSelectComboBox(WebElement multiSelectComboBox, boolean allowEmpty) throws InterruptedException {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         WebElement toggleButton = (WebElement) js.executeScript("return arguments[0].querySelectorAll('*')[6].querySelectorAll('*')[5];", multiSelectComboBox.getShadowRoot());
 
@@ -524,6 +527,37 @@ public class GridTestingUtil {
                     jsExecutor.executeScript("arguments[0].click();", comboBoxOptions.get(i));
                 }
             }
+            toggleButton.click();
+            String elements = multiSelectComboBox.getDomAttribute("placeholder");
+            if(!allowEmpty && elements.isEmpty()){
+                System.out.println("Nem választott element a multiSelectComboBox-ból, ezért újra futtatjuk a függvényt");
+                selectRandomFromMultiSelectComboBox(multiSelectComboBox, false);
+            }
+        }
+    }
+
+    public static void selectElementsFromMultiSelectComboBox(WebElement multiSelectComboBox, String... elements) throws InterruptedException {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        WebElement toggleButton = (WebElement) js.executeScript("return arguments[0].querySelectorAll('*')[6].querySelectorAll('*')[5];", multiSelectComboBox.getShadowRoot());
+
+        toggleButton.click();
+        Thread.sleep(200);
+
+        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-multi-select-combo-box-item"));
+        if(comboBoxOptions.size() == 0){
+            System.err.println("Nincs elem a multiselect combo boxban!");
+            toggleButton.click();
+        }
+
+        else {
+            for(WebElement comboBoxElement : comboBoxOptions){
+                if(Arrays.asList(elements).contains(comboBoxElement.getText())){
+                    JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
+                    jsExecutor.executeScript("arguments[0].click();", comboBoxElement);
+                    break;
+                }
+            }
+
             toggleButton.click();
         }
     }
@@ -583,25 +617,72 @@ public class GridTestingUtil {
 
     public static void resetFilter(String gridXPath) throws InterruptedException {
         getHeaderFilterInputFields(gridXPath).forEach(v -> {
-            v.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
-            v.sendKeys(Keys.ENTER);
+            if(v.getDomAttribute("role") == null){
+                v.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
+                v.sendKeys(Keys.ENTER);
+            }
+            else {
+                deselectAllFromMultiSelectComboBox(v);
+            }
         });
         Thread.sleep(200);
         findVisibleElementWithXpath(gridXPath);
+    }
+
+    private static void deselectAllFromMultiSelectComboBox(WebElement v){
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        printToConsole(TestingUtils.getParent(v));
+        WebElement toggleButton = (WebElement) js.executeScript("return arguments[0].querySelectorAll('*')[6].querySelectorAll('*')[5];", TestingUtils.getParent(v).getShadowRoot());
+
+        toggleButton.click();
+        sleep(200);
+
+        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-multi-select-combo-box-item"));
+        if(comboBoxOptions.size() == 0){
+            System.err.println("Nincs elem a multiselect combo boxban!");
+            toggleButton.click();
+        }
+
+        else {
+            for(WebElement comboBoxElement : comboBoxOptions){
+                if(comboBoxElement.getDomAttribute("selected") != null){
+                    js.executeScript("arguments[0].click()", comboBoxElement);
+                }
+            }
+
+            toggleButton.click();
+        }
+    }
+
+    private static void sleep(long millis){
+        try{
+            Thread.sleep(millis);
+        }
+        catch (InterruptedException ex){
+
+        }
     }
 
     public static void applyFilter(String gridXpath, String... attributes) throws InterruptedException {
         List<WebElement> filterInputs = getHeaderFilterInputFields(gridXpath);
         int max = Math.min(filterInputs.size(), attributes.length);
         for(int i = 0; i < max; i++){
-            filterInputs.get(i).sendKeys(attributes[i]);
-            filterInputs.get(i).sendKeys(Keys.ENTER);
+            String role = filterInputs.get(i).getDomAttribute("role");
+            if(role == null){
+                filterInputs.get(i).sendKeys(attributes[i]);
+                filterInputs.get(i).sendKeys(Keys.ENTER);
+            }
+            else if(role.equals("combobox")){
+                String[] data = attributes[i].split(", ");
+
+                selectElementsFromMultiSelectComboBox(TestingUtils.getParent(filterInputs.get(i)), data);
+            }
         }
         Thread.sleep(200);
     }
 
 
-    private static List<WebElement> getHeaderFilterInputFields(String gridXpath){
+    public static List<WebElement> getHeaderFilterInputFields(String gridXpath){
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         List<WebElement> all = grid.findElements(By.xpath("./*"));
         List<WebElement> headerFilterInputs = new ArrayList<>();
@@ -649,6 +730,7 @@ public class GridTestingUtil {
         assertEquals(excepted, notification.getText());
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].remove();", notification);
+        sleep(100);
     }
 
     public static void checkNotificationContainsTexts(String text){

@@ -28,11 +28,15 @@ import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Order;
+import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
 import hu.martin.ems.vaadin.api.OrderApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.firitin.components.DynamicFileDownloader;
 import org.vaadin.firitin.components.orderedlayout.VHorizontalLayout;
@@ -62,6 +66,7 @@ public class OrderList extends VVerticalLayout {
     private PaginatedGrid<OrderVO, String> grid;
 
     List<OrderVO> orderVOS;
+    List<Order> orderList;
 
     Grid.Column<OrderVO> customerColumn;
     Grid.Column<OrderVO> paymentTypeColumn;
@@ -75,6 +80,7 @@ public class OrderList extends VVerticalLayout {
     private static String timeOfOrderFilterText = "";
 
     private final PaginationSetting paginationSetting;
+    Logger logger = LoggerFactory.getLogger(Order.class);
 
     @Autowired
     public OrderList(PaginationSetting paginationSetting) {
@@ -84,7 +90,9 @@ public class OrderList extends VVerticalLayout {
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        List<Order> orders = orderApi.findAll();
+        setupOrderList();
+        updateGridItems();
+
         DatePicker from = new DatePicker("from");
         DatePicker to = new DatePicker("to");
         to.setValue(LocalDate.now());
@@ -121,8 +129,7 @@ public class OrderList extends VVerticalLayout {
         HorizontalLayout sftpLayout = new HorizontalLayout();
         sftpLayout.add(sendSftp, from, to);
 
-        List<OrderVO> data = orders.stream().map(OrderVO::new).collect(Collectors.toList());
-        this.grid.setItems(data);
+        updateGridItems();
 
         customerColumn = grid.addColumn(v -> v.customer);
         paymentTypeColumn = grid.addColumn(v -> v.paymentType);
@@ -131,8 +138,6 @@ public class OrderList extends VVerticalLayout {
 
         grid.addClassName("styling");
         grid.setPartNameGenerator(orderVo -> orderVo.deleted != 0 ? "deleted" : null);
-
-
 
         //region Options column
         extraData = this.grid.addComponentColumn(order -> {
@@ -153,7 +158,7 @@ public class OrderList extends VVerticalLayout {
 
             Button sendEmail = new Button("Send email");
             sendEmail.addClickListener(event -> {
-                Boolean success = emailSendingApi.send(
+                EmsResponse sendEmailResponse = emailSendingApi.send(
                         new EmailProperties(
                             order.original.getCustomer().getEmailAddress(),
                             "Megrendelés visszaigazolás",
@@ -165,14 +170,7 @@ public class OrderList extends VVerticalLayout {
                             )
                         )
                 );
-                if(success){
-                    Notification.show("Email sikeresen elküldve!")
-                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                }
-                else{
-                    Notification.show("Email küldése sikertelen")
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
+                processEmailSendingResponse(sendEmailResponse);
             });
 
             editButton.addClickListener(event -> {
@@ -186,6 +184,7 @@ public class OrderList extends VVerticalLayout {
                 this.orderApi.restore(order.original);
                 Notification.show("Order restored: " + order.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupOrderList();
                 updateGridItems();
             });
 
@@ -193,6 +192,7 @@ public class OrderList extends VVerticalLayout {
                 this.orderApi.delete(order.original);
                 Notification.show("Order deleted: " + order.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupOrderList();
                 updateGridItems();
             });
 
@@ -200,6 +200,7 @@ public class OrderList extends VVerticalLayout {
                 this.orderApi.permanentlyDelete(order.id);
                 Notification.show("Order permanently deleted: " + order.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                setupOrderList();
                 updateGridItems();
             });
 
@@ -220,7 +221,7 @@ public class OrderList extends VVerticalLayout {
 
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
         showDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+            showDeleted = !showDeleted;
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             OrderVO.showDeletedCheckboxFilter.replace("deleted", newValue);
 
@@ -228,6 +229,35 @@ public class OrderList extends VVerticalLayout {
         });
 
         add(sftpLayout, sendSftp, showDeletedCheckbox, grid);
+    }
+
+    private void processEmailSendingResponse(EmsResponse emailSendingResponse){
+        Boolean success = emailSendingResponse.getCode() == 200;
+        Boolean sendingSuccess = (Boolean) emailSendingResponse.getResponseData();
+        if(success && sendingSuccess){
+            Notification.show("Email sent!")
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        }
+        else if(success){
+            Notification.show("Email sending failed")
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+        else{
+            Notification.show(emailSendingResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
+    }
+
+    private void setupOrderList() {
+        EmsResponse response = orderApi.findAllWithDeleted();
+        switch (response.getCode()){
+            case 200:
+                orderList = (List<Order>) response.getResponseData();
+                break;
+            default:
+                orderList = null;
+                logger.error("Order findAllWithDeletedError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
     }
 
 
@@ -320,9 +350,14 @@ public class OrderList extends VVerticalLayout {
 
 
     private void updateGridItems() {
-        List<Order> orders = orderApi.findAllWithDeleted();
-        orderVOS = orders.stream().map(OrderVO::new).collect(Collectors.toList());
+        if(orderList == null){
+            Notification.show("Error happened while getting orders")
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            orderList = new ArrayList<>();
+        }
+        orderVOS = orderList.stream().map(OrderVO::new).collect(Collectors.toList());
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+
     }
 
 

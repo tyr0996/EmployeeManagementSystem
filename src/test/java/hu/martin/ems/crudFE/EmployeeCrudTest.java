@@ -7,15 +7,21 @@ import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
+import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.model.Address;
+import hu.martin.ems.model.Employee;
 import hu.martin.ems.vaadin.api.EmployeeApiClient;
+import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
 
-import static hu.martin.ems.base.GridTestingUtil.navigateMenu;
+import static hu.martin.ems.base.GridTestingUtil.*;
+import static org.junit.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class EmployeeCrudTest extends BaseCrudTest {
@@ -91,5 +97,41 @@ public class EmployeeCrudTest extends BaseCrudTest {
     public void createFailedTest() throws JsonProcessingException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         crudTestingUtil.createFailedTest(port, spyEmployeeApiClient, mainMenu, subMenu);
+    }
+
+    @Test
+    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.createNotExpectedStatusCodeSave(spyEmployeeApiClient, Employee.class);
+    }
+
+    @Test
+    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.updateNotExpectedStatusCode(spyEmployeeApiClient, Employee.class);
+    }
+
+    @Test
+    public void gettingRolesFailed() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findAll();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        LinkedHashMap<String, String> failed = new LinkedHashMap<>();
+        failed.put("Role", "Error happened while getting roles");
+
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failed);
+    }
+
+    @Test
+    public void gettingEmployeesFailed() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyEmployeeApiClient).findAllWithDeleted();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        checkNotificationText("Error happened while getting employees");
+        checkNoMoreNotificationsVisible();
+        assertEquals(0, countVisibleGridDataRows(gridXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
     }
 }

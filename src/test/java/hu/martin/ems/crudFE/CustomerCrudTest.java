@@ -1,19 +1,27 @@
 package hu.martin.ems.crudFE;
 
+import com.beust.ah.A;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
+import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
+import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.model.Customer;
+import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
 
-import static hu.martin.ems.base.GridTestingUtil.navigateMenu;
+import static hu.martin.ems.base.GridTestingUtil.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class CustomerCrudTest extends BaseCrudTest {
@@ -88,5 +96,43 @@ public class CustomerCrudTest extends BaseCrudTest {
     public void createFailedTest() throws JsonProcessingException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         crudTestingUtil.createFailedTest(port, spyCustomerApiClient, mainMenu, subMenu);
+    }
+
+    @Test
+    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.createNotExpectedStatusCodeSave(spyCustomerApiClient, Customer.class);
+    }
+
+    @Test
+    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.updateNotExpectedStatusCode(spyCustomerApiClient, Customer.class);
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenFindAllCustomer() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyCustomerApiClient).findAllWithDeleted();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(200);
+        checkNotificationContainsTexts("Error happened while getting customers");
+        checkNoMoreNotificationsVisible();
+        assertEquals(countVisibleGridDataRows(gridXpath), 0);
+        assertEquals(countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath), 0);
+    }
+
+    @Test
+    public void unexpectedResponseCodeWhenFindAllAddress() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyAddressApiClient).findAll();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
+        failedData.put("Address", "Error happened while getting addresses");
+        checkNoMoreNotificationsVisible();
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedData);
+        checkNoMoreNotificationsVisible();
     }
 }

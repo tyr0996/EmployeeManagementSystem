@@ -25,17 +25,19 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.Permission;
-import hu.martin.ems.model.Role;
-import hu.martin.ems.model.RoleXPermission;
+import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import jakarta.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.parameters.P;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.*;
@@ -66,15 +68,25 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
     private static String nameFilterText = "";
     List<PermissionVO> permissionVOS;
 
+    private static TextField nameField;
+    private static MultiSelectComboBox<Role> roles;
+
+    private Logger logger = LoggerFactory.getLogger(PermissionList.class);
+
+    private Dialog createDialog;
+
+    List<Role> roleList;
+    List<Permission> permissionList;
+
     public PermissionList(PaginationSetting paginationSetting) {
+
+
         this.paginationSetting = paginationSetting;
 
         PermissionVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(PermissionVO.class);
-        List<Permission> permissions = permissionApi.findAll();
-        permissionVOS = permissions.stream().map(PermissionVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().toList());km jkl
+        updateGridItems();
 
         idColumn = grid.addColumn(v -> v.id);
         nameColumn = grid.addColumn(v -> v.name);
@@ -154,71 +166,224 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
         add(hl, grid);
     }
 
+    private void setupPermissions() {
+        EmsResponse response = permissionApi.findAllWithDeleted();
+        switch (response.getCode()){
+            case 200:
+                permissionList = (List<Permission>) response.getResponseData();
+                break;
+            default:
+                permissionList = null;
+                logger.error("Permission findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
     private void updateGridItems() {
-        List<Permission> permissions = permissionApi.findAllWithDeleted();
-        permissionVOS = permissions.stream().map(PermissionVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        setupPermissions();
+        if(permissionList != null){
+            permissionVOS = permissionList.stream().map(PermissionVO::new).collect(Collectors.toList());
+            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        }
+        else{
+            Notification.show("Error happened while getting permissions")
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
     public Dialog getSaveOrUpdateDialog(Permission entity) {
-        Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " permission");
+        Button saveButton = new Button("Save");
+        createDialog = new Dialog((entity == null ? "Create" : "Modify") + " permission");
         FormLayout formLayout = new FormLayout();
 
-        TextField nameField = new TextField("Name");
+        nameField = new TextField("Name");
 
-        MultiSelectComboBox<Role> roles = new MultiSelectComboBox<>("Roles");
+        roles = new MultiSelectComboBox<>("Roles");
         ComboBox.ItemFilter<Role> filterRole = (role, filterString) ->
                 role.getName().toLowerCase().contains(filterString.toLowerCase());
-        List<Role> savedRoles = roleApi.findAll();
-        roles.setItems(filterRole, savedRoles);
-        roles.setItemLabelGenerator(Role::getName);
-
-        Button saveButton = new Button("Save");
+        setupRoles();
+        if(roleList == null){
+            roles.setInvalid(true);
+            roles.setEnabled(false);
+            roles.setErrorMessage("Error happened while getting roles");
+            saveButton.setEnabled(false);
+        }
+        else{
+            roles.setItems(filterRole, roleList);
+            roles.setItemLabelGenerator(Role::getName);
+        }
 
         if (entity != null) {
             nameField.setValue(entity.getName());
-            List<Role> pairedRoles = roleXPermissionApi.findAllPairedRoleTo(entity);
-            roles.setValue(pairedRoles);
+            List<Role> pairedRoles = getllPairedRoleTo(entity);
+            if(pairedRoles != null){
+                roles.setValue(pairedRoles);
+            }
+            else{
+                roles.setErrorMessage("Error happened while getting paired roles");
+                roles.setEnabled(false);
+                roles.setInvalid(true);
+                saveButton.setEnabled(false);
+            }
         }
 
         saveButton.addClickListener(event -> {
-            Permission permission = Objects.requireNonNullElseGet(entity, Permission::new);
-            permission.setDeleted(0L);
-            permission.setName(nameField.getValue());
-            EmsResponse permissionResponse = null;
-            if(entity != null){
-                permissionResponse = permissionApi.update(permission);
-            }
-            else{
-                permissionResponse = permissionApi.save(permission);
-            }
-            switch (permissionResponse.getCode()){
-                case 200: break;
-                case 500: Notification.show(permissionResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR); createDialog.close(); return;
-            }
-            roleXPermissionApi.removeAllRolesFrom(entity);
-            List<Role> selectedRoles = roles.getSelectedItems().stream().toList();
-            for(int i = 0; i < selectedRoles.size(); i++){
-                RoleXPermission rxp = new RoleXPermission(selectedRoles.get(i), permission);
-                rxp.setDeleted(0L);
-                EmsResponse roleXPermissionResponse = roleXPermissionApi.save(rxp);
-                switch (roleXPermissionResponse.getCode()){
-                    case 200: break;
-                    case 500: Notification.show(roleXPermissionResponse.getDescription()); createDialog.close(); return;
-                }
-            }
-
-            Notification.show("Permission " + (entity == null ? "saved: " : "updated: ") + permission.getName())
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-
-            nameField.clear();
-            createDialog.close();
+            saveRolesWithPermission(entity);
             updateGridItems();
         });
 
         formLayout.add(nameField, roles, saveButton);
         createDialog.add(formLayout);
         return createDialog;
+    }
+
+    private List<Role> getllPairedRoleTo(Permission entity) {
+        EmsResponse response = roleXPermissionApi.findAllPairedRoleTo(entity);
+        switch (response.getCode()){
+            case 200:
+                return (List<Role>) response.getResponseData();
+            default:
+                logger.error("RoleXPermission findAllPairedRoleToError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                return null;
+        }
+    }
+
+    private void setupRoles() {
+        EmsResponse response = roleApi.findAll();
+        switch (response.getCode()){
+            case 200:
+                roleList = (List<Role>) response.getResponseData();
+                break;
+            default:
+                roleList = null;
+                logger.error("Role findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
+    }
+
+    private void saveRolesWithPermission(Permission entity){
+        Permission originalPermission = null;
+        List<Role> originalRoles = null;
+        if(entity != null){
+            originalPermission = new Permission();
+            originalPermission.setName(entity.getName());
+            originalPermission.setDeleted(entity.getDeleted());
+            originalPermission.id = entity.id;
+            List<Role> pairedRoles = getAllPairedRoleTo(entity);
+            if(pairedRoles == null){
+                Notification.show("Error happened while getting paired permissions")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                nameField.clear();
+                createDialog.close();
+                return;
+            }
+            else{
+                originalRoles = pairedRoles;
+            }
+
+        }
+
+        Permission permission = null;
+        if(entity != null){
+            permission = entity;
+        }
+        else{
+            permission = new Permission();
+        }
+
+        permission.setDeleted(0L);
+        permission.setName(nameField.getValue());
+        EmsResponse permissionResponse = null;
+        if(entity != null){
+            permissionResponse = permissionApi.update(permission);
+        }
+        else{
+            permissionResponse = permissionApi.save(permission);
+        }
+        switch (permissionResponse.getCode()){
+            case 200:
+                permission = (Permission) permissionResponse.getResponseData();
+                break;
+            case 500:
+                Notification.show(permissionResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                createDialog.close();
+                return;
+            default:
+                Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying"));
+                createDialog.close();
+                return;
+        }
+        roleXPermissionApi.removeAllRolesFrom(entity);
+        List<Role> selectedRoles = roles.getSelectedItems().stream().toList();
+        for(int i = 0; i < selectedRoles.size(); i++){
+            RoleXPermission rxp = new RoleXPermission(selectedRoles.get(i), permission);
+            rxp.setDeleted(0L);
+            EmsResponse roleXPermissionResponse = roleXPermissionApi.save(rxp);
+            switch (roleXPermissionResponse.getCode()){
+                case 200: break;
+                case 500:
+                    if(entity == null){
+                        undoSave((Permission) permissionResponse.getResponseData());
+                    }
+                    else{
+                        undoUpdate(originalPermission, originalRoles);
+                    }
+                    Notification.show(roleXPermissionResponse.getDescription());
+                    createDialog.close();
+                    return;
+                default:
+                    if(entity == null){
+                        undoSave((Permission) permissionResponse.getResponseData());
+                    }
+                    else{
+                        undoUpdate(originalPermission, originalRoles);
+                    }
+                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying"));
+                    createDialog.close();
+                    return;
+            }
+        }
+
+        Notification.show("Permission " + (entity == null ? "saved: " : "updated: ") + permission.getName())
+                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+
+
+        nameField.clear();
+        createDialog.close();
+    }
+
+    private List<Role> getAllPairedRoleTo(Permission permission) {
+        EmsResponse response = roleXPermissionApi.findAllPairedRoleTo(permission);
+        switch (response.getCode()){
+            case 200:
+                return (List<Role>) response.getResponseData();
+            default:
+                logger.error("RoleXPermission findAllPairedRoleToError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                return null;
+        }
+    }
+
+    private void undoUpdate(Permission originalPermission, List<Role> originalRoles) {
+        permissionApi.update(originalPermission);
+        roleXPermissionApi.removeAllRolesFrom(originalPermission);
+        logger.info("OriginalPermissions-ök száma:" + originalRoles.size());
+        originalRoles.forEach(v -> {
+            roleXPermissionApi.save(new RoleXPermission(v, originalPermission));
+        });
+        logger.info("Permission restored from update");
+    }
+
+    private void undoSave(Permission permission) {
+        permissionApi.forcePermanentlyDelete(permission.getId());
+        List<Role> pairedRoles = getAllPairedRoleTo(permission);
+        if(pairedRoles != null){
+            pairedRoles.forEach(v -> roleXPermissionApi.forcePermanentlyDelete(v.getId()));
+            logger.info("Permission restored from creating");
+        }
+        else{
+            logger.error("Permission restoring failed");
+        }
     }
 
     private Stream<PermissionVO> getFilteredStream() {

@@ -26,14 +26,19 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
+import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Customer;
+import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CustomerApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -70,6 +75,10 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     private String emailFilterText = "";
     private String firstNameFilterText = "";
     private String lastNameFilterText = "";
+    private Logger logger = LoggerFactory.getLogger(Customer.class);
+
+    List<Address> addressList;
+
 
     @Autowired
     public CustomerList(PaginationSetting paginationSetting) {
@@ -77,22 +86,21 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
         CustomerVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(CustomerVO.class);
-        List<Customer> customers = customerApi.findAll();
-        List<CustomerVO> data = customers.stream().map(CustomerVO::new).collect(Collectors.toList());
+//        setupCustomers();
+
+//        List<CustomerVO> data = customers.stream().map(CustomerVO::new).collect(Collectors.toList());
 
         addressColumn = this.grid.addColumn(v -> v.address);
         emailColumn = this.grid.addColumn(v -> v.email);
         firstNameColumn = this.grid.addColumn(v -> v.firstName);
         lastNameColumn = this.grid.addColumn(v -> v.lastName);
 
-        this.grid.setItems(data);
+//        this.grid.setItems(data);
 
         grid.addClassName("styling");
         grid.setPartNameGenerator(customerVO -> customerVO.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
-
-
 
         //region Options column
         extraData = this.grid.addComponentColumn(customerVO -> {
@@ -157,14 +165,32 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             CustomerVO.showDeletedCheckboxFilter.replace("deleted", newValue);
 
-            updateGridItems();
+//            setupCustomers();
+//            customerVOS = customers.stream().map(CustomerVO::new).collect(Collectors.toList());
+            if(customers == null){
+                customers = new ArrayList<>();
+            }
+            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
         });
         HorizontalLayout hl = new HorizontalLayout();
         hl.add(showDeletedCheckbox, create);
         hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
         hl.setAlignSelf(Alignment.CENTER, create);
-
+        updateGridItems();
         add(hl, grid);
+    }
+
+    private void setupCustomers() {
+        EmsResponse response = customerApi.findAllWithDeleted();
+        switch (response.getCode()){
+            case 200:
+                customers = (List<Customer>) response.getResponseData();
+                break;
+            default:
+                customers = null;
+                logger.error("Customer findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                break;
+        }
     }
 
     private Stream<CustomerVO> getFilteredStream() {
@@ -255,24 +281,42 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     }
 
     private void updateGridItems() {
-        List<Customer> customers = customerApi.findAllWithDeleted();
-        customerVOS = customers.stream().map(CustomerVO::new).collect(Collectors.toList());
-        this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        customers = new ArrayList<>();
+        setupCustomers();
+        if(customers != null){
+            customerVOS = customers.stream().map(CustomerVO::new).collect(Collectors.toList());
+            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+        }
+        else{
+            Notification.show("Error happened while getting customers").addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
     public Dialog getSaveOrUpdateDialog(Customer entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " customer");
         FormLayout formLayout = new FormLayout();
+        Button saveButton = new Button("Save");
 
         TextField firstNameField = new TextField("First name");
 
         TextField lastNameField = new TextField("Last name");
 
+        setupAddresses();
+
         ComboBox<Address> addresses = new ComboBox<>("Address");
         ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        addresses.setItems(addressFilter, addressApi.findAll());
-        addresses.setItemLabelGenerator(Address::getName);
+        if(addressList != null){
+            addresses.setItems(addressFilter, addressList);
+            addresses.setItemLabelGenerator(Address::getName);
+        }
+        else{
+            addresses.setEnabled(false);
+            addresses.setInvalid(true);
+            addresses.setErrorMessage("Error happened while getting addresses");
+            saveButton.setEnabled(false);
+        }
+
 
         EmailField emailField = new EmailField();
         emailField.setLabel("Email address");
@@ -280,7 +324,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
         emailField.setErrorMessage("Enter a valid email address");
         emailField.setClearButtonVisible(true);
 
-        Button saveButton = new Button("Save");
+
 
         if (entity != null) {
             firstNameField.setValue(entity.getFirstName());
@@ -296,15 +340,31 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
             customer.setAddress(addresses.getValue());
             customer.setEmailAddress(emailField.getValue());
             customer.setDeleted(0L);
+            EmsResponse response;
             if(entity != null){
-                customerApi.update(customer);
+                response = customerApi.update(customer);
             }
             else{
-                customerApi.save(customer);
+                response = customerApi.save(customer);
+            }
+            switch (response.getCode()){
+                case 200:
+                    Notification.show("Customer " + (entity == null ? "saved: " : "updated: ") + ((Customer) response.getResponseData()).getName())
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    break;
+                case 500:
+                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    createDialog.close();
+                    updateGridItems();
+                    return;
+                default:
+                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    logger.warn("Invalid status code in CustomerList: {}", response.getCode());
+                    createDialog.close();
+                    updateGridItems();
+                    return;
             }
 
-            Notification.show("Customer " + (entity == null ? "saved: " : "updated: ") + customer.getFirstName() + " " + customer.getLastName())
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             firstNameField.clear();
             lastNameField.clear();
             addresses.clear();
@@ -316,6 +376,19 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
         formLayout.add(firstNameField, lastNameField, addresses, emailField, saveButton);
         createDialog.add(formLayout);
         return createDialog;
+    }
+
+    private void setupAddresses() {
+        EmsResponse emsResponse = addressApi.findAll();
+        switch (emsResponse.getCode()){
+            case 200:
+                addressList = (List<Address>) emsResponse.getResponseData();
+                break;
+            default:
+                addressList = null;
+                logger.error("Address findAllError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
+                break;
+        }
     }
 
     @NeedCleanCoding
