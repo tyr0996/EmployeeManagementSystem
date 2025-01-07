@@ -40,12 +40,20 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
         return repo.customFindAll(withDeleted);
     }
 
+    public List<T> findAllWithGraph(boolean withDeleted) {
+        return repo.customFindAllWithGraph(withDeleted);
+    }
+
     public List<T> findAll() {
         return repo.customFindAll(true);
     }
 
-    public T findById(Long id){
-        return repo.customFindById(id);
+//    public T findById(Long id){
+//        return repo.customFindById(id);
+//    }
+
+    public List<T> findAllByIds(List<Long> ids){
+        return repo.customFindAllById(ids);
     }
 
     public void clearDatabaseTable(){ repo.customClearDatabaseTable(); }

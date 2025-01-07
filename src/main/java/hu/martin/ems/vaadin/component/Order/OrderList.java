@@ -1,8 +1,6 @@
 package hu.martin.ems.vaadin.component.Order;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -12,7 +10,9 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -20,6 +20,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
@@ -28,9 +29,7 @@ import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Order;
-import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
 import hu.martin.ems.vaadin.api.OrderApiClient;
@@ -38,15 +37,16 @@ import hu.martin.ems.vaadin.component.BaseVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.vaadin.firitin.components.DynamicFileDownloader;
-import org.vaadin.firitin.components.orderedlayout.VHorizontalLayout;
-import org.vaadin.firitin.components.orderedlayout.VVerticalLayout;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,7 +57,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.*;
 @Route(value = "order/list", layout = MainView.class)
 @AnonymousAllowed
 @NeedCleanCoding
-public class OrderList extends VVerticalLayout {
+public class OrderList extends VerticalLayout {
 
     private OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
 
@@ -65,6 +65,7 @@ public class OrderList extends VVerticalLayout {
     private boolean showDeleted = false;
     private PaginatedGrid<OrderVO, String> grid;
 
+    private Gson gson = BeanProvider.getBean(Gson.class);
     List<OrderVO> orderVOS;
     List<Order> orderList;
 
@@ -72,8 +73,10 @@ public class OrderList extends VVerticalLayout {
     Grid.Column<OrderVO> paymentTypeColumn;
     Grid.Column<OrderVO> stateColumn;
     Grid.Column<OrderVO> timeOfOrderColumn;
+    Grid.Column<OrderVO> idColumn;
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<OrderVO> extraData;
+    private static String idFilterText = "";
     private static String customerFilterText = "";
     private static String paymentTypeColumnFilterText = "";
     private static String stateFilterText = "";
@@ -131,6 +134,7 @@ public class OrderList extends VVerticalLayout {
 
         updateGridItems();
 
+        idColumn = grid.addColumn(v -> v.id);
         customerColumn = grid.addColumn(v -> v.customer);
         paymentTypeColumn = grid.addColumn(v -> v.paymentType);
         stateColumn = grid.addColumn(v -> v.state);
@@ -149,15 +153,19 @@ public class OrderList extends VVerticalLayout {
             Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
-            DynamicFileDownloader odtDownload = new DynamicFileDownloader("", "order_" + order.id + ".odt",
-                    out -> orderApi.createDocumentAsODT(order.original, out)).asButton();
-            odtDownload.getButton().setIcon(ODT_FILE.create());
-            DynamicFileDownloader pdfDownload = new DynamicFileDownloader("", "order_" + order.id + ".pdf",
-                    out -> orderApi.createDocumentAsPDF(order.original, out)).asButton();
-            pdfDownload.getButton().setIcon(PDF_FILE.create());
+            Anchor odtDownload = createDownloadAnchor(order, ODT_FILE.create(), () -> orderApi.createDocumentAsODT(order.original), "odt");
+            Anchor pdfDownload = createDownloadAnchor(order, PDF_FILE.create(), () -> orderApi.createDocumentAsPDF(order.original), "pdf");
 
             Button sendEmail = new Button("Send email");
             sendEmail.addClickListener(event -> {
+                EmsResponse pdfDocumentResponse = orderApi.createDocumentAsPDF(order.original);
+                switch (pdfDocumentResponse.getCode()){
+                    case 200:
+                        break;
+                    default:
+                        Notification.show("Generating PDF for email failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                }
                 EmsResponse sendEmailResponse = emailSendingApi.send(
                         new EmailProperties(
                             order.original.getCustomer().getEmailAddress(),
@@ -165,7 +173,7 @@ public class OrderList extends VVerticalLayout {
                             orderApi.generateEmail(order.original),
                             List.of(new EmailAttachment(
                                     StaticDatas.ContentType.CONTENT_TYPE_APPLICATION_PDF,
-                                    orderApi.createDocumentAsPDF(order.original, new ByteArrayOutputStream()),
+                                    ((ByteArrayInputStream) pdfDocumentResponse.getResponseData()).readAllBytes(),
                                     "order_" + order.id + ".pdf")
                             )
                         )
@@ -204,7 +212,7 @@ public class OrderList extends VVerticalLayout {
                 updateGridItems();
             });
 
-            VHorizontalLayout actions = new VHorizontalLayout();
+            HorizontalLayout actions = new HorizontalLayout();
 
             if (order.deleted == 0) {
                 actions.add(editButton, deleteButton);
@@ -232,19 +240,8 @@ public class OrderList extends VVerticalLayout {
     }
 
     private void processEmailSendingResponse(EmsResponse emailSendingResponse){
-        Boolean success = emailSendingResponse.getCode() == 200;
-        Boolean sendingSuccess = (Boolean) emailSendingResponse.getResponseData();
-        if(success && sendingSuccess){
-            Notification.show("Email sent!")
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-        }
-        else if(success){
-            Notification.show("Email sending failed")
-                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
-        }
-        else{
-            Notification.show(emailSendingResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-        }
+        Notification.show(emailSendingResponse.getDescription())
+                .addThemeVariants(emailSendingResponse.getCode() == 200 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
     }
 
     private void setupOrderList() {
@@ -263,6 +260,7 @@ public class OrderList extends VVerticalLayout {
 
     private Stream<OrderVO> getFilteredStream() {
         return orderVOS.stream().filter(orderVO ->
+                (idFilterText.isEmpty() || orderVO.id.toString().equals(idFilterText)) &&
                 (customerFilterText.isEmpty() || orderVO.customer.toLowerCase().contains(customerFilterText.toLowerCase())) &&
                 (paymentTypeColumnFilterText.isEmpty() || orderVO.paymentType.toLowerCase().contains(paymentTypeColumnFilterText.toLowerCase())) &&
                 (stateFilterText.isEmpty() || orderVO.state.toLowerCase().contains(stateFilterText.toLowerCase())) &&
@@ -286,6 +284,15 @@ public class OrderList extends VVerticalLayout {
     }
 
     private void setFilteringHeaderRow(){
+        TextField idFilter = new TextField();
+        idFilter.setPlaceholder("Search id...");
+        idFilter.setClearButtonVisible(true);
+        idFilter.addValueChangeListener(event -> {
+            idFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         TextField customerFilter = new TextField();
         customerFilter.setPlaceholder("Search customer...");
         customerFilter.setClearButtonVisible(true);
@@ -328,11 +335,7 @@ public class OrderList extends VVerticalLayout {
                 OrderVO.extraDataFilterMap.clear();
             }
             else{
-                try {
-                     OrderVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
-                } catch (JsonProcessingException ex) {
-                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
+                 OrderVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
             grid.getDataProvider().refreshAll();
@@ -341,6 +344,7 @@ public class OrderList extends VVerticalLayout {
 
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
+        filterRow.getCell(idColumn).setComponent(filterField(idFilter, "ID"));
         filterRow.getCell(customerColumn).setComponent(filterField(customerFilter, "Customer"));
         filterRow.getCell(paymentTypeColumn).setComponent(filterField(paymentTypeFilter, "Payment type"));
         filterRow.getCell(stateColumn).setComponent(filterField(stateFilter, "State"));
@@ -357,7 +361,26 @@ public class OrderList extends VVerticalLayout {
         }
         orderVOS = orderList.stream().map(OrderVO::new).collect(Collectors.toList());
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+    }
 
+    private Anchor createDownloadAnchor(OrderVO order, SvgIcon icon, Supplier<EmsResponse> apiCall, String extension){
+        Button downloadButton = new Button(icon);
+        Anchor downloadAnchor = new Anchor();
+        downloadAnchor.add(downloadButton);
+
+        downloadButton.addClickListener(event -> {
+            EmsResponse response = apiCall.get();
+            if (response.getCode() == 200) {
+                StreamResource resource = new StreamResource("order_" + order.id + "." + extension, () -> (ByteArrayInputStream) response.getResponseData());
+                downloadAnchor.setHref(resource);
+                downloadAnchor.getElement().callJsFunction("click");
+            } else {
+                downloadAnchor.setHref("");
+                Notification.show(response.getDescription())
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+        });
+        return downloadAnchor;
     }
 
 

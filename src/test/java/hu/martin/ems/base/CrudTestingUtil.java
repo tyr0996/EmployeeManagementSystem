@@ -12,12 +12,15 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.*;
 
+import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
 public class CrudTestingUtil {
@@ -87,7 +90,7 @@ public class CrudTestingUtil {
         modifyButton.click();
 
         WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
-        WebElement saveEmployeeButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        WebElement saveEmployeeButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
         fillCreateOrUpdateForm(withData);
 
@@ -121,13 +124,13 @@ public class CrudTestingUtil {
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
         }
 
-        WebElement createButton = findClickableElementWithXpath(createButtonXpath);
+        WebElement createButton = findClickableElementWithXpathWithWaiting(createButtonXpath);
         createButton.click();
         Thread.sleep(200);
 
         fillCreateOrUpdateForm(withData);
 
-        WebElement saveButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        WebElement saveButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].click()", saveButton);
 
@@ -135,7 +138,6 @@ public class CrudTestingUtil {
             checkNotificationContainsTexts(saveNotificationText == null ? className + " saved: " : saveNotificationText);
         }
         else{
-
             checkNotificationContainsTexts(saveNotificationText == null ? className + " saving failed" : saveNotificationText);
         }
 
@@ -216,7 +218,7 @@ public class CrudTestingUtil {
         deleteTest(null, true);
     }
 
-    public void deleteTest(String notification, Boolean requiredSuccess) throws InterruptedException {
+    public void deleteTest(String notification, Boolean requiredSuccess, String... originalFilter) throws InterruptedException {
         findVisibleElementWithXpath(gridXpath);
         int originalVisible = countVisibleGridDataRows(gridXpath);
         int originalInvisible = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
@@ -264,7 +266,12 @@ public class CrudTestingUtil {
         Thread.sleep(2000);
         findVisibleElementWithXpath(gridXpath);
 
+        resetFilter(gridXpath);
         assertEquals(requiredSuccess ? 0 : 1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
+        if(originalFilter != null){
+            applyFilter(gridXpath, originalFilter);
+        }
+        Thread.sleep(100);
         findVisibleElementWithXpath(gridXpath);
         setCheckboxStatus(showDeletedCheckBoxXpath, false);
         Thread.sleep(2000);
@@ -275,7 +282,11 @@ public class CrudTestingUtil {
         assertEquals(requiredSuccess ? originalInvisible + 1 : originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
         setCheckboxStatus(showDeletedCheckBoxXpath, true);
         assertEquals(originalInvisible + originalVisible, countVisibleGridDataRows(gridXpath));
+        resetFilter(gridXpath);
         assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
+        if(originalFilter != null){
+            applyFilter(gridXpath, originalFilter);
+        }
         setCheckboxStatus(showDeletedCheckBoxXpath, false);
 
         if(showOnlyDeletableCheckboxXpath != null){
@@ -329,7 +340,7 @@ public class CrudTestingUtil {
         ElementLocation el = new ElementLocation(1, 0);
 
 //        ElementLocation el = getRandomLocationDeletedStatusFromGrid(gridXpath, showDeletedCheckBoxXpath);
-//        WebElement showDeleted = findClickableElementWithXpath(showDeletedCheckBoxXpath);
+//        WebElement showDeleted = findClickableElementWithXpathWithWaiting(showDeletedCheckBoxXpath);
 //        setCheckboxStatus(showDeletedCheckBoxXpath, true);
 //        Thread.sleep(500);
 //        goToPageInPaginatedGrid(gridXpath, el.getPageNumber());
@@ -440,15 +451,6 @@ public class CrudTestingUtil {
         createTest(null, "", false);
     }
 
-    public void createFailedTest(int port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath) throws JsonProcessingException, InterruptedException {
-        MockitoAnnotations.openMocks(this);
-        Mockito.doThrow(JsonProcessingException.class).doCallRealMethod().when(spyApiClient).writeValueAsString(any(BaseEntity.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenuXpath, subMenuXpath);
-        Thread.sleep(10);
-        createTest(null, "", false);
-    }
-
     /**
      *
      * @param data
@@ -511,7 +513,7 @@ public class CrudTestingUtil {
     public void restoreTest(String notification, Boolean needSuccess) throws InterruptedException {
         int originalVisibleRows = countVisibleGridDataRows(gridXpath);
         int originalInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
-        WebElement showDeletedButton = findClickableElementWithXpath(showDeletedCheckBoxXpath);
+        WebElement showDeletedButton = findClickableElementWithXpathWithWaiting(showDeletedCheckBoxXpath);
 
         if(createButtonXpath != null && createButtonXpath != ""){
             if(originalInvisibleRows == 0) {
@@ -548,25 +550,8 @@ public class CrudTestingUtil {
             assertEquals(originalVisibleRows, newVisibleRows);
             assertEquals(originalInvisibleRows, newInvisibleRows);
         }
-
     }
 
-    public void modifyFailedTest(Integer port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath, String subsubmenuButtonXpath) throws InterruptedException, JsonProcessingException {
-        MockitoAnnotations.openMocks(this);
-        Mockito.doThrow(JsonProcessingException.class).doCallRealMethod().when(spyApiClient).writeValueAsString(any(BaseEntity.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenuXpath, subMenuXpath);
-        Thread.sleep(10);
-        if(subsubmenuButtonXpath != null){
-            findVisibleElementWithXpath(subsubmenuButtonXpath).click();
-            Thread.sleep(10);
-        }
-        updateTest(null, "", false);
-    }
-
-    public void modifyFailedTest(Integer port, EmsApiClient spyApiClient, String mainMenuXpath, String subMenuXpath) throws InterruptedException, JsonProcessingException {
-        modifyFailedTest(port, spyApiClient, mainMenuXpath, subMenuXpath, null);
-    }
 
     /**
      * Use this method, when you want to test if some data fetching from database failed, so the save button not available
@@ -574,15 +559,36 @@ public class CrudTestingUtil {
      *                        value: required error message of the field
      */
     public void createUnexpectedResponseCodeWhileGettingData(LinkedHashMap<String, String> withData, LinkedHashMap<String, String> failedFieldData) throws InterruptedException {
-        WebElement createButton = findClickableElementWithXpath(createButtonXpath);
+        WebElement createButton = findClickableElementWithXpathWithWaiting(createButtonXpath);
         createButton.click();
         Thread.sleep(200);
 
         fillCreateOrUpdateForm(withData, failedFieldData);
 
-        WebElement saveButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        WebElement saveButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
         assertEquals(false, isEnabled(saveButton));
+    }
+
+    /**
+     * Simulates that the getting entities failed, because database connection error
+     * @param spyDataSource the DataSource, which annotated with @SpyBean
+     * @param port the port
+     * @param mainMenu mainMenu name. You can find it in the test class
+     * @param subMenu subMenu name. You can find it in the test class
+     * @param notificationEntityClassName The entity name, which have to between "Getting " and " failed" in the notification.
+     * @throws SQLException
+     * @throws InterruptedException
+     */
+    public void databaseUnavailableWhenGetAllEntity(DataSource spyDataSource, int port, String mainMenu, String subMenu, String notificationEntityClassName) throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        Thread.sleep(100);
+        Mockito.doThrow(new SQLException("Connection refused: getsockopt")).when(spyDataSource).getConnection();
+        navigateMenu(mainMenu, subMenu);
+        checkNotificationText("Getting " + notificationEntityClassName + " failed");
+        assertEquals(0, countVisibleGridDataRows(gridXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+        checkNoMoreNotificationsVisible();
     }
 
     public void updateUnexpectedResponseCodeWhileGettingData(LinkedHashMap<String, String> withData, LinkedHashMap<String, String> failedFieldData) throws InterruptedException {
@@ -609,8 +615,190 @@ public class CrudTestingUtil {
 
         fillCreateOrUpdateForm(withData, failedFieldData);
 
-        WebElement saveButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        WebElement saveButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
         assertEquals(false, isEnabled(saveButton));
+    }
+
+    /**
+     *
+     * Simulates that the saving entity failed, because database connection error
+     * @param spyDataSource the DataSource, which annotated with @SpyBean
+     * @param withData the data, if you want to fill the create dialog with specified data. Other case set to null.
+     * @param saveNotificationText the required text, which appear in a notification after clicking the save button. If
+     *                             the default is required, set this to null
+     * @param preSuccess the number, which is getting connection with the database before saving (for example check if
+     *                   some other data is exists, or some other things)
+     * @throws InterruptedException
+     * @throws SQLException
+     */
+    public void databaseUnavailableWhenSaveEntity(DataSource spyDataSource, LinkedHashMap<String, String> withData, String saveNotificationText, Integer preSuccess) throws InterruptedException, SQLException {
+        findVisibleElementWithXpath(gridXpath);
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+        }
+        int originalVisible = countVisibleGridDataRows(gridXpath);
+        int originalInvisible = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+        int origivalVisibleOnlyDeletable = 0;
+        int originalInvisibleOnlyDeletable = 0;
+
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
+            origivalVisibleOnlyDeletable = countVisibleGridDataRows(gridXpath);
+            originalInvisibleOnlyDeletable = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+        }
+
+        WebElement createButton = findClickableElementWithXpathWithWaiting(createButtonXpath);
+        createButton.click();
+        Thread.sleep(200);
+
+        fillCreateOrUpdateForm(withData);
+
+        Thread.sleep(100);
+
+        Mockito.reset(spyDataSource);
+//        for(int i = 0; i < preSuccess; i++){
+
+//        }
+
+        AtomicInteger callCount = new AtomicInteger(0);
+
+        Mockito.doAnswer(invocation -> {
+            int currentCall = callCount.incrementAndGet();
+
+            // Az első néhány hívásnál (limitig) az eredeti metódust hívjuk
+            if (currentCall <= preSuccess) {
+                return invocation.callRealMethod();
+            }
+            // Kivételt dobunk egyszer, ha elértük a limitet
+            else if (currentCall == preSuccess + 1) {
+                throw new SQLException("Connection refused: getsockopt");
+            }
+            // A további hívásoknál visszaállunk az eredeti metódus hívására
+            else {
+                return invocation.callRealMethod();
+            }
+        }).when(spyDataSource).getConnection();
+
+//        Mockito.doCallRealMethod().when(spyDataSource).getConnection();
+//        Mockito.doThrow(new SQLException("Connection refused: getsockopt")).doCallRealMethod().when(spyDataSource).getConnection();
+//        Mockito.doCallRealMethod().doThrow(new SQLException("Connection refused: getsockopt")).doCallRealMethod().when(spyDataSource).getConnection();
+
+
+        WebElement saveButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].click()", saveButton);
+//        Mockito.reset(spyDataSource);
+
+
+//        closeNotification(1000);
+//        Mockito.verify(spyDataSource, Mockito.times(2)).getConnection();
+        checkNotificationContainsTexts(saveNotificationText == null ? className + " saving failed" : saveNotificationText);
+//        Mockito.verify(spyDataSource, Mockito.times(2)).getConnection();
+
+
+        findVisibleElementWithXpath(gridXpath);
+        setCheckboxStatus(showDeletedCheckBoxXpath, false);
+        assertEquals(originalVisible, countVisibleGridDataRows(gridXpath));
+        assertEquals(originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
+            Thread.sleep(10);
+            assertEquals(origivalVisibleOnlyDeletable, countVisibleGridDataRows(gridXpath), "solve1: use refresh grid after enter save button in the vaadin class");
+            assertEquals(originalInvisibleOnlyDeletable, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+            Thread.sleep(10);
+        }
+
+        assertEquals(originalVisible, countVisibleGridDataRows(gridXpath), "solve1: use refresh grid after enter save button in the vaadin class");
+        assertEquals(originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+    }
+
+    public void databaseUnavailableWhenUpdateEntity(DataSource spyDataSource, LinkedHashMap<String, String> withData, String saveNotificationText, Integer preSuccess) throws InterruptedException, SQLException {
+        findVisibleElementWithXpath(gridXpath);
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+        }
+        int originalVisible = countVisibleGridDataRows(gridXpath);
+        int originalInvisible = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+        int origivalVisibleOnlyDeletable = 0;
+        int originalInvisibleOnlyDeletable = 0;
+
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
+            origivalVisibleOnlyDeletable = countVisibleGridDataRows(gridXpath);
+            originalInvisibleOnlyDeletable = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+        }
+
+        ElementLocation random = getRandomLocationFromGrid(gridXpath);
+        goToPageInPaginatedGrid(gridXpath, random.getPageNumber());
+
+        WebElement modifyButton = getModifyButton(gridXpath, random.getRowIndex());
+        modifyButton.click();
+        Thread.sleep(200);
+
+        fillCreateOrUpdateForm(withData);
+
+        Thread.sleep(100);
+
+        Mockito.reset(spyDataSource);
+//        for(int i = 0; i < preSuccess; i++){
+
+//        }
+
+        AtomicInteger callCount = new AtomicInteger(0);
+
+        Mockito.doAnswer(invocation -> {
+            int currentCall = callCount.incrementAndGet();
+
+            // Az első néhány hívásnál (limitig) az eredeti metódust hívjuk
+            if (currentCall <= preSuccess) {
+                return invocation.callRealMethod();
+            }
+            // Kivételt dobunk egyszer, ha elértük a limitet
+            else if (currentCall == preSuccess + 1) {
+                throw new SQLException("Connection refused: getsockopt");
+            }
+            // A további hívásoknál visszaállunk az eredeti metódus hívására
+            else {
+                return invocation.callRealMethod();
+            }
+        }).when(spyDataSource).getConnection();
+
+//        Mockito.doCallRealMethod().when(spyDataSource).getConnection();
+//        Mockito.doThrow(new SQLException("Connection refused: getsockopt")).doCallRealMethod().when(spyDataSource).getConnection();
+//        Mockito.doCallRealMethod().doThrow(new SQLException("Connection refused: getsockopt")).doCallRealMethod().when(spyDataSource).getConnection();
+
+
+        WebElement saveButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].click()", saveButton);
+        Thread.sleep(1000);
+        //        Mockito.reset(spyDataSource);
+
+
+//        closeNotification(1000);
+//        Mockito.verify(spyDataSource, Mockito.times(2)).getConnection();
+        checkNotificationContainsTexts(saveNotificationText == null ? className + " modifying failed" : saveNotificationText);
+//        Mockito.verify(spyDataSource, Mockito.times(2)).getConnection();
+
+
+        findVisibleElementWithXpath(gridXpath);
+        setCheckboxStatus(showDeletedCheckBoxXpath, false);
+        assertEquals(originalVisible, countVisibleGridDataRows(gridXpath));
+        assertEquals(originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
+            Thread.sleep(10);
+            assertEquals(origivalVisibleOnlyDeletable, countVisibleGridDataRows(gridXpath), "solve1: use refresh grid after enter save button in the vaadin class");
+            assertEquals(originalInvisibleOnlyDeletable, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+            Thread.sleep(10);
+        }
+
+        assertEquals(originalVisible, countVisibleGridDataRows(gridXpath), "solve1: use refresh grid after enter save button in the vaadin class");
+        assertEquals(originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
     }
 }

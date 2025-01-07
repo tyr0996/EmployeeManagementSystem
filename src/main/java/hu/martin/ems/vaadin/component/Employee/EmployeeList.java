@@ -1,8 +1,6 @@
 package hu.martin.ems.vaadin.component.Employee;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -28,7 +26,8 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.*;
+import hu.martin.ems.model.Employee;
+import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmployeeApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
@@ -55,6 +54,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
 
     private final EmployeeApiClient employeeApi = BeanProvider.getBean(EmployeeApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
+    private final Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
     private PaginatedGrid<EmployeeVO, String> grid;
     private final PaginationSetting paginationSetting;
@@ -248,11 +248,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
                 EmployeeVO.extraDataFilterMap.clear();
             }
             else{
-                try {
-                    EmployeeVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
-                } catch (JsonProcessingException ex) {
-                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
+                EmployeeVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
             grid.getDataProvider().refreshAll();

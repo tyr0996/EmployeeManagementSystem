@@ -3,6 +3,8 @@ package hu.martin.ems.core.repository;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Setter;
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +13,11 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 
 @NoRepositoryBean
 @NeedCleanCoding
@@ -22,12 +25,14 @@ import java.util.List;
 public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements BaseRepository<T, ID> {
 
     @PersistenceContext
-    protected final EntityManager entityManager;
-    private final Logger logger;
-    private Class<T> type;
+    @Setter
+    protected EntityManager entityManager;
 
     @Autowired
-    private TransactionTemplate transactionTemplate;
+    private SessionFactory sessionFactory;
+
+    private final Logger logger;
+    private Class<T> type;
 
     public BaseRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
         super(entityInformation, entityManager);
@@ -48,7 +53,27 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         else{
             jpql += " WHERE e.deleted = 1 OR e.deleted = 0";
         }
-        return entityManager.createQuery(jpql, type).getResultList();
+        List<T> result = entityManager.createQuery(jpql, type).getResultList();
+        return result;
+    }
+
+    @Override
+    public List<T> customFindAllWithGraph(Boolean withDeleted){
+        EntityGraph<?> entityGraph = entityManager.getEntityGraph(type.getSimpleName());
+
+        boolean includeDeleted = Objects.requireNonNullElse(withDeleted, true);
+//        boolean includeDeleted = withDeleted != null ? withDeleted : true;
+        String jpql = "SELECT e FROM " + type.getSimpleName() + " e";
+        if (!includeDeleted) {
+            jpql += " WHERE e.deleted = 0";
+        }
+        else{
+            jpql += " WHERE e.deleted = 1 OR e.deleted = 0";
+        }
+        List<T> result = entityManager.createQuery(jpql, type)
+                .setHint("jakarta.persistence.fetchgraph", entityGraph)
+                .getResultList();
+        return result;
     }
 
 
@@ -85,21 +110,68 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     @Transactional
     @Override
     public T customSave(T entity) {
-        T savedEntity = super.save(entity);
-        logger.info(savedEntity.getClass().getSimpleName() + " saved successfully: {}", savedEntity);
-        return savedEntity;
+        EntityManagerFactory factory = entityManager.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
+
+        EntityTransaction transaction = tempEm.getTransaction();
+        transaction.begin();
+        T merged = tempEm.merge(entity);
+        tempEm.persist(merged);
+        transaction.commit();
+        if(tempEm.isOpen()){
+            tempEm.clear();
+            tempEm.close();
+        }
+        return entity;
     }
 
 
     @Transactional
     @Override
-    public T customUpdate(T entity) throws EntityNotFoundException{
-        if (customFindById(entity.getId()) == null) {
-            throw new EntityNotFoundException("Entity with type " + type.getSimpleName() + " not found: " + entity);
+    public T customUpdate(T entity) throws EntityNotFoundException {
+        EntityManagerFactory factory = entityManager.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
+
+        EntityTransaction transaction = tempEm.getTransaction();
+        T managedEntity = tempEm.find(type, entity.getId());
+        transaction.begin();
+        tempEm.merge(managedEntity);
+
+        T copied = copyEntity(managedEntity, entity, type);
+        //entityManager.flush();
+//        managedEntity = copyEntity(managedEntity, entity, type);
+//        tempEm.remove(managedEntity);
+//        tempEm.merge(managedEntity);
+//        tempEm.clear();
+//        tempEm.merge(entity);
+        tempEm.merge(copied);
+        transaction.commit();
+        if(tempEm.isOpen()){
+//            tempEm.clear();
+            tempEm.close();
         }
-        T updatedEntity = super.save(entity);
-        logger.info(updatedEntity.getClass().getSimpleName() + " updated successfully: {}", updatedEntity);
-        return updatedEntity;
+        logger.info(entity.getClass().getSimpleName() + " updated successfully: {}", entity);
+        return entity;
+//        if (customFindById(entity.getId()) == null) {
+//            throw new EntityNotFoundException("Entity with type " + type.getSimpleName() + " not found: " + entity);
+//        }
+//        T updatedEntity = super.save(entity);
+//          return updatedEntity;
+    }
+
+
+
+
+    private <T> T copyEntity(T managedEntity, T newEntity, Class<T> entityType) {
+        try {
+            for (Field field : entityType.getDeclaredFields()) {
+                field.setAccessible(true);
+                field.set(managedEntity, field.get(newEntity));
+            }
+            return managedEntity;
+        } catch (Exception e) {
+            throw new RuntimeException("Entity copy failed", e);
+        }
     }
 
 
@@ -160,6 +232,14 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         }
     }
 
+    @Override
+    @Transactional
+    public List<T> customFindAllById(List<Long> ids) {
+        String idsAsString = String.join(", ", ids.stream().map(v -> v.toString()).toList());
+        String jpql = "SELECT e FROM " + type.getSimpleName() + " e WHERE e.id in (" + idsAsString + ")";
+        return entityManager.createQuery(jpql, type).getResultList();
+    }
+
     public int deleteEntity(EntityManager tempEm, T entity) {
         int affected = 0;
         EntityTransaction transaction = tempEm.getTransaction();
@@ -189,5 +269,4 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         }
         return affected;
     }
-
 }

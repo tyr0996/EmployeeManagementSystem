@@ -10,20 +10,16 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
-import hu.martin.ems.model.RoleXPermission;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
-import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @AnonymousAllowed
 @NeedCleanCoding
@@ -31,7 +27,7 @@ public class RoleXPermissionCreate extends VerticalLayout {
 
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
-    private final RoleXPermissionApiClient roleXPermissionApi = BeanProvider.getBean(RoleXPermissionApiClient.class);
+//    private final RoleXPermissionApiClient roleXPermissionApi = BeanProvider.getBean(RoleXPermissionApiClient.class);
     List<Role> roleList;
     List<Permission> permissionList;
     Button saveButton;
@@ -88,6 +84,22 @@ public class RoleXPermissionCreate extends VerticalLayout {
         if(permissionList != null){
             permissionComboBox.setItems((permission, filter) -> permission.getName().toLowerCase().contains(filter.toLowerCase()), permissionList);
             permissionComboBox.setItemLabelGenerator(Permission::getName);
+
+            roleComboBox.addValueChangeListener(event -> {
+                Role selectedRole = event.getValue();
+                if (selectedRole != null) {
+                    List<Permission> permissions = getAllPairedPermissionsTo(selectedRole);
+                    if(permissions != null){
+                        permissionComboBox.setValue(permissions);
+                    }
+                    else{
+                        permissionComboBox.setErrorMessage("Error happened while getting paired permissions");
+                        permissionComboBox.setEnabled(false);
+                        permissionComboBox.setInvalid(true);
+                        saveButton.setEnabled(false);
+                    }
+                }
+            });
         }
         else{
             permissionComboBox.setInvalid(true);
@@ -95,33 +107,19 @@ public class RoleXPermissionCreate extends VerticalLayout {
             permissionComboBox.setErrorMessage("Error happened while getting permissions");
         }
 
-        roleComboBox.addValueChangeListener(event -> {
-            Role selectedRole = event.getValue();
-            if (selectedRole != null) {
-                List<Permission> permissions = getAllPairedPermissionsTo(selectedRole);
-                if(permissions != null){
-                    permissionComboBox.setValue(permissions);
-                }
-                else{
-                    permissionComboBox.setErrorMessage("Error happened while getting paired permissions");
-                    permissionComboBox.setEnabled(false);
-                    permissionComboBox.setInvalid(true);
-                    saveButton.setEnabled(false);
-                }
-            }
-        });
         return permissionComboBox;
     }
 
     private List<Permission> getAllPairedPermissionsTo(Role selectedRole) {
-        EmsResponse response = roleXPermissionApi.findAllPairedPermissionsTo(selectedRole);
-        switch (response.getCode()){
-            case 200:
-                return (List<Permission>) response.getResponseData();
-            default:
-                logger.error("roleXPermission getAllPairedPermissionsToError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                return null;
-        }
+//        EmsResponse response = roleXPermissionApi.findAllPairedPermissionsTo(selectedRole);
+//        switch (response.getCode()){
+//            case 200:
+//                return (List<Permission>) response.getResponseData();
+//            default:
+//                logger.error("roleXPermission getAllPairedPermissionsToError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+//                return null;
+//        }
+        return selectedRole.getPermissions().stream().toList();
     }
 
     private void setupPermissions() {
@@ -150,23 +148,34 @@ public class RoleXPermissionCreate extends VerticalLayout {
 
     private void saveRolePermissions(ComboBox<Role> roleComboBox, MultiSelectComboBox<Permission> permissionComboBox) {
         Role selectedRole = roleComboBox.getValue();
-        List<Permission> selectedPermissions = permissionComboBox.getValue().stream().toList();
-
-        roleXPermissionApi.removeAllPermissionsFrom(selectedRole);
-
-        Boolean success = true;
-        for(int i = 0; i < selectedPermissions.size(); i++){
-            Permission permission = selectedPermissions.get(i);
-            RoleXPermission roleXPermission = new RoleXPermission(selectedRole, permission);
-            roleXPermission.setDeleted(0L);
-            EmsResponse response = roleXPermissionApi.save(roleXPermission);
-            switch (response.getCode()){
-                case 200: break;
-                case 500: Notification.show("Role-permission pairing failed").addThemeVariants(NotificationVariant.LUMO_ERROR); return;
+        Set<Permission> selectedPermissions = permissionComboBox.getValue();
+        selectedRole.setPermissions(selectedPermissions);
+        EmsResponse response = roleApi.update(selectedRole);
+//
+//        roleXPermissionApi.removeAllPermissionsFrom(selectedRole);
+//
+//        Boolean success = true;
+//        for(int i = 0; i < selectedPermissions.size(); i++){
+//            Permission permission = selectedPermissions.get(i);
+//            RoleXPermission roleXPermission = new RoleXPermission(selectedRole, permission);
+//            roleXPermission.setDeleted(0L);
+//            EmsResponse response = roleXPermissionApi.save(roleXPermission);
+//            switch (response.getCode()){
+//                case 200: break;
+//                case 500: Notification.show("Role-permission pairing failed").addThemeVariants(NotificationVariant.LUMO_ERROR); return;
+//            }
+//        }
+//        clearForm(roleComboBox, permissionComboBox);
+        switch (response.getCode()){
+            case 200:{
+                Notification.show("Role successfully paired!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                break;
+            }
+            default: {
+                Notification.show("Role pairing failed!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                break;
             }
         }
-        clearForm(roleComboBox, permissionComboBox);
-        Notification.show("Role successfully paired!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
     }
 

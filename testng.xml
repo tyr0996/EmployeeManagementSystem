@@ -12,7 +12,7 @@
             <class name="hu.martin.ems.crudFE.AddressTest"/>
             <class name="hu.martin.ems.crudFE.CityCrudTest"/>
             <class name="hu.martin.ems.crudFE.CodeStoreCrudTest"/>
-            <class name="hu.martin.ems.crudFE.CurrencyCrudTest"/>
+            <class name="hu.martin.ems.crudFE.CurrencyCrudTest"/>W
             <class name="hu.martin.ems.crudFE.CustomerCrudTest"/>
             <class name="hu.martin.ems.crudFE.EmployeeCrudTest"/>
             <class name="hu.martin.ems.crudFE.LoginTests"/>

@@ -1,6 +1,5 @@
 package hu.martin.ems.vaadin.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Order;
@@ -9,11 +8,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
-import java.util.List;
 
 @Component
 @NeedCleanCoding
@@ -23,47 +20,39 @@ public class OrderApiClient extends EmsApiClient<Order> {
         super(Order.class);
     }
 
-    public byte[] createDocumentAsODT(Order order, OutputStream out){
+    public EmsResponse createDocumentAsODT(Order order){
+        initWebClient();
         try{
             byte[] response =  webClient.post()
                     .uri("createDocumentAsODT")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(om.writeValueAsString(order))
+                    .bodyValue(gson.toJson(order))
                     .retrieve()
                     .bodyToMono(byte[].class)
                     .block();
-            out.write(response);
-            return response;
+            return new EmsResponse(200, new ByteArrayInputStream(response), "");
         }
-        catch(JsonProcessingException ex){
-            logger.error("Json processing error happened while sending request for PDF document!");
-            return null;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        catch (WebClientResponseException ex){
+            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
 
-    public byte[] createDocumentAsPDF(Order order, OutputStream out){
+    public EmsResponse createDocumentAsPDF(Order order){
+        initWebClient();
         try{
             byte[] response =  webClient.post()
                     .uri("createDocumentAsPDF")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(om.writeValueAsString(order))
+                    .bodyValue(gson.toJson(order))
                     .retrieve()
                     .bodyToMono(byte[].class)
                     .block();
-            out.write(response);
-            return response;
+            return new EmsResponse(200, new ByteArrayInputStream(response), "");
         }
         catch (WebClientResponseException ex) {
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return null;
-        }
-        catch(JsonProcessingException ex){
-            logger.error("Json processing error happened while sending request for PDF document!");
-            return null;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
 
@@ -75,11 +64,12 @@ public class OrderApiClient extends EmsApiClient<Order> {
         LinkedHashMap<String, LocalDate> body = new LinkedHashMap<>();
         body.put("from", from);
         body.put("to", to);
+        initWebClient();
         try{
             String response =  webClient.put()
                     .uri("sendReportSFTPToAccountant")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(om.writeValueAsString(body))
+                    .bodyValue(gson.toJson(body))
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
@@ -89,27 +79,24 @@ public class OrderApiClient extends EmsApiClient<Order> {
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
-        catch(JsonProcessingException ex){
-            logger.error("Json processing error - Status: {}", 400);
-            return new EmsResponse(400, "Data processing error");
-        }
     }
 
-    public List<OrderElement> getOrderElements(Long id) {
+    public EmsResponse getOrderElements(Long id) {
         initWebClient();
-        String jsonResponse = webClient.mutate().codecs(
-                        configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
+        try{
+            String jsonResponse = webClient.mutate().codecs(
+                            configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
                 .build()
                 .get()
                 .uri("getOrderElements?orderId={id}", id)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        try{
-            return convertResponseToEntityList(jsonResponse, OrderElement.class);
-        } catch (JsonProcessingException e) {
-            logger.error("JsonProcessingException for String: " + jsonResponse);
-            return null;
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse, OrderElement.class), "");
+        }
+            catch (WebClientResponseException ex){
+            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
 }

@@ -1,8 +1,6 @@
 package hu.martin.ems.vaadin.component.Supplier;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -25,10 +23,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.*;
+import hu.martin.ems.model.Address;
+import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.SupplierApiClient;
@@ -54,6 +52,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
 
     private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);
     private final AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
+    private final Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
     private PaginatedGrid<SupplierVO, String> grid;
     private final PaginationSetting paginationSetting;
@@ -227,11 +226,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
                 SupplierVO.extraDataFilterMap.clear();
             }
             else{
-                try {
-                    SupplierVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
-                } catch (JsonProcessingException ex) {
-                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
+                SupplierVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
             grid.getDataProvider().refreshAll();

@@ -1,8 +1,6 @@
 package hu.martin.ems.vaadin.component.Customer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -29,9 +27,7 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
-import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Customer;
-import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CustomerApiClient;
@@ -67,6 +63,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     Grid.Column<CustomerVO> emailColumn;
     Grid.Column<CustomerVO> firstNameColumn;
     Grid.Column<CustomerVO> lastNameColumn;
+    private final Gson gson = BeanProvider.getBean(Gson.class);
 
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<CustomerVO> extraData;
@@ -170,7 +167,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
             if(customers == null){
                 customers = new ArrayList<>();
             }
-            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
+            updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
         hl.add(showDeletedCheckbox, create);
@@ -260,11 +257,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
                 CustomerVO.extraDataFilterMap.clear();
             }
             else{
-                try {
-                    CustomerVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
-                } catch (JsonProcessingException ex) {
-                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
+                CustomerVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
             grid.getDataProvider().refreshAll();

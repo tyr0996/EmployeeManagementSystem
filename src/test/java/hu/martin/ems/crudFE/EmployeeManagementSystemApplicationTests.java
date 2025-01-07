@@ -4,13 +4,13 @@ import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.vaadin.component.BaseVO;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -22,8 +22,9 @@ import static org.testng.Assert.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
 
+
     @BeforeClass
-    public void setUp() {
+    public void setUp() throws IOException {
         DataProvider.saveAllSqlsFromJsons();
     }
 
@@ -48,9 +49,9 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
 
     @Test
     public void testSqlGenerationFromJson(){
-        String generatedSql = DataProvider.generateSqlFromJson(new File(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
-        assertEquals("INSERT INTO Role (name, deleted) VALUES\n\t('Martin', '0'),\n\t('Robi', '0'),\n\t('NO_ROLE', '0')",
-                generatedSql,
+        String generatedSql = dp.generateSqlFromJson(new File(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
+        assertEquals(generatedSql,
+                "INSERT INTO Role (name, deleted) VALUES\n\t('Martin', '0'),\n\t('Robi', '0'),\n\t('NO_ROLE', '0')",
                 "The generated sql not equals with the excepted");
     }
 

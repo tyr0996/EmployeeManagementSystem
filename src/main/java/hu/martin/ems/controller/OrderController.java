@@ -1,6 +1,5 @@
 package hu.martin.ems.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.core.model.EmsResponse;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 
 @RestController
@@ -62,8 +60,8 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
         return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
     }
 
-    @GetMapping(path = "getOrderElements", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> getOrderElements(@RequestParam(value = "orderId") Long orderId) throws JsonProcessingException {
-        return new ResponseEntity<>(om.writeValueAsString(service.getOrderElements(orderId)), HttpStatus.OK);
-    }
+//    @GetMapping(path = "getOrderElements", produces = StaticDatas.Produces.JSON)
+//    public ResponseEntity<String> getOrderElements(@RequestParam(value = "orderId") Long orderId) throws JsonProcessingException {
+//        return new ResponseEntity<>(gson.toJson(service.getOrderElements(orderId)), HttpStatus.OK);
+//    }
 }

@@ -79,7 +79,6 @@
     "lit": "3.1.2",
     "lit-element": "^3.2.2",
     "lit-html": "2.4.0",
-    "lumo-css-framework": "3.0.11",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.24.1"
@@ -176,8 +175,7 @@
       "date-fns": "2.29.3",
       "lit": "3.1.2",
       "lit-element": "^3.2.2",
-      "lit-html": "2.4.0",
-      "lumo-css-framework": "3.0.11"
+      "lit-html": "2.4.0"
     },
     "devDependencies": {
       "@rollup/plugin-replace": "5.0.5",
@@ -197,7 +195,7 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "08dfd56418262b30313a206c6c62dbd8dbc52364fe113e870cd5828135f7e6ff"
+    "hash": "fa1ee6f675fb84d17ad23770649bd4745a24e34bea8d93f68fe74ebbef318931"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -267,7 +265,6 @@
     "@polymer/polymer": "$@polymer/polymer",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "date-fns": "$date-fns",
-    "lumo-css-framework": "$lumo-css-framework",
     "@types/react": "$@types/react",
     "@types/react-dom": "$@types/react-dom",
     "@types/react-router-dom": "$@types/react-router-dom",

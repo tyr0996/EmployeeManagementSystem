@@ -41,9 +41,9 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         super(orderRepository);
     }
 
-    public List<OrderElement> getOrderElements(Long orderId) {
-        return this.repo.getOrderElements(orderId);
-    }
+//    public List<OrderElement> getOrderElements(Long orderId) {
+//        return this.repo.getOrderElements(orderId);
+//    }
 
     @Autowired
     private CurrencyService currencyService;
@@ -51,6 +51,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
     @Setter
     @Autowired
     private SftpSender sender;
+
     @Override
     public Order save(Order o){
         if ((o.getCustomer() != null && o.getSupplier() == null) || (o.getCustomer() == null || o.getSupplier() != null)) {
@@ -60,10 +61,11 @@ public class OrderService extends BaseService<Order, OrderRepository> {
             return null; //TODO
         }
     }
+
     @Override
     public Order update(Order o) {
         if ((o.getCustomer() != null && o.getSupplier() == null) || (o.getCustomer() == null || o.getSupplier() != null)) {
-            return super.save(o);
+            return super.update(o);
         }
         else{
             return null; //TODO
@@ -118,7 +120,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
             lines.add(Arrays.stream(colNames).toList());
             for (Order order : orders) {
                 List<List<String>> linesOfOrder = new ArrayList<>();
-                for(OrderElement oe : getOrderElements(order.getId())){
+                for(OrderElement oe : order.getOrderElements()){
                     List<String> line = new ArrayList<>();
                     line.add(order.getName());
                     line.add(oe.getProduct().getName());
@@ -157,11 +159,11 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         IContext ctx = report.createContext();
         OrderDM order = new OrderDM(o);
         String currency = o.getCurrency().getName();
-        ctx.put("r", getOrderElements(o.getId()).stream().map(v -> {
-            Double unitNetPrice = currencyService.convert(LocalDate.now(), v.getProduct().getSellingPriceCurrency().getName(), currency, v.getUnitNetPrice().doubleValue());
-            Double netPrice = currencyService.convert(LocalDate.now(), v.getProduct().getSellingPriceCurrency().getName(), currency, v.getNetPrice().doubleValue());
-            Double tax = currencyService.convert(LocalDate.now(), v.getProduct().getSellingPriceCurrency().getName(), currency, v.getTaxPrice().doubleValue());
-            Double grossPrice = currencyService.convert(LocalDate.now(), v.getProduct().getSellingPriceCurrency().getName(), currency, v.getGrossPrice().doubleValue());
+        ctx.put("r", o.getOrderElements().stream().map(v -> {
+            Double unitNetPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getUnitNetPrice().doubleValue());
+            Double netPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getNetPrice().doubleValue());
+            Double tax = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getTaxPrice().doubleValue());
+            Double grossPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getGrossPrice().doubleValue());
             order.addToTotalGross(grossPrice);
             return new OrderElementDM(v).extend(unitNetPrice, netPrice, tax, grossPrice, currency);
         }).toList());

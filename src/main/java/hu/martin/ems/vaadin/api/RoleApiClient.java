@@ -1,6 +1,5 @@
 package hu.martin.ems.vaadin.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Role;
@@ -20,10 +19,6 @@ public class RoleApiClient extends EmsApiClient<Role> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        try {
-            return new EmsResponse(200, convertResponseToEntity(response), "");
-        } catch (JsonProcessingException e) {
-            return new EmsResponse(500, "JsonProcessingException");
-        }
+        return new EmsResponse(200, convertResponseToEntity(response), "");
     }
 }

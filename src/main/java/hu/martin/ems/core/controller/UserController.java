@@ -1,6 +1,5 @@
 package hu.martin.ems.core.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.User;
 import hu.martin.ems.core.repository.UserRepository;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Controller
 @RequestMapping("/api/user")
@@ -21,22 +21,24 @@ public class UserController extends BaseController<User, UserService, UserReposi
 
     @GetMapping(path = "/getByUsername", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> getByUsername(@RequestParam String username) {
-        User user = service.findByUsername(username);
         try{
-            return new ResponseEntity<>(om.writeValueAsString(user), HttpStatus.OK);
+            User user = service.findByUsername(username);
+            return new ResponseEntity<>(gson.toJson(user), HttpStatus.OK);
         }
-        catch(JsonProcessingException e){
+        catch (WebClientResponseException ex){
+            System.out.println("sanyika");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping(path = "/userExists", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> userExists(@RequestParam String username) {
-        User user = service.userExists(username);
         try{
-            return new ResponseEntity<>(om.writeValueAsString(user), HttpStatus.OK);
+            User user = service.userExists(username);
+            return new ResponseEntity<>(gson.toJson(user), HttpStatus.OK);
         }
-        catch(JsonProcessingException e){
+        catch (WebClientResponseException ex){
+            System.out.println("Sanyi");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

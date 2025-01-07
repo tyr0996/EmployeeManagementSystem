@@ -3,7 +3,7 @@ package hu.martin.ems.core.auth;
 import hu.martin.ems.core.service.UserService;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
-import hu.martin.ems.service.RoleXPermissionService;
+//import hu.martin.ems.service.RoleXPermissionService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,7 +18,7 @@ import java.util.List;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserService userService;
-    private final RoleXPermissionService roleXPermissionService;
+//    private final RoleXPermissionService roleXPermissionService;
 
 
     @Override
@@ -37,7 +37,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 
     private String[] getRolesAsString(Role r){
-        List<Permission> permissions = roleXPermissionService.findAllPermission(r.getId());
+//        List<Permission> permissions = roleXPermissionService.findAllPermission(r.getId());
+        List<Permission> permissions = r.getPermissions().stream().toList();
         String[] ret = new String[permissions.size() + 1];
         ret[0] = r.getName();
         for(int i = 1; i < permissions.size() + 1; i++){

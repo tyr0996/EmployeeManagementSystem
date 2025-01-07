@@ -1,6 +1,6 @@
-INSERT INTO RoleXPermission (role_id, permission_id, deleted) VALUES
-	('1', '1', '0'),
-	('1', '2', '0'),
-	('2', '1', '0'),
-	('2', '3', '0'),
-	('2', '4', '0')
+INSERT INTO roles_permissions (role_id, permission_id) VALUES
+	('1', '1'),
+	('1', '2'),
+	('2', '1'),
+	('2', '3'),
+	('2', '4')

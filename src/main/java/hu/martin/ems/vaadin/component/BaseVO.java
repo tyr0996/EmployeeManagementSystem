@@ -1,9 +1,6 @@
 package hu.martin.ems.vaadin.component;
 
-import com.vaadin.ui.Link;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.*;
 

@@ -1,10 +1,12 @@
 package hu.martin.ems.core.config;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.metamodel.EntityType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,15 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -37,8 +37,11 @@ public class DataProvider {
     private final EntityManager em;
     private final Logger logger = LoggerFactory.getLogger(DataProvider.class);
     private static List<File> loaded = new ArrayList<>();
+    private static Set<EntityType<?>> loadedToEntityManager = new HashSet<>();
+    private static Set<EntityType<?>> tree = new HashSet<>();
 
     private static final Path jsonsDirectory = Paths.get("src/main/resources/static");
+    private static Gson gson = new Gson();
 
     @Autowired
     public DataProvider(EntityManager em) throws IOException {
@@ -96,9 +99,8 @@ public class DataProvider {
     }
 
     public static String generateSqlFromJson(File jsonFile) {
-        try{
-            ObjectMapper om = new JacksonConfig().objectMapper();
-            JsonFile json = om.readValue(jsonFile, JsonFile.class);
+        try (FileReader reader = new FileReader(jsonFile)){
+            JsonFile json = gson.fromJson(reader, JsonFile.class);
             return json.toSQL();
         } catch (IOException e) {
             log.warn("Error occured while reading json file: " + jsonFile.getName());
@@ -120,9 +122,8 @@ public class DataProvider {
         if (loaded.contains(jsonFile)) {
             return;
         } else {
-            ObjectMapper om = new JacksonConfig().objectMapper();
-            try {
-                JsonFile json = om.readValue(jsonFile, JsonFile.class);
+            try (FileReader reader = new FileReader(jsonFile)) {
+                JsonFile json = gson.fromJson(reader, JsonFile.class);
                 List<String> required;
                 if(json.required == null) {
                     required = new ArrayList<>();
@@ -146,10 +147,8 @@ public class DataProvider {
 
     private void saveJsonToDatabase(File jsonFile) {
         EntityTransaction entityTransaction = em.getTransaction();
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            JsonFile json = objectMapper.readValue(jsonFile, JsonFile.class);
+        try (FileReader reader = new FileReader(jsonFile)){
+            JsonFile json = gson.fromJson(reader, JsonFile.class);
             json.init();
             String sql = json.toSQL();
             entityTransaction.begin();
@@ -205,7 +204,7 @@ public class DataProvider {
                     .map(obj -> buildValuesRow(obj, keys))
                     .collect(Collectors.toList());
 
-            return baseSql + String.join(",\n", valueRows);
+            return (baseSql + String.join(",\n", valueRows)).replaceAll("'(\\d+)\\.0'", "'$1'");
         }
 
         private String buildValuesRow(Map<String, Object> obj, List<String> keys) {
@@ -217,15 +216,15 @@ public class DataProvider {
         }
 
         private String formatValue(Object value, String key) {
-            if (value instanceof LinkedHashMap && ((LinkedHashMap<?, ?>) value).containsKey("refClass")) {
-                return generateSelectSQLQuery((LinkedHashMap<String, Object>) value, key);
+            if (value instanceof LinkedTreeMap && ((LinkedTreeMap<?, ?>) value).containsKey("refClass")) {
+                return generateSelectSQLQuery((LinkedTreeMap<String, Object>) value, key);
             }
             return value == null ? "NULL" : "'" + value.toString().replace("'", "\\u0027") + "'";
         }
 
-        private static String generateSelectSQLQuery(LinkedHashMap<String, Object> reference, String columnName) {
+        private static String generateSelectSQLQuery(LinkedTreeMap<String, Object> reference, String columnName) {
             String refClass = fixObjectName((String) reference.get("refClass"));
-            LinkedHashMap<String, Object> filter = (LinkedHashMap<String, Object>) reference.get("filter");
+            LinkedTreeMap<String, Object> filter = (LinkedTreeMap<String, Object>) reference.get("filter");
 
             String conditions = filter.entrySet().stream()
                     .map(entry -> buildConditionForSelect(entry.getKey(), entry.getValue()))

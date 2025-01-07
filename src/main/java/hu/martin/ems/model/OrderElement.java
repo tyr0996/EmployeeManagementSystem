@@ -1,5 +1,6 @@
 package hu.martin.ems.model;
 
+import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
@@ -13,41 +14,68 @@ import lombok.Setter;
 public class OrderElement extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "product_product_id")
+    @Expose
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "order_order_id", columnDefinition = "BIGINT")
-    private Order order;
+    @JoinTable(name = "orders_orderelement",
+        joinColumns = @JoinColumn(name = "orderelements_id"),
+        inverseJoinColumns = @JoinColumn(name = "order_id")
+    )
+//    @JoinColumn(name = "order_id", columnDefinition = "BIGINT")
+    private Order orderObject;
+
 
     @ManyToOne
     @JoinColumn(name = "customer_customer_id", columnDefinition = "BIGINT")
+    @Expose
     private Customer customer;
 
     @ManyToOne
     @JoinColumn(name = "supplier_supplier_id", columnDefinition = "BIGINT")
+    @Expose
     private Supplier supplier;
 
     @Column(nullable = false)
+    @Expose
     private Integer unit;
 
     @Column(nullable = false)
+    @Expose
     private Integer unitNetPrice;
 
     @ManyToOne
     @JoinColumn(name = "taxKey_codestore_id")
+    @Expose
     private CodeStore taxKey;
 
     @Column(nullable = false)
+    @Expose
     private Integer netPrice;
 
     @Column(nullable = false)
+    @Expose
     private Double taxPrice;
 
     @Column(nullable = false)
+    @Expose
     private Integer grossPrice;
 
+    @Expose
     @Transient
     private String name;
+
+    @Expose
+    @Transient
+    private Long orderId;
+
+    @PostLoad
+    public void initAfterLoad(){
+        if(orderObject != null){
+            orderId = orderObject.getId();
+        }
+    }
+
 
     public String getName() {
         return this.product.getName();

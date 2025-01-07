@@ -1,6 +1,5 @@
 package hu.martin.ems.vaadin.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.User;
@@ -20,11 +19,7 @@ public class UserApiClient extends EmsApiClient<User> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        try {
-            return new EmsResponse(200, convertResponseToEntity(jsonResponse), "");
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return new EmsResponse(200, convertResponseToEntity(jsonResponse), "");
     }
 
     public EmsResponse findByUsername(String userName) {
@@ -34,10 +29,6 @@ public class UserApiClient extends EmsApiClient<User> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        try {
-            return new EmsResponse(200, convertResponseToEntity(jsonResponse), "");
-        } catch (JsonProcessingException e) {
-            return new EmsResponse(500, "Json processing exception");
-        }
+        return new EmsResponse(200, convertResponseToEntity(jsonResponse), "");
     }
 }

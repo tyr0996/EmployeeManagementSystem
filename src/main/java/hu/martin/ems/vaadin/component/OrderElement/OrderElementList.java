@@ -1,8 +1,7 @@
 package hu.martin.ems.vaadin.component.OrderElement;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.google.gson.Gson;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -28,7 +27,10 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.*;
+import hu.martin.ems.model.Customer;
+import hu.martin.ems.model.OrderElement;
+import hu.martin.ems.model.Product;
+import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
 import hu.martin.ems.vaadin.component.BaseVO;
@@ -57,11 +59,14 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     private final ProductApiClient productApi = BeanProvider.getBean(ProductApiClient.class);
     private final CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
     private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);
+    private final Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
     private PaginatedGrid<OrderElementVO, String> grid;
     
     private List<OrderElementVO> orderElementVOS;
+
     private final PaginationSetting paginationSetting;
+    private Grid.Column<OrderElementVO> customerOrSupplierName;
     private Grid.Column<OrderElementVO> grossPriceColumn;
     private Grid.Column<OrderElementVO> netPriceColumn;
     private Grid.Column<OrderElementVO> orderColumn;
@@ -69,6 +74,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     private Grid.Column<OrderElementVO> taxKeyColumn;
     private Grid.Column<OrderElementVO> unitColumn;
     private Grid.Column<OrderElementVO> unitNetPriceColumn;
+
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<OrderElementVO> extraData;
 
@@ -79,6 +85,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     private static String taxKeyFilterText = "";
     private static String unitFilterText = "";
     private static String unitNetPriceFilterText = "";
+    private static String customerOrSupplierNameFilterText = "";
     List<OrderElement> orderElementList;
     List<Product> productList;
     List<Customer> customerList;
@@ -107,6 +114,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         taxKeyColumn = grid.addColumn(v -> v.taxKey);
         unitColumn = grid.addColumn(v -> v.unit);
         unitNetPriceColumn = grid.addColumn(v -> v.unitNetPrice);
+        customerOrSupplierName = grid.addColumn(v -> v.customerOrSupplierName);
 
         grid.addClassName("styling");
         grid.setPartNameGenerator(orderElementVO -> orderElementVO.deleted != 0 ? "deleted" : null);
@@ -202,20 +210,35 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
 
     private Stream<OrderElementVO> getFilteredStream() {
         return orderElementVOS.stream().filter(orderElementVO ->
-                (grossPriceFilterText.isEmpty() || orderElementVO.grossPrice.toString().toLowerCase().contains(grossPriceFilterText.toLowerCase())) &&
-                (netPriceFilterText.isEmpty() || orderElementVO.netPrice.toString().toLowerCase().contains(netPriceFilterText.toLowerCase())) &&
-                (orderFilterText.isEmpty() || orderElementVO.order.toLowerCase().contains(orderFilterText.toLowerCase())) &&
-                (productFilterText.isEmpty() || orderElementVO.product.toLowerCase().contains(productFilterText.toLowerCase())) &&
-                (taxKeyFilterText.isEmpty() || orderElementVO.taxKey.toLowerCase().contains(taxKeyFilterText.toLowerCase())) &&
-                (unitFilterText.isEmpty() || orderElementVO.unit.toString().toLowerCase().contains(unitFilterText.toLowerCase())) &&
-                (unitNetPriceFilterText.isEmpty() || orderElementVO.unitNetPrice.toString().toLowerCase().contains(unitNetPriceFilterText.toLowerCase())) &&
+                filterField(customerOrSupplierNameFilterText, orderElementVO.customerOrSupplierName) &&
+                filterField(grossPriceFilterText, orderElementVO.grossPrice.toString()) &&
+                filterField(netPriceFilterText, orderElementVO.netPrice.toString()) &&
+                filterFieldWithNullFilter(orderFilterText, orderElementVO.order) &&
+                filterField(productFilterText, orderElementVO.product) &&
+                filterField(taxKeyFilterText, orderElementVO.taxKey) &&
+                filterField(unitFilterText, orderElementVO.unit.toString()) &&
+                filterField(unitNetPriceFilterText, orderElementVO.unitNetPrice.toString()) &&
                 orderElementVO.filterExtraData()
+
         );
     }
 
 
+    //TODO megcsinálni a többinél is
+    private boolean filterFieldWithNullFilter(String filterFieldText, String fieldValue){
+        if(filterFieldText.toLowerCase().equals("null")){
+            return fieldValue.isEmpty();
+        }
+        else{
+            return filterField(filterFieldText, fieldValue);
+        }
+    }
 
-    private Component filterField(TextField filterField, String title){
+    private boolean filterField(String filterFieldText, String fieldValue){
+        return filterFieldText.isEmpty() || fieldValue.toLowerCase().contains(filterFieldText.toLowerCase());
+    }
+    
+    private Component createFilterField(TextField filterField, String title){
         VerticalLayout res = new VerticalLayout();
         res.getStyle().set("padding", "0px")
                 .set("display", "flex")
@@ -292,17 +315,22 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             updateGridItems();
         });
 
+        TextField customerOrSupplierNameFilter = new TextField();
+        customerOrSupplierNameFilter.setPlaceholder("Search customer/supplier...");
+        customerOrSupplierNameFilter.setClearButtonVisible(true);
+        customerOrSupplierNameFilter.addValueChangeListener(event -> {
+            customerOrSupplierNameFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
             if(extraDataFilter.getValue().isEmpty()){
                 OrderElementVO.extraDataFilterMap.clear();
             }
             else{
-                try {
-                    OrderElementVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
-                } catch (JsonProcessingException ex) {
-                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
+                OrderElementVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
             grid.getDataProvider().refreshAll();
@@ -312,14 +340,15 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
 
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();;
-        filterRow.getCell(grossPriceColumn).setComponent(filterField(grossPriceFilter, "Gross price"));
-        filterRow.getCell(netPriceColumn).setComponent(filterField(netPriceFilter, "Net price"));
-        filterRow.getCell(orderColumn).setComponent(filterField(orderFilter, "Order"));
-        filterRow.getCell(productColumn).setComponent(filterField(productFilter, "Product"));
-        filterRow.getCell(taxKeyColumn).setComponent(filterField(taxKeyFilter, "Tax key"));
-        filterRow.getCell(unitColumn).setComponent(filterField(unitFilter, "Unit"));
-        filterRow.getCell(unitNetPriceColumn).setComponent(filterField(unitNetPriceFilter, "Unit net price"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
+        filterRow.getCell(grossPriceColumn).setComponent(createFilterField(grossPriceFilter, "Gross price"));
+        filterRow.getCell(netPriceColumn).setComponent(createFilterField(netPriceFilter, "Net price"));
+        filterRow.getCell(orderColumn).setComponent(createFilterField(orderFilter, "Order"));
+        filterRow.getCell(productColumn).setComponent(createFilterField(productFilter, "Product"));
+        filterRow.getCell(taxKeyColumn).setComponent(createFilterField(taxKeyFilter, "Tax key"));
+        filterRow.getCell(unitColumn).setComponent(createFilterField(unitFilter, "Unit"));
+        filterRow.getCell(unitNetPriceColumn).setComponent(createFilterField(unitNetPriceFilter, "Unit net price"));
+        filterRow.getCell(customerOrSupplierName).setComponent(createFilterField(customerOrSupplierNameFilter, "Customer/Supplier"));
+        filterRow.getCell(extraData).setComponent(createFilterField(extraDataFilter, ""));
     }
 
     private void updateGridItems() {
@@ -487,17 +516,19 @@ public class OrderElementVO extends BaseVO {
         private Integer unitNetPrice;
         private Integer netPrice;
         private Integer grossPrice;
+        private String customerOrSupplierName;
 
         public OrderElementVO(OrderElement orderElement) {
             super(orderElement.id, orderElement.getDeleted());
             this.original = orderElement;
             this.product = original.getProduct().getName();
-            this.order = original.getOrder() == null ? "" : original.getOrder().getName();
+            this.order = original.getOrderId() == null ? "" : original.getOrderId().toString();
             this.unit = original.getUnit();
             this.unitNetPrice = original.getUnitNetPrice();
             this.taxKey = original.getTaxKey().getName() + "%";
             this.netPrice = original.getNetPrice();
             this.grossPrice = original.getGrossPrice();
+            this.customerOrSupplierName = orderElement.getCustomer() == null ? "(S) " + orderElement.getSupplier().getName() : "(C) " + orderElement.getCustomer().getName();
         }
     }
 }

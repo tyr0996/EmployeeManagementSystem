@@ -1,9 +1,6 @@
 package hu.martin.ems.vaadin.component.Address;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.helger.commons.state.ESuccess;
+import com.google.gson.Gson;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -32,15 +29,12 @@ import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.City;
 import hu.martin.ems.model.CodeStore;
-import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
-import org.apache.commons.math3.analysis.function.Add;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +57,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     private final AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private final CityApiClient cityApi = BeanProvider.getBean(CityApiClient.class);
+    private Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
     private PaginatedGrid<AddressVO, String> grid;
     private final PaginationSetting paginationSetting;
@@ -280,11 +275,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
                 AddressVO.extraDataFilterMap.clear();
             }
             else{
-                try {
-                    AddressVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
-                } catch (JsonProcessingException ex) {
-                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
+                AddressVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
             grid.getDataProvider().refreshAll();

@@ -23,11 +23,11 @@ public class CodeStoreController extends BaseController<CodeStore, CodeStoreServ
 
     @GetMapping(path = "/getChildren")
     public ResponseEntity<String> getChildren(@RequestParam(value = "parentCodeStoreId") Long parentCodeStoreId) throws JsonProcessingException {
-        return new ResponseEntity<>(om.writeValueAsString(service.getChildren(parentCodeStoreId)), HttpStatus.OK);
+        return new ResponseEntity<>(gson.toJson(service.getChildren(parentCodeStoreId)), HttpStatus.OK);
     }
 
     @GetMapping(path = "/getByName")
     public ResponseEntity<String> getByName(@RequestParam(value = "name") String name) throws JsonProcessingException {
-        return new ResponseEntity<>(om.writeValueAsString(service.findByName(name)), HttpStatus.OK);
+        return new ResponseEntity<>(gson.toJson(service.findByName(name)), HttpStatus.OK);
     }
 }

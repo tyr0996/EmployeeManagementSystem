@@ -1,12 +1,9 @@
 package hu.martin.ems.vaadin.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.CodeStore;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @NeedCleanCoding
@@ -22,11 +19,7 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        try{
-            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-        } catch (JsonProcessingException e) {
-            return new EmsResponse(500, "JsonProcessingException");
-        }
+        return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
     }
 
     public EmsResponse getAllByName(String name){
@@ -36,10 +29,6 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        try{
-            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-        } catch (JsonProcessingException e) {
-            return new EmsResponse(500, "JsonProcessingException");
-        }
+        return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
     }
 }

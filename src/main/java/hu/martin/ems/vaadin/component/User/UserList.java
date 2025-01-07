@@ -1,8 +1,6 @@
 package hu.martin.ems.vaadin.component.User;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -29,7 +27,6 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
-import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.RoleApiClient;
@@ -76,6 +73,8 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     List<User> users;
     List<UserVO> userVOS;
     List<Role> roleList;
+
+    private Gson gson = BeanProvider.getBean(Gson.class);
 
 
     private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
@@ -132,11 +131,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
                 UserVO.extraDataFilterMap.clear();
             }
             else{
-                try {
-                    UserVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
-                } catch (JsonProcessingException ex) {
-                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
+                UserVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
             grid.getDataProvider().refreshAll();
@@ -207,8 +202,8 @@ public class UserList extends VerticalLayout implements Creatable<User> {
                     Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     break;
                 case 500:
-                    logger.info("User " + (editableUser == null ? "saving" : "modifing") + " failed");
-                    Notification.show("User " + (editableUser == null ? "saving" : "modifing") + " failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    logger.info("User " + (editableUser == null ? "saving" : "modifying") + " failed");
+                    Notification.show("User " + (editableUser == null ? "saving" : "modifying") + " failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createOrModifyDialog.close();
                     break;
                 default:

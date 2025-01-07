@@ -1,13 +1,10 @@
 package hu.martin.ems.crudFE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.NotificationCheck;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.model.Address;
 import hu.martin.ems.model.CodeStore;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -15,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.sql.SQLException;
 import java.time.Duration;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
@@ -80,22 +78,6 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void extraFilterInvalidValue() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        NotificationCheck nc = new NotificationCheck();
-        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
-    }
-
-    @Test
-    public void createFailedTest() throws JsonProcessingException, InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createFailedTest(port, spyCodeStoreApiClient, mainMenu, subMenu);
-    }
-
-    @Test
     public void unexpcetedResponseCodeCreate() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -119,5 +101,12 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         checkNoMoreNotificationsVisible();
         assertEquals(0, countVisibleGridDataRows(gridXpath));
         assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
+    }
+
+    @Test
+    public void databaseUnavailableWhenSavingCodeStore() throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseUnavailableWhenSaveEntity(spyDataSource, null, null, 0);
     }
 }

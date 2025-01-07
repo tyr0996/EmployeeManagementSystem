@@ -68,6 +68,22 @@ public class JPAConfig {
                 .password(jdbcPassword)
                 .driverClassName(driverClassName)
                 .build();
+
+//        HikariConfig hikariConfig = new HikariConfig();
+//        hikariConfig.setJdbcUrl(jdbcUrl);
+//        hikariConfig.setUsername(jdbcUsername);
+//        hikariConfig.setPassword(jdbcPassword);
+//        hikariConfig.setDriverClassName(driverClassName);
+//
+//        // HikariCP specifikus beállítások
+//        hikariConfig.setMaximumPoolSize(hibernatePoolSize != null ? hibernatePoolSize : 10); // Ha nincs megadva, alapértelmezetten 10
+//        hikariConfig.setMinimumIdle(hibernatePoolSize != null ? hibernatePoolSize / 2 : 5);  // Alapértelmezett 5
+//        hikariConfig.setIdleTimeout(300000); // 5 perc inaktív kapcsolat után
+//        hikariConfig.setConnectionTimeout(30000); // 30 másodperc, hogy próbáljon kapcsolatot szerezni
+//        hikariConfig.setMaxLifetime(1800000); // 30 perc
+//
+//        // Visszaadjuk a HikariDataSource-t
+//        return new HikariDataSource(hikariConfig);
     }
 
     @Bean

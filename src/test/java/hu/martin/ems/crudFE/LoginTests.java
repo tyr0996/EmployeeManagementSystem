@@ -1,34 +1,24 @@
 package hu.martin.ems.crudFE;
 
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.RandomGenerator;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.model.Role;
-import hu.martin.ems.vaadin.MainView;
-import hu.martin.ems.vaadin.component.Order.OrderCreate;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.awt.*;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 
 
@@ -64,9 +54,9 @@ public class LoginTests extends BaseCrudTest {
 
         if(requireOpening){
             WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath)));
-            WebElement passwordField = findClickableElementWithXpath(passwordFieldXpath);
-            WebElement passwordAgainField = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input");
-            WebElement register = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+            WebElement passwordField = findClickableElementWithXpathWithWaiting(passwordFieldXpath);
+            WebElement passwordAgainField = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input");
+            WebElement register = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
             usernameField.sendKeys(username);
             passwordField.sendKeys(password);
@@ -75,9 +65,9 @@ public class LoginTests extends BaseCrudTest {
             register.click();
         } else{
             assertThrows(TimeoutException.class, () -> wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath))));
-            assertEquals(null, findClickableElementWithXpath(passwordFieldXpath));
-            assertEquals(null, findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input"));
-            assertEquals(null, findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button"));
+            assertEquals(null, findClickableElementWithXpathWithWaiting(passwordFieldXpath));
+            assertEquals(null, findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input"));
+            assertEquals(null, findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button"));
         }
 
         checkNotificationContainsTexts(notification);
@@ -170,7 +160,7 @@ public class LoginTests extends BaseCrudTest {
         Thread.sleep(200);
         WebElement forgotPasswordDialog = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout");
         WebElement usernameField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field/input");
-        WebElement nextButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        WebElement nextButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
         usernameField.sendKeys(userName);
         nextButton.click();
@@ -179,7 +169,7 @@ public class LoginTests extends BaseCrudTest {
         WebElement forgotPasswordForDialog = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout");
         WebElement passwordField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-password-field[1]/input");
         WebElement passwordAgainField = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-password-field[2]/input");
-        WebElement submitButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-button");
+        WebElement submitButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay[2]/vaadin-form-layout/vaadin-button");
         passwordField.sendKeys(password);
         passwordAgainField.sendKeys(againPassword);
 
@@ -229,11 +219,11 @@ public class LoginTests extends BaseCrudTest {
     @Test
     public void sideMenuElementsTest() {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        findClickableElementWithXpath(UIXpaths.SIDE_MENU);
+        findClickableElementWithXpathWithWaiting(UIXpaths.SIDE_MENU);
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(1000));
         WebElement adminMenu = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(UIXpaths.ADMIN_MENU)));
-        WebElement ordersMenu = findClickableElementWithXpath(UIXpaths.ORDERS_MENU);
+        WebElement ordersMenu = findClickableElementWithXpathWithWaiting(UIXpaths.ORDERS_MENU);
 
         assertEquals(false, adminSubMenusVisible());
         assertEquals(false, ordersSubMenusVisible());
@@ -303,16 +293,16 @@ public class LoginTests extends BaseCrudTest {
 
     private boolean adminSubMenusVisible(){
         WebElement employeeSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.EMPLOYEE_SUBMENU);
-        WebElement accessManagementSubMenu = findClickableElementWithXpath(UIXpaths.ACESS_MANAGEMENT_SUBMENU);
-        WebElement codestoreSubMenu = findClickableElementWithXpath(UIXpaths.CODESTORE_SUBMENU);
-        WebElement citySubMenu = findClickableElementWithXpath(UIXpaths.CITY_SUBMENU);
-        WebElement addressSubMenu = findClickableElementWithXpath(UIXpaths.ADDRESS_SUBMENU);
-        WebElement customerSubMenu = findClickableElementWithXpath(UIXpaths.CUSTOMER_SUBMENU);
-        WebElement productSubMenu = findClickableElementWithXpath(UIXpaths.PRODUCT_SUBMENU);
-        WebElement supplierSubMenu = findClickableElementWithXpath(UIXpaths.SUPPLIER_SUBMENU);
-        WebElement currencySubMenu = findClickableElementWithXpath(UIXpaths.CURRENCY_SUBMENU);
-        WebElement usersSubMenu = findClickableElementWithXpath(UIXpaths.USER_SUB_MENU);
-        WebElement admintoolsSubMenu = findClickableElementWithXpath(UIXpaths.ADMINTOOLS_SUB_MENU);
+        WebElement accessManagementSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.ACESS_MANAGEMENT_SUBMENU);
+        WebElement codestoreSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.CODESTORE_SUBMENU);
+        WebElement citySubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.CITY_SUBMENU);
+        WebElement addressSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.ADDRESS_SUBMENU);
+        WebElement customerSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.CUSTOMER_SUBMENU);
+        WebElement productSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.PRODUCT_SUBMENU);
+        WebElement supplierSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.SUPPLIER_SUBMENU);
+        WebElement currencySubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.CURRENCY_SUBMENU);
+        WebElement usersSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.USER_SUB_MENU);
+        WebElement admintoolsSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.ADMINTOOLS_SUB_MENU);
 
         return employeeSubMenu != null &&
                 accessManagementSubMenu != null &&
@@ -329,8 +319,8 @@ public class LoginTests extends BaseCrudTest {
     
     private boolean ordersSubMenusVisible(){
         WebElement orderElementSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.ORDER_ELEMENT_SUBMENU);
-        WebElement orderSubMenu = findClickableElementWithXpath(UIXpaths.ORDER_SUBMENU);
-        WebElement orderCreateMenu = findClickableElementWithXpath(UIXpaths.ORDER_CREATE_SUBMENU);
+        WebElement orderSubMenu = findClickableElementWithXpathWithWaiting(UIXpaths.ORDER_SUBMENU);
+        WebElement orderCreateMenu = findClickableElementWithXpathWithWaiting(UIXpaths.ORDER_CREATE_SUBMENU);
         return orderElementSubMenu != null &&
                 orderSubMenu != null &&
                 orderCreateMenu != null;

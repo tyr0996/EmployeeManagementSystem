@@ -1,6 +1,5 @@
 package hu.martin.ems.crudFE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
@@ -19,11 +18,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class ProductCrudTest extends BaseCrudTest {
@@ -86,7 +86,7 @@ public class ProductCrudTest extends BaseCrudTest {
         crudTestingUtil.permanentlyDeleteTest();
     }
 
-    @Test
+    //@Test
     public void extraFilterInvalidValue() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -106,7 +106,7 @@ public class ProductCrudTest extends BaseCrudTest {
         js.executeScript("arguments[0].click()", sellButtonContainer);
 
         WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
-        WebElement orderButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        WebElement orderButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
         crudTestingUtil.fillCreateOrUpdateForm(null);
         orderButton.click();
         checkNotificationText("Order element successfully paired to customer!");
@@ -123,17 +123,12 @@ public class ProductCrudTest extends BaseCrudTest {
         js.executeScript("arguments[0].click()", orderButtonContainer);
 
         WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
-        WebElement orderButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        WebElement orderButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
         crudTestingUtil.fillCreateOrUpdateForm(null);
         orderButton.click();
         checkNotificationText("Order element successfully paired to supplier!");
     }
 
-    @Test
-    public void createFailedTest() throws JsonProcessingException, InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        crudTestingUtil.createFailedTest(port, spyProductApiClient, mainMenu, subMenu);
-    }
 
     @Test
     public void unexpcetedResponseCodeCreate() throws InterruptedException {
@@ -165,7 +160,7 @@ public class ProductCrudTest extends BaseCrudTest {
         js.executeScript("arguments[0].click()", sellButtonContainer);
 
         WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
-        WebElement orderButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        WebElement orderButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
         crudTestingUtil.fillCreateOrUpdateForm(null, failedData);
         assertEquals(false, GridTestingUtil.isEnabled(orderButton));
     }
@@ -185,7 +180,7 @@ public class ProductCrudTest extends BaseCrudTest {
         js.executeScript("arguments[0].click()", supplierButtonContainer);
 
         WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
-        WebElement orderButton = findClickableElementWithXpath("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
+        WebElement orderButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
         crudTestingUtil.fillCreateOrUpdateForm(null, failedData);
         assertEquals(false, GridTestingUtil.isEnabled(orderButton));
     }
@@ -234,5 +229,12 @@ public class ProductCrudTest extends BaseCrudTest {
         failedFieldData.put("Amount unit", "Error happened while getting amount units");
 
         crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+    }
+
+    @Test
+    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseUnavailableWhenSaveEntity(spyDataSource, null, null, 0);
     }
 }

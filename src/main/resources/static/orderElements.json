@@ -14,12 +14,6 @@
           "name": "Product1"
         }
       },
-      "order_order_id": {
-        "refClass": "Order",
-        "filter": {
-          "id": 1
-        }
-      },
       "customer_customer_id": {
         "refClass": "Customer",
         "filter": {
@@ -38,6 +32,168 @@
       "netPrice": 100,
       "taxPrice": 27.0,
       "grossPrice": 127
+    },
+    {
+      "deleted": 0,
+      "product_product_id": {
+        "refClass": "Product",
+        "filter": {
+          "name": "Product2"
+        }
+      },
+      "customer_customer_id": {
+        "refClass": "Customer",
+        "filter": {
+          "id": 2
+        }
+      },
+      "supplier_supplier_id": null,
+      "unit": 20,
+      "unitNetPrice": 10,
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "netPrice": 200,
+      "taxPrice": 27.0,
+      "grossPrice": 254
+    },
+    {
+      "deleted": 0,
+      "product_product_id": {
+        "refClass": "Product",
+        "filter": {
+          "name": "Product2"
+        }
+      },
+      "customer_customer_id": {
+        "refClass": "Customer",
+        "filter": {
+          "id": 2
+        }
+      },
+      "supplier_supplier_id": null,
+      "unit": 30,
+      "unitNetPrice": 10,
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "netPrice": 300,
+      "taxPrice": 27.0,
+      "grossPrice": 381
+    },
+    {
+      "deleted": 0,
+      "product_product_id": {
+        "refClass": "Product",
+        "filter": {
+          "name": "Product1"
+        }
+      },
+      "customer_customer_id": {
+        "refClass": "Customer",
+        "filter": {
+          "id": 2
+        }
+      },
+      "supplier_supplier_id": null,
+      "unit": 50,
+      "unitNetPrice": 10,
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "netPrice": 500,
+      "taxPrice": 27.0,
+      "grossPrice": 635
+    },
+    {
+      "deleted": 0,
+      "product_product_id": {
+        "refClass": "Product",
+        "filter": {
+          "name": "Product1"
+        }
+      },
+      "customer_customer_id": {
+        "refClass": "Customer",
+        "filter": {
+          "id": 2
+        }
+      },
+      "supplier_supplier_id": null,
+      "unit": 40,
+      "unitNetPrice": 10,
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "netPrice": 400,
+      "taxPrice": 27.0,
+      "grossPrice": 508
+    },
+    {
+      "deleted": 0,
+      "product_product_id": {
+        "refClass": "Product",
+        "filter": {
+          "name": "Product1"
+        }
+      },
+      "customer_customer_id": {
+        "refClass": "Customer",
+        "filter": {
+          "id": 2
+        }
+      },
+      "supplier_supplier_id": null,
+      "unit": 80,
+      "unitNetPrice": 10,
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "netPrice": 800,
+      "taxPrice": 27.0,
+      "grossPrice": 1016
+    },
+    {
+      "deleted": 0,
+      "product_product_id": {
+        "refClass": "Product",
+        "filter": {
+          "name": "Product1"
+        }
+      },
+      "customer_customer_id": {
+        "refClass": "Customer",
+        "filter": {
+          "id": 2
+        }
+      },
+      "supplier_supplier_id": null,
+      "unit": 90,
+      "unitNetPrice": 10,
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "netPrice": 900,
+      "taxPrice": 27.0,
+      "grossPrice": 1143
     }
   ]
 }

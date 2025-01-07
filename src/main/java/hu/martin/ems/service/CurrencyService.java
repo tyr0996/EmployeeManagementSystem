@@ -1,20 +1,13 @@
 package hu.martin.ems.service;
 
-import com.fasterxml.jackson.core.JacksonException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.annotations.NeedCleanCoding;
-import hu.martin.ems.core.apiresponse.CurrencyResponse;
-import hu.martin.ems.core.config.JacksonConfig;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.service.BaseService;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.repository.CodeStoreRepository;
 import hu.martin.ems.repository.CurrencyRepository;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,31 +26,25 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
         super(currencyRepository);
     }
 
-    private ObjectMapper om;
-
     @Autowired
-    @Setter
-    @Getter
     private RestTemplate restTemplate;
 
     @Autowired
-    @Getter
-    @Setter
     private CodeStoreRepository codeStoreRepository;
 
     @Value("${api.currency.url}")
-    @Setter
     private String apiUrl;
 
-    @Setter
     @Value("${api.currency.baseCurrency}")
     private String baseCurrency;
 
+    @Autowired
+    private Gson gson;
+
     public EmsResponse fetchAndSaveRates() {
-        om = new JacksonConfig().objectMapper();
         Currency curr = repo.findByDate(LocalDate.now());
         if(curr != null){
-            return new EmsResponse(200, curr, "");
+            return new EmsResponse(200, curr, "Currencies already fetched");
         }
         try {
             LinkedHashMap<String, Object> response = restTemplate.getForObject(apiUrl + baseCurrency, LinkedHashMap.class);
@@ -91,18 +78,27 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
         return ld;
     }
 
+    public Double convert(String from, String to, Double amount) {
+        Currency c = this.repo.findByDate(LocalDate.now());
+        if (c != null) {
+            LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
+            Double f = map.get(from.toUpperCase());
+            Double t = map.get(to.toUpperCase());
+            return (f * amount) / t;
+        } else {
+            fetchAndSaveRates();
+            return convert(from, to, amount);
+        }
+    }
+
+    @Deprecated
     public Double convert(LocalDate date, String from, String to, Double amount) {
         Currency c = this.repo.findByDate(date);
         if (c != null) {
-            LinkedHashMap<String, Double> map;
-            try {
-                map = om.readValue(c.getRateJson(), LinkedHashMap.class);
-                Double f = map.get(from.toUpperCase());
-                Double t = map.get(to.toUpperCase());
-                return (f * amount) / t;
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+            LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
+            Double f = map.get(from.toUpperCase());
+            Double t = map.get(to.toUpperCase());
+            return (f * amount) / t;
         } else if (date.equals(LocalDate.now())) {
             fetchAndSaveRates();
             return convert(date, from, to, amount);
@@ -112,15 +108,9 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     }
 
     public Double get(LocalDate date, String currency) {
-        om = new JacksonConfig().objectMapper();
         Currency c = this.repo.findByDate(date);
         if (c != null) {
-            LinkedHashMap<String, Double> map = null;
-            try {
-                map = om.readValue(c.getRateJson(), new TypeReference<>() {});
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+            LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
             return map.get(currency);
         } else {
             throw new NullPointerException("Nincs árfolyam az adott dátumhoz elmentve!");

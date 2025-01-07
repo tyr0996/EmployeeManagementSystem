@@ -1,5 +1,5 @@
-{
-  "objectName": "RoleXPermission",
+ {
+  "objectName": "roles_permissions",
   "required": [
     "roles.json",
     "permissions.json"
@@ -7,28 +7,23 @@
   "data": [
     {
       "role_id": 1,
-      "permission_id": 1,
-      "deleted": 0
+      "permission_id": 1
     },
     {
       "role_id": 1,
-      "permission_id": 2,
-      "deleted": 0
+      "permission_id": 2
     },
     {
       "role_id": 2,
-      "permission_id": 1,
-      "deleted": 0
+      "permission_id": 1
     },
     {
       "role_id": 2,
-      "permission_id": 3,
-      "deleted": 0
+      "permission_id": 3
     },
     {
       "role_id": 2,
-      "permission_id": 4,
-      "deleted": 0
+      "permission_id": 4
     }
   ]
 }

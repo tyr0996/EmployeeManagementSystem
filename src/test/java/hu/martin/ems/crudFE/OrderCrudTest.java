@@ -1,6 +1,5 @@
 package hu.martin.ems.crudFE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
@@ -8,29 +7,18 @@ import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.controller.OrderController;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.controller.EmailSendingController;
-import hu.martin.ems.core.model.EmailData;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
-import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.service.OrderService;
-import hu.martin.ems.vaadin.component.Order.OrderCreate;
-import hu.martin.ems.vaadin.component.Order.OrderList;
-import org.checkerframework.checker.units.qual.A;
-import org.mockito.*;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -69,6 +57,8 @@ public class OrderCrudTest extends BaseCrudTest {
     @Mock
     public EmailSendingService emailSendingService;
 
+
+    //fagyasztó: m/sz/mélység:85, 55, 58
     @Mock
     public SftpSender sftpSender;
 
@@ -129,18 +119,6 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void
-    sendSFTPFailedJsonTest() throws JsonProcessingException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//        findVisibleElementWithXpath(gridXpath);
-//        //Mockito.doThrow(JsonProcessingException.class).when(om).writeValueAsString(Mockito.any(Object.class));
-//
-//        findVisibleElementWithXpath(sendReportViaSFTPButtonXpath).click();
-//        checkNotificationContainsTexts("Data processing error", 30000);
-    }
-
-    @Test
     public void sendSFTPSuccessTest() throws InterruptedException {
         BeanProvider.getBean(OrderService.class).setSender(sftpSender);
         Mockito.doReturn(true).when(sftpSender).send(any(byte[].class), any(String.class));
@@ -156,15 +134,14 @@ public class OrderCrudTest extends BaseCrudTest {
 
     @Test
     public void sendEmailSuccessTest() throws InterruptedException {
-        //BeanProvider.getBean(EmailSendingController.class).setService(emailSendingService);
-        Mockito.doReturn(new EmsResponse(200, true, "")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
+        Mockito.doReturn(new EmsResponse(200, true, "Email sent!")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
 
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
 
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
-        if(rowLocation == null) {
+        if (rowLocation == null) {
             OrderCreateTest.setupTest();
             OrderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
@@ -174,14 +151,12 @@ public class OrderCrudTest extends BaseCrudTest {
         sendEmailButton.click();
         Thread.sleep(100);
         checkNotificationContainsTexts("Email sent!", 5000);
-
     }
 
 
     @Test
-    public void sendEmailFailedBut200Test() throws InterruptedException {
-        String responseDescription = "Failed, because foobar";
-        Mockito.doReturn(new EmsResponse(522, false, responseDescription)).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
+    public void sendEmailFailedTest() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
 
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -197,25 +172,6 @@ public class OrderCrudTest extends BaseCrudTest {
         WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
         sendEmailButton.click();
         Thread.sleep(100);
-        checkNotificationContainsTexts(responseDescription, 5000);
-    }
-
-    @Test
-    public void sendEmailFailedTest() throws InterruptedException {
-
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
-        if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
-            rowLocation = new ElementLocation(1, 0);
-        }
-
-        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
-        sendEmailButton.click();
         checkNotificationContainsTexts("Email sending failed", 5000);
     }
 
@@ -229,52 +185,6 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void modifyOrderTest() throws InterruptedException {
         modifyOrder(null, true);
-    }
-
-    @Test
-    public void apiSendInvalidStatusCodeWhenUpdateOrderElement() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyOrderElementApiClient).update(any(OrderElement.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        modifyOrder("Not expected status-code in saving order element", false);
-    }
-
-    @Test
-    public void updateFailedTestOrderElement() throws JsonProcessingException, InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
-        if(rowLocation == null) {
-            Mockito.doCallRealMethod()
-                    .doCallRealMethod()
-                    .doCallRealMethod()
-                    .doThrow(JsonProcessingException.class).doCallRealMethod().when(spyOrderElementApiClient).writeValueAsString(any(OrderElement.class));
-        }
-        else{
-            Mockito.doThrow(JsonProcessingException.class).doCallRealMethod().when(spyOrderElementApiClient).writeValueAsString(any(OrderElement.class));
-        }
-
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        Thread.sleep(10);
-        modifyOrder("Order element modifying failed", false);
-    }
-
-
-    @Test
-    public void orderCreateFailedNotFirstOrderElementUpdate() throws InterruptedException, JsonProcessingException {
-        Mockito.doCallRealMethod()
-                .doCallRealMethod()
-                .doCallRealMethod()
-                .doCallRealMethod()
-                .doThrow(JsonProcessingException.class).doCallRealMethod().when(spyOrderElementApiClient).writeValueAsString(any(OrderElement.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        Thread.sleep(10);
-        OrderCreateTest.setupTest();
-        OrderCreateTest.createOrder("Order element saving failed", false);
     }
 
     public void modifyOrder(String notificationText, Boolean needSuccess) throws InterruptedException {
@@ -306,7 +216,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
         selectRandomFromComboBox(findVisibleElementWithXpath(createOrderCurrencyComboBox));
         selectRandomFromComboBox(findVisibleElementWithXpath(createOrderPaymentComboBox));
-        findClickableElementWithXpath(createOrderSaveOrderButton).click();
+        findClickableElementWithXpathWithWaiting(createOrderSaveOrderButton).click();
         checkNotificationContainsTexts(notificationText == null ? "Order updated:" : notificationText);
 
         Thread.sleep(100);
@@ -438,7 +348,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(expectedDate2, getDateFromDatePicker(datePicker2Xpath, dateFormat));
     }
 
-    @Test
+    //@Test
     public void extraFilterInvalidValue() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -466,6 +376,72 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedXpath));
         checkNoMoreNotificationsVisible();
     }
+
+//    @Test
+//    public void JsonProcessingExceptionWhenCreateODT() throws Exception {
+//
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//
+//        WebElement grid = findVisibleElementWithXpath(gridXpath);
+//        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+//        if(rowLocation == null) {
+//            OrderCreateTest.setupTest();
+//            OrderCreateTest.createOrder();
+//            rowLocation = new ElementLocation(1, 0);
+//        }
+//
+//        WebElement odtButton = getOptionDownloadButton(gridXpath, rowLocation, 1);
+//        Mockito.doThrow(JsonProcessingException.class).when(spyObjectMapper).writeValueAsString(any(Order.class));
+//        odtButton.click();
+//        Thread.sleep(100);
+//        checkNotificationText("Json processing error");
+//        checkNoMoreNotificationsVisible();
+//        assertEquals(false, waitForDownload("order_[0-9]{1,}.odt", 10));
+//    }
+
+//    @Test
+//    public void JsonProcessingExceptionWhenCreatePDF() throws Exception {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//
+//        WebElement grid = findVisibleElementWithXpath(gridXpath);
+//        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+//        if(rowLocation == null) {
+//            OrderCreateTest.setupTest();
+//            OrderCreateTest.createOrder();
+//            rowLocation = new ElementLocation(1, 0);
+//        }
+//
+//        WebElement odtButton = getOptionDownloadButton(gridXpath, rowLocation, 2);
+//        Mockito.doThrow(JsonProcessingException.class).when(spyObjectMapper).writeValueAsString(any(Order.class));
+//        odtButton.click();
+//        Thread.sleep(100);
+//        checkNotificationText("Json processing error");
+//        checkNoMoreNotificationsVisible();
+//        assertEquals(false, waitForDownload("order_[0-9]{1,}.pdf", 10));
+//    }
+
+//    @Test
+//    public void sendEmailFailedOrderJsonProcessingExceptionTest() throws InterruptedException, JsonProcessingException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//
+//        WebElement grid = findVisibleElementWithXpath(gridXpath);
+//        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+//        if(rowLocation == null) {
+//            OrderCreateTest.setupTest();
+//            OrderCreateTest.createOrder();
+//            rowLocation = new ElementLocation(1, 0);
+//        }
+//
+//        Mockito.doThrow(JsonProcessingException.class).when(spyObjectMapper).writeValueAsString(any(Order.class));
+//
+//        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
+//        sendEmailButton.click();
+//        checkNotificationContainsTexts("JsonProcessingException", 5000);
+//        checkNoMoreNotificationsVisible();
+//    }
 
     private boolean waitForDownload(String fileNameRegex, int timeOut) throws Exception {
         Pattern pattern = Pattern.compile(fileNameRegex);

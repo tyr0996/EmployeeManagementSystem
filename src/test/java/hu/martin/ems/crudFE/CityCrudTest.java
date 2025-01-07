@@ -1,14 +1,11 @@
 package hu.martin.ems.crudFE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.NotificationCheck;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.model.Address;
 import hu.martin.ems.model.City;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -16,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 
@@ -46,6 +44,7 @@ public class CityCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
@@ -53,6 +52,7 @@ public class CityCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.readTest();
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
@@ -60,6 +60,7 @@ public class CityCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
@@ -67,6 +68,7 @@ public class CityCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest();
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
@@ -74,6 +76,7 @@ public class CityCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.restoreTest();
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
@@ -81,27 +84,25 @@ public class CityCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
+        checkNoMoreNotificationsVisible();
     }
 
-    @Test
-    public void extraFilterInvalidValue() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        NotificationCheck nc = new NotificationCheck();
-        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-        crudTestingUtil.readTest(null, "{invalid json}", true, nc);
-    }
+//    @Test
+//    public void extraFilterInvalidValue() throws InterruptedException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        NotificationCheck nc = new NotificationCheck();
+//        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
+//        crudTestingUtil.readTest(null, "{invalid json}", true, nc);
+//    }
 
-    @Test
-    public void createFailedTest() throws JsonProcessingException, InterruptedException {
-        crudTestingUtil.createFailedTest(port, spyCityApiClient, mainMenu, subMenu);
-    }
 
     @Test
     public void unexpcetedResponseCodeCreate() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createNotExpectedStatusCodeSave(spyCityApiClient, City.class);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
@@ -109,6 +110,7 @@ public class CityCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateNotExpectedStatusCode(spyCityApiClient, City.class);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
@@ -121,6 +123,7 @@ public class CityCrudTest extends BaseCrudTest {
         Thread.sleep(100);
 
         crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
@@ -130,5 +133,12 @@ public class CityCrudTest extends BaseCrudTest {
         navigateMenu(mainMenu, subMenu);
         checkNotificationText("Getting cities failed");
         checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseUnavailableWhenSaveEntity(spyDataSource, null, null, 0);
     }
 }

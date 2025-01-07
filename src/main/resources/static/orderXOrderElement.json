@@ -1,0 +1,29 @@
+{
+  "objectName": "orders_orderelement",
+  "required": [
+    "orders.json",
+    "orderElements.json"
+  ],
+  "data": [
+    {
+      "order_id": 1,
+      "orderelements_id": 1
+    },
+    {
+      "order_id": 1,
+      "orderelements_id": 2
+    },
+    {
+      "order_id": 2,
+      "orderelements_id": 3
+    },
+    {
+      "order_id": 2,
+      "orderelements_id": 4
+    },
+    {
+      "order_id": 2,
+      "orderelements_id": 5
+    }
+  ]
+}

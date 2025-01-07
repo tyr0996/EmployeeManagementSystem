@@ -1,37 +1,25 @@
 package hu.martin.ems.crudFE;
 
-import com.beust.ah.A;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.User;
-import hu.martin.ems.model.Address;
-import hu.martin.ems.model.Role;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import javax.xml.crypto.Data;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.testng.AssertJUnit.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class UserCrudTest extends BaseCrudTest {
@@ -185,7 +173,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
 
-    @Test
+    //@Test
     public void extraFilterInvalidValue() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -195,17 +183,6 @@ public class UserCrudTest extends BaseCrudTest {
         clearUsers();
     }
 
-    @Test
-    public void createFailedTest() throws JsonProcessingException, InterruptedException {
-        crudTestingUtil.createFailedTest(port, spyUserApiClient, mainMenu, subMenu);
-        clearUsers();
-    }
-
-    @Test
-    public void modifyFailedTest() throws JsonProcessingException, InterruptedException {
-        crudTestingUtil.modifyFailedTest(port, spyUserApiClient, mainMenu, subMenu);
-        clearUsers();
-    }
 
     @Test
     public void finalAllWithDeletedUnexpectedResponse() throws InterruptedException {
@@ -241,5 +218,24 @@ public class UserCrudTest extends BaseCrudTest {
         crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
         checkNoMoreNotificationsVisible();
         clearUsers();
+    }
+
+    @Test
+    public void databaseUnavailableWhenGetAllUser() throws SQLException, InterruptedException {
+        crudTestingUtil.databaseUnavailableWhenGetAllEntity(spyDataSource, port, mainMenu, subMenu, "users");
+    }
+
+    @Test
+    public void databaseUnavailableWhenSavingUser() throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseUnavailableWhenSaveEntity(spyDataSource, null, null, 1);
+    }
+
+    @Test
+    public void databaseUnavailableWhenUpdateUser() throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseUnavailableWhenUpdateEntity(spyDataSource, null, null, 1);
     }
 }

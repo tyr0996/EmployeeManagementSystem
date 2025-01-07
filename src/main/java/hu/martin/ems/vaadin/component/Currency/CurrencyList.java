@@ -1,8 +1,7 @@
 package hu.martin.ems.vaadin.component.Currency;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -17,25 +16,20 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.JacksonConfig;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.date.Date;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Currency;
-import hu.martin.ems.model.Permission;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CurrencyApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,7 +43,7 @@ public class CurrencyList extends VerticalLayout {
     private boolean showDeleted = false;
     private PaginatedGrid<CurrencyVO, String> grid;
 
-    private ObjectMapper om = BeanProvider.getBean(ObjectMapper.class);
+    private Gson gson = BeanProvider.getBean(Gson.class);
     private final PaginationSetting paginationSetting;
 
     List<Currency> currencies;
@@ -110,7 +104,7 @@ public class CurrencyList extends VerticalLayout {
                 EmsResponse response = currencyApi.fetchAndSaveRates();
                 switch (response.getCode()){
                     case 200 :
-                        currency = om.convertValue(response.getResponseData(), new TypeReference<Currency>() {});
+                        currency = gson.fromJson(gson.toJson(response.getResponseData()), Currency.class);
                         break;
                     case 500 :
                         Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -133,19 +127,15 @@ public class CurrencyList extends VerticalLayout {
         }
         currencyVOS = new ArrayList<>();
         String baseCurrency = currency.getBaseCurrency().getName();
-        try {
-            LinkedHashMap<String, Number> map = om.readValue(currency.getRateJson(), LinkedHashMap.class);
-            map.forEach((k, v) -> currencyVOS.add(new CurrencyVO(k, v, baseCurrency)));
 
-            List<CurrencyVO> curr = getFilteredStream().collect(Collectors.toList());
-            if(needFetch){
-                Notification.show("Fetching exchange rates was successful!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            }
-            this.grid.setItems(curr);
-        } catch (JsonProcessingException e) {
-            Notification.show(EmsResponse.Description.PARSING_CURRENCIES_FAILED).addThemeVariants(NotificationVariant.LUMO_ERROR);
-            currencyApi.forcePermanentlyDelete(currency.getId());
+        LinkedTreeMap<String, Number> map = gson.fromJson(currency.getRateJson(), LinkedTreeMap.class);
+        map.forEach((k, v) -> currencyVOS.add(new CurrencyVO(k, v, baseCurrency)));
+
+        List<CurrencyVO> curr = getFilteredStream().collect(Collectors.toList());
+        if(needFetch){
+            Notification.show("Fetching exchange rates was successful!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         }
+        this.grid.setItems(curr);
     }
 
     private Currency getCurrencyByDate(LocalDate date) {

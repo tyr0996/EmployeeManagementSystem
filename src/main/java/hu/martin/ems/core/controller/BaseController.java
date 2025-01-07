@@ -1,13 +1,10 @@
 package hu.martin.ems.core.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import hu.martin.ems.core.config.JacksonConfig;
+import com.google.gson.Gson;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.BaseEntity;
 import hu.martin.ems.core.repository.BaseRepository;
 import hu.martin.ems.core.service.BaseService;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +15,8 @@ import java.util.List;
 public abstract class BaseController<T extends BaseEntity, S extends BaseService<T, R>, R extends BaseRepository<T, Long>> {
     protected S service;
 
-    protected ObjectMapper om = new JacksonConfig().objectMapper();
+    @Autowired
+    protected Gson gson;
 
     public BaseController(S service){
         this.service = service;
@@ -27,12 +25,20 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     @GetMapping(path = "/findAll", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> findAll(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) {
         List<T> allElements = service.findAll(withDeleted);
-        try{
-            return new ResponseEntity<>(om.writeValueAsString(allElements), HttpStatus.OK);
-        }
-        catch(JsonProcessingException e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/findAllWithGraph", produces = StaticDatas.Produces.JSON)
+    public ResponseEntity<String> findAllWithGraph(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) {
+        List<T> allElements = service.findAllWithGraph(withDeleted);
+        return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
+    }
+
+
+    @GetMapping(path = "/findAllByIds", produces = StaticDatas.Produces.JSON)
+    public ResponseEntity<String> findAll(@RequestParam(required = false, defaultValue = "false") List<Long> ids) {
+        List<T> allElements = service.findAllByIds(ids);
+        return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
     }
 
     @PutMapping(path = "/restore", produces = StaticDatas.Produces.JSON)
@@ -54,14 +60,14 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     }
 
     @PostMapping(path = "/save", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> save(@RequestBody T entity) throws JsonProcessingException {
-        return new ResponseEntity<>(om.writeValueAsString(service.save(entity)), HttpStatus.OK);
+    public ResponseEntity<String> save(@RequestBody T entity) {
+        return new ResponseEntity<>(gson.toJson(service.save(entity)), HttpStatus.OK);
     }
 
     @PutMapping(path = "/update", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> update(@RequestBody T entity) throws JsonProcessingException {
+    public ResponseEntity<String> update(@RequestBody T entity) {
         T e = service.update(entity);
-        return new ResponseEntity<>(om.writeValueAsString(e), HttpStatus.OK);
+        return new ResponseEntity<>(gson.toJson(e), HttpStatus.OK);
     }
 
     @DeleteMapping(path = "/clearDatabaseTable", produces = StaticDatas.Produces.JSON)

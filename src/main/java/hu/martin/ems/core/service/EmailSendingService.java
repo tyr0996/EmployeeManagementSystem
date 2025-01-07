@@ -34,18 +34,6 @@ public class EmailSendingService {
     private Logger logger = LoggerFactory.getLogger(EmailSendingService.class);
 
     public boolean send(EmailProperties emailProperties) {
-
-        //String sendingPassword = env.getProperty("mail.smtp.sending.password");
-//        System.out.println(props);
-//        System.out.println(env);
-        //.out.println(env.getProperty("mail.smtp.host"));
-
-//        props.put("mail.smtp.host", env.getProperty("mail.smtp.host"));
-//        props.put("mail.smtp.auth", env.getProperty("mail.smtp.auth"));
-//        props.put("mail.smtp.port", env.getProperty("mail.smtp.port"));
-//        props.put("mail.smtp.ssl.trust", env.getProperty("mail.smtp.ssl.trust"));
-//        props.put("mail.smtp.starttls.enable", env.getProperty("mail.smtp.starttls.enable"));
-
         props.put("mail.smtp.host", emailData.getHost());
         props.put("mail.smtp.auth", emailData.getAuth());
         props.put("mail.smtp.port", emailData.getPort());
@@ -86,18 +74,18 @@ public class EmailSendingService {
                 }
             } catch (MessagingException e) {
                 logger.error("Error occured while sending email. " + e);
+                return false;
             }
 
             message.setContent(multipart);
             try{
                 Transport.send(message);
-                logger.info("Email sent to " + emailProperties.getTo() + " successfully!");
             }
             catch (MailConnectException e) {
                 logger.error("Email connect refused.");
                 return false;
             }
-
+            logger.info("Email sent to " + emailProperties.getTo() + " successfully!");
             return true;
         } catch (MessagingException e) {
             e.printStackTrace();

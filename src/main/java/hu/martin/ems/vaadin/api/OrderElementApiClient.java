@@ -1,12 +1,10 @@
 package hu.martin.ems.vaadin.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.OrderElement;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Component
 public class OrderElementApiClient extends EmsApiClient<OrderElement> {
@@ -16,16 +14,16 @@ public class OrderElementApiClient extends EmsApiClient<OrderElement> {
 
     public EmsResponse getByCustomer(Customer customer){
         initWebClient();
-        String jsonResponse = webClient.get()
-                .uri("getByCustomer?customerId=" + customer.getId())
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
         try{
+            String jsonResponse = webClient.get()
+                    .uri("getByCustomer?customerId=" + customer.getId())
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
             return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         }
-        catch (JsonProcessingException e) {
-            return new EmsResponse(500, "JsonProcessingException");
+        catch (WebClientResponseException ex){
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
 }

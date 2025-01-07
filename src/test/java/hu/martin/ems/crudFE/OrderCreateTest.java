@@ -1,6 +1,5 @@
 package hu.martin.ems.crudFE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
@@ -9,7 +8,8 @@ import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.model.*;
+import hu.martin.ems.model.Customer;
+import hu.martin.ems.model.Order;
 import org.mockito.Mockito;
 import org.openqa.selenium.WebElement;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -100,11 +100,20 @@ public class OrderCreateTest extends BaseCrudTest {
 
         findVisibleElementWithXpath(orderElementGridXpath);
         LinkedHashMap<String, String> sameUser = new LinkedHashMap<>();
+
+        String[] orderElementGridCustomerFilter = new String[]{"", "", "null", "", "", "", "", customerName};
         sameUser.put("Customer", customerName);
         sameUser.put("Supplier", "");
         orderElementCrudTestingUtil.createTest(sameUser, "", true);
         orderElementCrudTestingUtil.createTest(sameUser, "", true);
         orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+
+        applyFilter(orderElementGridXpath, orderElementGridCustomerFilter);
+        orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
+        orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
+        resetFilter(orderElementGridXpath);
 
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
@@ -120,7 +129,7 @@ public class OrderCreateTest extends BaseCrudTest {
         selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
         selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
 
-        findClickableElementWithXpath(orderCreateOrderButtonXpath).click();
+        findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
         if(notificationText == null){
             checkNotificationContainsTexts("Order saved:");
         }
@@ -142,30 +151,6 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void createFailedTest() throws JsonProcessingException, InterruptedException {
-
-        Mockito.doThrow(JsonProcessingException.class).when(spyOrderApiClient).writeValueAsString(any(Order.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        Thread.sleep(10);
-        createOrder(Order.class.getSimpleName() + " saving failed", false);
-    }
-
-    @Test
-    public void createFailedTestOrderElement() throws JsonProcessingException, InterruptedException {
-
-        Mockito.doCallRealMethod()
-                .doCallRealMethod()
-                .doCallRealMethod()
-                .doThrow(JsonProcessingException.class).when(spyOrderElementApiClient).writeValueAsString(any(OrderElement.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        Thread.sleep(10);
-        createOrder("Order element saving failed", false);
-    }
-
-
-    @Test
     public void apiSendInvalidStatusCodeWhenSaveOrder() throws InterruptedException {
         Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyOrderApiClient).save(any(Order.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -174,19 +159,11 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void apiSendInvalidStatusCodeWhenSaveOrderElement() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyOrderElementApiClient).update(any(OrderElement.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        createOrder("Not expected status-code in saving order element", false);
-    }
-
-    @Test
     public void apiSendInvalidStatusCodeWhenCreateOrder() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyOrderElementApiClient).update(any(OrderElement.class));
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).save(any(Order.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        createOrder("Not expected status-code in saving order element", false);
+        createOrder("Not expected status-code in saving", false);
     }
 
     @Test
@@ -268,7 +245,7 @@ public class OrderCreateTest extends BaseCrudTest {
         selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
         selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
 
-        findClickableElementWithXpath(orderCreateOrderButtonXpath).click();
+        findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
         if(notificationText == null){
             checkNotificationContainsTexts("Order updated:");
         }
@@ -291,6 +268,14 @@ public class OrderCreateTest extends BaseCrudTest {
             resetFilter(createOrderGridXpath);
         }
     }
+
+    @Test
+    public void getOrderElementsByOrderIdFailedWhenSaveOrder() throws InterruptedException {
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).save(any(Order.class));
+        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).getOrderElements(any(Long.class));
+        createOrder("Not expected status-code in saving", false);
+    }
+
 
     private void checkField(String fieldXpath, String errorMessage){
         assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(fieldXpath)), false);

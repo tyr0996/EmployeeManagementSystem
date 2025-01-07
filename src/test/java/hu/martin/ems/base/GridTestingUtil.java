@@ -1,17 +1,16 @@
 package hu.martin.ems.base;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import hu.martin.ems.PaginatorComponents;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.PaginationData;
 import hu.martin.ems.UITests.UIXpaths;
+import hu.martin.ems.core.config.BeanProvider;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
-import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -25,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class GridTestingUtil {
 
     public static WebDriver driver;
+
+    private static Gson gson = BeanProvider.getBean(Gson.class);
 
     public static void checkNoMoreNotificationsVisible(){
         WebElement notification = findVisibleElementWithXpath("/html/body/vaadin-notification-container/vaadin-notification-card");
@@ -74,18 +75,18 @@ public class GridTestingUtil {
             Thread.sleep(200);
         } catch (InterruptedException e){}
         findClickableElementWithXpathWithWaiting(UIXpaths.SIDE_MENU);
-        WebElement menu = findClickableElementWithXpath(mainUIXpath);
+        WebElement menu = findClickableElementWithXpathWithWaiting(mainUIXpath);
         js.executeScript("arguments[0].click()", menu);
         try{
             Thread.sleep(200);
         } catch (InterruptedException e) {}
-        WebElement subMenu = findClickableElementWithXpath(subIXpath);
+        WebElement subMenu = findClickableElementWithXpathWithWaiting(subIXpath);
         js.executeScript("arguments[0].click()", subMenu);
         try{
             Thread.sleep(200);
         }
         catch (InterruptedException e){}
-        menu = findClickableElementWithXpath(mainUIXpath);
+        menu = findClickableElementWithXpathWithWaiting(mainUIXpath);
         js.executeScript("arguments[0].click()", menu);
     }
 
@@ -183,8 +184,8 @@ public class GridTestingUtil {
 //            2*oszlopok (üres) + 1*oszlopok (fejléc) + sorindex * oszlopok + oszlopindex + 1
             int gridCellIndex = (3 + rowIndex) * getGridColumnNumber(gridXpath) + optionsColumnIndex + 1;
 
-            return findClickableElementWithXpath(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
-            //return findClickableElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
+            return findClickableElementWithXpathWithWaiting(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
+            //return findClickableElementWithXpathWithWaiting("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
             //return null;
         }
         catch (Exception e){
@@ -192,14 +193,6 @@ public class GridTestingUtil {
         }
     }
 
-    public static WebElement findClickableElementWithXpath(String xpath){
-        try{
-            return driver.findElement(By.xpath(xpath));
-        }
-        catch (NoSuchElementException | TimeoutException e){
-            return null;
-        }
-    }
 
     public static WebElement findClickableElementWithXpathWithWaiting(String xpath){
         try{
@@ -212,14 +205,6 @@ public class GridTestingUtil {
         }
     }
 
-    public static WebElement findGrid(String grid){
-        try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(20000));
-            return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(grid)));
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     public static WebElement findVisibleElementWithXpath(String xpath) {
         try {
@@ -232,7 +217,7 @@ public class GridTestingUtil {
 
     public static int countVisibleGridDataRows(String gridXpath) throws InterruptedException {
         WebElement grid = findVisibleElementWithXpath(gridXpath);
-        WebElement parent = grid.findElement(By.xpath("./.."));
+        WebElement parent = TestingUtils.getParent(grid);
         Thread.sleep(100);
         String total = parent.findElement(By.tagName("span")).findElement(By.tagName("lit-pagination")).getDomAttribute("total");
         return Integer.parseInt(total);
@@ -242,7 +227,7 @@ public class GridTestingUtil {
         if(showDeletedXpath == null){
             return 0;
         }
-        WebElement showDeletedElement = findClickableElementWithXpath(showDeletedXpath);
+        WebElement showDeletedElement = findClickableElementWithXpathWithWaiting(showDeletedXpath);
         setCheckboxStatus(showDeletedXpath, false);
         int visible = countVisibleGridDataRows(gridXpath);
         setCheckboxStatus(showDeletedXpath, true);
@@ -411,7 +396,7 @@ public class GridTestingUtil {
                 WebElement emailInput = element.findElement(By.xpath("./input"));
                 js.executeScript("arguments[0].value = '';", element);
 
-                printToConsole(emailInput);
+//                printToConsole(emailInput);
                 emailInput.sendKeys(email, Keys.ENTER);
 
                 //element.sendKeys(email);
@@ -487,7 +472,8 @@ public class GridTestingUtil {
         List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
         if(comboBoxOptions.size() == 0){
             System.err.println("Nincs elem a combo boxban!");
-            printToConsole(comboBox);
+
+//            printToConsole(comboBox);
             return null;
         }
         else if(comboBoxOptions.size() == 1){
@@ -530,7 +516,6 @@ public class GridTestingUtil {
             toggleButton.click();
             String elements = multiSelectComboBox.getDomAttribute("placeholder");
             if(!allowEmpty && elements.isEmpty()){
-                System.out.println("Nem választott element a multiSelectComboBox-ból, ezért újra futtatjuk a függvényt");
                 selectRandomFromMultiSelectComboBox(multiSelectComboBox, false);
             }
         }
@@ -583,8 +568,8 @@ public class GridTestingUtil {
 //
         int gridCellIndex = (3 + el.getRowIndex()) * getGridColumnNumber(gridXpath) + optionsColumnIndex + 1;
 
-        return findClickableElementWithXpath(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[" + index + "]");
-        //return findClickableElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
+        return findClickableElementWithXpathWithWaiting(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[" + index + "]");
+        //return findClickableElementWithXpathWithWaiting("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
         //return null;
     }
 
@@ -595,9 +580,9 @@ public class GridTestingUtil {
 //
         int gridCellIndex = (3 + el.getRowIndex()) * getGridColumnNumber(gridXpath) + optionsColumnIndex + 1;
 
-        return findClickableElementWithXpath(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/a[" + index + "]/vaadin-button");
+        return findClickableElementWithXpathWithWaiting(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/a[" + index + "]/vaadin-button");
 
-        //return findClickableElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
+        //return findClickableElementWithXpathWithWaiting("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
         //return null;
     }
 
@@ -608,10 +593,10 @@ public class GridTestingUtil {
 //
         int gridCellIndex = (3 + el.getRowIndex()) * getGridColumnNumber(gridXpath) + optionsColumnIndex + 1;
 
-        return findClickableElementWithXpath(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[" + index + "]");
+        return findClickableElementWithXpathWithWaiting(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[" + index + "]");
 
 
-        //return findClickableElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
+        //return findClickableElementWithXpathWithWaiting("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
         //return null;
     }
 
@@ -631,7 +616,7 @@ public class GridTestingUtil {
 
     private static void deselectAllFromMultiSelectComboBox(WebElement v){
         JavascriptExecutor js = (JavascriptExecutor) driver;
-        printToConsole(TestingUtils.getParent(v));
+//        printToConsole(TestingUtils.getParent(v));
         WebElement toggleButton = (WebElement) js.executeScript("return arguments[0].querySelectorAll('*')[6].querySelectorAll('*')[5];", TestingUtils.getParent(v).getShadowRoot());
 
         toggleButton.click();
@@ -709,13 +694,8 @@ public class GridTestingUtil {
     }
 
     public static void setExtraDataFilterValue(String gridXpath, LinkedHashMap<String, List<String>> content, NotificationCheck notificationCheck) {
-        try{
-            String contentString = new ObjectMapper().writeValueAsString(content);
-            setExtraDataFilterValue(gridXpath, contentString, notificationCheck);
-        }
-        catch (JsonProcessingException ex){
-            throw new RuntimeException("Parsing map to json failed due to unknown error!");
-        }
+        String contentString = gson.toJson(content);
+        setExtraDataFilterValue(gridXpath, contentString, notificationCheck);
     }
 
     public static void clearExtraDataFilter(String gridXpath) throws InterruptedException {
@@ -738,6 +718,7 @@ public class GridTestingUtil {
         Assert.assertThat(notification.getText().toLowerCase(), CoreMatchers.containsString(text.toLowerCase()));
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].remove();", notification);
+        checkNoMoreNotificationsVisible();
     }
 
     public static void checkNotificationContainsTexts(String text, long timeoutInMillis){

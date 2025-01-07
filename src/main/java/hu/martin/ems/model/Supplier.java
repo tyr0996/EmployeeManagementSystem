@@ -1,5 +1,6 @@
 package hu.martin.ems.model;
 
+import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.Column;
@@ -15,9 +16,11 @@ import lombok.Setter;
 @NeedCleanCoding
 public class Supplier extends BaseEntity {
     @Column(nullable = false)
+    @Expose
     private String name;
 
     @ManyToOne
     @JoinColumn(name = "address_address_id")
+    @Expose
     private Address address;
 }

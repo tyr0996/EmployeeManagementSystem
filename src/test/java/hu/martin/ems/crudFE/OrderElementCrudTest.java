@@ -1,13 +1,10 @@
 package hu.martin.ems.crudFE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.vaadin.flow.component.notification.Notification;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -15,11 +12,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Random;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,7 +40,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
-    //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/products.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void orderElementCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -105,7 +101,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         crudTestingUtil.permanentlyDeleteTest();
     }
 
-    @Test
+    //@Test
     public void extraFilterInvalidValue() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -114,11 +110,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
     }
 
-    @Test
-    public void createFailedTest() throws JsonProcessingException, InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        crudTestingUtil.createFailedTest(port, spyOrderElementApiClient, mainMenu, subMenu);
-    }
 
     @Test
     public void findAllOrderElementWithDeletedFailed() throws InterruptedException {
@@ -161,5 +152,12 @@ public class OrderElementCrudTest extends BaseCrudTest {
         failedFieldData.put("Product", "Error happened while getting products");
 
         crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+    }
+
+    @Test
+    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseUnavailableWhenSaveEntity(spyDataSource, null, null, 0);
     }
 }

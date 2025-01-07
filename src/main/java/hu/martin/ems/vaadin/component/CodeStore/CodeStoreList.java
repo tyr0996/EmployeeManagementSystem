@@ -1,8 +1,6 @@
 package hu.martin.ems.vaadin.component.CodeStore;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -27,9 +25,7 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.Address;
 import hu.martin.ems.model.CodeStore;
-import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
@@ -39,7 +35,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,6 +52,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore> {
 
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
+    private Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
     private boolean showOnlyDeletable = false;
     private PaginatedGrid<CodeStoreVO, ?> grid;
@@ -245,11 +244,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
                 CodeStoreVO.extraDataFilterMap.clear();
             }
             else{
-                try {
-                    CodeStoreVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
-                } catch (JsonProcessingException ex) {
-                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
+                CodeStoreVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
             grid.getDataProvider().refreshAll();
@@ -313,7 +308,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
                     return;
                 default:
                     Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    logger.warn("Invalid status code in AddressList: {}", response.getCode());
+                    logger.warn("Invalid status code in CodeStoreList: {}", response.getCode());
                     createDialog.close();
                     updateGridItems();
                     break;

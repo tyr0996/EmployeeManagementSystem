@@ -3,9 +3,9 @@ package hu.martin.ems.core.config;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
-@Configuration
+@Component
 public class BeanProvider implements ApplicationContextAware {
 
     public static ApplicationContext context;

@@ -1,7 +1,5 @@
 package hu.martin.ems.vaadin.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Currency;
@@ -25,12 +23,7 @@ public class CurrencyApi extends EmsApiClient<Currency>{
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return om.readValue(response, new TypeReference<EmsResponse>() {});
-        }
-        catch (JsonProcessingException ex) {
-            logger.error("Finding entity failed due to failing convert it from json. Entity type: Currency");
-            ex.printStackTrace();
-            return new EmsResponse(500, "JsonProcessingException");
+            return gson.fromJson(response, EmsResponse.class);
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
@@ -40,18 +33,13 @@ public class CurrencyApi extends EmsApiClient<Currency>{
 
     public EmsResponse findByDate(LocalDate date) {
         initWebClient();
-        try{
-            String response = webClient.get()
-                    .uri("findByDate?date={year}-{month}-{day}", date.getYear(), date.getMonthValue(), date.getDayOfMonth())
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-            return new EmsResponse(200, om.readValue(response, new TypeReference<Currency>(){}), "");
-        } catch (JsonProcessingException ex) {
-            logger.error("Finding entity failed due to failing convert it from json. Entity type: Currency");
-            ex.printStackTrace();
-            return new EmsResponse(500, "JsonProcessingException");
-            //TODO
-        }
+        String response = webClient.get()
+                .uri("findByDate?date={year}-{month}-{day}", date.getYear(), date.getMonthValue(), date.getDayOfMonth())
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        return new EmsResponse(200, gson.fromJson(response, Currency.class), "");
+
     }
 }

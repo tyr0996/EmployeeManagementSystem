@@ -1,9 +1,6 @@
 package hu.martin.ems.core.model;
 
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.Nullable;
+import com.google.gson.annotations.Expose;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,28 +9,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 public class EmsResponse {
+    @Expose
     private int code;
+
+    @Expose
     private Object responseData;
+
+    @Expose
     private String description;
 
     public EmsResponse(int code, String description){
         this(code, null, description);
     }
-
-//    @Override
-//    public String toString(){
-//        if(responseData == null){
-//            return "{\"code\":" + code + ",\"description\":\"" + description + "\"}";
-//        }
-//        else{
-//            try{
-//                return "{\"code\":" + code + ",\"description\":\"" + description + "\",\"responseData\":\"" + new ObjectMapper().writeValueAsString(responseData) + "}";
-//            }
-//            catch (JsonProcessingException e){
-//                return "Error when printing out the responseData from EmsResponse";
-//            }
-//        }
-//    }
 
     public interface Description {
         String SFTP_SENDING_ERROR = "Error happened when sending with SFTP";

@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.component.Order;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -17,17 +18,18 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.model.*;
+import hu.martin.ems.model.CodeStore;
+import hu.martin.ems.model.Customer;
+import hu.martin.ems.model.Order;
+import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.api.CustomerApiClient;
 import hu.martin.ems.vaadin.api.OrderApiClient;
 import hu.martin.ems.vaadin.api.OrderElementApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
-import com.vaadin.flow.component.UI;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,6 @@ import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -97,6 +98,7 @@ public class OrderCreate extends VerticalLayout {
         customers.addValueChangeListener(event -> {
             if (event.getValue() != null) {
                 orderElementVOS = getOrderElementsByCustomer(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList());
+
             } else {
                 orderElementVOS = new ArrayList<>();
             }
@@ -108,9 +110,11 @@ public class OrderCreate extends VerticalLayout {
             showPreviously = !showPreviously;
             if(showPreviously){
                 grid.setSelectionMode(Grid.SelectionMode.NONE);
+                grid.setItems(getFilteredStream().filter(v -> v.original.getOrderId() != null).toList());
             }
             else{
                 grid.setSelectionMode(Grid.SelectionMode.MULTI);
+                grid.setItems(getFilteredStream().filter(v -> v.original.getOrderId() == null).toList());
             }
             orderElementVOS = customers.getValue() == null ?
                     new ArrayList<>() :
@@ -156,6 +160,7 @@ public class OrderCreate extends VerticalLayout {
 
 
         if(editObject != null){
+            customers.setEnabled(false);
             customers.setValue(editObject.getCustomer());
             showPreviouslyOrderedElements.setValue(true);
             paymentTypes.setValue(editObject.getPaymentType());
@@ -172,21 +177,6 @@ public class OrderCreate extends VerticalLayout {
                 Notification.show("Error happened while getting \"Pending\" status").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
             }
-            List<OrderElement> originalOrderElements = null;
-            Order originalOrder = null;
-            if(editObject != null){
-                originalOrderElements = orderApi.getOrderElements(editObject.getId());
-                originalOrder = new Order();
-                originalOrder.setTimeOfOrder(editObject.getTimeOfOrder());
-                originalOrder.setState(editObject.getState());
-                originalOrder.setCurrency(editObject.getCurrency());
-                originalOrder.setCustomer(editObject.getCustomer());
-                originalOrder.setDeleted(editObject.getDeleted());
-                originalOrder.setSupplier(editObject.getSupplier());
-                originalOrder.setPaymentType(editObject.getPaymentType());
-                originalOrder.setName(editObject.getName());
-                originalOrder.id = editObject.getId();
-            }
 
             Order order = Objects.requireNonNullElseGet(editObject, Order::new);
             order.setState(pending);
@@ -195,16 +185,40 @@ public class OrderCreate extends VerticalLayout {
             order.setPaymentType(paymentTypes.getValue());
             order.setDeleted(0L);
             order.setCurrency(currencies.getValue());
-            EmsResponse response = null;
-            if(editObject != null){
-                response = orderApi.update(order);
+//            Long orderId = order.getId();
+//            if(orderId == null){
+//                EmsResponse response = orderApi.save(order);
+//                switch (response.getCode()){
+//                    case 200:
+//                        order = (Order) response.getResponseData();
+//                        orderId = order.getId();
+//                        break;
+//                    case 500:
+//                        Notification.show("Order saving failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+//                        updateGridItems();
+//                        return;
+//                    default:
+//                        Notification.show("Not expected status-code in saving").addThemeVariants(NotificationVariant.LUMO_WARNING);
+//                        updateGridItems();
+//                        return;
+//                }
+//            }
+
+            List<OrderElement> orderElements = new ArrayList<>();
+            List<OrderElementVO> selected = grid.getSelectedItems().stream().toList();
+            for(int i = 0; i < selected.size(); i++){
+                OrderElement oe = selected.get(i).original;
+                //oe.setOrderId(order.getId());
+                orderElements.add(oe);
             }
-            else{
-                response =  orderApi.save(order);
-            }
+            order.setOrderElements(orderElements);
+
+            EmsResponse response = orderApi.save(order);
             switch (response.getCode()){
                 case 200:
                     order = (Order) response.getResponseData();
+                    Notification.show("Order " + (editObject == null ? "saved: " : "updated: ") + order)
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
                 case 500:
                     Notification.show("Order saving failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -215,40 +229,6 @@ public class OrderCreate extends VerticalLayout {
                     updateGridItems();
                     return;
             }
-            List<OrderElement> savedOrderElements = new ArrayList<>();
-            for(OrderElementVO oeVo : grid.getSelectedItems()){
-                OrderElement oe = oeVo.getOriginal();
-                oe.setOrder((Order)response.getResponseData());
-                EmsResponse responseOrderElement = orderElementApi.update(oe);
-                switch (responseOrderElement.getCode()){
-                    case 200:
-                        savedOrderElements.add((OrderElement) responseOrderElement.getResponseData());
-                        break;
-                    case 500:
-                        Notification.show("Order element " + (editObject == null ? "saving" : "modifying") + " failed");
-                        if(editObject != null){
-                            undoUpdate(originalOrder, originalOrderElements);
-                        }
-                        else {
-                            undoSave(order);
-                        }
-                        updateGridItems();
-                        return;
-                    default:
-                        Notification.show("Not expected status-code in saving order element").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                        if(editObject != null){
-                            undoUpdate(originalOrder, originalOrderElements);
-                        }
-                        else {
-                            undoSave(order);
-                        }
-                        updateGridItems();
-                        return;
-                }
-            }
-
-            Notification.show("Order " + (editObject == null ? "saved: " : "updated: ") + order)
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
             customers.setValue(customers.getEmptyValue());
             paymentTypes.setValue(paymentTypes.getEmptyValue());
@@ -260,6 +240,8 @@ public class OrderCreate extends VerticalLayout {
         formLayout1.add(saveButton);
         add(formLayout, hl, grid, formLayout1);
     }
+
+    //region setup methods
 
     private void setupCustomers() {
         EmsResponse response = customerApi.findAll();
@@ -325,46 +307,75 @@ public class OrderCreate extends VerticalLayout {
         }
     }
 
-    private void undoUpdate(Order originalOrder, List<OrderElement> originalOrderElements) {
-        orderApi.update(originalOrder);
-        orderApi.getOrderElements(originalOrder.getId()).forEach(v -> {
-            v.setOrder(null);
-            orderElementApi.update(v);
-        });
-        originalOrderElements.forEach(v -> orderElementApi.update(v));
-        logger.info("Undo order update successful");
-        updateGridItems();
-    }
+//    private void undoUpdate(Order originalOrder, List<OrderElement> originalOrderElements) {
+//        orderApi.update(originalOrder);
+//        List<OrderElement> orderElements = null;
+//        EmsResponse response = orderApi.getOrderElements(editObject.getId());
+//        switch (response.getCode()){
+//            case 200:
+//                orderElements = (List<OrderElement>) response.getResponseData();
+//                break;
+//            default:
+//                logger.error("UndoUpdate failed in OrderCreate [Getting orderElements]. OrderId: " + originalOrder.getId());
+//                return;
+//        }
+//
+//        orderElements.forEach(v -> {
+//            v.setOrder(null);
+//            orderElementApi.update(v);
+//        });
+//        originalOrderElements.forEach(v -> {
+//            v.setOrder(originalOrder);
+//            orderElementApi.update(v);
+//        });
+//        logger.info("Undo order update successful");
+//        updateGridItems();
+//    }
+//
+//    private void undoSave(Order order){
+//        List<OrderElement> orderElements;
+//        EmsResponse response = orderApi.getOrderElements(order.getId());
+//        switch (response.getCode()){
+//            case 200:
+//                orderElements = (List<OrderElement>) response.getResponseData();
+//                break;
+//            default:
+//                logger.error("UndoSave failed in OrderCreate. OrderId: " + order.getId());
+//                return;
+//        }
+//        orderElements.forEach(v -> {
+//            v.setOrder(null);
+//            orderElementApi.update(v);
+//        });
+//        orderApi.forcePermanentlyDelete(order.getId());
+//        logger.info("Undo order create successful");
+//        updateGridItems();
+//    }
 
-    private void undoSave(Order order){
-        List<OrderElement> orderElements = orderApi.getOrderElements(order.getId());
-        orderElements.forEach(v -> {
-            v.setOrder(null);
-            orderElementApi.update(v);
-        });
-        orderApi.forcePermanentlyDelete(order.getId());
-        logger.info("Undo order create successful");
-        updateGridItems();
-    }
+
+    //endregion
+
 
     private Stream<OrderElementVO> getFilteredStream() {
         if(editObject != null){
-            orderElementVOS = getOrderElementsByCustomer(editObject.getCustomer()).stream().map(OrderElementVO::new).collect(Collectors.toList());
+            orderElementVOS = getOrderElementsByCustomer(editObject.getCustomer()).stream().filter(v ->
+                (v.getOrderId() == null) || v.getOrderId().equals(editObject.getId())
+            ).map(OrderElementVO::new).collect(Collectors.toList());
         }
 
         return orderElementVOS.stream().filter(orderElementVO ->
             {
                 OrderElement oe = orderElementVO.getOriginal();
-                Order o = oe.getOrder();
                 Boolean res = false;
                 if(showPreviously){
-                    res = o != null;
+                    res = oe.getOrderId() == null || oe.getOrderId().equals(editObject.getId());
                 }
                 else{
-                    res = o == null;
+                    res = oe.getOrderId() == null;
                 }
 
                 Boolean filter = orderElementVO.filterExtraData();
+//                System.out.println("Res: " + res + "  Filter: " + filter);
                 return res && filter;
             });
     }
@@ -376,9 +387,8 @@ public class OrderCreate extends VerticalLayout {
         if(editObject != null){
             List<OrderElementVO> selected = orderElementVOS.stream()
                     .filter(v -> {
-                        Order o = v.getOriginal().getOrder();
-                        if(o != null){
-                            return o.getId().equals(editObject.getId());
+                        if(v.getOriginal().getOrderId() != null){
+                            return v.original.getOrderId().equals(editObject.getId());
                         }
                         else{
                             return false;
@@ -400,7 +410,7 @@ public class OrderElementVO extends BaseVO {
         @NotNull
         private OrderElement original;
         private String product;
-        private String order;
+        private String orderNumber;
         private String taxKey;
         private Integer unit;
         private Integer unitNetPrice;
@@ -411,7 +421,7 @@ public class OrderElementVO extends BaseVO {
             super(orderElement.id, orderElement.getDeleted());
             this.original = orderElement;
             this.product = original.getProduct().getName();
-            this.order = original.getOrder() == null ? "" : original.getOrder().getName();
+            this.orderNumber = original.getOrderId() == null ? "" : original.getOrderId().toString();
             this.unit = original.getUnit();
             this.unitNetPrice = original.getUnitNetPrice();
             this.taxKey = original.getTaxKey().getName() + "%";

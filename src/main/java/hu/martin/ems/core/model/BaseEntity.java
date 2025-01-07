@@ -1,11 +1,9 @@
 package hu.martin.ems.core.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import hu.martin.ems.core.config.JacksonConfig;
+import com.google.gson.Gson;
+import com.google.gson.annotations.Expose;
+import hu.martin.ems.core.config.BeanProvider;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -17,24 +15,16 @@ public abstract class BaseEntity {
     @Column(nullable = false, columnDefinition = "SERIAL")
     @Getter
     @Id
+    @Expose
     public Long id;
 
     @Getter
     @Setter
+    @Expose
     private Long deleted;
-
-    private static final ObjectMapper om = new JacksonConfig().objectMapper();
-
-    static {
-        om.registerModule(new JavaTimeModule());
-    }
 
     @Override
     public String toString() {
-        try {
-            return om.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return BeanProvider.getBean(Gson.class).toJson(this);
     }
 }

@@ -22,7 +22,7 @@ public class RoleController extends BaseController<Role, RoleService, RoleReposi
 
     @GetMapping(path = "/findByName")
     public ResponseEntity<String> findByName(@RequestParam String name) throws JsonProcessingException {
-        return new ResponseEntity<>(om.writeValueAsString(this.service.findByName(name)), HttpStatus.OK);
+        return new ResponseEntity<>(gson.toJson(this.service.findByName(name)), HttpStatus.OK);
     }
 }
 

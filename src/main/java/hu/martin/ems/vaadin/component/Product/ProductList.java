@@ -1,8 +1,6 @@
 package hu.martin.ems.vaadin.component.Product;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -95,6 +93,8 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     List<CodeStore> currencyList;
     List<CodeStore> taxKeyList;
     List<Supplier> supplierList;
+
+    private final Gson gson = BeanProvider.getBean(Gson.class);
 
     @Autowired
     public ProductList(PaginationSetting paginationSetting) {
@@ -435,11 +435,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
                 ProductVO.extraDataFilterMap.clear();
             }
             else{
-                try {
-                    ProductVO.extraDataFilterMap = new ObjectMapper().readValue(extraDataFilter.getValue().trim(), new TypeReference<LinkedHashMap<String, List<String>>>() {});
-                } catch (JsonProcessingException ex) {
-                    Notification.show("Invalid json in extra data filter field!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
+                ProductVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
             grid.getDataProvider().refreshAll();
