@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 @Configuration
 @Transactional
 @Slf4j
@@ -153,6 +154,7 @@ public class DataProvider {
             String sql = json.toSQL();
             entityTransaction.begin();
             em.createNativeQuery(sql).executeUpdate();
+            em.flush();
             entityTransaction.commit();
             logger.info("Data loaded successfully from JSON! " + jsonFile.getName());
             loaded.add(jsonFile);
@@ -161,6 +163,56 @@ public class DataProvider {
         } catch (IOException e){
             logger.error("HIBA: " + jsonFile.getName());
         }
+    }
+
+    private void resetIDSequences(){
+        List<String> tableNames = getTableNames();
+        EntityTransaction emt = em.getTransaction();
+        emt.begin();
+        List<String> allSeq = em.createNativeQuery("SELECT relname sequence_name FROM pg_class WHERE relkind = 'S'").getResultList();
+        int reseted = 0;
+        for(String seq : allSeq) {
+            if(seq.split("_").length == 3){
+                String sql = "ALTER SEQUENCE " + seq + " RESTART WITH 1";
+                em.createNativeQuery(sql).executeUpdate();
+                reseted++;
+            }
+        }
+        int required = getAllManagedEntities().size();
+        if(required != reseted){
+            logger.error("There was a problem in resetting id sequences. Managed entities: " + required + ", reseted sequences: " + reseted + ". These two numbers must be equal. The transaction will be rollbacked.");
+            emt.rollback();
+        }
+        emt.commit();
+    }
+
+    private List<EntityType<?>> getAllManagedEntities() {
+        return em.getMetamodel().getEntities().stream().toList();
+    }
+
+    public void resetDatabase() throws IOException {
+        deleteAllRecordsFromAllTable();
+        resetIDSequences();
+        loaded.clear();
+        em.clear();
+        loadAllJsonAndSave();
+//        loaded = new ArrayList<>();
+    }
+
+    private void deleteAllRecordsFromAllTable(){
+        System.out.println("Table names size: " + getTableNames().size());
+        getTableNames().forEach(v -> deleteAllRecordsFromTable(v));
+    }
+
+    private void deleteAllRecordsFromTable(String tableName){
+        executeSQL("TRUNCATE \"" + tableName + "\" CASCADE");
+    }
+
+    private List<String> getTableNames(){
+        List<Object[]> tables = em.createNativeQuery("SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'").getResultList();
+        List<String> tableNames = new ArrayList<>();
+        tables.forEach(v -> tableNames.add((String) v[1]));
+        return tableNames;
     }
 
     public void executeSQL(String sql){

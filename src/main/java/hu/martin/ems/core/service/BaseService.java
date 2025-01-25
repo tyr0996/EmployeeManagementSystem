@@ -24,16 +24,16 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
         return repo.customUpdate(entity);
     }
 
-    public void delete(T entity) {
-        repo.customDelete(entity);
+    public T delete(T entity) {
+        return repo.customDelete(entity);
     }
 
-    public void restore(T entity) {
-        repo.customRestore(entity);
+    public T restore(T entity) {
+        return repo.customRestore(entity);
     }
 
-    public void permanentlyDelete(Long entityId) {
-        repo.customPermanentlyDelete(entityId);
+    public T permanentlyDelete(Long entityId) {
+        return repo.customPermanentlyDelete(entityId);
     }
 
     public List<T> findAll(boolean withDeleted) {

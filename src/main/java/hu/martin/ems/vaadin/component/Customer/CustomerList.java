@@ -341,21 +341,17 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
                 response = customerApi.save(customer);
             }
             switch (response.getCode()){
-                case 200:
+                case 200: {
                     Notification.show("Customer " + (entity == null ? "saved: " : "updated: ") + ((Customer) response.getResponseData()).getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
-                case 500:
-                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+                default: {
+                    Notification.show("Customer " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
                     return;
-                default:
-                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    logger.warn("Invalid status code in CustomerList: {}", response.getCode());
-                    createDialog.close();
-                    updateGridItems();
-                    return;
+                }
             }
 
             firstNameField.clear();

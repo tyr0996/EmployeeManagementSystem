@@ -5,7 +5,6 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Permission;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -15,6 +14,7 @@ import org.testng.annotations.Test;
 
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -125,23 +125,25 @@ public class PermissionTest extends BaseCrudTest {
 //        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
 //    }
 
+
     @Test
-    public void apiSendInvalidStatusCodeWhenSavePermission() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyPermissionApiClient).save(any(Permission.class));
+    public void nullResponseFromServiceWhenModify() throws InterruptedException {
+//        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyPermissionApiClient).update(any(Permission.class));
+        Mockito.doReturn(null).when(spyPermissionService).update(any(Permission.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
-        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
+        crudTestingUtil.updateTest(null, "Internal server error", false);
         checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void apiSendInvalidStatusCodeWhenModifyPermission() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyPermissionApiClient).update(any(Permission.class));
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
+        Mockito.doReturn(null).when(spyPermissionService).save(any(Permission.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
-        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
+        crudTestingUtil.createTest(null, "Permission saving failed: Internal server error", false);
         checkNoMoreNotificationsVisible();
     }
 
@@ -157,7 +159,7 @@ public class PermissionTest extends BaseCrudTest {
 
     @Test
     public void gettingPermissionsFailed() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionApiClient).findAllWithDeleted();
+        Mockito.doReturn(null).when(spyPermissionService).findAll(true); //ApiClientben.findAllWithDeleted();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
@@ -179,18 +181,18 @@ public class PermissionTest extends BaseCrudTest {
 //        checkNoMoreNotificationsVisible();
 //    }
 
-//    @Test
-//    public void findAllRoleToPermissionsFailed() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findAll();
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//        findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
-//        Thread.sleep(100);
-//        LinkedHashMap<String, String> failed = new LinkedHashMap<>();
-//        failed.put("Roles", "Error happened while getting roles");
-//        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failed);
+    @Test
+    public void findAllRoleFailed() throws InterruptedException {
+        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
+        Thread.sleep(100);
+        LinkedHashMap<String, String> failed = new LinkedHashMap<>();
+        failed.put("Roles", "Error happened while getting roles");
+        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failed);
 //        checkNoMoreNotificationsVisible();
-//    }
+    }
 
 //    @Test
 //    public void findAllPariedRoleToWhenUpdate() throws InterruptedException {

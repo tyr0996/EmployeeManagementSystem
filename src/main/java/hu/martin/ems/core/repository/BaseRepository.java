@@ -9,15 +9,15 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface BaseRepository<T, ID> extends Repository<T, ID> {
-    List<T> customFindAll(Boolean withDeleted);
+    List<T> customFindAll(boolean withDeleted);
 
     List<T> customFindAllWithGraph(Boolean withDeleted);
 
-    void customDelete(T entity);
+    T customDelete(T entity);
 
-    void customRestore(T entity);
+    T customRestore(T entity);
 
-    void customPermanentlyDelete(Long entity);
+    T customPermanentlyDelete(Long entity);
 
     @Transactional
     T customSave(T entity);

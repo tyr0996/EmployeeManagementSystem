@@ -321,23 +321,19 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
                 response = employeeApi.save(employee);
             }
             switch (response.getCode()){
-                case 200:
-                    Notification.show("Employee " + (entity == null ? "saved: " : "updated: ") + ((Employee)response.getResponseData()).getName())
+                case 200: {
+                    Notification.show("Employee " + (entity == null ? "saved: " : "updated: ") + employee)
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
-                case 500:
-                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+                default: {
+                    Notification.show("Employee " + (entity == null ? "saving" : "modifying") + " failed: " + response.getDescription())
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     setupEmployees();
                     updateGridItems();
                     return;
-                default:
-                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    logger.warn("Invalid status code in EmployeeList: {}", response.getCode());
-                    createDialog.close();
-                    setupEmployees();
-                    updateGridItems();
-                    return;
+                }
             }
 
             firstNameField.clear();

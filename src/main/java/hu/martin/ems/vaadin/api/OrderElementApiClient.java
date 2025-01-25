@@ -20,7 +20,10 @@ public class OrderElementApiClient extends EmsApiClient<OrderElement> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            if(jsonResponse != null && !jsonResponse.equals("null")){
+                return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            }
+            return new EmsResponse(500, "Internal server error");
         }
         catch (WebClientResponseException ex){
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());

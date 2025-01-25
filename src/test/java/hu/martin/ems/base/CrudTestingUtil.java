@@ -5,7 +5,6 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.PaginationData;
 import hu.martin.ems.core.model.BaseEntity;
-import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.vaadin.api.EmsApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import org.mockito.Mockito;
@@ -80,6 +79,10 @@ public class CrudTestingUtil {
         }
         if(showOnlyDeletableCheckboxXpath != null){
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
+            rowLocation = getRandomLocationFromGrid(gridXpath);
+            if(rowLocation == null){
+                updateTest(withData, updateNotificationText, requiredSuccess, showOnlyDeletableCheckboxXpath);
+            }
         }
 
         String[] originalData = getDataFromRowLocation(gridXpath, rowLocation);
@@ -159,21 +162,31 @@ public class CrudTestingUtil {
     }
 
 
-    public void createNotExpectedStatusCodeSave(EmsApiClient spyClient, Class<?> objectClass) throws InterruptedException {
-        MockitoAnnotations.openMocks(this);
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyClient).save(any(objectClass));
-        createTest(null, "Not expected status-code in saving", false);
-    }
+//    public void createNotExpectedStatusCodeSave(EmsApiClient spyClient, Class<?> objectClass) throws InterruptedException {
+//        MockitoAnnotations.openMocks(this);
+//        Mockito.doReturn(new EmsResponse(522, "")).when(spyClient).save(any(objectClass));
+//        createTest(null, "Not expected status-code in saving", false);
+//    }
 
-    public void updateNotExpectedStatusCode(EmsApiClient spyClient, Class<?> objectClass) throws InterruptedException {
-        updateNotExpectedStatusCode(spyClient, objectClass, null);
-    }
+//    public void createReturns(BaseService spyService, Class<?> objectClass, EmsResponse response) throws InterruptedException {
+//        Mockito.doReturn(response).when(spyClient).save(any(objectClass));
+//        createTest(null, response.getDescription(), false);
+//    }
+//
+//    public void updateReturns(EmsApiClient spyClient, Class<?> objectClass, EmsResponse response) throws InterruptedException {
+//        Mockito.doReturn(response).when(spyClient).update(any(objectClass));
+//        updateTest(null, response.getDescription(), false);
+//    }
 
-    public void updateNotExpectedStatusCode(EmsApiClient spyClient, Class<?> objectClass, String showOnlyDeletableCheckboxXpath) throws InterruptedException {
-        MockitoAnnotations.openMocks(this);
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyClient).update(any(objectClass));
-        updateTest(null, "not expected status-code in modifying", false, showOnlyDeletableCheckboxXpath);
-    }
+//    public void updateNotExpectedStatusCode(EmsApiClient spyClient, Class<?> objectClass) throws InterruptedException {
+//        updateNotExpectedStatusCode(spyClient, objectClass, null);
+//    }
+//
+//    public void updateNotExpectedStatusCode(EmsApiClient spyClient, Class<?> objectClass, String showOnlyDeletableCheckboxXpath) throws InterruptedException {
+//        MockitoAnnotations.openMocks(this);
+//        Mockito.doReturn(new EmsResponse(522, "")).when(spyClient).update(any(objectClass));
+//        updateTest(null, "not expected status-code in modifying", false, showOnlyDeletableCheckboxXpath);
+//    }
 
     public void fillCreateOrUpdateForm(LinkedHashMap<String, String> withData) throws InterruptedException {
         fillCreateOrUpdateForm(withData, null);
@@ -567,7 +580,7 @@ public class CrudTestingUtil {
 
         WebElement saveButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
 
-        assertEquals(false, isEnabled(saveButton));
+        assertEquals(false, isEnabled(saveButton), "If using Mockito.findAll(), replace it with Mockito.findAll(false), because the fields only contain non-deleted data");
     }
 
     /**
@@ -662,24 +675,9 @@ public class CrudTestingUtil {
 
 //        }
 
-        AtomicInteger callCount = new AtomicInteger(0);
 
-        Mockito.doAnswer(invocation -> {
-            int currentCall = callCount.incrementAndGet();
 
-            // Az első néhány hívásnál (limitig) az eredeti metódust hívjuk
-            if (currentCall <= preSuccess) {
-                return invocation.callRealMethod();
-            }
-            // Kivételt dobunk egyszer, ha elértük a limitet
-            else if (currentCall == preSuccess + 1) {
-                throw new SQLException("Connection refused: getsockopt");
-            }
-            // A további hívásoknál visszaállunk az eredeti metódus hívására
-            else {
-                return invocation.callRealMethod();
-            }
-        }).when(spyDataSource).getConnection();
+        mockDatabaseNotAvailable(spyDataSource, preSuccess);
 
 //        Mockito.doCallRealMethod().when(spyDataSource).getConnection();
 //        Mockito.doThrow(new SQLException("Connection refused: getsockopt")).doCallRealMethod().when(spyDataSource).getConnection();
@@ -694,7 +692,7 @@ public class CrudTestingUtil {
 
 //        closeNotification(1000);
 //        Mockito.verify(spyDataSource, Mockito.times(2)).getConnection();
-        checkNotificationContainsTexts(saveNotificationText == null ? className + " saving failed" : saveNotificationText);
+        checkNotificationContainsTexts(saveNotificationText == null ? className + " saving failed: internal server error" : saveNotificationText);
 //        Mockito.verify(spyDataSource, Mockito.times(2)).getConnection();
 
 

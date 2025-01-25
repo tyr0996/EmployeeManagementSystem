@@ -56,6 +56,7 @@ public class OrderCreate extends VerticalLayout {
 
     private List<OrderElementVO> orderElementVOS;
     private PaginatedGrid<OrderElementVO, String> grid;
+
     private Boolean showPreviously = false;
 
     ComboBox<CodeStore> paymentTypes;
@@ -98,7 +99,10 @@ public class OrderCreate extends VerticalLayout {
         customers.addValueChangeListener(event -> {
             if (event.getValue() != null) {
                 orderElementVOS = getOrderElementsByCustomer(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList());
-
+//                if(orderElementVOS == null){
+//                    Notification.show("Error happened while getting order elements to the customer").addThemeVariants(NotificationVariant.LUMO_ERROR);
+//                    orderElementVOS = new ArrayList<>();
+//                }
             } else {
                 orderElementVOS = new ArrayList<>();
             }
@@ -108,21 +112,30 @@ public class OrderCreate extends VerticalLayout {
         Checkbox showPreviouslyOrderedElements = new Checkbox("Show previously ordered elements");
         showPreviouslyOrderedElements.addValueChangeListener(event -> {
             showPreviously = !showPreviously;
-            if(showPreviously){
-                grid.setSelectionMode(Grid.SelectionMode.NONE);
-                grid.setItems(getFilteredStream().filter(v -> v.original.getOrderId() != null).toList());
-            }
-            else{
-                grid.setSelectionMode(Grid.SelectionMode.MULTI);
-                grid.setItems(getFilteredStream().filter(v -> v.original.getOrderId() == null).toList());
-            }
             orderElementVOS = customers.getValue() == null ?
                     new ArrayList<>() :
                     getOrderElementsByCustomer(customers.getValue()).stream().map(OrderElementVO::new).toList();
+
+            if(showPreviously){
+                grid.setSelectionMode(Grid.SelectionMode.NONE);
+                grid.setItems(getFilteredStream().filter(v -> v.original.getOrderId() != null).toList());
+//                grid.setItems(getFilteredStream().filter(v -> {
+//                    boolean ressss = v.original.getOrderId() != null;
+//                    System.out.println("orderrId: " + v.original.getOrderId() + "   resss: " + ressss);
+//                    return ressss;
+//                }).toList());
+            }
+            else { //Ide akkor megyünk be, hogyha kikapcsoljuk a showPreviously-t
+                grid.setSelectionMode(Grid.SelectionMode.MULTI);
+
+//                grid.setItems(getFilteredStream().toList());
+                grid.setItems(getFilteredStream().toList());
+            }
+
             if(editObject != null){
                 grid.setSelectionMode(Grid.SelectionMode.MULTI);
             }
-            updateGridItems();
+//            updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
         hl.add(showPreviouslyOrderedElements);
@@ -163,6 +176,7 @@ public class OrderCreate extends VerticalLayout {
             customers.setEnabled(false);
             customers.setValue(editObject.getCustomer());
             showPreviouslyOrderedElements.setValue(true);
+            showPreviously = true;
             paymentTypes.setValue(editObject.getPaymentType());
             currencies.setValue(editObject.getCurrency());
             orderElementVOS = getOrderElementsByCustomer(editObject.getCustomer()).stream().map(OrderElementVO::new).collect(Collectors.toList());
@@ -206,32 +220,38 @@ public class OrderCreate extends VerticalLayout {
 
             List<OrderElement> orderElements = new ArrayList<>();
             List<OrderElementVO> selected = grid.getSelectedItems().stream().toList();
+
             for(int i = 0; i < selected.size(); i++){
                 OrderElement oe = selected.get(i).original;
-                //oe.setOrderId(order.getId());
                 orderElements.add(oe);
             }
             order.setOrderElements(orderElements);
 
-            EmsResponse response = orderApi.save(order);
-            switch (response.getCode()){
-                case 200:
-                    order = (Order) response.getResponseData();
-                    Notification.show("Order " + (editObject == null ? "saved: " : "updated: ") + order)
-                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    break;
-                case 500:
-                    Notification.show("Order saving failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    updateGridItems();
-                    return;
-                default:
-                    Notification.show("Not expected status-code in saving").addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    updateGridItems();
-                    return;
+            if(orderElements.isEmpty()){
+                Notification.show("Order must contains at least one order element!").addThemeVariants(NotificationVariant.LUMO_WARNING);
             }
-
-            customers.setValue(customers.getEmptyValue());
-            paymentTypes.setValue(paymentTypes.getEmptyValue());
+            else{
+                EmsResponse response;
+                if(editObject == null){
+                    response = orderApi.save(order);
+                }
+                else{
+                    response = orderApi.update(order);
+                }
+                switch (response.getCode()){
+                    case 200:
+                        order = (Order) response.getResponseData();
+                        Notification.show("Order " + (editObject == null ? "saved: " : "updated: ") + order)
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        break;
+                    default:
+                        Notification.show("Order saving failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        updateGridItems();
+                        return;
+                }
+                customers.setValue(customers.getEmptyValue());
+                paymentTypes.setValue(paymentTypes.getEmptyValue());
+            }
         });
 
         formLayout.add(customers);
@@ -276,7 +296,7 @@ public class OrderCreate extends VerticalLayout {
                 logger.error("OrderElement getOrderElementsByCustomerError. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 Notification.show("Error happened while getting order elements to the customer")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                return new ArrayList<>();
+                return null;
         }
 
     }
@@ -366,14 +386,7 @@ public class OrderCreate extends VerticalLayout {
         return orderElementVOS.stream().filter(orderElementVO ->
             {
                 OrderElement oe = orderElementVO.getOriginal();
-                Boolean res = false;
-                if(showPreviously){
-                    res = oe.getOrderId() == null || oe.getOrderId().equals(editObject.getId());
-                }
-                else{
-                    res = oe.getOrderId() == null;
-                }
-
+                boolean res = showPreviously || oe.getOrderId() == null;
                 Boolean filter = orderElementVO.filterExtraData();
 //                System.out.println("Res: " + res + "  Filter: " + filter);
                 return res && filter;
@@ -395,10 +408,18 @@ public class OrderCreate extends VerticalLayout {
                         }
                     }).toList();
             UI.getCurrent().access(() -> {
-                selected.forEach(v -> {
-                    grid.getSelectionModel().select(v);
-                });
+                grid.deselectAll();
+                selected.stream()
+                        .distinct() // Biztosítsd, hogy ne legyen duplikáció
+                        .forEach(v -> grid.getSelectionModel().select(v));
             });
+//            UI.getCurrent().access(() -> {
+//                selected.forEach(v -> {
+//                    grid.getSelectionModel().select(v);
+//                });
+//            });
+
+
             //UI.getCurrent().push(); // Kliens-szerver szinkronizálás kényszerítése
         }
     }

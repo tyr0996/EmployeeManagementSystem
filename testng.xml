@@ -6,13 +6,14 @@
             <class name="hu.martin.ems.crudFE.EmployeeManagementSystemApplicationTests"/>
         </classes>
     </test>
+
     <test name="Crud testing">
         <classes>
             <class name="hu.martin.ems.crudFE.AdminToolsTest"/>
             <class name="hu.martin.ems.crudFE.AddressTest"/>
             <class name="hu.martin.ems.crudFE.CityCrudTest"/>
             <class name="hu.martin.ems.crudFE.CodeStoreCrudTest"/>
-            <class name="hu.martin.ems.crudFE.CurrencyCrudTest"/>W
+            <class name="hu.martin.ems.crudFE.CurrencyCrudTest"/>
             <class name="hu.martin.ems.crudFE.CustomerCrudTest"/>
             <class name="hu.martin.ems.crudFE.EmployeeCrudTest"/>
             <class name="hu.martin.ems.crudFE.LoginTests"/>
@@ -25,6 +26,12 @@
             <class name="hu.martin.ems.crudFE.ProductCrudTest"/>
             <class name="hu.martin.ems.crudFE.RoleXPermissionCreateTest"/>
             <class name="hu.martin.ems.crudFE.OrderCreateTest"/>
+        </classes>
+    </test>
+
+    <test name="Api client tests">
+        <classes>
+            <class name="hu.martin.ems.crudApi.CodeStoreApiTest"/>
         </classes>
     </test>
 </suite>

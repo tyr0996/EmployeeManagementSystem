@@ -583,20 +583,17 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
                 response = productApi.save(product);
             }
             switch (response.getCode()){
-                case 200:
+                case 200: {
                     Notification.show("Product  " + (entity == null ? "saved: " : "updated: ") + ((Product) response.getResponseData()).getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
-                case 500:
-                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+                default: {
+                    Notification.show("Product " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
                     return;
-                default:
-                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    logger.warn("Invalid status code in ProductList: {}", response.getCode());
-                    createDialog.close();
-                    return;
+                }
             }
 
             updateGridItems();

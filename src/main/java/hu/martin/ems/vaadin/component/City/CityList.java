@@ -325,19 +325,14 @@ public class CityList extends VerticalLayout implements Creatable<City> {
                     setupCities();
                     updateGridItems();
                     break;
-                case 500:
-                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                default: {
+                    Notification.show("City " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     setupCities();
                     updateGridItems();
                     return;
-                default:
-                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    logger.warn("Invalid status code in CityList: {}", response.getCode());
-                    createDialog.close();
-                    setupCities();
-                    updateGridItems();
-                    return;
+                }
+
             }
             updateGridItems();
 

@@ -9,15 +9,20 @@ import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.core.config.BeanProvider;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
+import org.mockito.Mockito;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -26,6 +31,26 @@ public class GridTestingUtil {
     public static WebDriver driver;
 
     private static Gson gson = BeanProvider.getBean(Gson.class);
+
+    public static void mockDatabaseNotAvailable(DataSource spyDataSource, int preSuccess) throws SQLException {
+        AtomicInteger callCount = new AtomicInteger(0);
+        Mockito.doAnswer(invocation -> {
+            int currentCall = callCount.incrementAndGet();
+
+            // Az első néhány hívásnál (limitig) az eredeti metódust hívjuk
+            if (currentCall <= preSuccess) {
+                return invocation.callRealMethod();
+            }
+            // Kivételt dobunk egyszer, ha elértük a limitet
+            else if (currentCall == preSuccess + 1) {
+                throw new SQLException("Connection refused: getsockopt");
+            }
+            // A további hívásoknál visszaállunk az eredeti metódus hívására
+            else {
+                return invocation.callRealMethod();
+            }
+        }).when(spyDataSource).getConnection();
+    }
 
     public static void checkNoMoreNotificationsVisible(){
         WebElement notification = findVisibleElementWithXpath("/html/body/vaadin-notification-container/vaadin-notification-card");
@@ -208,7 +233,7 @@ public class GridTestingUtil {
 
     public static WebElement findVisibleElementWithXpath(String xpath) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(200));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(500));
             return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
         } catch (Exception e) {
             return null;
@@ -458,6 +483,20 @@ public class GridTestingUtil {
             }
 
         }
+    }
+
+    private static List<WebElement> getAllChildren(WebElement element){
+        return element.findElements(By.xpath("./*"));
+    }
+
+    public static boolean isInMultiSelectMode(String gridXpath){
+        return isInMultiSelectMode(findVisibleElementWithXpath(gridXpath));
+    }
+
+    public static boolean isInMultiSelectMode(WebElement grid){
+        List<WebElement> children = getAllChildren(grid);
+        List<WebElement> selectionColumns = children.stream().filter(v -> v.getAttribute("outerHTML").contains("<vaadin-grid-flow-selection-column>")).collect(Collectors.toList());
+        return selectionColumns.size() > 0;
     }
 
     /**

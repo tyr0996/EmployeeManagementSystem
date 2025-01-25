@@ -445,11 +445,16 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
                 response = orderElementApi.save(orderElement);
             }
             switch (response.getCode()){
-                case 200:
+                case 200: {
                     Notification.show("OrderElement " + (entity == null ? "saved: " : "updated: ") + orderElement)
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break; //TODO
-                default: Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR); break; //TODO
+                }
+
+                default:{
+                    Notification.show("OrderElement " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    break; //TODO
+                }
             }
 
 

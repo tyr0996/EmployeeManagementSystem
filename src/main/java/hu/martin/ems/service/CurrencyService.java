@@ -3,15 +3,16 @@ package hu.martin.ems.service;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.annotations.NeedCleanCoding;
-import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.service.BaseService;
+import hu.martin.ems.exception.CurrencyException;
+import hu.martin.ems.exception.FetchingCurrenciesException;
+import hu.martin.ems.exception.ParsingCurrenciesException;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.repository.CodeStoreRepository;
 import hu.martin.ems.repository.CurrencyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -19,7 +20,6 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 
 @Service
-@Transactional
 @NeedCleanCoding
 public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     public CurrencyService(CurrencyRepository currencyRepository) {
@@ -41,11 +41,11 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     @Autowired
     private Gson gson;
 
-    public EmsResponse fetchAndSaveRates() {
-        Currency curr = repo.findByDate(LocalDate.now());
-        if(curr != null){
-            return new EmsResponse(200, curr, "Currencies already fetched");
-        }
+    public Currency fetchAndSaveRates() throws ParsingCurrenciesException, FetchingCurrenciesException {
+//        Currency curr = repo.findByDate(LocalDate.now());
+//        if(curr != null){
+//            throw new CurrenciesAlreadyFetchedException();
+//        }
         try {
             LinkedHashMap<String, Object> response = restTemplate.getForObject(apiUrl + baseCurrency, LinkedHashMap.class);
             LinkedHashMap<String, Object> rates = (LinkedHashMap<String, Object>) response.get("rates");
@@ -61,12 +61,13 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
 
             currency.setValidDate(getValidDate(response.get("date").toString()));
             currency.setDeleted(0L);
-            Object saved = this.repo.customSave(currency);
-            return new EmsResponse(200, saved, "");
+            Currency saved = this.repo.customSave(currency);
+            return saved;
+//            return new EmsResponse(200, saved, "");
         } catch (ClassCastException e){
-            return new EmsResponse(500, EmsResponse.Description.PARSING_CURRENCIES_FAILED);
+            throw new ParsingCurrenciesException();
         } catch (RestClientException e){
-            return new EmsResponse(500, EmsResponse.Description.FETCHING_CURRENCIES_FAILED);
+            throw new FetchingCurrenciesException();
         }
     }
 
@@ -78,7 +79,7 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
         return ld;
     }
 
-    public Double convert(String from, String to, Double amount) {
+    public Double convert(String from, String to, Double amount) throws CurrencyException {
         Currency c = this.repo.findByDate(LocalDate.now());
         if (c != null) {
             LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
@@ -92,7 +93,7 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     }
 
     @Deprecated
-    public Double convert(LocalDate date, String from, String to, Double amount) {
+    public Double convert(LocalDate date, String from, String to, Double amount) throws CurrencyException {
         Currency c = this.repo.findByDate(date);
         if (c != null) {
             LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
@@ -117,7 +118,7 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
         }
     }
 
-    public Currency findByDate(LocalDate now) {
-        return this.repo.findByDate(now);
+    public Currency findByDate(LocalDate date) {
+        return this.repo.findByDate(date);
     }
 }

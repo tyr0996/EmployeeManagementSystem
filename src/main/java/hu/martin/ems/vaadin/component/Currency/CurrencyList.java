@@ -21,7 +21,7 @@ import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.vaadin.MainView;
-import hu.martin.ems.vaadin.api.CurrencyApi;
+import hu.martin.ems.vaadin.api.CurrencyApiClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 @NeedCleanCoding
 public class CurrencyList extends VerticalLayout {
 
-    private final CurrencyApi currencyApi = BeanProvider.getBean(CurrencyApi.class);
+    private final CurrencyApiClient currencyApiClient = BeanProvider.getBean(CurrencyApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<CurrencyVO, String> grid;
 
@@ -98,21 +98,22 @@ public class CurrencyList extends VerticalLayout {
         LocalDate date = datePicker.getValue();
         Currency currency = getCurrencyByDate(date);
         Boolean needFetch = currency == null;
+        if(!needFetch && fetchButtonClicked){
+            Notification.show("Currencies already fetched").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+        }
 
         if (needFetch) {
             if (date.isEqual(LocalDate.now())) {
-                EmsResponse response = currencyApi.fetchAndSaveRates();
-                switch (response.getCode()){
-                    case 200 :
-                        currency = gson.fromJson(gson.toJson(response.getResponseData()), Currency.class);
+                EmsResponse response = currencyApiClient.fetchAndSaveRates();
+                switch (response.getCode()) {
+                    case 200:
+                        currency = gson.fromJson((String) response.getResponseData(), Currency.class);
                         break;
-                    case 500 :
+                    default: {
+//                        Notification.show("Error happened while fetching exchange rates: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
-                    default:
-                        Notification.show("Not expected status-code in fetching currencies").addThemeVariants(NotificationVariant.LUMO_WARNING);
-                        logger.warn("Invalid status code in CurrencyList: {}", response.getCode());
-                        return;
+                    }
                 }
             } else {
                 Notification.show("Exchange rates cannot be downloaded retroactively!")
@@ -121,10 +122,11 @@ public class CurrencyList extends VerticalLayout {
                 updateGrid();
                 return;
             }
+//        }
+//        else if (fetchButtonClicked){
+//
         }
-        else if (fetchButtonClicked){
-            Notification.show("Currencies already fetched").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-        }
+
         currencyVOS = new ArrayList<>();
         String baseCurrency = currency.getBaseCurrency().getName();
 
@@ -139,13 +141,13 @@ public class CurrencyList extends VerticalLayout {
     }
 
     private Currency getCurrencyByDate(LocalDate date) {
-        EmsResponse response = currencyApi.findByDate(date);
+        EmsResponse response = currencyApiClient.findByDate(date);
         switch (response.getCode()){
             case 200:
                 return (Currency) response.getResponseData();
             default:
                 logger.error("Currency findByDateError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("Error happened while getting currencies by date")
+                Notification.show("Error happened while getting currencies by date: " + response.getDescription())
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return null;
         }

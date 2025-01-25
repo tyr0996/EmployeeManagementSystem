@@ -64,6 +64,35 @@
           "name": "HUF"
         }
       }
+    },
+    {
+      "deleted": 0,
+      "state_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "Pending"
+        }
+      },
+      "timeOfOrder": "2024-06-19T09:10:55",
+      "customer_customer_id": {
+        "refClass": "Customer",
+        "filter": {
+          "id": 1
+        }
+      },
+      "supplier_supplier_id": null,
+      "paymentType_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "Cash"
+        }
+      },
+      "currency_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "HUF"
+        }
+      }
     }
   ]
 }

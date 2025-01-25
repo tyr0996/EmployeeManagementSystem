@@ -4,8 +4,6 @@ import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Customer;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -18,6 +16,7 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -80,32 +79,29 @@ public class CustomerCrudTest extends BaseCrudTest {
         crudTestingUtil.permanentlyDeleteTest();
     }
 
-    //@Test
-    public void extraFilterInvalidValue() throws InterruptedException {
+    @Test
+    public void nullResponseFromServiceWhenModify() throws InterruptedException {
+        Mockito.doReturn(null).when(spyCustomerService).update(any(Customer.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        NotificationCheck nc = new NotificationCheck();
-        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+        crudTestingUtil.updateTest(null, "Internal server error", false);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
+        Mockito.doReturn(null).when(spyCustomerService).save(any(Customer.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createNotExpectedStatusCodeSave(spyCustomerApiClient, Customer.class);
+        crudTestingUtil.createTest(null, "Customer saving failed", false);
+        checkNoMoreNotificationsVisible();
     }
 
-    @Test
-    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateNotExpectedStatusCode(spyCustomerApiClient, Customer.class);
-    }
+
 
     @Test
     public void unexpectedResponseCodeWhenFindAllCustomer() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCustomerApiClient).findAllWithDeleted();
+        Mockito.doReturn(null).when(spyCustomerService).findAll(true); //ApiClient .findAllWithDeleted();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(200);
@@ -117,7 +113,7 @@ public class CustomerCrudTest extends BaseCrudTest {
 
     @Test
     public void unexpectedResponseCodeWhenFindAllAddress() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyAddressApiClient).findAll();
+        Mockito.doReturn(null).when(spyAddressService).findAll(false);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedData = new LinkedHashMap<>();

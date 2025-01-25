@@ -173,7 +173,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
                 break;
             default:
                 supplierList = new ArrayList<>();
-                logger.error("Supplier findAll [currency]. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                logger.error("Supplier findAllByIds [currency]. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 Notification.show("Error happened while getting suppliers")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
@@ -302,21 +302,17 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             }
 
             switch (response.getCode()){
-                case 200:
+                case 200: {
                     Notification.show("Supplier " + (entity == null ? "saved: " : "updated: ") + ((Supplier) response.getResponseData()).getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
-                case 500:
-                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+                default: {
+                    Notification.show("Supplier " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
                     return;
-                default:
-                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    logger.warn("Invalid status code in SupplierList: {}", response.getCode());
-                    createDialog.close();
-                    updateGridItems();
-                    return;
+                }
             }
 
             nameField.clear();

@@ -216,15 +216,16 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
 
         if (entity != null) {
             nameField.setValue(entity.getName());
-            if(entity.getRoles() != null){
-                roles.setValue(entity.getRoles());
-            }
-            else{
-                roles.setErrorMessage("Error happened while getting paired roles");
-                roles.setEnabled(false);
-                roles.setInvalid(true);
-                saveButton.setEnabled(false);
-            }
+            roles.setValue(entity.getRoles());
+//            if(entity.getRoles() != null){
+//                roles.setValue(entity.getRoles());
+//            }
+//            else{
+//                roles.setErrorMessage("Error happened while getting paired roles");
+//                roles.setEnabled(false);
+//                roles.setInvalid(true);
+//                saveButton.setEnabled(false);
+//            }
         }
 
         saveButton.addClickListener(event -> {
@@ -287,15 +288,10 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
                 Notification.show("Permission " + (isUpdate ? "updated: " : "saved: ") + entity.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 break;
-            case 500:
-                Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            default:
+                Notification.show("Permission " + (isUpdate ? "modifying " : "saving " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                 createDialog.close();
                 updateGridItems();
-                break;
-            default:
-                Notification.show("Not expected status-code in " + (isUpdate ? "modifying" : "saving")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                logger.warn("Invalid status code in PermissionList: {}", response.getCode());
-                createDialog.close();
                 break;
         }
         nameField.clear();

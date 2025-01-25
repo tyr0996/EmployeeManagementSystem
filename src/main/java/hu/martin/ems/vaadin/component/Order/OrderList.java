@@ -163,7 +163,7 @@ public class OrderList extends VerticalLayout {
                     case 200:
                         break;
                     default:
-                        Notification.show("Generating PDF for email failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        Notification.show("Email sending failed: " + pdfDocumentResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                 }
                 EmsResponse sendEmailResponse = emailSendingApi.send(

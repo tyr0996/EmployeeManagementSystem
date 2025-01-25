@@ -4,7 +4,6 @@ import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.CodeStore;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -12,11 +11,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Duration;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class CodeStoreCrudTest extends BaseCrudTest {
@@ -57,10 +58,11 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void codestoreUpdateTest() throws InterruptedException {
+    public void codestoreUpdateTest() throws InterruptedException, IOException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest(null, null, true, showOnlyDeletableCodeStores);
+        resetDatabase();
     }
 
     @Test
@@ -77,23 +79,42 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         crudTestingUtil.permanentlyDeleteTest();
     }
 
+//    @Test(enabled = false)
+//    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.createNotExpectedStatusCodeSave(spyCodeStoreApiClient, CodeStore.class);
+//    }
+//
+//    @Test(enabled = false)
+//    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.updateNotExpectedStatusCode(spyCodeStoreApiClient, CodeStore.class, showOnlyDeletableCodeStores);
+//    }
+
     @Test
-    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+    public void nullResponseFromServiceWhenModify() throws InterruptedException {
+        Mockito.doReturn(null).when(spyCodeStoreService).update(any(CodeStore.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createNotExpectedStatusCodeSave(spyCodeStoreApiClient, CodeStore.class);
+        crudTestingUtil.updateTest(null, "Codestore modifying failed: internal server error", false, showOnlyDeletableCodeStores); //TODO ez meghal
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
+        Mockito.doReturn(null).when(spyCodeStoreService).save(any(CodeStore.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateNotExpectedStatusCode(spyCodeStoreApiClient, CodeStore.class, showOnlyDeletableCodeStores);
+        crudTestingUtil.createTest(null, "CodeStore saving failed", false);
+        checkNoMoreNotificationsVisible();
     }
+
 
     @Test
     public void gettingAllCodeStoresFailed() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).findAllWithDeleted();
+        Mockito.doReturn(null).when(spyCodeStoreService).findAll(true);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);

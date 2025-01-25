@@ -4,10 +4,8 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Setter;
-import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
@@ -28,9 +26,6 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     @Setter
     protected EntityManager entityManager;
 
-    @Autowired
-    private SessionFactory sessionFactory;
-
     private final Logger logger;
     private Class<T> type;
 
@@ -44,8 +39,8 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
 
     @Transactional
     @Override
-    public List<T> customFindAll(Boolean withDeleted) {
-        boolean includeDeleted = withDeleted != null ? withDeleted : true;
+    public List<T> customFindAll(boolean withDeleted) {
+        boolean includeDeleted = withDeleted;
         String jpql = "SELECT e FROM " + type.getSimpleName() + " e";
         if (!includeDeleted) {
             jpql += " WHERE e.deleted = 0";
@@ -79,31 +74,43 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
 
     @Transactional
     @Override
-    public void customDelete(T entity) {
+    public T customDelete(T entity) {
         entityManager.createQuery("UPDATE " + type.getSimpleName() + " e SET e.deleted = 1 WHERE e.id = :id")
                 .setParameter("id", entity.getId())
                 .executeUpdate();
+        T deleted = entityManager.createQuery("SELECT e FROM " + type.getSimpleName() + " e WHERE e.id = :id", type)
+                .setParameter("id", entity.getId())
+                .getSingleResult();
         logger.info(type.getSimpleName() + " deleted successfully: {}", entity.getId());
+        return deleted;
     }
 
 
     @Transactional
     @Override
-    public void customRestore(T entity) {
+    public T customRestore(T entity) {
         entityManager.createQuery("UPDATE " + type.getSimpleName() + " e SET e.deleted = 0 WHERE e.id = :id")
                 .setParameter("id", entity.getId())
                 .executeUpdate();
+        T restored = entityManager.createQuery("SELECT e FROM " + type.getSimpleName() + " e WHERE e.id = :id", type)
+                .setParameter("id", entity.getId())
+                .getSingleResult();
         logger.info(type.getSimpleName() + " restored successfully: {}", entity.getId());
+        return restored;
     }
 
 
     @Transactional
     @Override
-    public void customPermanentlyDelete(Long entityId) {
+    public T customPermanentlyDelete(Long entityId) {
         entityManager.createQuery("UPDATE " + type.getSimpleName() + " e SET e.deleted = 2 WHERE e.id = :id")
                 .setParameter("id", entityId)
                 .executeUpdate();
+        T permanentlyDeleted = entityManager.createQuery("SELECT e FROM " + type.getSimpleName() + " e WHERE e.id = :id", type)
+                .setParameter("id", entityId)
+                .getSingleResult();
         logger.info(type.getSimpleName() + " deleted permanently successfully: {}", entityId);
+        return permanentlyDeleted;
     }
 
 
@@ -137,26 +144,15 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         transaction.begin();
         tempEm.merge(managedEntity);
 
-        T copied = copyEntity(managedEntity, entity, type);
-        //entityManager.flush();
-//        managedEntity = copyEntity(managedEntity, entity, type);
-//        tempEm.remove(managedEntity);
-//        tempEm.merge(managedEntity);
-//        tempEm.clear();
-//        tempEm.merge(entity);
-        tempEm.merge(copied);
+        copyEntity(managedEntity, entity, type);
+
+        tempEm.merge(managedEntity);
         transaction.commit();
         if(tempEm.isOpen()){
-//            tempEm.clear();
             tempEm.close();
         }
         logger.info(entity.getClass().getSimpleName() + " updated successfully: {}", entity);
         return entity;
-//        if (customFindById(entity.getId()) == null) {
-//            throw new EntityNotFoundException("Entity with type " + type.getSimpleName() + " not found: " + entity);
-//        }
-//        T updatedEntity = super.save(entity);
-//          return updatedEntity;
     }
 
 

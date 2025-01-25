@@ -198,18 +198,15 @@ public class UserList extends VerticalLayout implements Creatable<User> {
                     createOrModifyDialog.close();
                     updateGridItems();
                     break;
-                case 400:
+                case 400: {
                     Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     break;
-                case 500:
-                    logger.info("User " + (editableUser == null ? "saving" : "modifying") + " failed");
-                    Notification.show("User " + (editableUser == null ? "saving" : "modifying") + " failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }
+                default: {
+                    Notification.show("User " + (editableUser == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createOrModifyDialog.close();
                     break;
-                default:
-                    Notification.show("Not expected status-code in " + (editableUser == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    logger.warn("Invalid status code in UserList: {}", response.getCode());
-                    createOrModifyDialog.close();
+                }
             }
             editableUser = null;
         });
@@ -254,7 +251,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
                 break;
             default:
                 roleList = null;
-                logger.error("Role findAll. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                logger.error("Role findAllByIds. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
     }

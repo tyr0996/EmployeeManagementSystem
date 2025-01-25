@@ -6,7 +6,6 @@ import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Employee;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -20,6 +19,7 @@ import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class EmployeeCrudTest extends BaseCrudTest {
@@ -91,23 +91,41 @@ public class EmployeeCrudTest extends BaseCrudTest {
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
     }
 
+//    @Test(enabled = false)
+//    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.createNotExpectedStatusCodeSave(spyEmployeeApiClient, Employee.class);
+//    }
+//
+//    @Test(enabled = false)
+//    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.updateNotExpectedStatusCode(spyEmployeeApiClient, Employee.class);
+//    }
+
     @Test
-    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+    public void nullResponseFromServiceWhenModify() throws InterruptedException {
+        Mockito.doReturn(null).when(spyEmployeeService).update(any(Employee.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createNotExpectedStatusCodeSave(spyEmployeeApiClient, Employee.class);
+        crudTestingUtil.updateTest(null, "Internal server error", false);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
+        Mockito.doReturn(null).when(spyEmployeeService).save(any(Employee.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateNotExpectedStatusCode(spyEmployeeApiClient, Employee.class);
+        crudTestingUtil.createTest(null, "Employee saving failed: Internal server error", false);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
     public void gettingRolesFailed() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findAll();
+        Mockito.doReturn(null).when(spyRoleService).findAll(false);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failed = new LinkedHashMap<>();
@@ -118,7 +136,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
 
     @Test
     public void gettingEmployeesFailed() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyEmployeeApiClient).findAllWithDeleted();
+        Mockito.doReturn(null).when(spyEmployeeService).findAll(true); //ApiClientben findAllWithDeleted
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkNotificationText("Error happened while getting employees");

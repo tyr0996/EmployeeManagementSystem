@@ -5,7 +5,6 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.RandomGenerator;
-import hu.martin.ems.core.model.EmsResponse;
 import org.mockito.Mockito;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -109,7 +108,7 @@ public class LoginTests extends BaseCrudTest {
         String password = RandomGenerator.generateRandomOnlyLetterString();
         register("admin", password, password, "Username already exists!");
 
-        Thread.sleep(200);
+        Thread.sleep(500);
         TestingUtils.loginWith(driver, port, "admin", password);
         Thread.sleep(200);
 
@@ -252,7 +251,7 @@ public class LoginTests extends BaseCrudTest {
 
     @Test
     public void invalidStatusCodeWhenGettingAllRoles() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findByName(any(String.class));
+        Mockito.doReturn(null).when(spyRoleService).findByName(any(String.class));
         String username = RandomGenerator.generateRandomOnlyLetterString();
         String password = RandomGenerator.generateRandomOnlyLetterString();
         register(username, password, password, "Error happened while getting roles", false);
@@ -267,7 +266,7 @@ public class LoginTests extends BaseCrudTest {
 
     @Test
     public void invalidStatusCodeWhenGettingUserByUsernameNewRegistrationTheRegistrationWasSuccess() throws InterruptedException {
-        Mockito.doCallRealMethod().doReturn(new EmsResponse(522, "")).when(spyUserApiClient).findByUsername(any(String.class));
+        Mockito.doCallRealMethod().doReturn(null).when(spyUserService).findByUsername(any(String.class));
         String username = RandomGenerator.generateRandomOnlyLetterString();
         String password = RandomGenerator.generateRandomOnlyLetterString();
         register(username, password, password);
@@ -282,7 +281,7 @@ public class LoginTests extends BaseCrudTest {
 
     @Test
     public void invalidStatusCodeWhenGettingUserByUsernameNewRegistrationExistingUser() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyUserApiClient).findByUsername(any(String.class));
+        Mockito.doReturn(null).when(spyUserService).findByUsername(any(String.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         Thread.sleep(10);
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");

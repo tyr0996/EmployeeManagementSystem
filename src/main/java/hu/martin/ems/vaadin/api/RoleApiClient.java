@@ -4,6 +4,7 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Role;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Component
 @NeedCleanCoding
@@ -14,11 +15,21 @@ public class RoleApiClient extends EmsApiClient<Role> {
 
     public EmsResponse findByName(String name) {
         initWebClient();
-        String response = webClient.get()
-                .uri("findByName?name={name}", name)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-        return new EmsResponse(200, convertResponseToEntity(response), "");
+        try{
+            String response = webClient.get()
+                    .uri("findByName?name={name}", name)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            if(response != null && !response.equals("null")){
+                return new EmsResponse(200, convertResponseToEntity(response), "");
+            }
+            return new EmsResponse(500, null, "Internal Server Error");
+        }
+        catch (
+                WebClientResponseException ex){
+            logger.error("WebClient error - getChildren - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+        }
     }
 }

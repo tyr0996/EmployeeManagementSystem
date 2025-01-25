@@ -27,7 +27,6 @@ public class RoleXPermissionCreate extends VerticalLayout {
 
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
-//    private final RoleXPermissionApiClient roleXPermissionApi = BeanProvider.getBean(RoleXPermissionApiClient.class);
     List<Role> roleList;
     List<Permission> permissionList;
     Button saveButton;
@@ -87,18 +86,8 @@ public class RoleXPermissionCreate extends VerticalLayout {
 
             roleComboBox.addValueChangeListener(event -> {
                 Role selectedRole = event.getValue();
-                if (selectedRole != null) {
-                    List<Permission> permissions = getAllPairedPermissionsTo(selectedRole);
-                    if(permissions != null){
-                        permissionComboBox.setValue(permissions);
-                    }
-                    else{
-                        permissionComboBox.setErrorMessage("Error happened while getting paired permissions");
-                        permissionComboBox.setEnabled(false);
-                        permissionComboBox.setInvalid(true);
-                        saveButton.setEnabled(false);
-                    }
-                }
+                List<Permission> permissions = selectedRole.getPermissions().stream().toList();
+                permissionComboBox.setValue(permissions);
             });
         }
         else{
@@ -108,18 +97,6 @@ public class RoleXPermissionCreate extends VerticalLayout {
         }
 
         return permissionComboBox;
-    }
-
-    private List<Permission> getAllPairedPermissionsTo(Role selectedRole) {
-//        EmsResponse response = roleXPermissionApi.findAllPairedPermissionsTo(selectedRole);
-//        switch (response.getCode()){
-//            case 200:
-//                return (List<Permission>) response.getResponseData();
-//            default:
-//                logger.error("roleXPermission getAllPairedPermissionsToError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-//                return null;
-//        }
-        return selectedRole.getPermissions().stream().toList();
     }
 
     private void setupPermissions() {
@@ -176,11 +153,5 @@ public class RoleXPermissionCreate extends VerticalLayout {
                 break;
             }
         }
-
-    }
-
-    private void clearForm(ComboBox<Role> roleComboBox, MultiSelectComboBox<Permission> permissionComboBox) {
-        roleComboBox.clear();
-        permissionComboBox.clear();
     }
 }

@@ -17,13 +17,14 @@ import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.documentmodel.CustomerDM;
 import hu.martin.ems.documentmodel.OrderDM;
 import hu.martin.ems.documentmodel.OrderElementDM;
+import hu.martin.ems.exception.CurrencyException;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.repository.OrderRepository;
+import jakarta.annotation.Nullable;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -34,7 +35,6 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-@Transactional
 @NeedCleanCoding
 public class OrderService extends BaseService<Order, OrderRepository> {
     public OrderService(OrderRepository orderRepository){
@@ -52,25 +52,8 @@ public class OrderService extends BaseService<Order, OrderRepository> {
     @Autowired
     private SftpSender sender;
 
-    @Override
-    public Order save(Order o){
-        if ((o.getCustomer() != null && o.getSupplier() == null) || (o.getCustomer() == null || o.getSupplier() != null)) {
-            return super.save(o);
-        }
-        else{
-            return null; //TODO
-        }
-    }
-
-    @Override
-    public Order update(Order o) {
-        if ((o.getCustomer() != null && o.getSupplier() == null) || (o.getCustomer() == null || o.getSupplier() != null)) {
-            return super.update(o);
-        }
-        else{
-            return null; //TODO
-        }
-    }
+    @Setter
+    public XDocReportRegistry registry;
 
     public List<Order> getOrdersBetween(LocalDate from, LocalDate to){
         LocalDateTime ldtFrom = LocalDateTime.of(from, LocalTime.of(0, 0, 0, 0));
@@ -81,32 +64,26 @@ public class OrderService extends BaseService<Order, OrderRepository> {
 
     public List<Order> getOrdersAt(LocalDate date){ return getOrdersBetween(date, date); }
 
-    protected static InputStream getTemplate(OrderDM order) {
+    public InputStream getTemplate(OrderDM order) {
         if (order.getTemplate() == null) {
             return getDefaultTemplate();
+//            return null;
         } else {
             return new ByteArrayInputStream(order.getTemplate());
         }
     }
 
+    @Nullable
     public static InputStream getDefaultTemplate() {
         return Order.class.getResourceAsStream("Empty.odt");
     }
 
-    public byte[] createDocumentAsPDF(Order o, OutputStream out) {
-        try {
-            return getOrderDocumentExport(o, out, "PDF");
-        } catch (IOException | XDocReportException e) {
-            throw new RuntimeException(e);
-        }
+    public byte[] createDocumentAsPDF(Order o, OutputStream out) throws IOException, XDocReportException {
+        return getOrderDocumentExport(o, out, "PDF");
     }
 
-    public byte[] createDocumentAsODT(Order o, OutputStream out) {
-        try {
-            return getOrderDocumentExport(o, out, "ODT");
-        } catch (IOException | XDocReportException e) {
-            throw new RuntimeException(e);
-        }
+    public byte[] createDocumentAsODT(Order o, OutputStream out) throws IOException, XDocReportException {
+        return getOrderDocumentExport(o, out, "ODT");
     }
 
     public boolean sendReportSFTPToAccountant(LocalDate from, LocalDate to){
@@ -149,10 +126,10 @@ public class OrderService extends BaseService<Order, OrderRepository> {
     }
 
 
-    private byte[] getOrderDocumentExport(Order o, OutputStream out, String fileType) throws IOException, XDocReportException { //TODO FileType can be enum
+
+    public byte[] getOrderDocumentExport(Order o, OutputStream out, String fileType) throws IOException, XDocReportException { //TODO FileType can be enum
         InputStream in = getTemplate(new OrderDM(o));
-        IXDocReport report = XDocReportRegistry.getRegistry().
-                loadReport(in, TemplateEngineKind.Freemarker);
+        IXDocReport report = registry.loadReport(in, TemplateEngineKind.Freemarker);
 
         FieldsMetadata metadata = report.createFieldsMetadata();
         metadata.load("r", OrderElementDM.class, true);
@@ -160,10 +137,18 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         OrderDM order = new OrderDM(o);
         String currency = o.getCurrency().getName();
         ctx.put("r", o.getOrderElements().stream().map(v -> {
-            Double unitNetPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getUnitNetPrice().doubleValue());
-            Double netPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getNetPrice().doubleValue());
-            Double tax = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getTaxPrice().doubleValue());
-            Double grossPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getGrossPrice().doubleValue());
+            Double unitNetPrice = null;
+            Double netPrice = null;
+            Double tax = null;
+            Double grossPrice = null;
+            try {
+                netPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getNetPrice().doubleValue());
+                tax = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getTaxPrice().doubleValue());
+                grossPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getGrossPrice().doubleValue());
+                unitNetPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getUnitNetPrice().doubleValue());
+            } catch (CurrencyException e) {
+                throw new RuntimeException(e);
+            }
             order.addToTotalGross(grossPrice);
             return new OrderElementDM(v).extend(unitNetPrice, netPrice, tax, grossPrice, currency);
         }).toList());

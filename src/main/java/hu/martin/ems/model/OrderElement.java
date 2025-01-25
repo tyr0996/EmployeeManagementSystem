@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NeedCleanCoding
+@EqualsAndHashCode
 public class OrderElement extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "product_product_id")

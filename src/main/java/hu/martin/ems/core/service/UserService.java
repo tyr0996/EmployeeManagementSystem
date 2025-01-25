@@ -5,12 +5,10 @@ import hu.martin.ems.core.model.User;
 import hu.martin.ems.core.repository.UserRepository;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
-@Transactional
 @NeedCleanCoding
 public class UserService extends BaseService<User, UserRepository> {
     public UserService(UserRepository repo) { super(repo); }

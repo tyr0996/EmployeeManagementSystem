@@ -5,7 +5,7 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
-import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.model.Role;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -61,6 +61,21 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         checkNoMoreNotificationsVisible();
     }
 
+    @Test
+    public void nullResponseWhenCreateRoleXPermissionFailedTest() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+        Mockito.doReturn(null).when(spyRoleService).update(Mockito.any(Role.class));
+        findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
+        Thread.sleep(100);
+        fillElementWith(findVisibleElementWithXpath(roleDropboxXpath), false, "");
+        fillElementWith(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath), false, "");
+        findClickableElementWithXpathWithWaiting(saveButtonXpath).click();
+        checkNotificationContainsTexts("Role pairing failed!");
+        checkNoMoreNotificationsVisible();
+    }
+
 //    @Test
 //    public void notExpectedStatusCodeWhileGettingPariedPermissionsTo() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleXPermissionApiClient).findAllPairedPermissionsTo(any(Role.class));
@@ -78,8 +93,8 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void notExpectedStatusCodeWhileGettingAllPermissions() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionApiClient).findAll();
+    public void nullReturnWhileGettingAllPermissions() throws InterruptedException {
+        Mockito.doReturn(null).when(spyPermissionService).findAll(false);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
@@ -91,9 +106,23 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         checkNoMoreNotificationsVisible();
     }
 
+//    @Test
+//    public void notExpectedStatusCodeWhileGettingAllPermissions() throws InterruptedException {
+//        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionApiClient).findAll();
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
+//        Thread.sleep(100);
+//        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), false);
+//        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(saveButtonXpath)), false);
+//        assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "Error happened while getting permissions");
+//        fillElementWith(findVisibleElementWithXpath(roleDropboxXpath), false, "");
+//        checkNoMoreNotificationsVisible();
+//    }
+
     @Test
-    public void notExpectedStatusCodeWhileGettingAllRoles() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findAll();
+    public void nullReturnWhileGettingAllRoles() throws InterruptedException {
+        Mockito.doReturn(null).when(spyRoleService).findAll(false);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
@@ -105,9 +134,9 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void notExpectedStatusCodeWhileGettingAllPermissionsAndRoles() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionApiClient).findAll();
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findAll();
+    public void nullResponseWhileGettingAllPermissionsAndRoles() throws InterruptedException {
+        Mockito.doReturn(null).when(spyPermissionService).findAll(false);
+        Mockito.doReturn(null).when(spyRoleService).findAll(false);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();

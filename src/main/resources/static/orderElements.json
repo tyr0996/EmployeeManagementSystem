@@ -194,6 +194,60 @@
       "netPrice": 900,
       "taxPrice": 27.0,
       "grossPrice": 1143
+    },
+    {
+      "deleted": 0,
+      "product_product_id": {
+        "refClass": "Product",
+        "filter": {
+          "name": "Product1"
+        }
+      },
+      "customer_customer_id": {
+        "refClass": "Customer",
+        "filter": {
+          "id": 1
+        }
+      },
+      "supplier_supplier_id": null,
+      "unit": 10,
+      "unitNetPrice": 10,
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "netPrice": 100,
+      "taxPrice": 27.0,
+      "grossPrice": 127
+    },
+    {
+      "deleted": 0,
+      "product_product_id": {
+        "refClass": "Product",
+        "filter": {
+          "name": "Product1"
+        }
+      },
+      "customer_customer_id": {
+        "refClass": "Customer",
+        "filter": {
+          "id": 1
+        }
+      },
+      "supplier_supplier_id": null,
+      "unit": 15,
+      "unitNetPrice": 10,
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "27"
+        }
+      },
+      "netPrice": 150,
+      "taxPrice": 27.0,
+      "grossPrice": 190
     }
   ]
 }

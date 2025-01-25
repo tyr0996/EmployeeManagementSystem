@@ -1,5 +1,6 @@
 package hu.martin.ems.controller;
 
+import fr.opensagres.xdocreport.core.XDocReportException;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.core.model.EmsResponse;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 
@@ -28,12 +30,28 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
 
     @PostMapping(path = "/createDocumentAsODT")
     public ResponseEntity<byte[]> createDocumentAsODT(@RequestBody Order order) {
-        return new ResponseEntity<>(service.createDocumentAsODT(order, new ByteArrayOutputStream()), HttpStatus.OK);
+        try{
+            return new ResponseEntity<>(service.createDocumentAsODT(order, new ByteArrayOutputStream()), HttpStatus.OK);
+        }
+        catch(IOException e){
+            return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        catch (XDocReportException e){
+            return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping(path = "/createDocumentAsPDF")
     public ResponseEntity<byte[]> createDocumentAsPDF(@RequestBody Order order) {
-        return new ResponseEntity<>(service.createDocumentAsPDF(order, new ByteArrayOutputStream()), HttpStatus.OK);
+        try{
+            return new ResponseEntity<>(service.createDocumentAsPDF(order, new ByteArrayOutputStream()), HttpStatus.OK);
+        }
+        catch(IOException e){
+            return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        catch (XDocReportException e){
+            return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping(path = "/generateHTMLEmail")

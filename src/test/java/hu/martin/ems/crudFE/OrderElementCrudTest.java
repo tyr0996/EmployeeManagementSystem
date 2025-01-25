@@ -5,7 +5,6 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.core.model.EmsResponse;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -113,7 +112,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
     @Test
     public void findAllOrderElementWithDeletedFailed() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderElementApiClient).findAllWithDeleted();
+        Mockito.doReturn(null).when(spyOrderElementService).findAll(true); //ApiClientben findAllWithDeleted();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkNotificationText("Error happened while getting order elements");
@@ -124,7 +123,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
     @Test
     public void findAllSuppliersFailed() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spySupplierApiClient).findAll();
+        Mockito.doReturn(null).when(spySupplierService).findAll(false);//Controllerben alapértelmezett
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -134,7 +133,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
     @Test
     public void findAllCustomersFailed() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCustomerApiClient).findAll();
+        Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben alapértelmezett
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -145,7 +144,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
     @Test
     public void findAllProductsFailed() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyProductApiClient).findAll();
+        Mockito.doReturn(null).when(spyProductService).findAll(false); //Controllerben alapértelmezett
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();

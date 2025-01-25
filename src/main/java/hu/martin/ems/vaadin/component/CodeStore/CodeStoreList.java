@@ -178,7 +178,6 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             default:
                 codeStores = null;
                 logger.error("CodeStore findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-
                 break;
         }
     }
@@ -298,20 +297,17 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             }
 
             switch (response.getCode()){
-                case 200: Notification.show("CodeStore " + (entity == null ? "saved: " : "updated: ") + ((CodeStore) response.getResponseData()).getName())
-                                      .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                break;
-                case 500:
-                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    createDialog.close();
-                    updateGridItems();
-                    return;
-                default:
-                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    logger.warn("Invalid status code in CodeStoreList: {}", response.getCode());
+                case 200:{
+                    Notification.show("CodeStore " + (entity == null ? "saved: " : "updated: ") + ((CodeStore) response.getResponseData()).getName())
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    break;
+                }
+                default: {
+                    Notification.show("CodeStore " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
                     break;
+                }
             }
 
             setupCodeStores();

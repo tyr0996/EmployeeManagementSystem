@@ -7,15 +7,15 @@ import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.core.config.StaticDatas;
-import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.Order;
 import org.mockito.Mockito;
 import org.openqa.selenium.WebElement;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
@@ -35,6 +35,8 @@ public class OrderCreateTest extends BaseCrudTest {
     public static final String orderCreateOrderButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-form-layout[2]/vaadin-button";
 
     public static final String previouslyOrderedCheckboxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
+
+    public static final SoftAssert softAssert = new SoftAssert();
 
     private static CrudTestingUtil crudTestingUtil;
     private static CrudTestingUtil orderElementCrudTestingUtil;
@@ -145,30 +147,30 @@ public class OrderCreateTest extends BaseCrudTest {
         else{
             assertEquals(originalOrderNumber, countVisibleGridDataRows(createOrderGridXpath));
         }
-
-
-        //TODO megcsinálni, hogy ha nincs kiválasztva, akkor legyen hibaüzenet hogy nem hozható létre.
     }
 
     @Test
-    public void apiSendInvalidStatusCodeWhenSaveOrder() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyOrderApiClient).save(any(Order.class));
+    public void nullResponseFromServiceWhenModify() throws InterruptedException {
+         Mockito.doReturn(null).when(spyOrderService).update(any(Order.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        createOrder("Not expected status-code in saving", false);
+        updateOrder("Order saving failed: Internal server error", false);
+//        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void apiSendInvalidStatusCodeWhenCreateOrder() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).save(any(Order.class));
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
+        Mockito.doReturn(null).when(spyOrderService).save(any(Order.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        createOrder("Not expected status-code in saving", false);
+        createOrder("Order saving failed: Internal server error", false);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
     public void gettingCustomersFailedTest() {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCustomerApiClient).findAll();
+        Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben opcionális paraméterként jön.
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkField(customerComboBoxXpath, "Error happened while getting customers");
@@ -177,7 +179,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
     @Test
     public void getOrderElementsByCustomerFailedTest() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderElementApiClient).getByCustomer(any(Customer.class));
+        Mockito.doReturn(null).when(spyOrderElementService).getByCustomer(any(Long.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         selectRandomFromComboBox(findVisibleElementWithXpath(customerComboBoxXpath));
@@ -188,7 +190,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
     @Test
     public void getPendingCodeStoreFailedTest() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getAllByName("Pending");
+        Mockito.doReturn(null).when(spyCodeStoreService).findByName("Pending"); //ApiClint-ben getAllByName("Pending");
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         createOrder("Error happened while getting \"Pending\" status", false);
@@ -196,7 +198,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
     @Test
     public void getPaymentTypesFailedTest(){
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID);
+        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkField(paymentMethodComboBoxXpath, "Error happened while getting payment methods");
@@ -205,7 +207,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
     @Test
     public void getCurrencyTypesFailedTest(){
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
+        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkField(currencyComboBoxXpath, "Error happened while getting currencies");
@@ -271,14 +273,290 @@ public class OrderCreateTest extends BaseCrudTest {
 
     @Test
     public void getOrderElementsByOrderIdFailedWhenSaveOrder() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).save(any(Order.class));
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).getOrderElements(any(Long.class));
-        createOrder("Not expected status-code in saving", false);
+        Mockito.doReturn(null).when(spyOrderService).save(any(Order.class));
+//        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).save(any(Order.class));
+//        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).getOrderElements(any(Long.class));
+        createOrder("Order saving failed: Internal server error", false);
+    }
+
+    @Test
+    public void noneSelectedFromTheOrderCreationGrid() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        init();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        Thread.sleep(100);
+
+        int originalOrderNumber = countVisibleGridDataRows(createOrderGridXpath);
+
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(100);
+
+        WebElement customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
+        String customerName = selectRandomFromComboBox(customerComboBox);
+        int originalOrderElements = countVisibleGridDataRows(createOrderGridXpath);
+
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        Thread.sleep(100);
+
+        findVisibleElementWithXpath(orderElementGridXpath);
+        LinkedHashMap<String, String> sameUser = new LinkedHashMap<>();
+
+        String[] orderElementGridCustomerFilter = new String[]{"", "", "null", "", "", "", "", customerName};
+        sameUser.put("Customer", customerName);
+        sameUser.put("Supplier", "");
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+
+        applyFilter(orderElementGridXpath, orderElementGridCustomerFilter);
+        orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
+        orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
+        resetFilter(orderElementGridXpath);
+
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(100);
+
+        customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
+
+        selectElementByTextFromComboBox(customerComboBox, customerName);
+        //selectRandomFromComboBox(customerComboBox);
+        Thread.sleep(200);
+        findVisibleElementWithXpath(createOrderGridXpath);
+        assertEquals(countVisibleGridDataRows(createOrderGridXpath), originalOrderElements + 3);
+
+        selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath, 0);
+        selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
+        selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
+
+        findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
+        checkNotificationText("Order must contains at least one order element!");
+
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        Thread.sleep(100);
+        assertEquals(originalOrderNumber, countVisibleGridDataRows(createOrderGridXpath));
+    }
+
+    @Test
+    public void databaseUnavailableWhenGettingAllByCustomer() throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        init();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        Thread.sleep(100);
+
+        int originalOrderNumber = countVisibleGridDataRows(createOrderGridXpath);
+
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(100);
+
+        WebElement customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
+        String customerName = selectRandomFromComboBox(customerComboBox);
+        int originalOrderElements = countVisibleGridDataRows(createOrderGridXpath);
+
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        Thread.sleep(100);
+
+        findVisibleElementWithXpath(orderElementGridXpath);
+        LinkedHashMap<String, String> sameUser = new LinkedHashMap<>();
+
+        String[] orderElementGridCustomerFilter = new String[]{"", "", "null", "", "", "", "", customerName};
+        sameUser.put("Customer", customerName);
+        sameUser.put("Supplier", "");
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+
+        applyFilter(orderElementGridXpath, orderElementGridCustomerFilter);
+        orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
+        orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
+        resetFilter(orderElementGridXpath);
+
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(100);
+
+        customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
+
+        mockDatabaseNotAvailable(spyDataSource, 0);
+
+        selectElementByTextFromComboBox(customerComboBox, customerName);
+        //selectRandomFromComboBox(customerComboBox);
+        Thread.sleep(200);
+        findVisibleElementWithXpath(createOrderGridXpath);
+        assertEquals(countVisibleGridDataRows(createOrderGridXpath), 0);
+
+        selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath, 2);
+        selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
+        selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
+
+        findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
+        checkNotificationText("Error happened while getting order elements to the customer");
+
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        Thread.sleep(100);
+        assertEquals(originalOrderNumber, countVisibleGridDataRows(createOrderGridXpath));
+    }
+
+    @Test
+    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        init();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        Thread.sleep(100);
+
+        int originalOrderNumber = countVisibleGridDataRows(createOrderGridXpath);
+
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(100);
+
+        WebElement customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
+        String customerName = selectRandomFromComboBox(customerComboBox);
+        int originalOrderElements = countVisibleGridDataRows(createOrderGridXpath);
+
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        Thread.sleep(100);
+
+        findVisibleElementWithXpath(orderElementGridXpath);
+        LinkedHashMap<String, String> sameUser = new LinkedHashMap<>();
+
+        String[] orderElementGridCustomerFilter = new String[]{"", "", "null", "", "", "", "", customerName};
+        sameUser.put("Customer", customerName);
+        sameUser.put("Supplier", "");
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+        orderElementCrudTestingUtil.createTest(sameUser, "", true);
+
+        applyFilter(orderElementGridXpath, orderElementGridCustomerFilter);
+        orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
+        orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
+        resetFilter(orderElementGridXpath);
+
+        navigateMenu(mainMenu, subMenu);
+        Thread.sleep(100);
+
+        customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
+        selectElementByTextFromComboBox(customerComboBox, customerName);
+        //selectRandomFromComboBox(customerComboBox);
+        Thread.sleep(200);
+        findVisibleElementWithXpath(createOrderGridXpath);
+        assertEquals(originalOrderElements + 3, countVisibleGridDataRows(createOrderGridXpath));
+
+        selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath, 2);
+        selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
+        selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
+
+
+        mockDatabaseNotAvailable(spyDataSource, 1);
+
+        findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
+        checkNotificationText("Order saving failed: Internal server error");
+
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        Thread.sleep(100);
+        assertEquals(originalOrderNumber, countVisibleGridDataRows(createOrderGridXpath));
+    }
+
+    @Test
+    public void moreThanOneOrderExistsForCustomerEditOne() throws InterruptedException {
+        init();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
+        Thread.sleep(100);
+
+        int originalOrderNumber = countVisibleGridDataRows(createOrderGridXpath);
+
+        for(int i = 0; i < 2; i++){
+            navigateMenu(mainMenu, subMenu);
+            Thread.sleep(100);
+
+            WebElement customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
+            String customerName = selectRandomFromComboBox(customerComboBox);
+            int originalOrderElements = countVisibleGridDataRows(createOrderGridXpath);
+
+            navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+            Thread.sleep(100);
+            findVisibleElementWithXpath(orderElementGridXpath);
+            LinkedHashMap<String, String> sameUser = new LinkedHashMap<>();
+
+            String[] orderElementGridCustomerFilter = new String[]{"", "", "null", "", "", "", "", customerName};
+            sameUser.put("Customer", customerName);
+            sameUser.put("Supplier", "");
+
+            orderElementCrudTestingUtil.createTest(sameUser, "", true);
+            orderElementCrudTestingUtil.createTest(sameUser, "", true);
+            orderElementCrudTestingUtil.createTest(sameUser, "", true);
+            orderElementCrudTestingUtil.createTest(sameUser, "", true);
+            orderElementCrudTestingUtil.createTest(sameUser, "", true);
+
+            applyFilter(orderElementGridXpath, orderElementGridCustomerFilter);
+            orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
+            orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
+            resetFilter(orderElementGridXpath);
+
+            navigateMenu(mainMenu, subMenu);
+            Thread.sleep(100);
+
+            customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
+            selectElementByTextFromComboBox(customerComboBox, customerName);
+            //selectRandomFromComboBox(customerComboBox);
+            Thread.sleep(200);
+            findVisibleElementWithXpath(createOrderGridXpath);
+            assertEquals(originalOrderElements + 3, countVisibleGridDataRows(createOrderGridXpath)); //TODO valamiért ez mindig 0-ra jön ki éles futáskor.
+
+            selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath, 2);
+            selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
+            selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
+
+            findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
+            checkNotificationContainsTexts("Order saved:");
+        }
+//        assertEquals(countVisibleGridDataRows(createOrderGridXpath), originalOrderNumber + 2);
+        updateOrder();
+
     }
 
 
+    @Test
+    public void noCustomerSelectedButShowPreviouslyEnabledThanGridWillBeIsEmpty() throws InterruptedException {
+        init();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_CREATE_SUBMENU);
+        Thread.sleep(100);
+        assertEquals(countVisibleGridDataRows(orderElementGridXpath), 0);
+        setCheckboxStatus(previouslyOrderedCheckboxXpath, true);
+        assertEquals(countVisibleGridDataRows(orderElementGridXpath), 0);
+    }
+
+    @Test
+    public void deselectShowPreviouslyChangesGridSelectionMode() throws InterruptedException {
+        init();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_CREATE_SUBMENU);
+        Thread.sleep(100);
+        assertEquals(countVisibleGridDataRows(orderElementGridXpath), 0);
+
+        WebElement customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
+        int originalOrderElements = countVisibleGridDataRows(createOrderGridXpath);
+        selectRandomFromComboBox(customerComboBox);
+
+        setCheckboxStatus(previouslyOrderedCheckboxXpath, true);
+        softAssert.assertEquals(isInMultiSelectMode(createOrderGridXpath), true);
+        setCheckboxStatus(previouslyOrderedCheckboxXpath, false);
+        softAssert.assertEquals(isInMultiSelectMode(createOrderGridXpath), false);
+    }
+
     private void checkField(String fieldXpath, String errorMessage){
-        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(fieldXpath)), false);
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(fieldXpath)), false, "A megadott mező enabled, pedig disabled kell: " + findVisibleElementWithXpath(fieldXpath).getText());
         assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(orderCreateOrderButtonXpath)), false);
         assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(fieldXpath)), errorMessage);
     }

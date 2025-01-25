@@ -22,52 +22,94 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
         this.service = service;
     }
 
-    @GetMapping(path = "/findAll", produces = StaticDatas.Produces.JSON)
+//    @GetMapping(path = "/findAll", produces = StaticDatas.Produces.JSON)
+    @RequestMapping(path = "/findAll", method = RequestMethod.GET)
     public ResponseEntity<String> findAll(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) {
         List<T> allElements = service.findAll(withDeleted);
-        return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
+        if(allElements != null){
+            return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping(path = "/findAllWithGraph", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> findAllWithGraph(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) {
         List<T> allElements = service.findAllWithGraph(withDeleted);
-        return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
+        if(allElements != null){
+            return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
     @GetMapping(path = "/findAllByIds", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> findAll(@RequestParam(required = false, defaultValue = "false") List<Long> ids) {
+    public ResponseEntity<String> findAllByIds(@RequestParam(required = false, defaultValue = "false") List<Long> ids) {
         List<T> allElements = service.findAllByIds(ids);
-        return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
+        if(allElements != null){
+            return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping(path = "/restore", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> restore(@RequestBody T entity) {
-        service.restore(entity);
-        return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
+        T restoredEntity = service.restore(entity);
+        if(restoredEntity != null){
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping(path = "/delete", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> delete(@RequestBody T entity) {
-        service.delete(entity);
-        return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
+        T deleted = service.delete(entity);
+        if(deleted != null){
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping(path = "/permanentlyDelete", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> permanentlyDelete(@RequestParam(value = "id") Long entityId) {
-        service.permanentlyDelete(entityId);
-        return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
+        T permanentlyDeleted = service.permanentlyDelete(entityId);
+        if(permanentlyDeleted != null){
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping(path = "/save", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> save(@RequestBody T entity) {
-        return new ResponseEntity<>(gson.toJson(service.save(entity)), HttpStatus.OK);
+        T saved = service.save(entity);
+        if(entity != null){
+            return new ResponseEntity<>(gson.toJson(saved), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping(path = "/update", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> update(@RequestBody T entity) {
         T e = service.update(entity);
-        return new ResponseEntity<>(gson.toJson(e), HttpStatus.OK);
+        if(e != null){
+            return new ResponseEntity<>(gson.toJson(e), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping(path = "/clearDatabaseTable", produces = StaticDatas.Produces.JSON)

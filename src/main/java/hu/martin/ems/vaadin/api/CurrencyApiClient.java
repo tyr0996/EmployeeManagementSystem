@@ -10,8 +10,8 @@ import java.time.LocalDate;
 
 @Component
 @NeedCleanCoding
-public class CurrencyApi extends EmsApiClient<Currency>{
-    public CurrencyApi() {
+public class CurrencyApiClient extends EmsApiClient<Currency>{
+    public CurrencyApiClient() {
         super(Currency.class);
     }
 
@@ -23,7 +23,10 @@ public class CurrencyApi extends EmsApiClient<Currency>{
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return gson.fromJson(response, EmsResponse.class);
+            if(response != null && !response.equals("null")){
+                return new EmsResponse(200, response, "");
+            }
+            return new EmsResponse(500, "Internal server error");
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
@@ -38,8 +41,14 @@ public class CurrencyApi extends EmsApiClient<Currency>{
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-
-        return new EmsResponse(200, gson.fromJson(response, Currency.class), "");
-
+        if(response != null && !response.equals("null")){
+            return new EmsResponse(200, gson.fromJson(response, Currency.class), "");
+        }
+        else if(response.equals("null")){
+            return new EmsResponse(200, null);
+        }
+        else{
+            return new EmsResponse(500, "Error happened while getting currencies by date: Internal server error");
+        }
     }
 }

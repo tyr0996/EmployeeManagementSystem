@@ -300,7 +300,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
                 addresses = (List<Address>) response.getResponseData();
                 break;
             default:
-                Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                Notification.show("Refresh grid failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                 addresses = new ArrayList<>();
                 break;
         }
@@ -349,16 +349,12 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
                     Notification.show("Address " + (entity == null ? "saved: " : "updated: ") + address.getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
-                case 500:
-                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                default: {
+                    Notification.show("Address " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
                     break;
-                default:
-                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    logger.warn("Invalid status code in AddressList: {}", response.getCode());
-                    createDialog.close();
-                    break;
+                }
             }
 
             countryCodes.setValue(null);

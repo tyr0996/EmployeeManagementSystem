@@ -61,7 +61,6 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     private List<RoleVO> roleVOS;
 
     private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
-//    private final RoleXPermissionApiClient roleXPermissionApi = BeanProvider.getBean(RoleXPermissionApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
 
     private static String roleFilterText = "";
@@ -88,13 +87,6 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
 
     private void createRoleXPermissionGrid(){
         setRoles();
-//        if(roles != null){
-//            List<Role> failed = roles.stream().filter(v -> v.getPermissions() == null).collect(Collectors.toList());
-//            if(failed.size() != 0){
-//                roles = null;
-//                System.out.println("most");
-//            }
-//        }
 
         this.grid = new PaginatedGrid<>(RoleVO.class);
         grid.addClassName("styling");
@@ -211,133 +203,13 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 break;
             }
-            case 500: {
-                Notification.show("Role " + (editableRole == null ? "saving " : "modifying ") + "failed")
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                break;
-            }
             default: {
-                Notification.show("Not expected status-code in " + (editableRole == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                logger.warn("Invalid status code in AddressList: {}", resp.getCode());
+                Notification.show("Role " + (editableRole == null ? "saving " : "modifying ") + "failed: " + resp.getDescription())
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
             }
         }
-
-
-
-//        Role originalRole = null;
-//        List<Permission> originalPermissions = null;
-//
-//        if(editableRole != null){
-//            originalRole = editableRole;
-////            originalPermissions = roleXPermissionApi.findAllPairedPermissionsTo(editableRole);
-//            originalPermissions = getAllPairedPermissionsTo(editableRole);
-//            if(originalPermissions == null){
-//                Notification.show("Error happened while getting permissions to role")
-//                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                return;
-//            }
-//        }
-//
-//        List<Role> savedRoles = new ArrayList<>();
-//        List<Permission> savedPermissions = new ArrayList<>();
-//        List<RoleXPermission> savedRoleXPermissions = new ArrayList<>();
-//
-//        Role role = null;
-//        if(editableRole == null){
-//            role = new Role();
-//        }
-//        else{
-//            role = new Role();
-//            role.setDeleted(editableRole.getDeleted());
-//            role.setName(editableRole.getName());
-//            role.id = editableRole.getId();
-//        }
-//        role.setName(nameField.getValue());
-//        role.setDeleted(0L);
-//        EmsResponse response = null;
-//
-//        if(editableRole != null){
-//            response = roleApi.update(role);
-//        }
-//        else{
-//            response = roleApi.save(role);
-//        }
-//        switch (response.getCode()){
-//            case 200:
-//                role = (Role) response.getResponseData();
-//                break;
-//            case 500:
-//                Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                createOrModifyDialog.close();
-//                updateGridItems();
-//                return;
-//            default:
-//                Notification.show("Not expected status-code in " + (editableRole == null ? "saving" : "modifying")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-//                logger.warn("Invalid status code in RoleList: {}", response.getCode());
-//                createOrModifyDialog.close();
-//
-//                updateGridItems();
-//                return;
-//        }
-//        roleXPermissionApi.removeAllPermissionsFrom(role);
-//        for(Permission p : permissions.getSelectedItems()){
-//            RoleXPermission rxp = new RoleXPermission(role, p);
-//            rxp.setDeleted(0L);
-//            EmsResponse responseRoleXPermission = roleXPermissionApi.save(rxp);
-//            switch (responseRoleXPermission.getCode()){
-//                case 200:
-//                    savedRoleXPermissions.add((RoleXPermission) responseRoleXPermission.getResponseData());
-//                    break;
-//                case 500:
-//                    Notification.show(responseRoleXPermission.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                    createOrModifyDialog.close();
-//                    if(editableRole == null){
-//                        undoSave(role);
-//                    }
-//                    else{
-//                        undoUpdate(originalRole, originalPermissions);
-//                    }
-//
-//                    updateGridItems();
-//                    return;
-//                default:
-//                    Notification.show("Not expected status-code in " + (editableRole == null ? "saving permission to role" : "modifying permission to role")).addThemeVariants(NotificationVariant.LUMO_WARNING);
-//                    logger.warn("Invalid status code in RoleList, RoleXPermission saving: {}", responseRoleXPermission.getCode());
-//                    createOrModifyDialog.close();
-//                    if(editableRole == null){
-//                        undoSave(role);
-//                    }
-//                    else{
-//                        undoUpdate(originalRole, originalPermissions);
-//                    }
-//
-//                    updateGridItems();
-//                    return;
-//            }
-//        }
-//
-//
-//        GroupedRoleXPermission grxp =  new GroupedRoleXPermission(role, permissions.getSelectedItems().stream().toList());
-//
-//
-//        updateGridItems();
-//        Notification.show("Role " + (editableRole == null ? "saved: " : "updated: ") + grxp.getName())
-//                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-
     }
-
-//    private List<RoleXPermission> getAlRoleXPermissionByRole(Role r) {
-//
-//        EmsResponse response = roleXPermissionApi.findAlRoleXPermissionByRole(r);
-//        switch (response.getCode()){
-//            case 200:
-//                return (List<RoleXPermission>) response.getResponseData();
-//            default:
-//                logger.error("RoleXPermission findAlRoleXPermissionByRoleError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-//                return null;
-//        }
-//    }
 
     private void setFilteringHeaderRow(){
         TextField roleFilter = new TextField();
@@ -384,7 +256,6 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             updateGridItems();
         });
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(roleColumn).setComponent(filterField(roleFilter, "Role"));
         filterRow.getCell(permissionsColumn).setComponent(filterField(permissionsFilter, "Permissions"));
@@ -424,56 +295,22 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
                 editableRole = roleVO.original;
                 generateSaveOrUpdateDialog();
                 createOrModifyDialog.open();
-//                setRoles();
-//                updateGridItems();
             });
 
             restoreButton.addClickListener(event -> {
                 roleApi.restore(roleVO.original);
                 setRoles();
                 updateGridItems();
-//                List<RoleXPermission> rxps = getAlRoleXPermissionByRole(roleVO.original.role);
-//                if(rxps == null){
-//                    Notification.show("Role restore failed")
-//                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                    roleVO.original.role.setDeleted(0L);
-//                    roleApi.delete(roleVO.original.role);
-//                    setRoles();
-//                    updateGridItems();
-//                }
-//                else{
-//                    for(RoleXPermission rxp : rxps){
-//                        roleXPermissionApi.restore(rxp);
-//                    }
-                    Notification.show("Role restored: " + roleVO.role)
-                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-//                    setRoles();
-//                    updateGridItems();
-//                }
+                Notification.show("Role restored: " + roleVO.role)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             });
 
             deleteButton.addClickListener(event -> {
                 roleApi.delete(roleVO.original);
                 setRoles();
                 updateGridItems();
-//                List<RoleXPermission> rxps = getAlRoleXPermissionByRole(roleVO.original.role);
-//                if(rxps == null){
-//                    Notification.show("Role-permission pair deleting failed")
-//                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                    roleVO.original.role.setDeleted(1L);
-//                    roleApi.restore(roleVO.original.role);
-//                    setRoles();
-//                    updateGridItems();
-//                }
-//                else{
-//                    for(RoleXPermission rxp : rxps){
-//                        roleXPermissionApi.delete(rxp);
-//                    }
-                    Notification.show("Role deleted: " + roleVO.role)
-                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-//                    setRoles();
-//                    updateGridItems();
-//                }
+                Notification.show("Role deleted: " + roleVO.role)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             });
 
             permanentDeleteButton.addClickListener(event -> {
@@ -517,29 +354,26 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
 
     private void setRoles(){
         List<Role> roles;
+        EmsResponse response;
         if(showDeleted) {
-            roles = (List<Role>) roleApi.findAllWithGraphWithDeleted().getResponseData();
+            response = roleApi.findAllWithGraphWithDeleted();
         }
         else{
-            roles = (List<Role>) roleApi.findAllWithGraph().getResponseData();
+            response = roleApi.findAllWithGraph();
+        }
+        switch (response.getCode()){
+            case 200 : {
+                roles = (List<Role>) response.getResponseData();
+                break;
+            }
+            default : {
+                Notification.show("Error happened while getting roles").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                this.roles = null;
+                return;
+            }
         }
         this.roles.clear();
         this.roles.addAll(roles);
-//        List<RoleXPermission> rxps = getAllWithUnused();
-//        if(rxps != null){
-//            Map<Role, List<Permission>> gridData = new HashMap<>();
-//            for (RoleXPermission rxp : rxps) {
-//                Role role = rxp.getRole();
-//                addRoleIfNotExists(gridData, role);
-//            }
-//            this.roles.clear();
-//            gridData.forEach((role, permissionList) -> {
-//                this.roles.add(new GroupedRoleXPermission(role, permissionList));
-//            });
-//        }
-//        else{
-//            this.roles = null;
-//        }
     }
 
     protected class RoleVO extends BaseVO {
@@ -552,8 +386,6 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         public RoleVO(Role original){
             super(original.getId(), original.getDeleted());
             this.original = original;
-//            this.id = original.getId();
-//            this.deleted = original.getDeleted();
             this.role = original.getName();
             this.permissions = original.getPermissions().stream()
                     .filter(Objects::nonNull)
@@ -562,35 +394,4 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             this.permissionSet = original.getPermissions();
         }
     }
-//
-//
-//    @AllArgsConstructor
-//    protected class GroupedRoleXPermission {
-//
-//        @NotNull
-//        private Role role;
-//
-//        @NotNull
-//        private List<Permission> permissions;
-//
-//        private String getName(){
-//            return this.role.getName();
-//        }
-//
-//        private Long getDeleted(){
-//            return this.role.getDeleted();
-//        }
-//
-//        private Long getId(){
-//            return this.role.getId();
-//        }
-//
-//        public String permissionsAsString() {
-//            return null;
-//        }
-//
-//        public String roleAsString() {
-//            return role.getName();
-//        }
-//    }
 }

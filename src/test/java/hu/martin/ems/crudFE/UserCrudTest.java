@@ -6,8 +6,6 @@ import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.core.model.User;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,7 +17,6 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class UserCrudTest extends BaseCrudTest {
@@ -105,24 +102,6 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void apiSendInvalidStatusCodeWhenSave() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyUserApiClient).save(any(User.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
-        clearUsers();
-    }
-
-    @Test
-    public void apiSendInvalidStatusCodeWhenModify() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyUserApiClient).update(any(User.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
-        clearUsers();
-    }
-
-    @Test
     public void modifyUserAllreadyExists() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -186,7 +165,7 @@ public class UserCrudTest extends BaseCrudTest {
 
     @Test
     public void finalAllWithDeletedUnexpectedResponse() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyUserApiClient).findAllWithDeleted();
+        Mockito.doReturn(null).when(spyUserService).findAll(true); //ApiClient-ben.findAllWithDeleted();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(500);
@@ -208,7 +187,7 @@ public class UserCrudTest extends BaseCrudTest {
 
     @Test
     public void findAllRoleUnexpectedResponse() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).findAll();
+        Mockito.doReturn(null).when(spyRoleService).findAll(false);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(500);

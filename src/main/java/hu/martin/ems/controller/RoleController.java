@@ -22,7 +22,13 @@ public class RoleController extends BaseController<Role, RoleService, RoleReposi
 
     @GetMapping(path = "/findByName")
     public ResponseEntity<String> findByName(@RequestParam String name) throws JsonProcessingException {
-        return new ResponseEntity<>(gson.toJson(this.service.findByName(name)), HttpStatus.OK);
+        Role r = this.service.findByName(name);
+        if(r != null){
+            return new ResponseEntity<>(gson.toJson(r), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
 

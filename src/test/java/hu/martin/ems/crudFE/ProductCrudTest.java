@@ -7,7 +7,6 @@ import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
 import hu.martin.ems.core.config.StaticDatas;
-import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Product;
 import org.mockito.Mockito;
 import org.openqa.selenium.By;
@@ -23,6 +22,7 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -130,23 +130,41 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
 
+//    @Test(enabled = false)
+//    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.createNotExpectedStatusCodeSave(spyProductApiClient, Product.class);
+//    }
+//
+//    @Test(enabled = false)
+//    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.updateNotExpectedStatusCode(spyProductApiClient, Product.class);
+//    }
+
     @Test
-    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+    public void nullResponseFromServiceWhenModify() throws InterruptedException {
+        Mockito.doReturn(null).when(spyProductService).update(any(Product.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createNotExpectedStatusCodeSave(spyProductApiClient, Product.class);
+        crudTestingUtil.updateTest(null, "Internal server error", false);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
+        Mockito.doReturn(null).when(spyProductService).save(any(Product.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateNotExpectedStatusCode(spyProductApiClient, Product.class);
+        crudTestingUtil.createTest(null, "Product saving failed: Internal server error", false);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void unexpectedResponseCodeWhenGettingAllCustomers() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCustomerApiClient).findAll();
+    public void nullReturnWhenGettingAllCustomers() throws InterruptedException {
+        Mockito.doReturn(null).when(spyCustomerService).findAll(false);
         LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
         failedData.put("Customer", "Error happened while getting customers");
 
@@ -166,8 +184,8 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void unexpectedResponseCodeWhenGettingAllSuppliers() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spySupplierApiClient).findAll();
+    public void nullResponseWhenGettingAllSuppliers() throws InterruptedException {
+        Mockito.doReturn(null).when(spySupplierService).findAll(false);
         LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
         failedData.put("Supplier", "Error happened while getting suppliers");
 
@@ -187,8 +205,8 @@ public class ProductCrudTest extends BaseCrudTest {
 
     @Test
     public void unexpectedResponseCodeWhenGettingAllProducts() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyProductApiClient).findAll();
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyProductApiClient).findAllWithDeleted();
+        Mockito.doReturn(null).when(spyProductService).findAll(any(Boolean.class));
+//        Mockito.doReturn(new EmsResponse(522, "")).when(spyProductApiClient).findAllWithDeleted();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
@@ -199,7 +217,7 @@ public class ProductCrudTest extends BaseCrudTest {
 
     @Test
     public void unexpectedResponseCodeWhenGettingCurrenciesNames() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
+        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -211,7 +229,7 @@ public class ProductCrudTest extends BaseCrudTest {
 
     @Test
     public void unexpectedResponseCodeWhenGettingTaxKeys() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.TAXKEYS_CODESTORE_ID);
+        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.TAXKEYS_CODESTORE_ID);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -222,7 +240,7 @@ public class ProductCrudTest extends BaseCrudTest {
 
     @Test
     public void unexpectedResponseCodeWhenGettingAmountUnits() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID);
+        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();

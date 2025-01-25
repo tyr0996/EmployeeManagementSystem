@@ -3,7 +3,6 @@ package hu.martin.ems.vaadin.api;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Order;
-import hu.martin.ems.model.OrderElement;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -76,25 +75,6 @@ public class OrderApiClient extends EmsApiClient<Order> {
             return new EmsResponse(200, response);
         }
         catch (WebClientResponseException ex) {
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
-        }
-    }
-
-    public EmsResponse getOrderElements(Long id) {
-        initWebClient();
-        try{
-            String jsonResponse = webClient.mutate().codecs(
-                            configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
-                .build()
-                .get()
-                .uri("getOrderElements?orderId={id}", id)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-            return new EmsResponse(200, convertResponseToEntityList(jsonResponse, OrderElement.class), "");
-        }
-            catch (WebClientResponseException ex){
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }

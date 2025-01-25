@@ -5,7 +5,6 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.core.config.StaticDatas;
-import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.City;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -18,6 +17,7 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
+import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class CityCrudTest extends BaseCrudTest {
@@ -97,25 +97,56 @@ public class CityCrudTest extends BaseCrudTest {
 //    }
 
 
+//    @Test(enabled = false)
+//    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.createNotExpectedStatusCodeSave(spyCityApiClient, City.class);
+//        checkNoMoreNotificationsVisible();
+//    }
+//
+//    @Test(enabled = false)
+//    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.updateNotExpectedStatusCode(spyCityApiClient, City.class);
+//        checkNoMoreNotificationsVisible();
+//    }
+
     @Test
-    public void unexpcetedResponseCodeCreate() throws InterruptedException {
+    public void nullResponseFromServiceWhenModify() throws InterruptedException {
+        Mockito.doReturn(null).when(spyCityService).update(any(City.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createNotExpectedStatusCodeSave(spyCityApiClient, City.class);
+        crudTestingUtil.updateTest(null, "Internal server error", false);
         checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
+        Mockito.doReturn(null).when(spyCityService).save(any(City.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateNotExpectedStatusCode(spyCityApiClient, City.class);
+        crudTestingUtil.createTest(null, "City saving failed", false);
         checkNoMoreNotificationsVisible();
     }
+
+//    @Test
+//    public void gettingCountriesFailed() throws InterruptedException {
+//        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+//        failedFieldData.put("Country code", "Error happened while getting countries");
+//        Thread.sleep(100);
+//
+//        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+//        checkNoMoreNotificationsVisible();
+//    }
 
     @Test
     public void gettingCountriesFailed() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
+        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -126,9 +157,18 @@ public class CityCrudTest extends BaseCrudTest {
         checkNoMoreNotificationsVisible();
     }
 
+//    @Test
+//    public void gettingCitiesFailed() {
+//        Mockito.doReturn(new EmsResponse(522, "")).when(spyCityApiClient).findAllWithDeleted();
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        checkNotificationText("Getting cities failed");
+//        checkNoMoreNotificationsVisible();
+//    }
+
     @Test
     public void gettingCitiesFailed() {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyCityApiClient).findAllWithDeleted();
+        Mockito.doReturn(null).when(spyCityService).findAll(true); //ApiClient-ben findAllWithDeleted
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkNotificationText("Getting cities failed");

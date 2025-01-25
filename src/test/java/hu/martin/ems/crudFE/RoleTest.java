@@ -6,7 +6,6 @@ import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Role;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -14,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.LinkedHashMap;
@@ -111,23 +111,43 @@ public class RoleTest extends BaseCrudTest {
     }
 
 
+//    @Test(enabled = false)
+//    public void apiSendInvalidStatusCodeWhenSave() throws InterruptedException {
+//        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).save(any(Role.class));
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
+//        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
+//        checkNoMoreNotificationsVisible();
+//    }
+//
+//    @Test(enabled = false)
+//    public void apiSendInvalidStatusCodeWhenModify() throws InterruptedException {
+//        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).update(any(Role.class));
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        navigateMenu(mainMenu, subMenu);
+//        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
+//        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
+//        checkNoMoreNotificationsVisible();
+//    }
+
     @Test
-    public void apiSendInvalidStatusCodeWhenSave() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).save(any(Role.class));
+    public void nullResponseFromServiceWhenModify() throws InterruptedException {
+        Mockito.doReturn(null).when(spyRoleService).update(any(Role.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
+        crudTestingUtil.updateTest(null, "Role modifying failed: Internal server error", false);
         checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void apiSendInvalidStatusCodeWhenModify() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).update(any(Role.class));
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
+        Mockito.doReturn(null).when(spyRoleService).save(any(Role.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
+        crudTestingUtil.createTest(null, "Role saving failed: Internal server error", false);
         checkNoMoreNotificationsVisible();
     }
 
@@ -165,8 +185,8 @@ public class RoleTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void sendInvalidStatusCodeWhenGettingPermissionsOnCreate() throws InterruptedException {
-        Mockito.doCallRealMethod().doReturn(new EmsResponse(522, "")).when(spyPermissionApiClient).findAll();
+    public void nullReturnWhenGettingPermissionsOnCreate() throws InterruptedException {
+        Mockito.doCallRealMethod().doReturn(null).when(spyPermissionService).findAll(false);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
@@ -177,73 +197,10 @@ public class RoleTest extends BaseCrudTest {
         crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
         checkNoMoreNotificationsVisible();
     }
-//
-//    @Test
-//    public void sendInvalidStatusCodeWhenGettingAlRoleXPermissionByRole() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(500);
-//        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-//        failedFieldData.put("Permission", "Error happened while getting paired permissions to role");
-//
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleXPermissionApiClient).findAllPairedPermissionsTo(any(Role.class));
-//        crudTestingUtil.updateUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
-//        checkNoMoreNotificationsVisible();
-//    }
-
-//    @Test
-//    public void sendInvalidStatusCodeWhenFindAlRoleXPermissionByRole() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(500);
-//        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).save(any(RoleXPermission.class));
-////        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).findAllPairedPermissionsTo(any(Role.class));
-//        crudTestingUtil.createTest(null, "Not expected status-code in saving permission to role", false);
-//        checkNoMoreNotificationsVisible();
-//    }
-
-//    @Test
-//    public void sendInvalidStatusCodeWhenGettingAlRoleXPermissionByRoleAfterSaving() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(500);
-//        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).save(any(RoleXPermission.class));
-//        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).findAlRoleXPermissionByRole(any(Role.class));
-//
-//        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
-//        checkNoMoreNotificationsVisible();
-//        //checkNotificationText("Error happened while getting role-permission pairs to role");
-//    }
-//
-//    @Test
-//    public void sendInvalidStatusCodeWhenRestoreRoleXPermissions() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(500);
-//        Mockito.doCallRealMethod().doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).findAlRoleXPermissionByRole(any(Role.class));
-//
-//        crudTestingUtil.restoreTest("Role restore failed", false);
-//        checkNoMoreNotificationsVisible();
-//    }
-//
-//    @Test
-//    public void sendInvalidStatusCodeWhenFindPermissionsToRoleWhenTryUpdate() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(1000);
-//        Mockito.doCallRealMethod().doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).findAllPairedPermissionsTo(any(Role.class));
-//        crudTestingUtil.updateTest(null, "Error happened while getting permissions to role", false);
-//        checkNoMoreNotificationsVisible();
-//    }
 
     @Test
-    public void sendInvalidStatusCodeWhenGettingAllPermissionForFilterHeaderRow() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyPermissionApiClient).findAll();
+    public void nullResponseWhenGettingAllPermissionForFilterHeaderRow() throws InterruptedException {
+        Mockito.doReturn(null).doCallRealMethod().when(spyPermissionService).findAll(false);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
@@ -254,34 +211,34 @@ public class RoleTest extends BaseCrudTest {
         checkNoMoreNotificationsVisible();
     }
 
-//    @Test
-//    public void sendInvalidStatusCodeWhenDeleteRoleXPermissions() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(500);
-//        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).findAlRoleXPermissionByRole(any(Role.class));
-//
-//        crudTestingUtil.deleteTest("Role-permission pair deleting failed", false);
-//        checkNoMoreNotificationsVisible();
-//    }
+    @Test
+    public void getAllRoleFailedWithDeleted() throws InterruptedException, IOException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
 
-//    @Test
-//    public void failedGettingThePermissionsOfTheSecondRole() throws InterruptedException {
-//        Mockito.doCallRealMethod().doReturn(new EmsResponse(522, "")).when(spyRoleXPermissionApiClient).findAllPairedPermissionsTo(any(Role.class));
-//
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(500);
-//        checkNotificationText("Error happened while getting role-permission pairs");
-//        checkNoMoreNotificationsVisible();
-//        assertEquals(countVisibleGridDataRows(gridXpath), 0);
-//        assertEquals(countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath), 0);
-////        Mockito.doCallRealMethod().doReturn(new EmsResponse(522, "")).when(spyRoleXPermissionApiClient).save(any(RoleXPermission.class));
-////        crudTestingUtil.createTest(null, "Not expected status-code in saving permission to role", false);
-////        checkNoMoreNotificationsVisible();
-//    }
+        Mockito.doReturn(null).when(spyRoleService).findAllWithGraph(true); //ApiClient-ben findAllWithGraphWithDeleted()
+        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
+        Thread.sleep(1000);
+
+        findClickableElementWithXpathWithWaiting(showDeletedChecBoxXpath).click();
+        Thread.sleep(100);
+
+        checkNotificationText("Error happened while getting roles");
+
+        checkNoMoreNotificationsVisible();
+        //roleApi.findAllWithGraphWithDeleted();
+
+
+    }
+
+    @Test
+    public void databaseUnavailableWhenModifying() throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
+        Thread.sleep(500);
+        crudTestingUtil.databaseUnavailableWhenUpdateEntity(spyDataSource, null, null, 0);
+    }
 
     @Test
     public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {

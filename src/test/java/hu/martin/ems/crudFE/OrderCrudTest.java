@@ -1,5 +1,8 @@
 package hu.martin.ems.crudFE;
 
+import fr.opensagres.xdocreport.core.XDocReportException;
+import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
+import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
@@ -16,6 +19,7 @@ import hu.martin.ems.service.OrderService;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +27,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.regex.Matcher;
@@ -57,10 +63,12 @@ public class OrderCrudTest extends BaseCrudTest {
     @Mock
     public EmailSendingService emailSendingService;
 
-
-    //fagyasztó: m/sz/mélység:85, 55, 58
     @Mock
     public SftpSender sftpSender;
+
+    @Spy
+    public XDocReportRegistry spyRegistry;
+
 
     @BeforeMethod
     public void setup() {
@@ -68,7 +76,106 @@ public class OrderCrudTest extends BaseCrudTest {
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
         crudTestingUtil = new CrudTestingUtil(driver, "Order", showDeletedXpath, gridXpath, createButtonXpath);
         GridTestingUtil.driver = driver;
+        spyOrderService.setRegistry(spyRegistry);
     }
+
+    @Test
+    public void generateODTFailedIOException() throws Exception {
+        Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        if(rowLocation == null) {
+            OrderCreateTest.setupTest();
+            OrderCreateTest.createOrder();
+            rowLocation = new ElementLocation(1, 0);
+        }
+
+        WebElement odtButton = getOptionDownloadButton(gridXpath, rowLocation, 1);
+        odtButton.click();
+        Thread.sleep(100);
+        checkNotificationText("Document generation failed. Missing template file.");
+        checkNoMoreNotificationsVisible();
+        assertEquals(false, waitForDownload("order_[0-9]{1,}.odt", 10));
+
+        Mockito.reset(spyRegistry);
+    }
+
+    @Test
+    public void generateODTFailedXDocReportException() throws Exception {
+        Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        if(rowLocation == null) {
+            OrderCreateTest.setupTest();
+            OrderCreateTest.createOrder();
+            rowLocation = new ElementLocation(1, 0);
+        }
+
+        WebElement odtButton = getOptionDownloadButton(gridXpath, rowLocation, 1);
+        odtButton.click();
+        Thread.sleep(100);
+        checkNotificationText("Document generation failed. Not supported file type");
+        checkNoMoreNotificationsVisible();
+        assertEquals(false, waitForDownload("order_[0-9]{1,}.odt", 10));
+        Mockito.reset(spyRegistry);
+    }
+
+    @Test
+    public void generatePDFFailedIOException() throws Exception {
+        Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        if(rowLocation == null) {
+            OrderCreateTest.setupTest();
+            OrderCreateTest.createOrder();
+            rowLocation = new ElementLocation(1, 0);
+        }
+
+        WebElement pdfButton = getOptionDownloadButton(gridXpath, rowLocation, 2);
+        pdfButton.click();
+        Thread.sleep(100);
+        checkNotificationText("Document generation failed. Missing template file.");
+        checkNoMoreNotificationsVisible();
+        assertEquals(false, waitForDownload("order_[0-9]{1,}.pdf", 10));
+        Mockito.reset(spyRegistry);
+    }
+
+    @Test
+    public void generatePDFFailedXDocReportException() throws Exception {
+        Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        if(rowLocation == null) {
+            OrderCreateTest.setupTest();
+            OrderCreateTest.createOrder();
+            rowLocation = new ElementLocation(1, 0);
+        }
+
+        WebElement pdfButton = getOptionDownloadButton(gridXpath, rowLocation, 2);
+        pdfButton.click();
+        Thread.sleep(100);
+        checkNotificationText("Document generation failed. Not supported file type");
+        checkNoMoreNotificationsVisible();
+        assertEquals(false, waitForDownload("order_[0-9]{1,}.pdf", 10));
+        Mockito.reset(spyRegistry);
+    }
+
 
     @Test
     public void generateODTTest() throws Exception {
@@ -172,7 +279,52 @@ public class OrderCrudTest extends BaseCrudTest {
         WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
         sendEmailButton.click();
         Thread.sleep(100);
-        checkNotificationContainsTexts("Email sending failed", 5000);
+        checkNotificationText("Email sending failed");
+    }
+
+    @Test
+    public void sendEmailPDFGenerationFailedIOException() throws InterruptedException, IOException, XDocReportException {
+        Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
+//        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        if(rowLocation == null) {
+            OrderCreateTest.setupTest();
+            OrderCreateTest.createOrder();
+            rowLocation = new ElementLocation(1, 0);
+        }
+
+        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
+        sendEmailButton.click();
+        Thread.sleep(100);
+        checkNotificationText("Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE);
+        Mockito.reset(spyRegistry);
+    }
+
+    @Test
+    public void sendEmailPDFGenerationFailedXDocReportException() throws InterruptedException, IOException, XDocReportException {
+        Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        if(rowLocation == null) {
+            OrderCreateTest.setupTest();
+            OrderCreateTest.createOrder();
+            rowLocation = new ElementLocation(1, 0);
+        }
+
+        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
+        sendEmailButton.click();
+        Thread.sleep(100);
+        checkNotificationText("Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE);
+        Mockito.reset(spyDataSource);
     }
 
     @Test
@@ -367,7 +519,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
     @Test
     public void gettingOrdersFailed() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).findAllWithDeleted();
+        Mockito.doReturn(null).when(spyOrderService).findAll(true); //ApiClintben .findAllWithDeleted();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkNotificationText("Error happened while getting orders");
@@ -376,72 +528,6 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedXpath));
         checkNoMoreNotificationsVisible();
     }
-
-//    @Test
-//    public void JsonProcessingExceptionWhenCreateODT() throws Exception {
-//
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//
-//        WebElement grid = findVisibleElementWithXpath(gridXpath);
-//        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
-//        if(rowLocation == null) {
-//            OrderCreateTest.setupTest();
-//            OrderCreateTest.createOrder();
-//            rowLocation = new ElementLocation(1, 0);
-//        }
-//
-//        WebElement odtButton = getOptionDownloadButton(gridXpath, rowLocation, 1);
-//        Mockito.doThrow(JsonProcessingException.class).when(spyObjectMapper).writeValueAsString(any(Order.class));
-//        odtButton.click();
-//        Thread.sleep(100);
-//        checkNotificationText("Json processing error");
-//        checkNoMoreNotificationsVisible();
-//        assertEquals(false, waitForDownload("order_[0-9]{1,}.odt", 10));
-//    }
-
-//    @Test
-//    public void JsonProcessingExceptionWhenCreatePDF() throws Exception {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//
-//        WebElement grid = findVisibleElementWithXpath(gridXpath);
-//        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
-//        if(rowLocation == null) {
-//            OrderCreateTest.setupTest();
-//            OrderCreateTest.createOrder();
-//            rowLocation = new ElementLocation(1, 0);
-//        }
-//
-//        WebElement odtButton = getOptionDownloadButton(gridXpath, rowLocation, 2);
-//        Mockito.doThrow(JsonProcessingException.class).when(spyObjectMapper).writeValueAsString(any(Order.class));
-//        odtButton.click();
-//        Thread.sleep(100);
-//        checkNotificationText("Json processing error");
-//        checkNoMoreNotificationsVisible();
-//        assertEquals(false, waitForDownload("order_[0-9]{1,}.pdf", 10));
-//    }
-
-//    @Test
-//    public void sendEmailFailedOrderJsonProcessingExceptionTest() throws InterruptedException, JsonProcessingException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
-//
-//        WebElement grid = findVisibleElementWithXpath(gridXpath);
-//        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
-//        if(rowLocation == null) {
-//            OrderCreateTest.setupTest();
-//            OrderCreateTest.createOrder();
-//            rowLocation = new ElementLocation(1, 0);
-//        }
-//
-//        Mockito.doThrow(JsonProcessingException.class).when(spyObjectMapper).writeValueAsString(any(Order.class));
-//
-//        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
-//        sendEmailButton.click();
-//        checkNotificationContainsTexts("JsonProcessingException", 5000);
-//        checkNoMoreNotificationsVisible();
-//    }
 
     private boolean waitForDownload(String fileNameRegex, int timeOut) throws Exception {
         Pattern pattern = Pattern.compile(fileNameRegex);

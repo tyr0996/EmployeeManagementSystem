@@ -1,6 +1,7 @@
 package hu.martin.ems.vaadin.api;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.core.model.EmsResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -62,13 +63,13 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            if(response == null){
-                return new EmsResponse(500, entityName + " saving failed");
+            if(response != null && !response.equals("null")){
+                return new EmsResponse(200, convertResponseToEntity(response), "");
             }
-            return new EmsResponse(200, convertResponseToEntity(response), "");
+            return new EmsResponse(500, "Internal server error");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - save - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
@@ -83,13 +84,13 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            if(response == null){
-                return new EmsResponse(500, entityName + " updating failed");
+            if(response != null && !response.equals("null")){
+                return new EmsResponse(200, convertResponseToEntity(response), "");
             }
-            return new EmsResponse(200, convertResponseToEntity(response), "");
+            return new EmsResponse(500, "");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - update - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
@@ -107,7 +108,7 @@ public abstract class EmsApiClient<T> {
             return gson.fromJson(response, entityType);
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - restore - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
 //            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
             //TODO
             return null;
@@ -126,7 +127,7 @@ public abstract class EmsApiClient<T> {
                     .block();
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             //TODO
             //return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
@@ -151,7 +152,7 @@ public abstract class EmsApiClient<T> {
                     .block();
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - permanently delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
 //            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
             //TODO
         }
@@ -168,10 +169,13 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            if(jsonResponse != null && !jsonResponse.equals("null")){
+                return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            }
+            return new EmsResponse(500, "Internal Server Error");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - findAll - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
@@ -187,10 +191,13 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            if(jsonResponse != null && !jsonResponse.equals("null")){
+                return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            }
+            return new EmsResponse(500, "Internal Server Error");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - findAllWithGraph - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
@@ -207,40 +214,16 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            if(jsonResponse != null && !jsonResponse.equals("null")){
+                return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            }
+            return new EmsResponse(500, "Internal Server Error");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - findAllWithGraphWithDeleted - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
-
-
-
-    public List<T> convertResponseToEntityList(String jsonResponse) {
-        return convertResponseToEntityList(jsonResponse, this.entityType);
-    }
-
-    public <X> List<X> convertResponseToEntityList(String jsonResponse, Class<X> resultEntityType) {
-        if(jsonResponse.startsWith("{")){
-            jsonResponse = "[" + jsonResponse + "]";
-        }
-        List<LinkedTreeMap<String, Object>> mapList = gson.fromJson(jsonResponse, List.class);
-        List<X> resultList = new ArrayList<>();
-        mapList.forEach(v -> {
-            resultList.add(gson.fromJson(gson.toJson(v), resultEntityType));
-        });
-        return resultList;
-    }
-
-    public T convertResponseToEntity(String jsonResponse) {
-        return convertResponseToEntityList("[" + jsonResponse + "]").get(0);
-    }
-
-    public String writeValueAsString(T entity) {
-        return gson.toJson(entity);
-    }
-
 
     public EmsResponse findAllWithDeleted() {
         initWebClient();
@@ -253,14 +236,13 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-        }
-        catch (NullPointerException ex){
-            logger.error("The jsonResponse is null. NullPointerException happened.");
-            return new EmsResponse(500, "NullPointerException");
+            if(jsonResponse != null && !jsonResponse.equals("null")){
+                return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            }
+            return new EmsResponse(500, "Internal Server Error");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - findAllWithDeleted - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
@@ -287,7 +269,7 @@ public abstract class EmsApiClient<T> {
             return new EmsResponse(200, gson.fromJson(response, entityType), "");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - findAllByIds - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
@@ -300,10 +282,40 @@ public abstract class EmsApiClient<T> {
                 .block();
     }
 
+
+
+    public List<T> convertResponseToEntityList(String jsonResponse) throws JsonParseException {
+        return convertResponseToEntityList(jsonResponse, this.entityType);
+    }
+
+    public <X> List<X> convertResponseToEntityList(String jsonResponse, Class<X> resultEntityType) throws JsonParseException {
+        if(jsonResponse == null || jsonResponse.equals("null")){
+            throw new JsonParseException("The response was null!");
+        }
+        if(jsonResponse.startsWith("{")){
+            System.out.println(jsonResponse);
+            jsonResponse = "[" + jsonResponse + "]";
+        }
+        List<LinkedTreeMap<String, Object>> mapList = gson.fromJson(jsonResponse, List.class);
+        List<X> resultList = new ArrayList<>();
+        mapList.forEach(v -> {
+            resultList.add(gson.fromJson(gson.toJson(v), resultEntityType));
+        });
+        return resultList;
+    }
+
     public void initWebClient(){
         if(webClient == null){
             String baseUrl = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/api/" + entityName + "/";
             webClient = webClientBuilder.baseUrl(baseUrl).build();
         }
+    }
+
+    public T convertResponseToEntity(String jsonResponse) {
+        return convertResponseToEntityList("[" + jsonResponse + "]").get(0);
+    }
+
+    public String writeValueAsString(T entity) {
+        return gson.toJson(entity);
     }
 }

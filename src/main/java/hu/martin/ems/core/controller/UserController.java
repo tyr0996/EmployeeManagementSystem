@@ -27,7 +27,7 @@ public class UserController extends BaseController<User, UserService, UserReposi
         }
         catch (WebClientResponseException ex){
             System.out.println("sanyika");
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -39,7 +39,7 @@ public class UserController extends BaseController<User, UserService, UserReposi
         }
         catch (WebClientResponseException ex){
             System.out.println("Sanyi");
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
