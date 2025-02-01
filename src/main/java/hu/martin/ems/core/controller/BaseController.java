@@ -22,10 +22,32 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
         this.service = service;
     }
 
-//    @GetMapping(path = "/findAll", produces = StaticDatas.Produces.JSON)
-    @RequestMapping(path = "/findAll", method = RequestMethod.GET)
+    @GetMapping(path = "/findAll", produces = StaticDatas.Produces.JSON)
+//    @RequestMapping(path = "/findAll", method = RequestMethod.GET)
     public ResponseEntity<String> findAll(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) {
         List<T> allElements = service.findAll(withDeleted);
+        if(allElements != null){
+            return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(path = "findAllWithNegativeID", produces = StaticDatas.Produces.JSON)
+    public ResponseEntity<String> findAllWithNegativeID(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted){
+        List<T> allElements = service.findAllWithNegativeID(withDeleted);
+        if(allElements != null){
+            return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(path = "findAllWithGraphWithNegativeID", produces = StaticDatas.Produces.JSON)
+    public ResponseEntity<String> findAllWithGraphWithNegativeID(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted){
+        List<T> allElements = service.findAllWithGraphWithNegativeID(withDeleted);
         if(allElements != null){
             return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
         }

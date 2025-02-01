@@ -68,7 +68,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         Button register = new Button("Register");
         register.setClassName("register-button");
 
-        Role r = getRoleByName("NO_ROLE");
+        Role r = getRoleByNameWithNegativeId("NO_ROLE");
 
         register.addClickListener(event -> {
             Dialog registerDialog = getRegistrationDialog(r);
@@ -231,13 +231,13 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         return d;
     }
 
-    private Role getRoleByName(String roleName){
-        EmsResponse response = roleApi.findByName(roleName);
+    private Role getRoleByNameWithNegativeId(String roleName){
+        EmsResponse response = roleApi.findByNameWithNegativeId(roleName);
         switch (response.getCode()){
             case 200:
                 return (Role) response.getResponseData();
             default:
-                logger.error("Role findByNameError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                logger.error("Role findByNameWithNegativeIdError. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 Notification.show("Error happened while getting roles")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return null;

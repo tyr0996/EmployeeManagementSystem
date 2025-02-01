@@ -227,6 +227,6 @@ public class PermissionTest extends BaseCrudTest {
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
         Thread.sleep(100);
-        crudTestingUtil.databaseUnavailableWhenSaveEntity(spyDataSource, null, null, 0);
+        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
     }
 }

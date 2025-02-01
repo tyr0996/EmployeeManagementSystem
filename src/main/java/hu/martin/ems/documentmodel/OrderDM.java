@@ -2,14 +2,12 @@ package hu.martin.ems.documentmodel;
 
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.model.Order;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.time.format.DateTimeFormatter;
 
 @Getter
 @NeedCleanCoding
-@EqualsAndHashCode
 public class OrderDM extends AbstractDM {
     private String total;
     private String timeOfOrder;

@@ -33,6 +33,7 @@ import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.*;
@@ -291,6 +292,8 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
+            disableDeletedForLoggedInUser();
+
             editButton.addClickListener(event -> {
                 editableRole = roleVO.original;
                 generateSaveOrUpdateDialog();
@@ -333,6 +336,11 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             }
             return actions;
         });
+    }
+
+    private void disableDeletedForLoggedInUser() {
+        Object o = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("Sanyi");
     }
 
     private void updateGridItems() {

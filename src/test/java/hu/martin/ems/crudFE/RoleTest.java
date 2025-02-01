@@ -246,6 +246,6 @@ public class RoleTest extends BaseCrudTest {
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
         Thread.sleep(500);
-        crudTestingUtil.databaseUnavailableWhenSaveEntity(spyDataSource, null, null, 0);
+         crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
     }
 }

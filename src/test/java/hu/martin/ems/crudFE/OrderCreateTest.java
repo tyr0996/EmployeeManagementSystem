@@ -383,7 +383,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
         customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
 
-        mockDatabaseNotAvailable(spyDataSource, 0);
+        mockDatabaseNotAvailable(this, spyDataSource, 0);
 
         selectElementByTextFromComboBox(customerComboBox, customerName);
         //selectRandomFromComboBox(customerComboBox);
@@ -456,7 +456,7 @@ public class OrderCreateTest extends BaseCrudTest {
         selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
 
 
-        mockDatabaseNotAvailable(spyDataSource, 1);
+        mockDatabaseNotAvailable(this, spyDataSource, 1);
 
         findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
         checkNotificationText("Order saving failed: Internal server error");

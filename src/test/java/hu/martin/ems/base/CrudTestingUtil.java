@@ -645,7 +645,7 @@ public class CrudTestingUtil {
      * @throws InterruptedException
      * @throws SQLException
      */
-    public void databaseUnavailableWhenSaveEntity(DataSource spyDataSource, LinkedHashMap<String, String> withData, String saveNotificationText, Integer preSuccess) throws InterruptedException, SQLException {
+    public void databaseUnavailableWhenSaveEntity(Object testClass, DataSource spyDataSource, LinkedHashMap<String, String> withData, String saveNotificationText, Integer preSuccess) throws InterruptedException, SQLException {
         findVisibleElementWithXpath(gridXpath);
         if(showOnlyDeletableCheckboxXpath != null){
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
@@ -677,7 +677,7 @@ public class CrudTestingUtil {
 
 
 
-        mockDatabaseNotAvailable(spyDataSource, preSuccess);
+        mockDatabaseNotAvailable(testClass, spyDataSource, preSuccess);
 
 //        Mockito.doCallRealMethod().when(spyDataSource).getConnection();
 //        Mockito.doThrow(new SQLException("Connection refused: getsockopt")).doCallRealMethod().when(spyDataSource).getConnection();

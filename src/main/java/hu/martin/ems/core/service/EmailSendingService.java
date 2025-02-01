@@ -79,7 +79,7 @@ public class EmailSendingService {
 
             message.setContent(multipart);
             try{
-                Transport.send(message);
+                transportSend(message);
             }
             catch (MailConnectException e) {
                 logger.error("Email connect refused.");
@@ -91,5 +91,11 @@ public class EmailSendingService {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public void transportSend(MimeMessage message) throws MessagingException {
+        //TODO megcsinálni, hogy ne kelljen külön függvényt létrehozni ezért, hogy tudjam mockolni. MockStatic addig működik, ameddig
+        // legfeljebb controller szinten hívom meg. Ha már az ApiClientből, akkor már nem jó. De ez csak a statikusnál van így, a sima az OK.
+        Transport.send(message);
     }
 }

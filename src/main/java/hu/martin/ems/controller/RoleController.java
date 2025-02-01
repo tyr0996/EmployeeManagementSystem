@@ -30,5 +30,16 @@ public class RoleController extends BaseController<Role, RoleService, RoleReposi
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping(path = "/findByNameWithNegativeId")
+    public ResponseEntity<String> findByNameWithNegativeId(@RequestParam String name) {
+        Role r = this.service.findByNameWithNegativeId(name);
+        if(r != null){
+            return new ResponseEntity<>(gson.toJson(r), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
 

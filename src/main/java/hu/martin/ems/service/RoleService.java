@@ -16,4 +16,10 @@ public class RoleService extends BaseService<Role, RoleRepository> {
     public Role findByName(String name) {
         return this.repo.findByName(name);
     }
+
+    public Role findByNameWithNegativeId(String name) {
+        return this.repo.findByNameWithNegativeId(name);
+    }
+
+
 }

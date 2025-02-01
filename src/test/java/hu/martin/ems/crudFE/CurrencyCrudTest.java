@@ -30,6 +30,7 @@ import java.util.List;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 import static org.testng.AssertJUnit.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -44,6 +45,8 @@ public class CurrencyCrudTest extends BaseCrudTest {
     
     private static final String mainMenu = UIXpaths.ADMIN_MENU;
     private static final String subMenu = UIXpaths.CURRENCY_SUBMENU;
+
+
 
     @BeforeClass
     public void setup() {
@@ -193,8 +196,8 @@ public class CurrencyCrudTest extends BaseCrudTest {
 
     @Test(enabled = false)
     public void notExpectedStatusCodeWhenFetchAndSaveRates() throws InterruptedException, CurrencyException {
-        Mockito.when(spyCurrencyService.fetchAndSaveRates()).thenReturn(null);
-        Mockito.when(spyCurrencyService.findByDate(any(LocalDate.class))).thenReturn(null);
+        when(spyCurrencyService.fetchAndSaveRates()).thenReturn(null);
+        when(spyCurrencyService.findByDate(any(LocalDate.class))).thenReturn(null);
 //        Mockito.doReturn(null).when(spyCurrencyService).fetchAndSaveRates();
 //        Mockito.doReturn(null).when(spyCurrencyService).findByDate(LocalDate.now());
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyCurrencyApiClientClient).fetchAndSaveRates();

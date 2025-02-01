@@ -51,7 +51,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     public void testSqlGenerationFromJson(){
         String generatedSql = dp.generateSqlFromJson(new File(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
         assertEquals(generatedSql,
-                "INSERT INTO Role (name, deleted) VALUES\n\t('Martin', '0'),\n\t('Robi', '0'),\n\t('NO_ROLE', '0')",
+                "INSERT INTO Role (name, deleted, id) VALUES\n\t('Martin', '0', '1'),\n\t('Robi', '0', '2'),\n\t('NO_ROLE', '0', '-1')",
                 "The generated sql not equals with the excepted");
     }
 

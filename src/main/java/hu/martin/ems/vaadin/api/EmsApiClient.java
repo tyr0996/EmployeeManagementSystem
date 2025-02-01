@@ -180,6 +180,29 @@ public abstract class EmsApiClient<T> {
         }
     }
 
+    public EmsResponse findAllWithNegativeID(){
+        initWebClient();
+        try{
+            String jsonResponse = webClient.mutate().codecs(
+                            configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
+                    .build()
+                    .get()
+                    .uri("findAllWithNegativeID")
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            if(jsonResponse != null && !jsonResponse.equals("null")){
+                return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            }
+            return new EmsResponse(500, "Internal Server Error");
+        }
+        catch(WebClientResponseException ex){
+            logger.error("WebClient error - findAllWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+        }
+    }
+
+
     public EmsResponse findAllWithGraph(){
         initWebClient();
         try{
@@ -198,6 +221,28 @@ public abstract class EmsApiClient<T> {
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - findAllWithGraph - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+        }
+    }
+
+    public EmsResponse findAllWithGraphWithNegativeID(){
+        initWebClient();
+        try{
+            String jsonResponse = webClient.mutate().codecs(
+                            configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
+                    .build()
+                    .get()
+                    .uri("findAllWithGraphWithNegativeID")
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            if(jsonResponse != null && !jsonResponse.equals("null")){
+                return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            }
+            return new EmsResponse(500, "Internal Server Error");
+        }
+        catch(WebClientResponseException ex){
+            logger.error("WebClient error - findAllWithGraphWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }
@@ -221,6 +266,28 @@ public abstract class EmsApiClient<T> {
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - findAllWithGraphWithDeleted - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+        }
+    }
+
+    public EmsResponse findAllWithGraphWithDeletedWithNegativeID(){
+        initWebClient();
+        try{
+            String jsonResponse = webClient.mutate().codecs(
+                            configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
+                    .build()
+                    .get()
+                    .uri("findAllWithGraphWithNegativeID?withDeleted=true")
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            if(jsonResponse != null && !jsonResponse.equals("null")){
+                return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
+            }
+            return new EmsResponse(500, "Internal Server Error");
+        }
+        catch(WebClientResponseException ex){
+            logger.error("WebClient error - findAllWithGraphWithDeletedWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
     }

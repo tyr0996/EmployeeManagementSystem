@@ -41,14 +41,14 @@ public class CurrencyApiClient extends EmsApiClient<Currency>{
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        if(response != null && !response.equals("null")){
-            return new EmsResponse(200, gson.fromJson(response, Currency.class), "");
+        if(response != null && response instanceof String && !response.equals("null")){
+            return new EmsResponse(200, gson.fromJson((String) response, Currency.class), "");
         }
-        else if(response.equals("null")){
+        else if(response instanceof String && response.equals("null")){
             return new EmsResponse(200, null);
         }
         else{
-            return new EmsResponse(500, "Error happened while getting currencies by date: Internal server error");
+            return new EmsResponse(500, "Error happened while getting currencies by wdate: Internal server error");
         }
     }
 }

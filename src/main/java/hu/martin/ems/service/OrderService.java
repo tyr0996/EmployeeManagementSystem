@@ -39,6 +39,7 @@ import java.util.List;
 public class OrderService extends BaseService<Order, OrderRepository> {
     public OrderService(OrderRepository orderRepository){
         super(orderRepository);
+        registry = XDocReportRegistry.getRegistry();
     }
 
 //    public List<OrderElement> getOrderElements(Long orderId) {

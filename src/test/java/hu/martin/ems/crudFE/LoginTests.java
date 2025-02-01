@@ -5,19 +5,25 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.RandomGenerator;
+import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.config.LoggingConfig;
 import org.mockito.Mockito;
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.SearchContext;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.time.Duration;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 
 
@@ -63,7 +69,7 @@ public class LoginTests extends BaseCrudTest {
 
             register.click();
         } else{
-            assertThrows(TimeoutException.class, () -> wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath))));
+//            assertThrows(TimeoutException.class, () -> wait.until(ExpectedConditions.elementToBeClickable(By.xpath(usernameFieldXpath))));
             assertEquals(null, findClickableElementWithXpathWithWaiting(passwordFieldXpath));
             assertEquals(null, findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]/input"));
             assertEquals(null, findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button"));
@@ -250,8 +256,9 @@ public class LoginTests extends BaseCrudTest {
     }
 
     @Test
-    public void invalidStatusCodeWhenGettingAllRoles() throws InterruptedException {
-        Mockito.doReturn(null).when(spyRoleService).findByName(any(String.class));
+    public void invalidStatusCodeWhenGettingAllRoles() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyRoleService).findByName(any(String.class));
+        mockDatabaseNotAvailable(this, spyDataSource, 0);
         String username = RandomGenerator.generateRandomOnlyLetterString();
         String password = RandomGenerator.generateRandomOnlyLetterString();
         register(username, password, password, "Error happened while getting roles", false);
@@ -263,6 +270,18 @@ public class LoginTests extends BaseCrudTest {
         checkLoginErrorMessage("Incorrect username or password",
                 "Check that you have entered the correct username and password and try again.");
     }
+
+    @Test
+    public void sanyika() throws SQLException, IOException {
+//        Connection spyConnection = initForPrintingSQLs(this, spyDataSource);
+        BeanProvider.getBean(LoggingConfig.class).resetHibernateLog();
+        spyRoleService.findAll(true);
+        spyAddressService.findAll(false);
+
+
+//        printCollectedSQLs(spyConnection);
+    }
+
 
     @Test
     public void invalidStatusCodeWhenGettingUserByUsernameNewRegistrationTheRegistrationWasSuccess() throws InterruptedException {

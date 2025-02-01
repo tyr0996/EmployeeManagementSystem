@@ -8,23 +8,35 @@ import hu.martin.ems.UITests.PaginationData;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.core.config.BeanProvider;
 import org.hamcrest.CoreMatchers;
+import org.hibernate.sql.results.jdbc.internal.ResultSetAccess;
 import org.junit.Assert;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import javax.naming.OperationNotSupportedException;
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 public class GridTestingUtil {
 
@@ -32,20 +44,129 @@ public class GridTestingUtil {
 
     private static Gson gson = BeanProvider.getBean(Gson.class);
 
-    public static void mockDatabaseNotAvailable(DataSource spyDataSource, int preSuccess) throws SQLException {
+    @Captor
+    static ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+
+    private static String getSQLQueryFromRepository(DataSource spyDataSource, Supplier function) throws SQLException {
+
+        Connection spyConnection = spy(Connection.class);
+        when(spyDataSource.getConnection()).thenReturn(spyConnection);
+//        MockitoAnnotations.openMocks(testClass);
+        try{
+            function.get();
+        } catch (Exception e){}
+
+        verify(spyConnection).prepareStatement(sqlCaptor.capture());
+        System.out.println("generated SQL: " + sqlCaptor.getValue());
+        Mockito.reset(spyConnection);;
+        Mockito.clearInvocations(spyConnection);
+
+        return sqlCaptor.getValue();
+
+//        System.out.println(ps.toString());
+
+        // Mock PreparedStatement általános viselkedése
+//        when(spyConnection.prepareStatement(anyString())).thenAnswer(invocation -> {
+//            String query = invocation.getArgument(0);
+//            PreparedStatement mockPreparedStatement = mock(PreparedStatement.class);
+//
+//            if (query.equals(sqlCaptor.getValue())) {
+//                ResultSet mockResultSet = mock(ResultSet.class);
+//                when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
+//
+//                when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+//                when(mockResultSet.getString(1)).thenReturn(resultValue);
+//            }
+//
+//            return mockPreparedStatement;
+//        });
+    }
+
+//    public static PreparedStatement mockSQLQuery(EntityManager em, DataSource spyDataSource, Supplier function, ArrayList<?> returnValue) throws SQLException {
+//        Connection c = spy(Connection.class);
+//        PreparedStatement ps = mock(PreparedStatement.class);
+//        ResultSet rs = mock(ResultSet.class);
+//        when(ps.executeQuery(any(String.class))).thenReturn(rs);
+//
+//        // Configure the ResultSet to simulate the results
+//        if (!returnValue.isEmpty()) {
+//            // Simulate ResultSet.next() to return true for each result, then false
+//            Boolean[] nextValues = new Boolean[returnValue.size() + 1];
+//            for (int i = 0; i < returnValue.size(); i++) {
+//                nextValues[i] = true;
+//            }
+//            nextValues[returnValue.size()] = false;
+//            when(rs.next()).thenReturn(nextValues[0], nextValues);
+//
+//            // Simulate ResultSet.getObject() to return the corresponding result
+//            for (int i = 0; i < returnValue.size(); i++) {
+//                int index = i; // Effectively final for lambda
+//                when(rs.getObject(1)).thenAnswer(invocation -> returnValue.get(index));
+//            }
+//        } else {
+//            when(rs.next()).thenReturn(false); // Empty ResultSet
+//        }
+//
+//        // Configure the PreparedStatement to return the mocked ResultSet
+//        when(c.prepareStatement(getSQLQueryFromRepository(spyDataSource, function))).thenReturn(ps);
+//        when(ps.executeQuery()).thenReturn(rs);
+//
+//        return ps;
+//    }
+
+    public static void mockDatabaseNotAvailableWhen(DataSource spyDatasource, int preSuccess, Supplier function) throws SQLException {
+        String sql = getSQLQueryFromRepository(spyDatasource, function);
         AtomicInteger callCount = new AtomicInteger(0);
         Mockito.doAnswer(invocation -> {
-            int currentCall = callCount.incrementAndGet();
+            Connection mockConnection = spy(Connection.class);
+            PreparedStatement mockPreparedStatement = spy(PreparedStatement.class);
+            ResultSetAccess spyResultSetAccess = spy(ResultSetAccess.class);
+            ResultSet mockResultSet = spy(ResultSet.class);
 
-            // Az első néhány hívásnál (limitig) az eredeti metódust hívjuk
+//            Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+            Mockito.when(spyResultSetAccess.getResultSet()).thenReturn(mockResultSet);
+
+
+            doAnswer(preparedStatementInvocation -> {
+                if (sql.equals(preparedStatementInvocation.getArguments()[0])) {
+                    if (callCount.incrementAndGet() > preSuccess) {
+                        throw new SQLException("Simulated database unavailable");
+                    }
+                }
+                return null;
+            }).when(mockPreparedStatement).execute();
+
+            when(mockConnection.prepareStatement(Mockito.anyString())).thenAnswer(connectionInvocation -> {
+                String query = connectionInvocation.getArgument(0, String.class);
+                if (sql.equals(query)) {
+                    return mockPreparedStatement;
+                } else {
+                    return mock(PreparedStatement.class);
+                }
+            });
+
+            return mockConnection;
+        }).when(spyDatasource).getConnection();
+    }
+
+    public static void mockDatabaseNotAvailable(Object testClass, DataSource spyDataSource, int preSuccess) throws SQLException {
+        AtomicInteger callCount = new AtomicInteger(0);
+        Connection spyConnection = spy(Connection.class);
+        when(spyDataSource.getConnection()).thenReturn(spyConnection);
+        MockitoAnnotations.openMocks(testClass);
+
+//        PreparedStatement ps = spy(PreparedStatement.class);
+//        doAnswer(invocation -> invocation.callRealMethod()).when(c).prepareStatement(sqlCaptor.capture());
+//        verify(c.prepareStatement(sqlCaptor.capture()));
+        doAnswer(invocation -> {
+//            try(Connection spyConnection = spy(Connection.class)) {
+            int currentCall = callCount.incrementAndGet();
             if (currentCall <= preSuccess) {
                 return invocation.callRealMethod();
             }
-            // Kivételt dobunk egyszer, ha elértük a limitet
             else if (currentCall == preSuccess + 1) {
                 throw new SQLException("Connection refused: getsockopt");
             }
-            // A további hívásoknál visszaállunk az eredeti metódus hívására
             else {
                 return invocation.callRealMethod();
             }
@@ -872,5 +993,34 @@ public class GridTestingUtil {
         }
         Collections.shuffle(numbers, random);
         return numbers.subList(0, count);
+    }
+
+    private class ResultSetAnswer implements Answer {
+
+        private final List<Map<String, Object>> values;
+        private int index = -1;
+
+        public ResultSetAnswer(List<Map<String, Object>> values) {
+            this.values = values;
+        }
+
+        @Override
+        public Object answer(InvocationOnMock invocation) throws Throwable {
+            if (invocation.getMethod().getName().equals("next"))
+                return next();
+
+            if (invocation.getMethod().getName().equals("getObject"))
+                return getObject(invocation.getArgument(0));
+            throw new OperationNotSupportedException();
+        }
+
+        private Object getObject(String column) {
+            return values.get(index).get(column);
+        }
+
+        private boolean next() {
+            index++;
+            return index < values.size();
+        }
     }
 }

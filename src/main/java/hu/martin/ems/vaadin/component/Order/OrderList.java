@@ -166,19 +166,30 @@ public class OrderList extends VerticalLayout {
                         Notification.show("Email sending failed: " + pdfDocumentResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                 }
+                EmsResponse emailGenerationResponse = orderApi.generateEmail(order.original);
+                String email;
+                switch (emailGenerationResponse.getCode()){
+                    case 200:
+                        email = new String(((ByteArrayInputStream) emailGenerationResponse.getResponseData()).readAllBytes());
+                        break;
+                    default:
+                        Notification.show("Email generation failed: " + pdfDocumentResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                }
                 EmsResponse sendEmailResponse = emailSendingApi.send(
                         new EmailProperties(
-                            order.original.getCustomer().getEmailAddress(),
-                            "Megrendelés visszaigazolás",
-                            orderApi.generateEmail(order.original),
-                            List.of(new EmailAttachment(
-                                    StaticDatas.ContentType.CONTENT_TYPE_APPLICATION_PDF,
-                                    ((ByteArrayInputStream) pdfDocumentResponse.getResponseData()).readAllBytes(),
-                                    "order_" + order.id + ".pdf")
-                            )
+                                order.original.getCustomer().getEmailAddress(),
+                                "Megrendelés visszaigazolás",
+                                email,
+                                List.of(new EmailAttachment(
+                                        StaticDatas.ContentType.CONTENT_TYPE_APPLICATION_PDF,
+                                        ((ByteArrayInputStream) pdfDocumentResponse.getResponseData()).readAllBytes(),
+                                        "order_" + order.id + ".pdf")
+                                )
                         )
                 );
                 processEmailSendingResponse(sendEmailResponse);
+
             });
 
             editButton.addClickListener(event -> {

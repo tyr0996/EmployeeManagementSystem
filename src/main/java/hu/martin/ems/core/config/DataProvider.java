@@ -156,6 +156,7 @@ public class DataProvider {
             em.createNativeQuery(sql).executeUpdate();
             em.flush();
             entityTransaction.commit();
+            json.setPrimaryKeyStartIfRequired(em);
             logger.info("Data loaded successfully from JSON! " + jsonFile.getName());
             loaded.add(jsonFile);
         } catch (JsonMappingException e) {
@@ -256,7 +257,8 @@ public class DataProvider {
                     .map(obj -> buildValuesRow(obj, keys))
                     .collect(Collectors.toList());
 
-            return (baseSql + String.join(",\n", valueRows)).replaceAll("'(\\d+)\\.0'", "'$1'");
+//            return (baseSql + String.join(",\n", valueRows)).replaceAll("'(\\d+)\\.0'", "'$1'");
+            return (baseSql + String.join(",\n", valueRows)).replaceAll("'(-?\\d+)\\.0'", "'$1'");
         }
 
         private String buildValuesRow(Map<String, Object> obj, List<String> keys) {
@@ -287,6 +289,23 @@ public class DataProvider {
 
         private static String buildConditionForSelect(String key, Object value) {
             return key + (value instanceof String ? " ILIKE \'" + value + "\'" : " = " + value);
+        }
+
+
+        protected void setPrimaryKeyStartIfRequired(EntityManager em){
+            if(!data.isEmpty() && data.get(0).keySet().contains("id")){
+                List<Long> allIds = data.stream().map(v -> ((Double) Double.parseDouble(v.get("id").toString())).longValue()).toList();
+                Long lastId = allIds.stream()
+                        .mapToLong(v -> v)
+                        .max().orElseThrow(NoSuchElementException::new);
+
+                EntityTransaction emt = em.getTransaction();
+                emt.begin();
+                Object seq = em.createNativeQuery("SELECT pg_get_serial_sequence('" + this.objectName + "', 'id');").getSingleResult();
+                String sql = "ALTER SEQUENCE " + seq + " RESTART WITH " + (lastId + 1);
+                em.createNativeQuery(sql).executeUpdate();
+                emt.commit();
+            }
         }
     }
 }

@@ -128,6 +128,6 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     public void databaseUnavailableWhenSavingCodeStore() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseUnavailableWhenSaveEntity(spyDataSource, null, null, 0);
+        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
     }
 }

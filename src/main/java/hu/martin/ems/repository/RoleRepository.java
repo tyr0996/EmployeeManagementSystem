@@ -13,6 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 public interface RoleRepository extends BaseRepository<Role, Long> {
 
     @Query("SELECT r FROM Role r " +
-            "WHERE r.name = :name and r.deleted = 0")
+            "WHERE r.name = :name and r.deleted = 0 and r.id > 0")
     Role findByName(@Param("name") String name);
+
+    @Query("SELECT r FROM Role r " +
+            "WHERE r.name = :name and r.deleted = 0")
+    Role findByNameWithNegativeId(@Param("name") String name);
+
+
 }

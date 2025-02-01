@@ -1,11 +1,15 @@
 package hu.martin.ems;
 
+import hu.martin.ems.controller.CodeStoreController;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.DataProvider;
+import hu.martin.ems.core.controller.EmailSendingController;
+import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.service.UserService;
 import hu.martin.ems.service.*;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
 import hu.martin.ems.vaadin.component.ComponentManager;
+import jakarta.persistence.EntityManager;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.Point;
@@ -33,6 +37,13 @@ import java.util.HashMap;
 public class BaseCrudTest extends AbstractTestNGSpringContextTests {
 
     //TODO megcsinálni, hogy ha módosítottunk egy elemet vagy valamit, akkor ellenőrizzük a létrehozás gombot! fontos, hogy üres legyen a form és létrehozás legyen a címben!
+
+//    @Spy
+//    protected static Connection spyConnection;
+
+    @SpyBean
+    protected static EntityManager em;
+
 
     protected static WebDriver driver;
 
@@ -66,6 +77,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     protected static CityService spyCityService;
     
     @SpyBean
+    @Autowired
     protected static DataSource spyDataSource;
 
     @SpyBean
@@ -73,6 +85,9 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
 
     @SpyBean
     protected static CodeStoreService spyCodeStoreService;
+
+    @SpyBean
+    protected static CodeStoreController spyCodeStoreController;
 
     @SpyBean
     protected static PermissionService spyPermissionService;
@@ -101,9 +116,33 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     @SpyBean
     protected static UserService spyUserService;
 
+    @SpyBean
+    protected static EmailSendingController spyEmailSendingController;
+
+
+//    @Mock
+//    protected static Transport transport;
+
+    @SpyBean
+//    @InjectMocks
+    protected static EmailSendingService spyEmailSendingService;
+
+//    @Spy
+//    protected static Properties spyEmailProperties;
+//
+//    @Mock
+//    protected static Session spySession;
+//
+//    @Mock
+//    protected static MimeMessage spyMimeMessage;
+//
+//    @Mock
+//    protected static Transport spyTransport;
+
     protected static String fetchingCurrencyApiUrl;
 
     protected static String baseCurrency;
+    protected static String databaseLogPath;
 
     protected static DataSource originalDataSource;
 
@@ -118,6 +157,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
         downloadPath = env.getProperty("chrome.download.path");
         fetchingCurrencyApiUrl = env.getProperty("api.currency.url");
         baseCurrency = env.getProperty("api.currency.baseCurrency");
+        databaseLogPath = env.getProperty("database.logpath");
 
         clearDownloadFolder();
 
@@ -171,23 +211,21 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     }
 
     private void resetServicesMock(){
-        Mockito.reset(
-                spyPermissionService,
-                spyRoleService,
-                spyUserService,
-                spyOrderService,
-                spyOrderElementService,
-                spyAddressService,
-                spyCityService,
-                spyCustomerService,
-                spyEmployeeService,
-                spyCurrencyService,
-                spyProductService,
-                spySupplierService,
-                spyDataSource,
-                spyOrderService,
-                spyCodeStoreService
-        );
+        Mockito.reset(spyPermissionService);
+        Mockito.reset(spyRoleService);
+        Mockito.reset(spyUserService);
+        Mockito.reset(spyOrderService);
+        Mockito.reset(spyOrderElementService);
+        Mockito.reset(spyAddressService);
+        Mockito.reset(spyCityService);
+        Mockito.reset(spyCustomerService);
+        Mockito.reset(spyEmployeeService);
+        Mockito.reset(spyCurrencyService);
+        Mockito.reset(spyProductService);
+        Mockito.reset(spySupplierService);
+        Mockito.reset(spyDataSource);
+        Mockito.reset(spyOrderService);
+        Mockito.reset(spyCodeStoreService);
     }
 
     private void clearInvocationsInServices(){

@@ -208,7 +208,7 @@ public class UserCrudTest extends BaseCrudTest {
     public void databaseUnavailableWhenSavingUser() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseUnavailableWhenSaveEntity(spyDataSource, null, null, 1);
+        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 1);
     }
 
     @Test

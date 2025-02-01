@@ -4,15 +4,18 @@
   "data": [
     {
       "name": "Martin",
-      "deleted": 0
+      "deleted": 0,
+      "id": 1
     },
     {
       "name": "Robi",
-      "deleted": 0
+      "deleted": 0,
+      "id": 2
     },
     {
       "name": "NO_ROLE",
-      "deleted": 0
+      "deleted": 0,
+      "id": -1
     }
   ]
 }

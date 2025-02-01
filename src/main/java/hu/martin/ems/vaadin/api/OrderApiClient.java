@@ -55,8 +55,25 @@ public class OrderApiClient extends EmsApiClient<Order> {
         }
     }
 
-    public String generateEmail(Order order){
-        return null; //TODO
+    public EmsResponse generateEmail(Order order){
+        initWebClient();
+        try{
+            byte[] response =  webClient.post()
+                    .uri("createDocumentAsPDF")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(gson.toJson(order))
+                    .retrieve()
+                    .bodyToMono(byte[].class)
+                    .block();
+            if(response.length > 0){
+                return new EmsResponse(200, new ByteArrayInputStream(response), "");
+            }
+            return new EmsResponse(500, "Internal server error");
+        }
+        catch (WebClientResponseException ex) {
+            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+        }
     }
 
     public EmsResponse sendReportSFTPToAccountant(LocalDate from, LocalDate to) {

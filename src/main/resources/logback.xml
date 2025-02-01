@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <conversionRule conversionWord="logNumber"
+                    converterClass="hu.martin.ems.core.config.LogNumberingConverter"/>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>hibernate.log</file>
+        <encoder>
+            <pattern>%logNumber %d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.hibernate.SQL" level="debug">
+        <appender-ref ref="FILE"/>
+    </logger>
+</configuration>
