@@ -91,9 +91,12 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     List<Customer> customerList;
     List<Supplier> supplierList;
     Logger logger = LoggerFactory.getLogger(OrderElement.class);
+    private MainView mainView;
 
     @Autowired
-    public OrderElementList(PaginationSetting paginationSetting) {
+    public OrderElementList(PaginationSetting paginationSetting,
+                            MainView mainView) {
+        this.mainView = mainView;
         this.paginationSetting = paginationSetting;
         OrderElementVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 

@@ -69,10 +69,14 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
     private static String parentColumnFilterText = "";
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Logger logger = LoggerFactory.getLogger(CodeStore.class);
+    private MainView mainView;
 
     @Autowired
-    public CodeStoreList(PaginationSetting paginationSetting) {
+    public CodeStoreList(PaginationSetting paginationSetting,
+                         MainView mainView) {
+        this.mainView = mainView;
         this.paginationSetting = paginationSetting;
+
 
         CodeStoreVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 

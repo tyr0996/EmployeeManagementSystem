@@ -24,9 +24,9 @@ import hu.martin.ems.vaadin.api.CurrencyApiClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import javax.annotation.security.RolesAllowed;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -36,8 +36,9 @@ import java.util.stream.Stream;
 
 @Route(value = "currency/list", layout = MainView.class)
 //@AnonymousAllowed
-@PreAuthorize("hasRole('CurrencyMenuOpenPermission')")
+@RolesAllowed("CurrencyMenuOpenPermission")
 @NeedCleanCoding
+//@RolesAllowed("CurrencyMenuOpenPermission")
 public class CurrencyList extends VerticalLayout {
 
     private final CurrencyApiClient currencyApiClient = BeanProvider.getBean(CurrencyApiClient.class);
@@ -57,10 +58,12 @@ public class CurrencyList extends VerticalLayout {
 
     private DatePicker datePicker;
     Logger logger = LoggerFactory.getLogger(CurrencyList.class);
-
+    private MainView mainView;
 
     @Autowired
-    public CurrencyList(PaginationSetting paginationSetting) {
+    public CurrencyList(PaginationSetting paginationSetting,
+                        MainView mainView) {
+        this.mainView = mainView;
         this.paginationSetting = paginationSetting;
 
         this.grid = new PaginatedGrid<>(CurrencyVO.class);

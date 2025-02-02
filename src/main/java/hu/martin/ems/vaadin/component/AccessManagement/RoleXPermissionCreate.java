@@ -31,6 +31,7 @@ public class RoleXPermissionCreate extends VerticalLayout {
     List<Permission> permissionList;
     Button saveButton;
     Logger logger = LoggerFactory.getLogger(RoleXPermissionCreate.class);
+//    private MainView mainView;
 
     public RoleXPermissionCreate() {
         add(buildFormLayout());
@@ -38,7 +39,6 @@ public class RoleXPermissionCreate extends VerticalLayout {
 
     public FormLayout buildFormLayout() {
         FormLayout formLayout = new FormLayout();
-
 
         ComboBox<Role> roleComboBox = createRoleComboBox();
         MultiSelectComboBox<Permission> permissionComboBox = createPermissionComboBox(roleComboBox);

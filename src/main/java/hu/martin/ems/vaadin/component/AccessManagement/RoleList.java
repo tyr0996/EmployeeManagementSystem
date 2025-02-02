@@ -28,6 +28,7 @@ import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
+import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
@@ -76,9 +77,13 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     List<Permission> permissionList;
     private Gson gson = BeanProvider.getBean(Gson.class);
 
+    private MainView mainView;
 
-    public RoleList(PaginationSetting paginationSetting) {
+
+    public RoleList(PaginationSetting paginationSetting,
+                    MainView mainView) {
         this.paginationSetting = paginationSetting;
+        this.mainView = mainView;
 
         RoleVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 

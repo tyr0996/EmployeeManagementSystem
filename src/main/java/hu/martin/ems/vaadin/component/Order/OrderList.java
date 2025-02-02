@@ -85,8 +85,12 @@ public class OrderList extends VerticalLayout {
     private final PaginationSetting paginationSetting;
     Logger logger = LoggerFactory.getLogger(Order.class);
 
+    private MainView mainView;
+
     @Autowired
-    public OrderList(PaginationSetting paginationSetting) {
+    public OrderList(PaginationSetting paginationSetting,
+                     MainView mainView) {
+        this.mainView = mainView;
         OrderVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
         this.grid = new PaginatedGrid<>(OrderVO.class);
         this.paginationSetting = paginationSetting;
@@ -194,9 +198,11 @@ public class OrderList extends VerticalLayout {
 
             editButton.addClickListener(event -> {
                 OrderCreate.editObject = order.original;
-                OrderCreate oc = new OrderCreate(paginationSetting);
-                MainView.contentLayout.removeAll();
-                MainView.contentLayout.add(oc);
+                OrderCreate oc = new OrderCreate(paginationSetting, mainView);
+                mainView.getContentLayout().removeAll();
+                mainView.getContentLayout().add(oc);
+//                MainView.contentLayout.removeAll();
+//                MainView.contentLayout.add(oc);
             });
 
             restoreButton.addClickListener(event -> {

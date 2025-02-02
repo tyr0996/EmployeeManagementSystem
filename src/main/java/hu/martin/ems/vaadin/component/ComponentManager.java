@@ -6,7 +6,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import hu.martin.ems.annotations.EditObject;
 import hu.martin.ems.core.model.PaginationSetting;
-import lombok.AllArgsConstructor;
+import hu.martin.ems.vaadin.MainView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +28,11 @@ public class ComponentManager {
     private Logger logger = LoggerFactory.getLogger(ComponentManager.class);
 
 
-    public void reloadComponent(Class listClass, Div contentLayout) {
+    public void reloadComponent(Class listClass, MainView mainView) {
+        Div contentLayout = mainView.getContentLayout();
         try {
             setEditObjectAnnotatedFieldToNull(listClass);
-            com.vaadin.flow.component.Component newComponent = (com.vaadin.flow.component.Component) listClass.getDeclaredConstructor(PaginationSetting.class).newInstance(paginationSetting);
+            com.vaadin.flow.component.Component newComponent = (com.vaadin.flow.component.Component) listClass.getDeclaredConstructor(PaginationSetting.class, MainView.class).newInstance(paginationSetting, mainView);
 
             UI.getCurrent().accessSynchronously(() -> {
                 contentLayout.removeAll();

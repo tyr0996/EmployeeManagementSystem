@@ -33,6 +33,8 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,9 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 @CssImport("./styles/shared-styles.css")
 @PermitAll
 @NeedCleanCoding
+
+
+
 public class MainView extends HorizontalLayout implements RouterLayout {
 
     private VerticalLayout menuLayout;
@@ -54,7 +59,9 @@ public class MainView extends HorizontalLayout implements RouterLayout {
     @Autowired
     private ComponentManager componentManager;
 
-    public static Div contentLayout;
+    @Getter
+    @Setter
+    private Div contentLayout;
 
     public MainView() {
         menuLayout = new VerticalLayout();
@@ -114,7 +121,7 @@ public class MainView extends HorizontalLayout implements RouterLayout {
         Span listLink = new Span(subMenuName);
         HorizontalLayout listMenu = new HorizontalLayout(listLink);
         listLink.addClickListener(v -> {
-            componentManager.reloadComponent(listClass, contentLayout);
+            componentManager.reloadComponent(listClass, this);
         });
 
         listMenu.setVisible(false);

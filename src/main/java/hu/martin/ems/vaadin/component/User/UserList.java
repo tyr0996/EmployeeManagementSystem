@@ -86,8 +86,12 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     private static String enabledFilterText = "";
 
     private Logger logger = LoggerFactory.getLogger(UserList.class);
+    private MainView mainView;
 
-    public UserList(PaginationSetting paginationSetting) {
+
+    public UserList(PaginationSetting paginationSetting,
+                    MainView mainView) {
+        this.mainView = mainView;
         UserVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
         this.paginationSetting = paginationSetting;
         this.users = new ArrayList<>();

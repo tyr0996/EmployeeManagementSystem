@@ -28,6 +28,7 @@ import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.City;
 import hu.martin.ems.model.CodeStore;
+import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
@@ -77,11 +78,13 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     private Grid.Column<CityVO> zipCodeColumn;
     private Logger logger = LoggerFactory.getLogger(City.class);
     private Gson gson = BeanProvider.getBean(Gson.class);
-
+    private MainView mainView;
 
     @Autowired
-    public CityList(PaginationSetting paginationSetting) {
+    public CityList(PaginationSetting paginationSetting,
+                    MainView mainView) {
         this.paginationSetting = paginationSetting;
+        this.mainView = mainView;
 
         CityVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 

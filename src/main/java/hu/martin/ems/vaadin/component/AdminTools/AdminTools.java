@@ -22,7 +22,8 @@ import hu.martin.ems.vaadin.api.AdminToolsApiClient;
 public class AdminTools extends VerticalLayout {
     private final AdminToolsApiClient adminToolsApiClient = BeanProvider.getBean(AdminToolsApiClient.class);
 
-    public AdminTools(PaginationSetting paginationSetting) {
+    public AdminTools(PaginationSetting paginationSetting,
+                      MainView mainView) {
         Button b = new Button("Clear database");
         add(b);
 

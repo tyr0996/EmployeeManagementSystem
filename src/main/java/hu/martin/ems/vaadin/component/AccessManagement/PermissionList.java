@@ -27,6 +27,7 @@ import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
+import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 //import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
@@ -79,8 +80,11 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
 
     private Gson gson = BeanProvider.getBean(Gson.class);
 
-    public PermissionList(PaginationSetting paginationSetting) {
+    private MainView mainView;
 
+    public PermissionList(PaginationSetting paginationSetting,
+                          MainView mainView) {
+        this.mainView = mainView;
 
         this.paginationSetting = paginationSetting;
 

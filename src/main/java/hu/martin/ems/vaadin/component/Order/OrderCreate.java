@@ -67,10 +67,13 @@ public class OrderCreate extends VerticalLayout {
     List<Customer> customerList;
     List<CodeStore> paymentTypeList;
     List<CodeStore> currencyList;
+    private MainView mainView;
 
     //The autowired here is need because the MainView addmenu function
     @Autowired
-    public OrderCreate(PaginationSetting paginationSetting) {
+    public OrderCreate(PaginationSetting paginationSetting,
+                       MainView mainView) {
+        this.mainView = mainView;
         FormLayout formLayout = new FormLayout();
 
         Button saveButton = new Button("Create order");

@@ -74,8 +74,11 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     private String salaryFilterText = "";
     private Logger logger = LoggerFactory.getLogger(Employee.class);
     List<Role> roleList;
+    private MainView mainView;
     @Autowired
-    public EmployeeList(PaginationSetting paginationSetting) {
+    public EmployeeList(PaginationSetting paginationSetting,
+                        MainView mainView) {
+        this.mainView = mainView;
         this.paginationSetting = paginationSetting;
         EmployeeVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 

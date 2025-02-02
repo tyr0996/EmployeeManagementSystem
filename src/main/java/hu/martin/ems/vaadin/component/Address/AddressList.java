@@ -85,10 +85,12 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     List<CodeStore> countryList;
 
     private Button saveButton;
-
+    private MainView mainView;
 
     @Autowired
-    public AddressList(PaginationSetting paginationSetting) {
+    public AddressList(PaginationSetting paginationSetting,
+                       MainView mainView) {
+        this.mainView = mainView;
         System.out.println("Felhasználó: " + BeanProvider.getBean(SecurityService.class).getAuthenticatedUser().getUsername());
         this.paginationSetting = paginationSetting;
 

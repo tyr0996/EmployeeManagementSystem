@@ -71,10 +71,13 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
     List<Supplier> supplierList;
 
     List<Address> addressList;
+    private MainView mainView;
 
     @Autowired
-    public SupplierList(PaginationSetting paginationSetting) {
+    public SupplierList(PaginationSetting paginationSetting,
+                        MainView mainView) {
         this.paginationSetting = paginationSetting;
+        this.mainView = mainView;
 
         SupplierVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 

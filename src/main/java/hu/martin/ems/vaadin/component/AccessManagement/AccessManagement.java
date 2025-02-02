@@ -24,9 +24,12 @@ public class AccessManagement extends VerticalLayout {
     private Button listPermissions;
     private Button pairRolesWithPermissions;
     private HorizontalLayout buttonsLayout;
+    private MainView mainView;
 
     @Autowired
-    public AccessManagement(PaginationSetting paginationSetting) {
+    public AccessManagement(PaginationSetting paginationSetting,
+                            MainView mainView) {
+        this.mainView = mainView;
         this.paginationSetting = paginationSetting;
 //        this.roleList = new RoleList(paginationSetting);
 //        this.permissionList = new PermissionList(paginationSetting);
@@ -48,10 +51,10 @@ public class AccessManagement extends VerticalLayout {
 
     private void addClickListeners() {
         listRoles.addClickListener(event ->{
-            refreshLayout(new RoleList(paginationSetting));
+            refreshLayout(new RoleList(paginationSetting, mainView));
         });
         listPermissions.addClickListener(event -> {
-            refreshLayout(new PermissionList(paginationSetting));
+            refreshLayout(new PermissionList(paginationSetting, mainView));
         });
         pairRolesWithPermissions.addClickListener(event -> {
             refreshLayout(new RoleXPermissionCreate());

@@ -95,10 +95,13 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     List<Supplier> supplierList;
 
     private final Gson gson = BeanProvider.getBean(Gson.class);
+    private MainView mainView;
 
     @Autowired
-    public ProductList(PaginationSetting paginationSetting) {
+    public ProductList(PaginationSetting paginationSetting,
+                       MainView mainView) {
         this.paginationSetting = paginationSetting;
+        this.mainView = mainView;
 
         ProductVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
