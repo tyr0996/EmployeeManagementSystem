@@ -6,13 +6,26 @@
     {
       "deleted": 0,
       "username": "admin",
-      "password": "admin",
+      "passwordHash": "$2a$12$Ei2ntwIK/6lePBO2UecedetPpxxDee3kmxnkWTXZI.CiPb86vejHe",
       "role_role_id": {
         "refClass": "Role",
         "filter": {
           "id": 1
         }
-      }
+      },
+      "enabled": true
+    },
+    {
+      "deleted": 0,
+      "username": "robi",
+      "passwordHash": "$2a$12$nEBYNfVpfUZ9.qFFUGWs5.5mDLxXAGNlDcqKsxi7eoEFleys7Lvym",
+      "role_role_id": {
+        "refClass": "Role",
+        "filter": {
+          "id": 2
+        }
+      },
+      "enabled": true
     }
   ]
 }

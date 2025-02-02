@@ -13,7 +13,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.VaadinServletResponse;
+import com.vaadin.flow.server.VaadinRequest;
+import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
@@ -23,6 +24,7 @@ import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Base64;
 
@@ -114,8 +117,11 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
                     SecurityContextHolder.getContext().setAuthentication(auth);
 
-                    HttpServletResponse response = VaadinServletResponse.getCurrent().getHttpServletResponse();
-                    createRememberMeCookie(response, userName);
+                    VaadinServletRequest vaadinRequest = (VaadinServletRequest) VaadinRequest.getCurrent();
+                    HttpServletRequest request = vaadinRequest.getHttpServletRequest();
+                    request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+
+//                    HttpServletResponse response = VaadinServletResponse.getCurrent().getHttpServletResponse();
 //
                     loginOverlay.close();
                     getUI().ifPresent(ui -> ui.navigate("/"));
@@ -174,8 +180,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     Notification.show("The passwords doesn't match!").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
                 else{
+                    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                     User newUser = new User();
-                    newUser.setPassword(password.getValue());
+                    newUser.setPasswordHash(encoder.encode(password.getValue()));
                     newUser.setUsername(userName.getValue());
                     newUser.setDeleted(0L);
                     newUser.setRoleRole(noRole);
@@ -203,6 +210,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private Dialog passwordDialog(Dialog parent, String userName) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         Dialog d = new Dialog("Forgot password for " + userName);
         FormLayout form = new FormLayout();
         PasswordField pw1 = new PasswordField("Password");
@@ -217,7 +225,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     Notification.show("User not found!").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
                 else{
-                    user.setPassword(pw1.getValue());
+                    user.setPasswordHash(encoder.encode(pw1.getValue()));
                     userApi.update(user);
                     Notification.show("Password changed successfully!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     d.close();

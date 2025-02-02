@@ -21,7 +21,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
@@ -36,6 +35,7 @@ import hu.martin.ems.vaadin.component.Creatable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.*;
@@ -47,7 +47,8 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
-@AnonymousAllowed
+//@AnonymousAllowed
+@PreAuthorize("hasRole('CustomerMenuOpenPermission')")
 @Route(value = "customer/list", layout = MainView.class)
 @NeedCleanCoding
 public class CustomerList extends VerticalLayout implements Creatable<Customer> {

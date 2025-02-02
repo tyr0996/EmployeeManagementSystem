@@ -20,20 +20,21 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.auth.CustomUserDetailsService;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.model.User;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
+import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.*;
@@ -44,7 +45,6 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/grid.css")
-@AnonymousAllowed
 @NeedCleanCoding
 public class RoleList extends VerticalLayout implements Creatable<Role> {
     private boolean showDeleted = false;
@@ -63,6 +63,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
 
     private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
+    private final UserApiClient userApiClient = BeanProvider.getBean(UserApiClient.class);
 
     private static String roleFilterText = "";
     private static Set<Permission> permissionsFilterSet = new HashSet<>();
@@ -74,6 +75,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     private Logger logger = LoggerFactory.getLogger(RoleList.class);
     List<Permission> permissionList;
     private Gson gson = BeanProvider.getBean(Gson.class);
+
 
     public RoleList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
@@ -292,7 +294,7 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
             Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
-            disableDeletedForLoggedInUser();
+            disableDeletedForLoggedInUser(roleVO, deleteButton);
 
             editButton.addClickListener(event -> {
                 editableRole = roleVO.original;
@@ -338,9 +340,20 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
         });
     }
 
-    private void disableDeletedForLoggedInUser() {
-        Object o = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        System.out.println("Sanyi");
+    private void disableDeletedForLoggedInUser(RoleVO roleVO, Button deleteButton) {
+        EmsResponse response = userApiClient.findByUsername(CustomUserDetailsService.getLoggedInUsername());
+        switch (response.getCode()){
+            case 200: {
+                if(((User) response.getResponseData()).getRoleRole().equals(roleVO.original)){
+                    deleteButton.setEnabled(false);
+                }
+                break;
+            }
+            default:
+                Notification.show("Unable to get the current user. Deleting roles is disabled").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                deleteButton.setEnabled(false);
+        }
+
     }
 
     private void updateGridItems() {

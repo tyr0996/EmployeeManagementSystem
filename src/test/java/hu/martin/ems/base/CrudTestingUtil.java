@@ -255,21 +255,34 @@ public class CrudTestingUtil {
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
         }
         WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
-        if(rowLocation == null){
-            createTest();
-            rowLocation = new ElementLocation(1, 0);
+
+
+        WebElement deleteButton = null;
+        String[] deletedData = null;
+        while(deleteButton == null){
+            ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+            if(rowLocation == null){
+                createTest();
+                rowLocation = new ElementLocation(1, 0);
+            }
+            goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
+
+            setCheckboxStatus(showDeletedCheckBoxXpath, false);
+
+
+            WebElement showDeletedCheckBox = findVisibleElementWithXpath(showDeletedCheckBoxXpath);
+            String[] tempDeletedData = getDataFromRowLocation(gridXpath, rowLocation);
+
+            Thread.sleep(200);
+            WebElement tempDeleteButton = getDeleteButton(gridXpath, rowLocation.getRowIndex());
+            if(tempDeleteButton.getDomAttribute("disabled") == null){
+                deleteButton = tempDeleteButton;
+                deletedData = tempDeletedData;
+            }
         }
-        goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
-
-        setCheckboxStatus(showDeletedCheckBoxXpath, false);
 
 
-        WebElement showDeletedCheckBox = findVisibleElementWithXpath(showDeletedCheckBoxXpath);
-        String[] deletedData = getDataFromRowLocation(gridXpath, rowLocation);
 
-        Thread.sleep(200);
-        WebElement deleteButton = getDeleteButton(gridXpath, rowLocation.getRowIndex());
         deleteButton.click();
         Thread.sleep(100);
         checkNotificationContainsTexts(notification == null ? className + " deleted: " : notification);

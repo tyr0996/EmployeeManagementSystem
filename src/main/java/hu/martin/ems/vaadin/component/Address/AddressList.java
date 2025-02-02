@@ -20,8 +20,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.auth.SecurityService;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
@@ -50,7 +50,6 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @Route(value = "address/list", layout = MainView.class)
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
-@AnonymousAllowed
 @NeedCleanCoding
 public class AddressList extends VerticalLayout implements Creatable<Address> {
 
@@ -90,6 +89,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
 
     @Autowired
     public AddressList(PaginationSetting paginationSetting) {
+        System.out.println("Felhasználó: " + BeanProvider.getBean(SecurityService.class).getAuthenticatedUser().getUsername());
         this.paginationSetting = paginationSetting;
 
         AddressVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));

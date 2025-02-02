@@ -1,2 +1,2 @@
-INSERT INTO User (deleted, username, password, role_role_id) VALUES
-	('0', 'admin', 'admin', (SELECT id as role_role_id FROM Role WHERE id = 1.0 LIMIT 1))
+INSERT INTO User (deleted, username, passwordHash, role_role_id, enabled) VALUES
+	('0', 'admin', '$2a$12$Ei2ntwIK/6lePBO2UecedetPpxxDee3kmxnkWTXZI.CiPb86vejHe', (SELECT id as role_role_id FROM Role WHERE id = 1.0 LIMIT 1), 'true')

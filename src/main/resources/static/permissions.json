@@ -7,19 +7,19 @@
       "deleted": 0
     },
     {
-      "name": "MartinEngedély2",
+      "name": "CustomerMenuOpenPermission",
       "deleted": 0
     },
     {
-      "name": "RobiEngedély1",
+      "name": "CurrencyMenuOpenPermission",
       "deleted": 0
     },
     {
-      "name": "RobiEngedély2",
+      "name": "AddressesMenuOpenPermission",
       "deleted": 0
     },
     {
-      "name": "RobiEngedély3",
+      "name": "ProductMenuOpenPermission",
       "deleted": 0
     }
   ]

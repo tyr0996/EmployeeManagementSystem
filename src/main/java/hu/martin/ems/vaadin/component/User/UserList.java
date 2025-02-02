@@ -35,6 +35,7 @@ import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.*;
@@ -67,6 +68,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
 
     Grid.Column<UserVO> userNameColumn;
     Grid.Column<UserVO> passwordHashColumn;
+    Grid.Column<UserVO> enabledColumn;
 
     private Grid.Column<UserVO> extraData;
 
@@ -81,6 +83,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private static String usernameFilterText = "";
     private static String passwordHashFilterText = "";
+    private static String enabledFilterText = "";
 
     private Logger logger = LoggerFactory.getLogger(UserList.class);
 
@@ -124,6 +127,15 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             updateGridItems();
         });
 
+        TextField enabledFilter = new TextField();
+        passwordHashFilter.setPlaceholder("Search enabled...");
+        passwordHashFilter.setClearButtonVisible(true);
+        passwordHashFilter.addValueChangeListener(event -> {
+            enabledFilterText = event.getValue().trim();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         TextField extraDataFilter = new TextField();
 
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -143,6 +155,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
         filterRow.getCell(userNameColumn).setComponent(filterField(usernameFilter, "Username"));
         filterRow.getCell(passwordHashColumn).setComponent(filterField(passwordHashFilter, "Password hash"));
+        filterRow.getCell(enabledColumn).setComponent(filterField(enabledFilter, "Enabled"));
     }
 
     private Component filterField(TextField filterField, String title){
@@ -257,6 +270,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     }
 
     private EmsResponse saveUser(){
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         User user = Objects.requireNonNullElseGet(editableUser, User::new);
 //        if((editableUser == null || ) && usernameCheck(usernameField.getValue())){
         if(!usernameCheck(usernameField.getValue())){
@@ -279,7 +293,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             return new EmsResponse(400, "Password is required!");
         }
         else{
-            user.setPassword(passwordField.getValue());
+            user.setPasswordHash(encoder.encode(passwordField.getValue()));
         }
         user.setDeleted(0L);
         user.setUsername(usernameField.getValue());
@@ -312,6 +326,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     private void setGridColumns(){
         userNameColumn = this.grid.addColumn(v -> v.username);
         passwordHashColumn = this.grid.addColumn(v -> v.passwordHash);
+        enabledColumn = this.grid.addColumn(v -> v.enabled);
         addOptionsColumn();
     }
 
@@ -399,6 +414,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         private User original;
         private String username;
         private String passwordHash;
+        private String enabled;
 
         public UserVO(User user){
             super(user.id, user.getDeleted());
@@ -406,7 +422,8 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             this.id = user.getId();
             this.deleted = user.getDeleted();
             this.username = user.getUsername();
-            this.passwordHash = user.getPassword();
+            this.passwordHash = user.getPasswordHash();
+            this.enabled = user.isEnabled() ? "true" : "false"; //TODO berakni a táblázatba, hogy benne legyen, hogy engedélyezve van-e, vagy sem.
         }
     }
 }

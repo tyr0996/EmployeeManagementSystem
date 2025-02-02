@@ -64,7 +64,7 @@ public class RoleTest extends BaseCrudTest {
 
     }
 
-    @Test
+    @Test(invocationCount = 100)
     public void roleDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);

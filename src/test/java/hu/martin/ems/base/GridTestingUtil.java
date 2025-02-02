@@ -399,7 +399,7 @@ public class GridTestingUtil {
             return null;
         }
         else if(elementNumber > 1){
-            selectedElementIndex = rnd.nextInt(0, elementNumber - 1); //TODO lehet, hogy ezt ki kell venni
+            selectedElementIndex = rnd.nextInt(0, elementNumber); //TODO lehet, hogy ezt ki kell venni elementNumber - 1
         }
         else{
             return new ElementLocation(1, 0);

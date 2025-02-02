@@ -2,28 +2,36 @@ package hu.martin.ems.core.auth;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.service.UserService;
 import hu.martin.ems.vaadin.component.Login.LoginView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import javax.sql.DataSource;
 import java.util.Arrays;
 
 @EnableWebSecurity
 @Configuration
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @NeedCleanCoding
 public class SecurityConfiguration extends VaadinWebSecurity {
     private final SecurityService securityService;
@@ -34,10 +42,16 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     }
 
     @Autowired
-    public UserDetailsService userDetailsService;
+    public CustomUserDetailsService userDetailsService;
+
+    @Autowired
+    public UserService userService;
 
     @Value("${rememberme.key}")
     private String key;
+
+
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -48,19 +62,19 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                 .cors(cors -> {
                     cors.configurationSource(corsConfigurationSource());
                 })
-                .sessionManagement((sessionManagement) -> {
-                    sessionManagement.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
-                    sessionManagement.invalidSessionUrl("/login?invalid-session");
-                    sessionManagement.maximumSessions(1);
-                })
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .invalidSessionUrl("/login?invalid-session")
+                        .maximumSessions(1)
+                        .expiredUrl("/login?session-expired"))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(new AntPathRequestMatcher("/public/**")).permitAll()
-                        .requestMatchers("/").permitAll()
                         .requestMatchers("/api/*").permitAll()//TODO: only for testing!
                         .requestMatchers("/api/*/*").permitAll() //TODO: only for testing!
                         .requestMatchers("/api/*/*/*").permitAll()
-                        .requestMatchers("/login").permitAll()
+                        .requestMatchers("/login**").permitAll()
+                        .requestMatchers("/").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form.loginPage("/login"))
@@ -73,9 +87,18 @@ public class SecurityConfiguration extends VaadinWebSecurity {
         return http.build();
     }
 
+//    @Bean
+//    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+//        return authenticationConfiguration.getAuthenticationManager();
+//    }
+
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(new BCryptPasswordEncoder());
+
+        return new ProviderManager(authProvider);
     }
 
     @Override
@@ -122,5 +145,17 @@ public class SecurityConfiguration extends VaadinWebSecurity {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public UserDetailsManager userDetailsService(DataSource dataSource) {
+        JdbcUserDetailsManager manager = new JdbcUserDetailsManager();
+        manager.setDataSource(dataSource);
+        return manager;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

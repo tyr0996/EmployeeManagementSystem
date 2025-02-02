@@ -1,6 +1,5 @@
 package hu.martin.ems.vaadin;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -13,7 +12,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLayout;
 import com.vaadin.flow.server.VaadinServletService;
-import hu.martin.ems.annotations.EditObject;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.vaadin.component.AccessManagement.AccessManagement;
@@ -41,9 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
-import java.lang.reflect.Field;
-
-@Route("")
+@Route("/")
 @CssImport("./styles/shared-styles.css")
 @PermitAll
 @NeedCleanCoding
