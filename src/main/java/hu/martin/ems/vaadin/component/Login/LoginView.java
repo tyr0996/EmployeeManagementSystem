@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.component.Login;
 
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -64,6 +65,10 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
 
     public LoginView() {
+        addAttachListener(event -> {
+            VaadinSession.getCurrent().setAttribute("csrfToken", getCsrfTokenFromCookie());
+        });
+
         NO_ROLE_USER.setTitle("Permission error");
         NO_ROLE_USER.setMessage("You have no permission to log in. Contact the administrator about your roles, and try again.");
         BAD_CREDIDENTALS.setTitle("Incorrect username or password");
@@ -267,5 +272,18 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         rememberMeCookie.setPath("/");
 
         response.addCookie(rememberMeCookie);
+    }
+
+    private String getCsrfTokenFromCookie() {
+        VaadinServletRequest vaadinRequest = (VaadinServletRequest) VaadinRequest.getCurrent();
+        Cookie[] cookies = vaadinRequest.getHttpServletRequest().getCookies();
+
+        for (Cookie cookie : cookies) {
+            if ("XSRF-TOKEN".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
     }
 }

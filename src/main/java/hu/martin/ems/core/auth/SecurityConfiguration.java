@@ -3,6 +3,8 @@ package hu.martin.ems.core.auth;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.service.UserService;
+import hu.martin.ems.vaadin.component.Login.LoginView;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -53,9 +56,6 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 //        configure(http);
         http
-                /*
-                TODO érdemes lenne használni a csrf-t, de jelenleg különben bejelentkezni sem enged
-                */
                 .cors(cors -> {
                     cors.configurationSource(corsConfigurationSource());
                 })
@@ -64,10 +64,15 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                         .invalidSessionUrl("/login?invalid-session")
                         .maximumSessions(1)
                         .expiredUrl("/login?session-expired"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers(HttpServletRequest::isRequestedSessionIdFromCookie))
+
 //                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-                .csrf(csrf -> csrf.disable())
+//                .csrf(csrf -> csrf.disable())
+//                .csrf(csrf -> csrf.ignoringRequestMatchers("/vaadinServlet/**")
+//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .authorizeHttpRequests((requests) -> requests
-//                        .requestMatchers(new AntPathRequestMatcher("/public/**")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/public/**")).permitAll()
+                        .requestMatchers("/csrf").permitAll()
                         .requestMatchers("/api/**").permitAll()//TODO: only for testing!
                         .requestMatchers("/login**").permitAll()
                         .requestMatchers("/access-denied").permitAll()
@@ -85,7 +90,6 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                         .logoutSuccessUrl("/login")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID"));
-
         return http.build();
     }
 
@@ -119,7 +123,7 @@ public class SecurityConfiguration extends VaadinWebSecurity {
 //            me.tokenValiditySeconds(86400);
 //            me.userDetailsService(userDetailsService);
 //        });
-//        setLoginView(http, LoginView.class);
+        setLoginView(http, LoginView.class);
     }
 
     @Override
