@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -64,7 +65,10 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                         .invalidSessionUrl("/login?invalid-session")
                         .maximumSessions(1)
                         .expiredUrl("/login?session-expired"))
-                .csrf(csrf -> csrf.ignoringRequestMatchers(HttpServletRequest::isRequestedSessionIdFromCookie))
+                .csrf(csrf -> {
+                    csrf.ignoringRequestMatchers(HttpServletRequest::isRequestedSessionIdFromCookie);
+                    csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+                })
 
 //                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
 //                .csrf(csrf -> csrf.disable())

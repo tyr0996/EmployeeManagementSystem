@@ -1,11 +1,11 @@
 package hu.martin.ems.core.controller;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.BaseEntity;
 import hu.martin.ems.core.repository.BaseRepository;
 import hu.martin.ems.core.service.BaseService;
+import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-//@PermitAll
-@AnonymousAllowed
+@PermitAll
+//@AnonymousAllowed
 public abstract class BaseController<T extends BaseEntity, S extends BaseService<T, R>, R extends BaseRepository<T, Long>> {
     protected S service;
 

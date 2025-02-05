@@ -45,47 +45,47 @@ public class AddressTest extends BaseCrudTest {
         crudTestingUtil = new CrudTestingUtil(driver, "Address", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
         TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
     }
 
     @Test
     public void addressCreateTest() throws InterruptedException {
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
     }
 
     @Test
     public void addressReadTest() throws InterruptedException {
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+//        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.readTest();
     }
 
     @Test
     public void addressDeleteTest() throws InterruptedException {
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+//        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
     }
 
     @Test
     public void addressUpdateTest() throws InterruptedException {
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+//        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest();
     }
 
     @Test
     public void addressRestoreTest() throws InterruptedException {
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+//        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.restoreTest();
     }
 
     @Test
     public void addressPermanentlyDeleteTest() throws InterruptedException {
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+//        navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
     }
     @Test
@@ -95,7 +95,7 @@ public class AddressTest extends BaseCrudTest {
 
 //        MockitoAnnotations.openMocks(this);
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+//        navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
         checkNotificationText("Error happened while getting addresses");
         assertEquals(0, countVisibleGridDataRows(gridXpath));
@@ -108,7 +108,7 @@ public class AddressTest extends BaseCrudTest {
 
 //        MockitoAnnotations.openMocks(this);
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+//        navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
         failedFieldData.put("Street type", "Error happened while getting street types");
 
@@ -120,7 +120,7 @@ public class AddressTest extends BaseCrudTest {
 //        Mockito.doReturn(new EmsResponse(522, "Error happened while getting cities")).when(spyCityApiClient).findAllByIds();
         Mockito.doReturn(null).when(spyCityService).findAll(any(Boolean.class));
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+//        navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
         failedFieldData.put("City", "Error happened while getting cities");
 
@@ -131,7 +131,7 @@ public class AddressTest extends BaseCrudTest {
     public void nullResponseWhenGettingCountries() throws InterruptedException {
         Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+//        navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
         failedFieldData.put("Country code", "Error happened while getting countries");
 

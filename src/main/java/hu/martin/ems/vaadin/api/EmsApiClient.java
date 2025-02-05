@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.core.auth.CustomUserDetailsService;
+import hu.martin.ems.core.auth.SecurityService;
 import hu.martin.ems.core.model.EmsResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -13,8 +14,10 @@ import org.springframework.boot.web.servlet.context.ServletWebServerApplicationC
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +36,9 @@ public abstract class EmsApiClient<T> {
     private Class<T> entityType;
 
     protected Logger logger;
+
+    @Autowired
+    SecurityService securityService;
 
 
     @Autowired
@@ -61,6 +67,10 @@ public abstract class EmsApiClient<T> {
             String response =  webClient.post()
                     .uri("save")
                     .contentType(MediaType.APPLICATION_JSON)
+//                    .header("X-CSRF-TOKEN", csrf)
+//                    .cookie("X-CSRF-TOKEN", csrf)
+//                    .cookie("_csrf", csrf)
+//                    .header("_csrf", csrf)
                     .bodyValue(writeValueAsString(entity))
                     .retrieve()
                     .bodyToMono(String.class)
@@ -74,6 +84,15 @@ public abstract class EmsApiClient<T> {
             logger.error("WebClient error - save - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
+    }
+
+    // Kérés naplózása
+    private ExchangeFilterFunction logRequest() {
+        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
+            logger.info("Request: " + clientRequest.method() + " " + clientRequest.url());
+            clientRequest.headers().forEach((name, values) -> values.forEach(value -> logger.info(name + ": " + value)));
+            return Mono.just(clientRequest);
+        });
     }
 
     public EmsResponse update(T entity) {
@@ -378,9 +397,33 @@ public abstract class EmsApiClient<T> {
             String baseUrl = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/api/" + entityName + "/";
             webClient = webClientBuilder
                     .baseUrl(baseUrl)
+                .filter(logRequest())
+                    .defaultCookie("SameSite", "Strict")
+                    .defaultCookie("X-XSRF-TOKEN", securityService.getXsrfToken())
+                    .defaultCookie("JSESSIONID", securityService.getSessionId())
                     .build();
         }
     }
+
+//    public void initBaseWebClient(){
+//        webClient = webClientBuilder
+//                .baseUrl("http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/")
+//                .defaultCookie("SameSite", "Strict")
+//                .build();
+//    }
+
+//    private String getCsrfTokenFromCookie() {
+//        VaadinServletRequest vaadinRequest = (VaadinServletRequest) VaadinRequest.getCurrent();
+//        Cookie[] cookies = vaadinRequest.getHttpServletRequest().getCookies();
+//
+//        for (Cookie cookie : cookies) {
+//            if ("XSRF-TOKEN".equals(cookie.getName())) {
+//                return cookie.getValue();
+//            }
+//        }
+//
+//        return null;
+//    }
 
     public T convertResponseToEntity(String jsonResponse) {
         return convertResponseToEntityList("[" + jsonResponse + "]").get(0);

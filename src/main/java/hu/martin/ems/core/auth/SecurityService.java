@@ -3,6 +3,8 @@ package hu.martin.ems.core.auth;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,5 +33,23 @@ public class SecurityService {
         logoutHandler.logout(
                 VaadinServletRequest.getCurrent().getHttpServletRequest(), null,
                 null);
+    }
+
+    public String getSessionId() {
+        HttpServletRequest request = VaadinServletRequest.getCurrent().getHttpServletRequest();
+        return request.getSession().getId();
+    }
+
+    public String getXsrfToken() {
+        HttpServletRequest request = VaadinServletRequest.getCurrent().getHttpServletRequest();
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("XSRF-TOKEN".equals(cookie.getName())) {
+                    return cookie.getValue(); // Return the value of the XSRF-TOKEN cookie
+                }
+            }
+        }
+        return null; // Return null if the XSRF-TOKEN cookie is not found
     }
 }
