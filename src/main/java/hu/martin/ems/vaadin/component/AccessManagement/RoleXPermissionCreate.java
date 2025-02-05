@@ -18,11 +18,13 @@ import hu.martin.ems.vaadin.api.RoleApiClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.Set;
 
 @AnonymousAllowed
 @NeedCleanCoding
+@RolesAllowed("ROLE_AccessManagementMenuOpenPermission")
 public class RoleXPermissionCreate extends VerticalLayout {
 
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);

@@ -21,7 +21,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
@@ -33,6 +32,7 @@ import hu.martin.ems.vaadin.api.EmployeeApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import jakarta.annotation.security.RolesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
-@AnonymousAllowed
+@RolesAllowed("ROLE_EmployeeMenuOpenPermission")
 @Route(value = "employee/list", layout = MainView.class)
 @NeedCleanCoding
 public class EmployeeList extends VerticalLayout implements Creatable<Employee> {
@@ -76,9 +76,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     List<Role> roleList;
     private MainView mainView;
     @Autowired
-    public EmployeeList(PaginationSetting paginationSetting,
-                        MainView mainView) {
-        this.mainView = mainView;
+    public EmployeeList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
         EmployeeVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 

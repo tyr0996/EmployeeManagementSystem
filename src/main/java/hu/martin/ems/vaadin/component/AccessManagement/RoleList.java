@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,6 +48,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/grid.css")
 @NeedCleanCoding
+@RolesAllowed("ROLE_AccessManagementMenuOpenPermission")
 public class RoleList extends VerticalLayout implements Creatable<Role> {
     private boolean showDeleted = false;
     private PaginatedGrid<RoleVO, String> grid;
@@ -80,10 +82,9 @@ public class RoleList extends VerticalLayout implements Creatable<Role> {
     private MainView mainView;
 
 
-    public RoleList(PaginationSetting paginationSetting,
-                    MainView mainView) {
+    public RoleList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
-        this.mainView = mainView;
+//        this.mainView = mainView;
 
         RoleVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 

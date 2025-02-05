@@ -1,17 +1,20 @@
 package hu.martin.ems.vaadin.component.AccessManagement;
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.vaadin.MainView;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Route(value = "accessManagement/list", layout = MainView.class)
-@AnonymousAllowed
+@RolesAllowed("ROLE_AccessManagementMenuOpenPermission")
+//@Secured("ROLE_AccessManagementMenuOpenPermission")
 @NeedCleanCoding
 public class AccessManagement extends VerticalLayout {
 
@@ -24,12 +27,11 @@ public class AccessManagement extends VerticalLayout {
     private Button listPermissions;
     private Button pairRolesWithPermissions;
     private HorizontalLayout buttonsLayout;
-    private MainView mainView;
+//    private MainView mainView;
 
     @Autowired
-    public AccessManagement(PaginationSetting paginationSetting,
-                            MainView mainView) {
-        this.mainView = mainView;
+    public AccessManagement(PaginationSetting paginationSetting) {
+//        this.mainView = mainView;
         this.paginationSetting = paginationSetting;
 //        this.roleList = new RoleList(paginationSetting);
 //        this.permissionList = new PermissionList(paginationSetting);
@@ -51,13 +53,13 @@ public class AccessManagement extends VerticalLayout {
 
     private void addClickListeners() {
         listRoles.addClickListener(event ->{
-            refreshLayout(new RoleList(paginationSetting, mainView));
+            refreshLayout(RoleList.class);
         });
         listPermissions.addClickListener(event -> {
-            refreshLayout(new PermissionList(paginationSetting, mainView));
+            refreshLayout(PermissionList.class);
         });
         pairRolesWithPermissions.addClickListener(event -> {
-            refreshLayout(new RoleXPermissionCreate());
+            refreshLayout(RoleXPermissionCreate.class);
         });
     }
 
@@ -66,8 +68,9 @@ public class AccessManagement extends VerticalLayout {
         add(buttonsLayout);
     }
 
-    private void refreshLayout(VerticalLayout component){
+    private void refreshLayout(Class<? extends Component> c){
         removeAll();
-        add(this.buttonsLayout, component);
+        UI.getCurrent().navigate(c);
+//        add(this.buttonsLayout, c);
     }
 }

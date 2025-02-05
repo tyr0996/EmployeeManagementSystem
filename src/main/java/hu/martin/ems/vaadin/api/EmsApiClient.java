@@ -3,6 +3,7 @@ package hu.martin.ems.vaadin.api;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.internal.LinkedTreeMap;
+import hu.martin.ems.core.auth.CustomUserDetailsService;
 import hu.martin.ems.core.model.EmsResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public EmsResponse save(T entity) {
+        CustomUserDetailsService.getLoggedInUsername();
         initWebClient();
         try{
             String response =  webClient.post()
@@ -374,7 +376,9 @@ public abstract class EmsApiClient<T> {
     public void initWebClient(){
         if(webClient == null){
             String baseUrl = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/api/" + entityName + "/";
-            webClient = webClientBuilder.baseUrl(baseUrl).build();
+            webClient = webClientBuilder
+                    .baseUrl(baseUrl)
+                    .build();
         }
     }
 

@@ -21,7 +21,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
@@ -37,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,7 +47,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @Route(value = "product/list", layout = MainView.class)
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
-@AnonymousAllowed
+@RolesAllowed("ROLE_ProductMenuOpenPermission")
 @NeedCleanCoding
 public class ProductList extends VerticalLayout implements Creatable<Product> {
 
@@ -98,8 +98,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     private MainView mainView;
 
     @Autowired
-    public ProductList(PaginationSetting paginationSetting,
-                       MainView mainView) {
+    public ProductList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
         this.mainView = mainView;
 

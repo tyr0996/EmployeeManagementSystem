@@ -19,8 +19,9 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
@@ -33,6 +34,7 @@ import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import jakarta.annotation.security.RolesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,20 +52,18 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
-@Route(value = "city/list")
-@AnonymousAllowed
+@Route(value = "city/list", layout = MainView.class)
+@RolesAllowed("ROLE_CityMenuOpenPermission")
 @NeedCleanCoding
-public class CityList extends VerticalLayout implements Creatable<City> {
+public class CityList extends VerticalLayout implements Creatable<City>, BeforeEnterObserver {
 
     private final CityApiClient cityApi = BeanProvider.getBean(CityApiClient.class);
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private boolean showDeleted = false;
     private PaginatedGrid<CityVO, String> grid;
-    private final PaginationSetting paginationSetting;
+    private PaginationSetting paginationSetting;
 
     List<CityVO> cityVOS;
-
-
     List<City> cityList;
     List<CodeStore> countries;
 
@@ -81,10 +81,13 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     private MainView mainView;
 
     @Autowired
-    public CityList(PaginationSetting paginationSetting,
-                    MainView mainView) {
+    public CityList(PaginationSetting paginationSetting) {
+        createCityList(paginationSetting);
+    }
+
+
+    private void createCityList(PaginationSetting paginationSetting){
         this.paginationSetting = paginationSetting;
-        this.mainView = mainView;
 
         CityVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
@@ -359,6 +362,11 @@ public class CityList extends VerticalLayout implements Creatable<City> {
                 logger.error("CodeStore getChildrenError [countries]. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        System.out.println("BEFORE_ENTER");
     }
 
     @NeedCleanCoding

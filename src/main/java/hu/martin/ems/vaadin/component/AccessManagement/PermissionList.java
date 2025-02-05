@@ -20,24 +20,23 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
-import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
-//import hu.martin.ems.vaadin.api.RoleXPermissionApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,7 +47,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/grid.css")
-@AnonymousAllowed
+@RolesAllowed("ROLE_AccessManagementMenuOpenPermission")
 @NeedCleanCoding
 public class PermissionList extends VerticalLayout implements Creatable<Permission> {
     private boolean withDeleted = false;
@@ -80,12 +79,10 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
 
     private Gson gson = BeanProvider.getBean(Gson.class);
 
-    private MainView mainView;
+//    private MainView mainView;
 
-    public PermissionList(PaginationSetting paginationSetting,
-                          MainView mainView) {
-        this.mainView = mainView;
-
+    @Autowired
+    public PermissionList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
         PermissionVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));

@@ -11,7 +11,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.EditObject;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
@@ -35,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Route(value = "order/create", layout = MainView.class)
-@AnonymousAllowed
+@RolesAllowed("ROLE_OrderCreateMenuOpenPermission")
 @NeedCleanCoding
 public class OrderCreate extends VerticalLayout {
 
@@ -71,9 +71,7 @@ public class OrderCreate extends VerticalLayout {
 
     //The autowired here is need because the MainView addmenu function
     @Autowired
-    public OrderCreate(PaginationSetting paginationSetting,
-                       MainView mainView) {
-        this.mainView = mainView;
+    public OrderCreate(PaginationSetting paginationSetting) {
         FormLayout formLayout = new FormLayout();
 
         Button saveButton = new Button("Create order");

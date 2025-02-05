@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,6 +51,8 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @Route(value = "address/list", layout = MainView.class)
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
+//@PreAuthorize("hasRole('AddressesMenuOpenPermission')")
+@RolesAllowed("ROLE_AddressesMenuOpenPermission")
 @NeedCleanCoding
 public class AddressList extends VerticalLayout implements Creatable<Address> {
 
@@ -85,12 +88,11 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     List<CodeStore> countryList;
 
     private Button saveButton;
-    private MainView mainView;
+//    private MainView mainView;
 
     @Autowired
-    public AddressList(PaginationSetting paginationSetting,
-                       MainView mainView) {
-        this.mainView = mainView;
+    public AddressList(PaginationSetting paginationSetting) {
+//        this.mainView = mainView;
         System.out.println("Felhasználó: " + BeanProvider.getBean(SecurityService.class).getAuthenticatedUser().getUsername());
         this.paginationSetting = paginationSetting;
 

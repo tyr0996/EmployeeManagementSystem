@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import javax.annotation.security.RolesAllowed;
+import jakarta.annotation.security.RolesAllowed;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 
 @Route(value = "currency/list", layout = MainView.class)
 //@AnonymousAllowed
-@RolesAllowed("CurrencyMenuOpenPermission")
+@RolesAllowed("ROLE_CurrencyMenuOpenPermission")
 @NeedCleanCoding
 //@RolesAllowed("CurrencyMenuOpenPermission")
 public class CurrencyList extends VerticalLayout {
@@ -61,8 +61,7 @@ public class CurrencyList extends VerticalLayout {
     private MainView mainView;
 
     @Autowired
-    public CurrencyList(PaginationSetting paginationSetting,
-                        MainView mainView) {
+    public CurrencyList(PaginationSetting paginationSetting) {
         this.mainView = mainView;
         this.paginationSetting = paginationSetting;
 

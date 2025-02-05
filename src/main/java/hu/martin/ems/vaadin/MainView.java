@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -45,9 +46,6 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 @CssImport("./styles/shared-styles.css")
 @PermitAll
 @NeedCleanCoding
-
-
-
 public class MainView extends HorizontalLayout implements RouterLayout {
 
     private VerticalLayout menuLayout;
@@ -108,7 +106,7 @@ public class MainView extends HorizontalLayout implements RouterLayout {
     }
 
     private void addMenu(VerticalLayout menuLayout, String mainMenuName,
-                         String subMenuName, @NotNull Class listClass) {
+                         String subMenuName, @NotNull Class<? extends Component> viewClass) {
         Span mainMenu = (Span) menuLayout.getChildren()
                 .filter(component -> component instanceof Span && ((Span) component).getText().equals(mainMenuName))
                 .findFirst()
@@ -120,9 +118,16 @@ public class MainView extends HorizontalLayout implements RouterLayout {
 
         Span listLink = new Span(subMenuName);
         HorizontalLayout listMenu = new HorizontalLayout(listLink);
-        listLink.addClickListener(v -> {
-            componentManager.reloadComponent(listClass, this);
+
+        listLink.addClickListener(event -> {
+            listLink.getUI().ifPresent(ui -> ui.navigate(viewClass));
+//            UI.getCurrent().navigate(viewClass);
         });
+//        listLink.addClickListener(event -> {
+//
+//        });
+//
+//        listLink.addClickListener(event -> UI.getCurrent().navigate(viewClass));
 
         listMenu.setVisible(false);
 
@@ -133,6 +138,4 @@ public class MainView extends HorizontalLayout implements RouterLayout {
 
         menuLayout.add(listMenu);
     }
-
-
 }

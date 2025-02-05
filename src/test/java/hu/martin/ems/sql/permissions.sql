@@ -1,6 +1,15 @@
 INSERT INTO Permission (name, deleted) VALUES
-	('MartinEngedély1', '0'),
+	('AccessManagementMenuOpenPermission', '0'),
+	('AddressesMenuOpenPermission', '0'),
 	('CustomerMenuOpenPermission', '0'),
 	('CurrencyMenuOpenPermission', '0'),
-	('AddressesMenuOpenPermission', '0'),
-	('ProductMenuOpenPermission', '0')
+	('AdminToolsMenuOpenPermission', '0'),
+	('ProductMenuOpenPermission', '0'),
+	('CityMenuOpenPermission', '0'),
+	('CodeStoreMenuOpenPermission', '0'),
+	('EmployeeMenuOpenPermission', '0'),
+	('OrderMenuOpenPermission', '0'),
+	('OrderCreateMenuOpenPermission', '0'),
+	('OrderElementMenuOpenPermission', '0'),
+	('SupplierMenuOpenPermission', '0'),
+	('UserMenuOpenPermission', '0')

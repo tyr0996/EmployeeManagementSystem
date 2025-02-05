@@ -22,6 +22,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     public static String getLoggedInUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            System.out.println("Felhasználónév: " + ((UserDetails) authentication.getPrincipal()).getUsername());
+            System.out.println("Jogosultságok : " + ((UserDetails) authentication.getPrincipal()).getAuthorities());
             return ((UserDetails) authentication.getPrincipal()).getUsername();
         }
         return null;

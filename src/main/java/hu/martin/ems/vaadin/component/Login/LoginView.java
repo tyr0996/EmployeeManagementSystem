@@ -17,6 +17,7 @@ import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.auth.CustomUserDetailsService;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.User;
@@ -122,7 +123,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 
 //                    HttpServletResponse response = VaadinServletResponse.getCurrent().getHttpServletResponse();
-//
+                    CustomUserDetailsService.getLoggedInUsername();
                     loginOverlay.close();
                     getUI().ifPresent(ui -> ui.navigate("/"));
                 }
@@ -186,6 +187,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     newUser.setUsername(userName.getValue());
                     newUser.setDeleted(0L);
                     newUser.setRoleRole(noRole);
+                    newUser.setEnabled(true);
                     userApi.save(newUser);
                     Notification.show("Registration successful!");
                     d.close();

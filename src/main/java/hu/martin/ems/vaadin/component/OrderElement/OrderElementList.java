@@ -22,7 +22,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
@@ -40,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,7 +49,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @Route(value = "orderElement/list", layout = MainView.class)
 @CssImport("./styles/ButtonVariant.css")
-@AnonymousAllowed
+@RolesAllowed("ROLE_OrderElementMenuOpenPermission")
 @CssImport("./styles/grid.css")
 @NeedCleanCoding
 public class OrderElementList extends VerticalLayout implements Creatable<OrderElement> {
@@ -94,9 +94,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     private MainView mainView;
 
     @Autowired
-    public OrderElementList(PaginationSetting paginationSetting,
-                            MainView mainView) {
-        this.mainView = mainView;
+    public OrderElementList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
         OrderElementVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 

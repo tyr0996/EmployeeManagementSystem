@@ -20,7 +20,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
@@ -35,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,7 +47,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
 @Route(value = "codestore/list", layout = MainView.class)
-@AnonymousAllowed
+@RolesAllowed("ROLE_CodeStoreMenuOpenPermission")
 @NeedCleanCoding
 public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore> {
 
@@ -72,8 +72,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
     private MainView mainView;
 
     @Autowired
-    public CodeStoreList(PaginationSetting paginationSetting,
-                         MainView mainView) {
+    public CodeStoreList(PaginationSetting paginationSetting) {
         this.mainView = mainView;
         this.paginationSetting = paginationSetting;
 

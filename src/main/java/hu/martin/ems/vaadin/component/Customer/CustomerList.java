@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import javax.annotation.security.RolesAllowed;
+import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,7 +48,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
 //@AnonymousAllowed
-@RolesAllowed("CustomerMenuOpenPermission")
+@RolesAllowed("ROLE_CustomerMenuOpenPermission")
 @Route(value = "customer/list", layout = MainView.class)
 @NeedCleanCoding
 public class CustomerList extends VerticalLayout implements Creatable<Customer> {
@@ -79,10 +79,8 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     private MainView mainView;
 
     @Autowired
-    public CustomerList(PaginationSetting paginationSetting,
-                        MainView mainView) {
+    public CustomerList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
-        this.mainView = mainView;
         CustomerVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(CustomerVO.class);

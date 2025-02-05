@@ -3,7 +3,6 @@ package hu.martin.ems.core.auth;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.service.UserService;
-import hu.martin.ems.vaadin.component.Login.LoginView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,7 +20,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -31,7 +29,7 @@ import java.util.Arrays;
 
 @EnableWebSecurity
 @Configuration
-@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true, jsr250Enabled = true, securedEnabled = true)
 @NeedCleanCoding
 public class SecurityConfiguration extends VaadinWebSecurity {
     private final SecurityService securityService;
@@ -51,10 +49,9 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     private String key;
 
 
-
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+//        configure(http);
         http
                 /*
                 TODO érdemes lenne használni a csrf-t, de jelenleg különben bejelentkezni sem enged
@@ -67,16 +64,20 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                         .invalidSessionUrl("/login?invalid-session")
                         .maximumSessions(1)
                         .expiredUrl("/login?session-expired"))
+//                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers(new AntPathRequestMatcher("/public/**")).permitAll()
-                        .requestMatchers("/api/*").permitAll()//TODO: only for testing!
-                        .requestMatchers("/api/*/*").permitAll() //TODO: only for testing!
-                        .requestMatchers("/api/*/*/*").permitAll()
+//                        .requestMatchers(new AntPathRequestMatcher("/public/**")).permitAll()
+                        .requestMatchers("/api/**").permitAll()//TODO: only for testing!
                         .requestMatchers("/login**").permitAll()
-                        .requestMatchers("/").permitAll()
+                        .requestMatchers("/access-denied").permitAll()
+                        .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(exception -> {
+                    exception.accessDeniedPage("/accesss-denied")
+                            .configure(http);
+                })
                 .formLogin(form -> form.loginPage("/login"))
                 .logout(logout -> logout
                         .permitAll()
@@ -84,12 +85,19 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                         .logoutSuccessUrl("/login")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID"));
+
         return http.build();
     }
 
 //    @Bean
 //    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
 //        return authenticationConfiguration.getAuthenticationManager();
+//    }
+
+//    @Bean
+//    public AccessDeniedHandler accessDeniedHandler() {
+//        return (request, response, accessDeniedException) ->
+//                response.sendRedirect("/access-denied");
 //    }
 
     @Bean
@@ -104,14 +112,14 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        http.rememberMe(me -> {
-            me.alwaysRemember(true);
-            me.key(key);
-            me.rememberMeCookieName("rememberMe");
-            me.tokenValiditySeconds(86400);
-            me.userDetailsService(userDetailsService);
-        });
-        setLoginView(http, LoginView.class);
+//        http.rememberMe(me -> {
+//            me.alwaysRemember(true);
+//            me.key(key);
+//            me.rememberMeCookieName("rememberMe");
+//            me.tokenValiditySeconds(86400);
+//            me.userDetailsService(userDetailsService);
+//        });
+//        setLoginView(http, LoginView.class);
     }
 
     @Override
@@ -158,4 +166,5 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }

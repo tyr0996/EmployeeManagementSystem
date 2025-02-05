@@ -21,7 +21,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
@@ -38,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,7 +47,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/grid.css")
 @Route(value = "user/list", layout = MainView.class)
-@AnonymousAllowed
+@RolesAllowed("ROLE_UserMenuOpenPermission")
 @NeedCleanCoding
 public class UserList extends VerticalLayout implements Creatable<User> {
     private boolean showDeleted = false;
@@ -89,9 +89,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     private MainView mainView;
 
 
-    public UserList(PaginationSetting paginationSetting,
-                    MainView mainView) {
-        this.mainView = mainView;
+    public UserList(PaginationSetting paginationSetting) {
         UserVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
         this.paginationSetting = paginationSetting;
         this.users = new ArrayList<>();
@@ -302,6 +300,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         user.setDeleted(0L);
         user.setUsername(usernameField.getValue());
         user.setRoleRole(roles.getValue());
+        user.setEnabled(true);
         EmsResponse response = null;
         if(editableUser != null){
             response = userApi.update(user);

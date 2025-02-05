@@ -20,7 +20,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
@@ -37,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,7 +46,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @Route(value = "supplier/list", layout = MainView.class)
 @CssImport("./styles/grid.css")
-@AnonymousAllowed
+@RolesAllowed("ROLE_SupplierMenuOpenPermission")
 @NeedCleanCoding
 public class SupplierList extends VerticalLayout implements Creatable<Supplier> {
 
@@ -74,10 +74,8 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
     private MainView mainView;
 
     @Autowired
-    public SupplierList(PaginationSetting paginationSetting,
-                        MainView mainView) {
+    public SupplierList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
-        this.mainView = mainView;
 
         SupplierVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 

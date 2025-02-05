@@ -4,21 +4,21 @@
     <conversionRule conversionWord="logNumber"
                     converterClass="hu.martin.ems.core.config.LogNumberingConverter"/>
 
-    <!-- Fájl appender beállítása -->
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>C:\\Users\\Martin\\Documents\\GitHub\\EmployeeManagementSystem\\hibernate.log</file>
-        <encoder>
-            <pattern>%logNumber %d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
+<!--    &lt;!&ndash; Fájl appender beállítása &ndash;&gt;-->
+<!--    <appender name="FILE" class="ch.qos.logback.core.FileAppender">-->
+<!--        <file>C:\\Users\\Martin\\Documents\\GitHub\\EmployeeManagementSystem\\hibernate.log</file>-->
+<!--        <encoder>-->
+<!--            <pattern>%logNumber %d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
 
-    <logger name="org.hibernate.SQL" level="debug">
-        <appender-ref ref="FILE"/>
-    </logger>
+<!--    <logger name="org.hibernate.SQL" level="debug">-->
+<!--        <appender-ref ref="FILE"/>-->
+<!--    </logger>-->
 
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="trace">
-        <appender-ref ref="FILE"/>
-    </logger>
+<!--    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="trace">-->
+<!--        <appender-ref ref="FILE"/>-->
+<!--    </logger>-->
 
     <logger name="root" level="info">
         <appender-ref ref="CONSOLE"/>

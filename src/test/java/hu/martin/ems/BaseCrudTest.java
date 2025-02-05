@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
+import static hu.martin.ems.base.GridTestingUtil.findVisibleElementWithXpath;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class BaseCrudTest extends AbstractTestNGSpringContextTests {
 
@@ -40,6 +44,8 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
 
 //    @Spy
 //    protected static Connection spyConnection;
+
+    protected static final String contentXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]";
 
     @SpyBean
     protected static EntityManager em;
@@ -251,6 +257,15 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     public void resetDatabase() throws IOException {
         dp.resetDatabase();
         System.out.println("database reseted");
+    }
+
+
+
+    protected void logout() throws InterruptedException {
+        WebElement logoutButton = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-button");
+        logoutButton.click();
+        Thread.sleep(10);
+        assertEquals(true, driver.getCurrentUrl().contains("http://localhost:" + port + "/login"), "Nem történt meg a kijelentkeztetés");
     }
 
     @AfterSuite

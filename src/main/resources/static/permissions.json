@@ -3,7 +3,23 @@
   "required": [],
   "data": [
     {
-      "name": "MartinEngedély1",
+      "name": "AccessManagementMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "AccessManagementCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "AccessManagementUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "AccessManagementDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "AddressesMenuOpenPermission",
       "deleted": 0
     },
     {
@@ -15,11 +31,187 @@
       "deleted": 0
     },
     {
-      "name": "AddressesMenuOpenPermission",
+      "name": "AdminToolsMenuOpenPermission",
       "deleted": 0
     },
     {
       "name": "ProductMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "CityMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "CodeStoreMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "EmployeeMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "OrderMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "OrderCreateMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "OrderElementMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "SupplierMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "UserMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "AddressesCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "AddressesUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "AddressesDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CustomerCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CustomerUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CustomerDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CurrencyCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CurrencyUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CurrencyDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "AdminToolsCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "AdminToolsUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "AdminToolsDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "ProductCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "ProductUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "ProductDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CityCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CityUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CityDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CodeStoreCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CodeStoreUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "CodeStoreDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "EmployeeCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "EmployeeUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "EmployeeDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "OrderCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "OrderUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "OrderDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "OrderElementCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "OrderElementUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "OrderElementDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "SupplierCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "SupplierUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "SupplierDeletePermission",
+      "deleted": 0
+    },
+    {
+      "name": "UserCreatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "UserUpdatePermission",
+      "deleted": 0
+    },
+    {
+      "name": "UserDeletePermission",
       "deleted": 0
     }
   ]

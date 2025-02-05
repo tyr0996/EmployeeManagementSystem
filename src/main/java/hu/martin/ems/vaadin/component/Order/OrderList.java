@@ -21,7 +21,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
@@ -39,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import jakarta.annotation.security.RolesAllowed;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -55,7 +55,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.*;
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
 @Route(value = "order/list", layout = MainView.class)
-@AnonymousAllowed
+@RolesAllowed("ROLE_OrderMenuOpenPermission")
 @NeedCleanCoding
 public class OrderList extends VerticalLayout {
 
@@ -88,9 +88,7 @@ public class OrderList extends VerticalLayout {
     private MainView mainView;
 
     @Autowired
-    public OrderList(PaginationSetting paginationSetting,
-                     MainView mainView) {
-        this.mainView = mainView;
+    public OrderList(PaginationSetting paginationSetting) {
         OrderVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
         this.grid = new PaginatedGrid<>(OrderVO.class);
         this.paginationSetting = paginationSetting;
@@ -198,7 +196,7 @@ public class OrderList extends VerticalLayout {
 
             editButton.addClickListener(event -> {
                 OrderCreate.editObject = order.original;
-                OrderCreate oc = new OrderCreate(paginationSetting, mainView);
+                OrderCreate oc = new OrderCreate(paginationSetting);
                 mainView.getContentLayout().removeAll();
                 mainView.getContentLayout().add(oc);
 //                MainView.contentLayout.removeAll();
