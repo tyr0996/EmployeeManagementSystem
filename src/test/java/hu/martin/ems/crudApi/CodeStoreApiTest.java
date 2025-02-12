@@ -24,20 +24,20 @@ public class CodeStoreApiTest extends BaseCrudTest {
 
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
-    private static final String showDeletedChecBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
-    private static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
-    private static final String showOnlyDeletableCodeStores = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-checkbox";
+    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    private static final String gridXpath = contentXpath + "/vaadin-grid";
+    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
+    private static final String showOnlyDeletableCodeStores = contentXpath + "/vaadin-checkbox";
 
 
     @BeforeClass
     public void setup() {
-        crudTestingUtil = new CrudTestingUtil(driver, "CodeStore", showDeletedChecBoxXpath, gridXpath, createButtonXpath, showOnlyDeletableCodeStores);
+        crudTestingUtil = new CrudTestingUtil(driver, "CodeStore", showDeletedCheckBoxXpath, gridXpath, createButtonXpath, showOnlyDeletableCodeStores);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
     @Test
-    public void serviceFindAllReturnsNullTest() {
+    public void serviceFindAllReturnsNullTest() throws InterruptedException {
         Mockito.when(spyCodeStoreService.findAll(any(Boolean.class))).thenReturn(null);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);

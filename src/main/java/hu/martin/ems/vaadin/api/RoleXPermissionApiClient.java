@@ -17,7 +17,7 @@
 //
 //
 //    public EmsResponse findAlRoleXPermissionByRole(Role r){
-//        initWebClient();
+//        webClientProvider.initWebClient(entityName);
 //        String jsonResponse = webClient.get()
 //                .uri("findAlRoleXPermissionByRole?roleId=" + r.getId())
 //                .retrieve()
@@ -28,7 +28,7 @@
 //    }
 //
 //    public EmsResponse findAllPairedRoleTo(Permission p){
-//        initWebClient();
+//        webClientProvider.initWebClient(entityName);
 //        String jsonResponse = webClient.get()
 //                .uri("findAllPairedRoleTo?permissionId=" + p.getId())
 //                .retrieve()
@@ -39,7 +39,7 @@
 //    }
 //
 //    public EmsResponse findAllPairedPermissionsTo(Role r){
-//        initWebClient();
+//        webClientProvider.initWebClient(entityName);
 //        String jsonResponse = webClient.get()
 //                .uri("findAllPairedPermissionsTo?roleId=" + r.getId())
 //                .retrieve()
@@ -50,7 +50,7 @@
 //    }
 //
 //    public void removeAllRolesFrom(Permission p){
-//        initWebClient();
+//        webClientProvider.initWebClient(entityName);
 //        webClient.put()
 //                .uri("removeAllRolesFrom")
 //                .contentType(MediaType.APPLICATION_JSON)
@@ -62,7 +62,7 @@
 //    }
 //
 //    public String removeAllPermissionsFrom(Role r){
-//        initWebClient();
+//        webClientProvider.initWebClient(entityName);
 //        String response = webClient.put()
 //                .uri("removeAllPermissionsFrom")
 //                .contentType(MediaType.APPLICATION_JSON)
@@ -75,7 +75,7 @@
 //    }
 //
 //    public EmsResponse findAllWithUnused() {
-//        initWebClient();
+//        webClientProvider.initWebClient(entityName);
 //        String jsonResponse = webClient.get()
 //                .uri("findAllWithUnused")
 //                .retrieve()

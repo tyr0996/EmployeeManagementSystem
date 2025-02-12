@@ -147,9 +147,18 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             });
 
             deleteButton.addClickListener(event -> {
-                this.orderElementApi.delete(orderElement.original);
-                Notification.show("OrderElement deleted: " + orderElement.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.orderElementApi.delete(orderElement.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("OrderElement deleted: " + orderElement.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
                 setupOrderElements();
                 updateGridItems();
             });

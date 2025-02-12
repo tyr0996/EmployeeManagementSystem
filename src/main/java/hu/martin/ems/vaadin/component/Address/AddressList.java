@@ -13,6 +13,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -35,12 +36,12 @@ import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import jakarta.annotation.security.RolesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -140,9 +141,19 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
             });
 
             deleteButton.addClickListener(event -> {
-                this.addressApi.delete(address.original);
-                Notification.show("Address deleted: " + address.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.addressApi.delete(address.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("Address deleted: " + address.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
+                setupAddresses();
                 updateGridItems();
             });
 
@@ -317,6 +328,11 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " address");
         saveButton = new Button("Save");
         FormLayout formLayout = new FormLayout();
+
+        Button closeButton = new Button(new Icon("lumo", "cross"),
+                (e) -> createDialog.close());
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        createDialog.getHeader().add(closeButton);
 
         ComboBox<CodeStore> countryCodes = createCountryCodesComboBox();
         TextField streetNameField = new TextField("Street name");

@@ -1,6 +1,8 @@
 package hu.martin.ems.core.repository;
 
+import com.google.gson.Gson;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.config.JsonConfig;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Setter;
@@ -29,11 +31,15 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     private final Logger logger;
     private Class<T> type;
 
+    protected Gson gson;
+
     public BaseRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
         super(entityInformation, entityManager);
         this.logger = LoggerFactory.getLogger(entityInformation.getJavaType());
         this.type = entityInformation.getJavaType();
         this.entityManager = entityManager;
+        JsonConfig jsonConfig = new JsonConfig();
+        this.gson = jsonConfig.gson();
     }
 
 
@@ -154,17 +160,25 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     public T customSave(T entity) {
         EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
-
         EntityTransaction transaction = tempEm.getTransaction();
-        transaction.begin();
-        T merged = tempEm.merge(entity);
-        tempEm.persist(merged);
-        transaction.commit();
-        if(tempEm.isOpen()){
-            tempEm.clear();
-            tempEm.close();
+        try{
+            transaction.begin();
+            T merged = tempEm.merge(entity);
+            tempEm.persist(merged);
+            transaction.commit();
+            logger.info("Entity " + entity.getClass().getSimpleName() + " saved successfully: " + gson.toJson(entity));
+            return entity;
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw e;
+        } finally {
+            if (tempEm.isOpen()) {
+                tempEm.close();
+            }
         }
-        return entity;
+
     }
 
 
@@ -173,21 +187,30 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     public T customUpdate(T entity) throws EntityNotFoundException {
         EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
-
         EntityTransaction transaction = tempEm.getTransaction();
-        T managedEntity = tempEm.find(type, entity.getId());
-        transaction.begin();
-        tempEm.merge(managedEntity);
+        try{
+            T managedEntity = tempEm.find(type, entity.getId());
+            transaction.begin();
+            tempEm.merge(managedEntity);
 
-        copyEntity(managedEntity, entity, type);
+            copyEntity(managedEntity, entity, type);
 
-        tempEm.merge(managedEntity);
-        transaction.commit();
-        if(tempEm.isOpen()){
-            tempEm.close();
+            tempEm.merge(managedEntity);
+            transaction.commit();
+            logger.info(entity.getClass().getSimpleName() + " updated successfully: {}", entity);
+            return entity;
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw e;
+        } finally {
+            if (tempEm.isOpen()) {
+                tempEm.close();
+            }
         }
-        logger.info(entity.getClass().getSimpleName() + " updated successfully: {}", entity);
-        return entity;
+
+
     }
 
 
@@ -209,8 +232,12 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     @Transactional
     @Override
     public T customFindById(Long entityId){
+        EntityManagerFactory factory = entityManager.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
         String jpql = "SELECT e FROM " + type.getSimpleName() + " e WHERE e.id = " + entityId;
-        return entityManager.createQuery(jpql, type).getSingleResult();
+        T result = tempEm.createQuery(jpql, type).getSingleResult();;
+        tempEm.close();
+        return result;
     }
 
     @Transactional
@@ -225,6 +252,9 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
 
         for (T element : permanentlyDeletedElements) {
             clearedElements += deleteEntity(tempEm, element);
+        }
+        if(tempEm.isOpen()){
+            tempEm.close();
         }
         logger.info(clearedElements + " element(s) successfully removed from database table.");
     }
@@ -245,17 +275,18 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         catch (Exception e){
             if (e.getCause().getMessage().contains("violates foreign key constraint")) {
                 logger.info("Entity with ID " + entityId + " is not deletable due to it has reference(s) in other table(s)");
+                tempEm.close();
             }
             else{
                 logger.error("Entity with ID " + entityId + " is not deletable due to a fatal error. It needs to be debugged.");
                 e.getCause().printStackTrace();
                 if(transaction.isActive()){
                     transaction.rollback();
+                    tempEm.close();
                 }
             }
-
         }
-        finally{
+        finally {
             if(tempEm.isOpen()){
                 tempEm.clear();
                 tempEm.close();
@@ -266,9 +297,14 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     @Override
     @Transactional
     public List<T> customFindAllById(List<Long> ids) {
+        EntityManagerFactory factory = entityManager.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
+
         String idsAsString = String.join(", ", ids.stream().map(v -> v.toString()).toList());
         String jpql = "SELECT e FROM " + type.getSimpleName() + " e WHERE e.id in (" + idsAsString + ")";
-        return entityManager.createQuery(jpql, type).getResultList();
+        List<T> result = tempEm.createQuery(jpql, type).getResultList();
+        tempEm.close();
+        return result;
     }
 
     public int deleteEntity(EntityManager tempEm, T entity) {
@@ -296,6 +332,7 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         finally{
             if(tempEm.isOpen()){
                 tempEm.clear();
+                tempEm.close();
             }
         }
         return affected;

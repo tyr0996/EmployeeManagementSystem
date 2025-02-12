@@ -115,9 +115,18 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             });
 
             deleteButton.addClickListener(event -> {
-                codeStoreApi.delete(codeStoreVO.original);
-                Notification.show("CodeStore deleted: " + codeStoreVO.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.codeStoreApi.delete(codeStoreVO.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("Codestore deleted: " + codeStoreVO.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
                 setupCodeStores();
                 updateGridItems();
             });

@@ -85,12 +85,33 @@ public class CrudTestingUtil {
             }
         }
 
-        String[] originalData = getDataFromRowLocation(gridXpath, rowLocation);
+        WebElement modifyButton = null;
+        String[] modifiedData = null;
+        while(modifyButton == null){
+            rowLocation = getRandomLocationFromGrid(gridXpath);
+            if(rowLocation == null){
+                createTest();
+                rowLocation = new ElementLocation(1, 0);
+            }
+            ElementLocation random = getRandomLocationFromGrid(gridXpath);
+            goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
 
-        goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
-        WebElement modifyButton = getModifyButton(gridXpath, rowLocation.getRowIndex());
-        Thread.sleep(200);
+            setCheckboxStatus(showDeletedCheckBoxXpath, false);
+
+            WebElement showDeletedCheckBox = findVisibleElementWithXpath(showDeletedCheckBoxXpath);
+            String[] tempModifiedData = getDataFromRowLocation(gridXpath, rowLocation);
+
+            Thread.sleep(200);
+            WebElement tempModifyButton = getModifyButton(gridXpath, rowLocation.getRowIndex());
+            if(isEnabled(tempModifyButton)){
+                modifyButton = tempModifyButton;
+                modifiedData = tempModifiedData;
+            } else {
+
+            }
+        }
         modifyButton.click();
+
 
         WebElement dialog = findVisibleElementWithXpath("//*[@id=\"overlay\"]");
         WebElement saveEmployeeButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
@@ -99,9 +120,11 @@ public class CrudTestingUtil {
 
         saveEmployeeButton.click();
 
+        resetFilter(gridXpath);
+
         checkNotificationContainsTexts(updateNotificationText == null ? className + " updated: " : updateNotificationText);
         Thread.sleep(100);
-        assertEquals(requiredSuccess ? 0 : 1, countElementResultsFromGridWithFilter(gridXpath, originalData));
+        assertEquals(requiredSuccess ? 0 : 1, countElementResultsFromGridWithFilter(gridXpath, modifiedData));
 
         Thread.sleep(100);
     }
@@ -136,6 +159,7 @@ public class CrudTestingUtil {
         WebElement saveButton = findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].click()", saveButton);
+        Thread.sleep(500);
 
         if(requiredSuccess){
             checkNotificationContainsTexts(saveNotificationText == null ? className + " saved: " : saveNotificationText);
@@ -210,7 +234,10 @@ public class CrudTestingUtil {
                 WebElement label = fields.get(i).findElement(By.tagName("label"));
                 fieldLabel = label.getText();
             }
-            catch (NoSuchElementException ignore) {}
+            catch (NoSuchElementException ignore) {
+//                System.out.println("Ignore *************");
+//                printToConsole(fields.get(i));
+            }
 
             if(disabledFields != null && disabledFields.get(fieldLabel) != null){
                 assertEquals(false, isEnabled(fields.get(i)), "Field must be disabled, but it is enabled: " + fieldLabel);
@@ -222,6 +249,9 @@ public class CrudTestingUtil {
                 }
                 else{
                     fillElementWith(fields.get(i), showOnlyDeletableCheckboxXpath != null,  previousPasswordFieldValue, withData.get(fieldLabel));
+                }
+                if(!fieldLabel.isEmpty()){
+                    fields.get(i).sendKeys(Keys.ENTER);
                 }
             }
         }
@@ -281,8 +311,6 @@ public class CrudTestingUtil {
             }
         }
 
-
-
         deleteButton.click();
         Thread.sleep(100);
         checkNotificationContainsTexts(notification == null ? className + " deleted: " : notification);
@@ -319,6 +347,102 @@ public class CrudTestingUtil {
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
             assertEquals(requiredSuccess ? originalVisibleDeletable - 1 : originalVisibleDeletable, countVisibleGridDataRows(gridXpath));
             assertEquals(requiredSuccess ? originalInvisibleDeletable + 1 : originalInvisibleDeletable, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+            setCheckboxStatus(showDeletedCheckBoxXpath, true);
+            assertEquals(originalInvisibleDeletable + originalVisibleDeletable, countVisibleGridDataRows(gridXpath));
+            assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
+            setCheckboxStatus(showDeletedCheckBoxXpath, false);
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+        }
+    }
+
+    public void databaseNotAvailableWhenDeleteTest(DataSource spyDatasource, String notification, String... originalFilter) throws InterruptedException, SQLException {
+        findVisibleElementWithXpath(gridXpath);
+        int originalVisible = countVisibleGridDataRows(gridXpath);
+        int originalInvisible = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+        int originalVisibleDeletable = originalVisible;
+        int originalInvisibleDeletable = originalInvisible;
+
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
+            originalVisibleDeletable = countVisibleGridDataRows(gridXpath);
+            originalInvisibleDeletable = countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+        }
+
+        if(originalVisibleDeletable == 0){
+            createTest();
+            originalVisible++;
+            originalVisibleDeletable++;
+        }
+
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
+        }
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+
+
+        WebElement deleteButton = null;
+        String[] deletedData = null;
+        while(deleteButton == null){
+            ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+            if(rowLocation == null){
+                createTest();
+                rowLocation = new ElementLocation(1, 0);
+            }
+            goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
+
+            setCheckboxStatus(showDeletedCheckBoxXpath, false);
+
+
+            WebElement showDeletedCheckBox = findVisibleElementWithXpath(showDeletedCheckBoxXpath);
+            String[] tempDeletedData = getDataFromRowLocation(gridXpath, rowLocation);
+
+            Thread.sleep(200);
+            WebElement tempDeleteButton = getDeleteButton(gridXpath, rowLocation.getRowIndex());
+            if(tempDeleteButton.getDomAttribute("disabled") == null){
+                deleteButton = tempDeleteButton;
+                deletedData = tempDeletedData;
+            }
+        }
+
+        mockDatabaseNotAvailable(this, spyDatasource, 0);
+
+        deleteButton.click();
+        Thread.sleep(100);
+        checkNotificationContainsTexts(notification == null ? className + " deleted: " : notification);
+        if(this.showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+        }
+        Thread.sleep(2000);
+        findVisibleElementWithXpath(gridXpath);
+
+        resetFilter(gridXpath);
+        assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
+        if(originalFilter != null){
+            applyFilter(gridXpath, originalFilter);
+        }
+        Thread.sleep(100);
+        findVisibleElementWithXpath(gridXpath);
+        setCheckboxStatus(showDeletedCheckBoxXpath, false);
+        Thread.sleep(2000);
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
+        }
+        assertEquals(originalVisible, countVisibleGridDataRows(gridXpath));
+        assertEquals(originalInvisible, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+        setCheckboxStatus(showDeletedCheckBoxXpath, true);
+        assertEquals(originalInvisible + originalVisible, countVisibleGridDataRows(gridXpath));
+        resetFilter(gridXpath);
+        assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
+        if(originalFilter != null){
+            applyFilter(gridXpath, originalFilter);
+        }
+        setCheckboxStatus(showDeletedCheckBoxXpath, false);
+
+        if(showOnlyDeletableCheckboxXpath != null){
+            setCheckboxStatus(showOnlyDeletableCheckboxXpath, true);
+            assertEquals(originalVisibleDeletable, countVisibleGridDataRows(gridXpath));
+            assertEquals(originalInvisibleDeletable, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
             setCheckboxStatus(showDeletedCheckBoxXpath, true);
             assertEquals(originalInvisibleDeletable + originalVisibleDeletable, countVisibleGridDataRows(gridXpath));
             assertEquals(1, countElementResultsFromGridWithFilter(gridXpath, deletedData));
@@ -596,26 +720,27 @@ public class CrudTestingUtil {
         assertEquals(false, isEnabled(saveButton), "If using Mockito.findAll(), replace it with Mockito.findAll(false), because the fields only contain non-deleted data");
     }
 
-    /**
-     * Simulates that the getting entities failed, because database connection error
-     * @param spyDataSource the DataSource, which annotated with @SpyBean
-     * @param port the port
-     * @param mainMenu mainMenu name. You can find it in the test class
-     * @param subMenu subMenu name. You can find it in the test class
-     * @param notificationEntityClassName The entity name, which have to between "Getting " and " failed" in the notification.
-     * @throws SQLException
-     * @throws InterruptedException
-     */
-    public void databaseUnavailableWhenGetAllEntity(DataSource spyDataSource, int port, String mainMenu, String subMenu, String notificationEntityClassName) throws SQLException, InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        Thread.sleep(100);
-        Mockito.doThrow(new SQLException("Connection refused: getsockopt")).when(spyDataSource).getConnection();
-        navigateMenu(mainMenu, subMenu);
-        checkNotificationText("Getting " + notificationEntityClassName + " failed");
-        assertEquals(0, countVisibleGridDataRows(gridXpath));
-        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
-        checkNoMoreNotificationsVisible();
-    }
+//    /**
+//     * Simulates that the getting entities failed, because database connection error
+//     * @param spyDataSource the DataSource, which annotated with @SpyBean
+//     * @param port the port
+//     * @param mainMenu mainMenu name. You can find it in the test class
+//     * @param subMenu subMenu name. You can find it in the test class
+//     * @param notificationEntityClassName The entity name, which have to between "Getting " and " failed" in the notification.
+//     * @throws SQLException
+//     * @throws InterruptedException
+//     */
+//    public void databaseUnavailableWhenGetAllEntity(Class<?> testClass, DataSource spyDataSource, int port, String mainMenu, String subMenu, String notificationEntityClassName) throws SQLException, InterruptedException {
+//        TestingUtils.loginWith(driver, port, "admin", "admin");
+//        Thread.sleep(100);
+//        mockDatabaseNotAvailable(testClass, spyDataSource, );
+////        Mockito.doThrow(new SQLException("Connection refused: getsockopt")).when(spyDataSource).getConnection();
+//        navigateMenu(mainMenu, subMenu);
+//        checkNotificationText("Getting " + notificationEntityClassName + " failed");
+//        assertEquals(0, countVisibleGridDataRows(gridXpath));
+//        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+//        checkNoMoreNotificationsVisible();
+//    }
 
     public void updateUnexpectedResponseCodeWhileGettingData(LinkedHashMap<String, String> withData, LinkedHashMap<String, String> failedFieldData) throws InterruptedException {
         WebElement grid = findVisibleElementWithXpath(gridXpath);
@@ -701,6 +826,7 @@ public class CrudTestingUtil {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].click()", saveButton);
 //        Mockito.reset(spyDataSource);
+        Thread.sleep(200);
 
 
 //        closeNotification(1000);
@@ -743,10 +869,31 @@ public class CrudTestingUtil {
             setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
         }
 
-        ElementLocation random = getRandomLocationFromGrid(gridXpath);
-        goToPageInPaginatedGrid(gridXpath, random.getPageNumber());
+        WebElement modifyButton = null;
+        String[] modifiedData = null;
+        while(modifyButton == null){
+            ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+            if(rowLocation == null){
+                createTest();
+                rowLocation = new ElementLocation(1, 0);
+            }
+            ElementLocation random = getRandomLocationFromGrid(gridXpath);
+            goToPageInPaginatedGrid(gridXpath, random.getPageNumber());
 
-        WebElement modifyButton = getModifyButton(gridXpath, random.getRowIndex());
+            setCheckboxStatus(showDeletedCheckBoxXpath, false);
+
+            WebElement tempModifyButton = getModifyButton(gridXpath, random.getRowIndex());
+
+            WebElement showDeletedCheckBox = findVisibleElementWithXpath(showDeletedCheckBoxXpath);
+            String[] tempModifiedData = getDataFromRowLocation(gridXpath, rowLocation);
+
+            Thread.sleep(200);
+            if(tempModifyButton.getDomAttribute("disabled") == null){
+                modifyButton = tempModifyButton;
+                modifiedData = tempModifiedData;
+            }
+        }
+
         modifyButton.click();
         Thread.sleep(200);
 

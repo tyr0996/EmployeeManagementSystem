@@ -1,14 +1,17 @@
 package hu.martin.ems.base;
 
 import com.google.gson.Gson;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariProxyConnection;
+import com.zaxxer.hikari.pool.HikariProxyPreparedStatement;
 import hu.martin.ems.PaginatorComponents;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.PaginationData;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.repository.CustomerRepository;
 import org.hamcrest.CoreMatchers;
-import org.hibernate.sql.results.jdbc.internal.ResultSetAccess;
 import org.junit.Assert;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -20,12 +23,12 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.asserts.SoftAssert;
 
 import javax.naming.OperationNotSupportedException;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -50,10 +53,10 @@ public class GridTestingUtil {
     private static String getSQLQueryFromRepository(DataSource spyDataSource, Supplier function) throws SQLException {
 
         Connection spyConnection = spy(Connection.class);
+        Mockito.doReturn(spyConnection).when(spyDataSource).getConnection();
         when(spyDataSource.getConnection()).thenReturn(spyConnection);
-//        MockitoAnnotations.openMocks(testClass);
         try{
-            function.get();
+            BeanProvider.getBean(CustomerRepository.class).customFindAll(false);
         } catch (Exception e){}
 
         verify(spyConnection).prepareStatement(sqlCaptor.capture());
@@ -62,104 +65,41 @@ public class GridTestingUtil {
         Mockito.clearInvocations(spyConnection);
 
         return sqlCaptor.getValue();
-
-//        System.out.println(ps.toString());
-
-        // Mock PreparedStatement általános viselkedése
-//        when(spyConnection.prepareStatement(anyString())).thenAnswer(invocation -> {
-//            String query = invocation.getArgument(0);
-//            PreparedStatement mockPreparedStatement = mock(PreparedStatement.class);
-//
-//            if (query.equals(sqlCaptor.getValue())) {
-//                ResultSet mockResultSet = mock(ResultSet.class);
-//                when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
-//
-//                when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-//                when(mockResultSet.getString(1)).thenReturn(resultValue);
-//            }
-//
-//            return mockPreparedStatement;
-//        });
     }
 
-//    public static PreparedStatement mockSQLQuery(EntityManager em, DataSource spyDataSource, Supplier function, ArrayList<?> returnValue) throws SQLException {
-//        Connection c = spy(Connection.class);
-//        PreparedStatement ps = mock(PreparedStatement.class);
-//        ResultSet rs = mock(ResultSet.class);
-//        when(ps.executeQuery(any(String.class))).thenReturn(rs);
-//
-//        // Configure the ResultSet to simulate the results
-//        if (!returnValue.isEmpty()) {
-//            // Simulate ResultSet.next() to return true for each result, then false
-//            Boolean[] nextValues = new Boolean[returnValue.size() + 1];
-//            for (int i = 0; i < returnValue.size(); i++) {
-//                nextValues[i] = true;
-//            }
-//            nextValues[returnValue.size()] = false;
-//            when(rs.next()).thenReturn(nextValues[0], nextValues);
-//
-//            // Simulate ResultSet.getObject() to return the corresponding result
-//            for (int i = 0; i < returnValue.size(); i++) {
-//                int index = i; // Effectively final for lambda
-//                when(rs.getObject(1)).thenAnswer(invocation -> returnValue.get(index));
-//            }
-//        } else {
-//            when(rs.next()).thenReturn(false); // Empty ResultSet
-//        }
-//
-//        // Configure the PreparedStatement to return the mocked ResultSet
-//        when(c.prepareStatement(getSQLQueryFromRepository(spyDataSource, function))).thenReturn(ps);
-//        when(ps.executeQuery()).thenReturn(rs);
-//
-//        return ps;
-//    }
-
-    public static void mockDatabaseNotAvailableWhen(DataSource spyDatasource, int preSuccess, Supplier function) throws SQLException {
+    public static void mockDatabaseNotAvailableWhen(Class<?> testClass, DataSource spyDatasource, Supplier<?> function, Supplier<?> otherFunction) throws SQLException, NoSuchFieldException, IllegalAccessException {
+        DataSource ds = mock(HikariDataSource.class);
         String sql = getSQLQueryFromRepository(spyDatasource, function);
-        AtomicInteger callCount = new AtomicInteger(0);
-        Mockito.doAnswer(invocation -> {
-            Connection mockConnection = spy(Connection.class);
-            PreparedStatement mockPreparedStatement = spy(PreparedStatement.class);
-            ResultSetAccess spyResultSetAccess = spy(ResultSetAccess.class);
-            ResultSet mockResultSet = spy(ResultSet.class);
+        Connection conn = mock(HikariProxyConnection.class);
+        PreparedStatement ps = mock(HikariProxyPreparedStatement.class);
+//        Statement st = mock(Statement.class);
+//        doCallRealMethod().when(ps).setString(anyInt(), anyString());
+        doCallRealMethod().doReturn(conn).when(ds).getConnection();
 
-//            Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-            Mockito.when(spyResultSetAccess.getResultSet()).thenReturn(mockResultSet);
+        doThrow(new SQLException("asdfdfsaadfs")).when(ps).execute();
+        doThrow(new SQLException("asdfdfsaadfs")).when(ps).executeQuery();
+        doThrow(new SQLException("asdfdfsaadfs")).when(ps).executeUpdate();
+        doReturn(ps).when(conn).prepareStatement(eq(sql));
 
 
-            doAnswer(preparedStatementInvocation -> {
-                if (sql.equals(preparedStatementInvocation.getArguments()[0])) {
-                    if (callCount.incrementAndGet() > preSuccess) {
-                        throw new SQLException("Simulated database unavailable");
-                    }
-                }
-                return null;
-            }).when(mockPreparedStatement).execute();
+//        when(spyConnection.prepareStatement(argThat(s -> s != null && !s.equals(sql)))).thenCallRealMethod();
+//        doCallRealMethod().when(spyConnection).prepareStatement(argThat(s -> s != null && !s.equals(sql)));
 
-            when(mockConnection.prepareStatement(Mockito.anyString())).thenAnswer(connectionInvocation -> {
-                String query = connectionInvocation.getArgument(0, String.class);
-                if (sql.equals(query)) {
-                    return mockPreparedStatement;
-                } else {
-                    return mock(PreparedStatement.class);
-                }
-            });
-
-            return mockConnection;
-        }).when(spyDatasource).getConnection();
+        try{
+            otherFunction.get();
+            System.out.println("Most jön a rossz");
+            function.get();
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public static void mockDatabaseNotAvailable(Object testClass, DataSource spyDataSource, int preSuccess) throws SQLException {
         AtomicInteger callCount = new AtomicInteger(0);
-        Connection spyConnection = spy(Connection.class);
-        when(spyDataSource.getConnection()).thenReturn(spyConnection);
         MockitoAnnotations.openMocks(testClass);
 
-//        PreparedStatement ps = spy(PreparedStatement.class);
-//        doAnswer(invocation -> invocation.callRealMethod()).when(c).prepareStatement(sqlCaptor.capture());
-//        verify(c.prepareStatement(sqlCaptor.capture()));
         doAnswer(invocation -> {
-//            try(Connection spyConnection = spy(Connection.class)) {
             int currentCall = callCount.incrementAndGet();
             if (currentCall <= preSuccess) {
                 return invocation.callRealMethod();
@@ -627,16 +567,16 @@ public class GridTestingUtil {
      * @throws InterruptedException
      */
     public static String selectRandomFromComboBox(WebElement comboBox) throws InterruptedException {
+        assertEquals(true, isEnabled(comboBox), "The combo box is not enabled: " + comboBox.getText());
         comboBox.click();
         Thread.sleep(200);
         List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
-        if(comboBoxOptions.size() == 0){
-            System.err.println("Nincs elem a combo boxban!");
-
-//            printToConsole(comboBox);
-            return null;
+        int i = 0;
+        while(comboBoxOptions.size() == 0){
+            System.err.println("Nincs elem a combo boxban! ");
+            printToConsole(comboBox);
         }
-        else if(comboBoxOptions.size() == 1){
+        if(comboBoxOptions.size() == 1){
             comboBoxOptions.get(0).click();
             return comboBoxOptions.get(0).getText();
         }
@@ -779,6 +719,8 @@ public class GridTestingUtil {
 //        printToConsole(TestingUtils.getParent(v));
         WebElement toggleButton = (WebElement) js.executeScript("return arguments[0].querySelectorAll('*')[6].querySelectorAll('*')[5];", TestingUtils.getParent(v).getShadowRoot());
 
+//        js.executeScript("arguments[0].click()", toggleButton);
+
         toggleButton.click();
         sleep(200);
 
@@ -866,11 +808,49 @@ public class GridTestingUtil {
     }
 
     public static void checkNotificationText(String excepted){
-        WebElement notification = findVisibleElementWithXpath("/html/body/vaadin-notification-container/vaadin-notification-card");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        WebElement notification = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/vaadin-notification-container/vaadin-notification-card")));
         assertEquals(excepted, notification.getText());
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].remove();", notification);
         sleep(100);
+    }
+
+    public static void checkNoPermissionPage(){
+        SoftAssert sa = new SoftAssert();
+        WebElement catImage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/img");
+        WebElement dontHavePermissionMessage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/div[1]");
+        WebElement tryToGetPermissionMessage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/div[2]");
+        WebElement coffeeBreakMessage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/div[3]");
+        sa.assertNotNull(catImage, "cat image");
+        sa.assertNotNull(dontHavePermissionMessage, "don't have permission message");
+        sa.assertNotNull(tryToGetPermissionMessage, "try to get permission message");
+        sa.assertNotNull(coffeeBreakMessage, "coffee break message");
+
+        sa.assertAll();
+
+        sa.assertEquals(dontHavePermissionMessage.getText(), "You don't have permission to perform this action!");
+        sa.assertEquals(tryToGetPermissionMessage.getText(), "Try to get permission from your boss!");
+        sa.assertEquals(coffeeBreakMessage.getText(), "While you wait, take a coffee break.");
+
+        sa.assertAll();
+    }
+
+    public static void checkNotFoundPage(){
+        SoftAssert sa = new SoftAssert();
+        WebElement catImage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/img");
+        WebElement kittyPlayedItMessage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/div[1]");
+        WebElement tryAgainMessage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/div[2]");
+        sa.assertNotNull(catImage, "cat image");
+        sa.assertNotNull(kittyPlayedItMessage, "kitty played it message");
+        sa.assertNotNull(tryAgainMessage, "try again message");
+
+        sa.assertAll();
+
+        sa.assertEquals(kittyPlayedItMessage.getText(), "The page cannot be found because the kitty above played it somewhere");
+        sa.assertEquals(tryAgainMessage.getText(), "Maybe try again later");
+
+        sa.assertAll();
     }
 
     public static void checkNotificationContainsTexts(String text){

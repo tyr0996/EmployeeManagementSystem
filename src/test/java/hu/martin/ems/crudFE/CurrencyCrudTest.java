@@ -36,11 +36,11 @@ import static org.testng.AssertJUnit.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class CurrencyCrudTest extends BaseCrudTest {
 
-    private static final String datePickerXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-date-picker/input";
+    private static final String datePickerXPath = contentXpath + "/vaadin-date-picker/input";
 
-    private static final String gridXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
+    private static final String gridXPath = contentXpath + "/vaadin-grid";
 
-    private static final String fetchButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-button";
+    private static final String fetchButtonXpath = contentXpath + "/vaadin-button";
     private static CrudTestingUtil crudTestingUtil;
     
     private static final String mainMenu = UIXpaths.ADMIN_MENU;
@@ -160,7 +160,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void fetchingCurrenciesNotCorrectResponseTest() {
+    public void fetchingCurrenciesNotCorrectResponseTest() throws InterruptedException {
         clearCurrencyDatabaseTable();
         LinkedHashMap<String, Object> badResponse = new LinkedHashMap<>();
         badResponse.put("provider", "not used in my code");

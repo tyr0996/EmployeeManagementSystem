@@ -19,6 +19,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import hu.martin.ems.annotations.NeedCleanCoding;
@@ -33,19 +34,16 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
 import hu.martin.ems.vaadin.api.OrderApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
+import jakarta.annotation.security.RolesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -172,10 +170,10 @@ public class OrderList extends VerticalLayout {
                 String email;
                 switch (emailGenerationResponse.getCode()){
                     case 200:
-                        email = new String(((ByteArrayInputStream) emailGenerationResponse.getResponseData()).readAllBytes());
+                        email = new String(((String) emailGenerationResponse.getResponseData()));
                         break;
                     default:
-                        Notification.show("Email generation failed: " + pdfDocumentResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        Notification.show("Email generation failed" + emailGenerationResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                 }
                 EmsResponse sendEmailResponse = emailSendingApi.send(
@@ -195,10 +193,11 @@ public class OrderList extends VerticalLayout {
             });
 
             editButton.addClickListener(event -> {
-                OrderCreate.editObject = order.original;
-                OrderCreate oc = new OrderCreate(paginationSetting);
-                mainView.getContentLayout().removeAll();
-                mainView.getContentLayout().add(oc);
+                Map<String, List<String>> params = new HashMap<>();
+                params.put("orderId", List.of(String.valueOf(order.id)));
+                getUI().ifPresent(v -> v.navigate(OrderCreate.class, new QueryParameters(params)));
+//                mainView.getContentLayout().removeAll();
+//                mainView.getContentLayout().add(oc);
 //                MainView.contentLayout.removeAll();
 //                MainView.contentLayout.add(oc);
             });
@@ -212,9 +211,18 @@ public class OrderList extends VerticalLayout {
             });
 
             deleteButton.addClickListener(event -> {
-                this.orderApi.delete(order.original);
-                Notification.show("Order deleted: " + order.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.orderApi.delete(order.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("Order deleted: " + order.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
                 setupOrderList();
                 updateGridItems();
             });

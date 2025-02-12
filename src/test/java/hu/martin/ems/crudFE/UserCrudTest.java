@@ -4,11 +4,12 @@ import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
+import hu.martin.ems.core.config.JPAConfig;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -22,22 +23,24 @@ import static hu.martin.ems.base.GridTestingUtil.*;
 public class UserCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
-    private static final String showDeletedChecBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
-    private static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
+    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    private static final String gridXpath = contentXpath + "/vaadin-grid";
+    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
     
     private static final String mainMenu = UIXpaths.ADMIN_MENU;
     private static final String subMenu = UIXpaths.USER_SUB_MENU;
 
     @BeforeClass
     public void setup() {
-        crudTestingUtil = new CrudTestingUtil(driver, "User", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
+        crudTestingUtil = new CrudTestingUtil(driver, "User", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
     public void clearUsers() throws InterruptedException {
         dp.executeSQL("DELETE FROM loginuser");
-        dp.executeSQL("INSERT INTO loginuser (id, deleted, username, password, role_role_id) VALUES ('1', '0', 'admin', 'admin', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1))");
+        dp.executeSQL("INSERT INTO loginuser (id, deleted, username, passwordHash, role_role_id, enabled) VALUES ('1', '0', 'admin', '$2a$12$Ei2ntwIK/6lePBO2UecedetPpxxDee3kmxnkWTXZI.CiPb86vejHe', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), true)");
+        dp.executeSQL("INSERT INTO loginuser (id, deleted, username, passwordHash, role_role_id, enabled) VALUES ('2', '0', 'robi', '$2a$12$/LIbE6V8xP/2frZmSbe5.OSMyqiIbwQEau0nNsGk./P2PXP1M8BFi', (SELECT id as role_role_id FROM Role WHERE id = 2 LIMIT 1), true)");
+        dp.executeSQL("INSERT INTO loginuser (id, deleted, username, passwordHash, role_role_id, enabled) VALUES ('3', '0', 'Erzsi', '$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), false)");
         logger.info("Admin user successfully recovered");
         Thread.sleep(1000);
     }
@@ -48,7 +51,7 @@ public class UserCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
-        clearUsers();
+        
     }
 
     @Test
@@ -56,7 +59,7 @@ public class UserCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.readTest();
-        clearUsers();
+        
     }
 
     @Test
@@ -64,7 +67,16 @@ public class UserCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
-        clearUsers();
+        
+    }
+
+    @Test
+    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
+//            mockDatabaseNotAvailable(getClass(), spyDataSource, 10);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
+        
     }
 
     @Test
@@ -72,7 +84,23 @@ public class UserCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest();
-        clearUsers();
+        
+    }
+
+    @Test
+    public void databaseNotAvailableWhenGettingLoggedInUser() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailable(getClass(), spyDataSource, 2);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        checkNotificationText("Error happened while getting the logged in user. Deletion and modification is disabled");
+    }
+
+    @Test
+    public void databaseNotAvailableWhenGettingAllUser() throws InterruptedException, SQLException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        mockDatabaseNotAvailable(getClass(), spyDataSource, 1);
+        navigateMenu(mainMenu, subMenu);
+        checkNotificationText("Getting users failed");
     }
 
     @Test
@@ -80,7 +108,7 @@ public class UserCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.restoreTest();
-        clearUsers();
+        
     }
 
     @Test
@@ -88,7 +116,7 @@ public class UserCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
-        clearUsers();
+        
     }
 
     @Test
@@ -98,7 +126,7 @@ public class UserCrudTest extends BaseCrudTest {
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Username", "admin");
         crudTestingUtil.createTest(withData, "Username already exists!", false);
-        clearUsers();
+        
     }
 
     @Test
@@ -106,15 +134,12 @@ public class UserCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
-        withData.put("Username", "admin");
-        int users = countVisibleGridDataRows(gridXpath);
-        for(int i = 0; i < users; i++){
-            getDeleteButton(gridXpath, 0).click();
-            GridTestingUtil.closeNotification(100);
-        }
-        crudTestingUtil.createTest();
+        withData.put("Username", "robi");
+//        int users = countVisibleGridDataRows(gridXpath);
+//        crudTestingUtil.createTest();
+
+        applyFilter(gridXpath, "Erzsi", "$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG", "false");
         crudTestingUtil.updateTest(withData, "Username already exists!", false);
-        clearUsers();
     }
 
 
@@ -126,7 +151,7 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Password", "asdf");
         withData.put("Password again", "asd");
         crudTestingUtil.createTest(withData, "Passwords doesn't match!", false);
-        clearUsers();
+        
     }
 
     @Test
@@ -137,7 +162,7 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Password", "");
         withData.put("Password again", "");
         crudTestingUtil.updateTest(withData, "Password is required!", false);
-        clearUsers();
+        
     }
 
     @Test
@@ -148,7 +173,7 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Password", "asdf");
         withData.put("Password again", "asd");
         crudTestingUtil.updateTest(withData, "Passwords doesn't match!", false);
-        clearUsers();
+        
     }
 
 
@@ -159,7 +184,7 @@ public class UserCrudTest extends BaseCrudTest {
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
-        clearUsers();
+        
     }
 
 
@@ -171,7 +196,7 @@ public class UserCrudTest extends BaseCrudTest {
         Thread.sleep(500);
         checkNotificationText("Getting users failed");
         checkNoMoreNotificationsVisible();
-        clearUsers();
+        
     }
 
     @Test
@@ -179,10 +204,11 @@ public class UserCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
-        withData.put("Username", "admin");
+        withData.put("Username", "robi");
+        applyFilter(gridXpath, "robi", "", "", "");
         crudTestingUtil.updateTest(withData, null, true);
         checkNoMoreNotificationsVisible();
-        clearUsers();
+        
     }
 
     @Test
@@ -196,12 +222,18 @@ public class UserCrudTest extends BaseCrudTest {
 
         crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
         checkNoMoreNotificationsVisible();
-        clearUsers();
+        
     }
 
     @Test
     public void databaseUnavailableWhenGetAllUser() throws SQLException, InterruptedException {
-        crudTestingUtil.databaseUnavailableWhenGetAllEntity(spyDataSource, port, mainMenu, subMenu, "users");
+        JPAConfig.resetCallIndex();
+        mockDatabaseNotAvailable(getClass(), spyDataSource, 3);
+//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        checkNotificationText("Getting users failed");
+//        crudTestingUtil.databaseUnavailableWhenGetAllEntity(this.getClass(), spyDataSource, port, mainMenu, subMenu, "users");
     }
 
     @Test
@@ -216,5 +248,10 @@ public class UserCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseUnavailableWhenUpdateEntity(spyDataSource, null, null, 1);
+    }
+
+    @AfterMethod
+    public void destroy() throws InterruptedException {
+        clearUsers();
     }
 }

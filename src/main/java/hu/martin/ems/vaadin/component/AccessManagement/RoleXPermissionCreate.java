@@ -6,36 +6,47 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.auth.SecurityService;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.model.User;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
+import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
+import hu.martin.ems.vaadin.api.UserApiClient;
+import jakarta.annotation.security.RolesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.Set;
 
 @AnonymousAllowed
 @NeedCleanCoding
-@RolesAllowed("ROLE_AccessManagementMenuOpenPermission")
-public class RoleXPermissionCreate extends VerticalLayout {
+@RolesAllowed("ROLE_RoleXPermissionMenuOpenPermission")
+@Route(value = "/accessManagement/list/roleXPermission", layout = MainView.class)
+public class RoleXPermissionCreate extends AccessManagement {
 
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
+    private final SecurityService securityService = BeanProvider.getBean(SecurityService.class);
+    private final UserApiClient userApiClient = BeanProvider.getBean(UserApiClient.class);
     List<Role> roleList;
     List<Permission> permissionList;
     Button saveButton;
     Logger logger = LoggerFactory.getLogger(RoleXPermissionCreate.class);
 //    private MainView mainView;
 
-    public RoleXPermissionCreate() {
+    @Autowired
+    public RoleXPermissionCreate(PaginationSetting paginationSetting) {
+        super(paginationSetting);
         add(buildFormLayout());
     }
 
@@ -71,6 +82,20 @@ public class RoleXPermissionCreate extends VerticalLayout {
         switch (response.getCode()){
             case 200:
                 roleList = (List<Role>) response.getResponseData();
+                EmsResponse e = userApiClient.findByUsername(securityService.getAuthenticatedUser().getUsername());
+                switch (e.getCode()){
+                    case 200: {
+                        User loggedInUser = (User) e.getResponseData();
+                        roleList.remove(loggedInUser.getRoleRole());
+                        break;
+                    }
+                    default: {
+                        roleList = null;
+                        logger.error("Can't get logged in User object");
+                        Notification.show("Can't get logged in User object").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
+
                 break;
             default:
                 roleList = null;

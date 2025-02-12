@@ -1,12 +1,15 @@
 package hu.martin.ems.core.config;
 
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.repository.BaseRepositoryImpl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -18,6 +21,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Properties;
 
 @Configuration
@@ -47,44 +52,68 @@ public class JPAConfig {
     @Value("${entity_manager.packages.to.scan}")
     private String entityManagerPackagesToScan;
 
-    @Value("${hibernate.pool_size}")
+    @Value("${spring.datasource.hikari.maximum-pool-size}")
     private Integer hibernatePoolSize;
+
+    @Value("${spring.datasource.hikari.idle-timeout}")
+    private Integer hibernateIdleTimeout;
+
+    @Value("${spring.datasource.hikari.connection-timeout}")
+    private Integer hibernateConnectionTimeout;
+
+    @Value("${spring.datasource.hikari.max-lifetime}")
+    private Integer hibernateMaxLifetime;
 
     @Value("${spring.jpa.hibernate.ddl-auto}")
     private String dllAuto;
 
-    @Value("{$spring.jpa.properties.hibernate.format_sql}")
+    @Value("${spring.jpa.properties.hibernate.format_sql}")
     private String formatSql;
 
-    @Value("{$spring.jpa.properties.hibernate.use_sql_comments}")
+    @Value("${spring.jpa.properties.hibernate.use_sql_comments}")
     private String useSqlComments;
+
+    private static int callIndex;
+
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
 
     private static EntityManager entityManager;
 
+    public static void resetCallIndex(){
+        callIndex = 0;
+    }
+
     @Bean
     public DataSource dataSource() {
-        return DataSourceBuilder.create()
-                .url(jdbcUrl)
-                .username(jdbcUsername)
-                .password(jdbcPassword)
-                .driverClassName(driverClassName)
-                .build();
+//        return DataSourceBuilder.create()
+//                .url(jdbcUrl)
+//                .username(jdbcUsername)
+//                .password(jdbcPassword)
+//                .driverClassName(driverClassName)
+//                .build();
 
-//        HikariConfig hikariConfig = new HikariConfig();
-//        hikariConfig.setJdbcUrl(jdbcUrl);
-//        hikariConfig.setUsername(jdbcUsername);
-//        hikariConfig.setPassword(jdbcPassword);
-//        hikariConfig.setDriverClassName(driverClassName);
-//
-//        // HikariCP specifikus beállítások
-//        hikariConfig.setMaximumPoolSize(hibernatePoolSize != null ? hibernatePoolSize : 10); // Ha nincs megadva, alapértelmezetten 10
-//        hikariConfig.setMinimumIdle(hibernatePoolSize != null ? hibernatePoolSize / 2 : 5);  // Alapértelmezett 5
-//        hikariConfig.setIdleTimeout(300000); // 5 perc inaktív kapcsolat után
-//        hikariConfig.setConnectionTimeout(30000); // 30 másodperc, hogy próbáljon kapcsolatot szerezni
-//        hikariConfig.setMaxLifetime(1800000); // 30 perc
-//
-//        // Visszaadjuk a HikariDataSource-t
-//        return new HikariDataSource(hikariConfig);
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl(jdbcUrl);
+        hikariConfig.setUsername(jdbcUsername);
+        hikariConfig.setPassword(jdbcPassword);
+        hikariConfig.setDriverClassName(driverClassName);
+
+        hikariConfig.setMaximumPoolSize(hibernatePoolSize);
+        hikariConfig.setMinimumIdle(hibernatePoolSize);
+        hikariConfig.setIdleTimeout(hibernateIdleTimeout);
+        hikariConfig.setConnectionTimeout(hibernateConnectionTimeout);
+        hikariConfig.setMaxLifetime(hibernateMaxLifetime);
+
+        return new HikariDataSource(hikariConfig) {
+            @Override
+            public Connection getConnection() throws SQLException {
+                logger.info("{}: Get connection called", callIndex);
+                callIndex++;
+                return super.getConnection();
+            }
+        };
     }
 
     @Bean

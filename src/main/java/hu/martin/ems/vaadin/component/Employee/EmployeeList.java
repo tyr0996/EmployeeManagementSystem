@@ -119,9 +119,18 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             });
 
             deleteButton.addClickListener(event -> {
-                this.employeeApi.delete(employee.original);
-                Notification.show("Employee deleted: " + employee.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.employeeApi.delete(employee.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("Employee deleted: " + employee.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
                 setupEmployees();
                 updateGridItems();
             });

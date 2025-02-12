@@ -82,6 +82,17 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
         }
     }
 
+    @GetMapping(path = "/findById", produces = StaticDatas.Produces.JSON)
+    public ResponseEntity<String> findById(@RequestParam(required = true) Long id){
+        T element = service.findById(id);
+        if(element != null){
+            return new ResponseEntity<>(gson.toJson(element), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PutMapping(path = "/restore", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> restore(@RequestBody T entity) {
         T restoredEntity = service.restore(entity);
@@ -97,7 +108,7 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     public ResponseEntity<String> delete(@RequestBody T entity) {
         T deleted = service.delete(entity);
         if(deleted != null){
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new ResponseEntity<>(gson.toJson(deleted), HttpStatus.OK);
         }
         else{
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);

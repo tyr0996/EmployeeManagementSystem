@@ -5,6 +5,7 @@ import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.model.CodeStore;
+import lombok.Getter;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,15 +25,22 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
 
-    private static final String showDeletedChecBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
-    private static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
-    private static final String showOnlyDeletableCodeStores = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-checkbox";
+    @Getter
+    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    @Getter
+    private static final String gridXpath =                contentXpath + "/vaadin-grid";
+    @Getter
+    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
+
+    @Getter
+    private static final String showOnlyDeletableCodeStores = contentXpath + "/vaadin-checkbox";
+
+
     private static final String mainMenu = UIXpaths.ADMIN_MENU;
     private static final String subMenu = UIXpaths.CODESTORE_SUBMENU;
     @BeforeClass
     public void setup() {
-        crudTestingUtil = new CrudTestingUtil(driver, "CodeStore", showDeletedChecBoxXpath, gridXpath, createButtonXpath, showOnlyDeletableCodeStores);
+        crudTestingUtil = new CrudTestingUtil(driver, "CodeStore", showDeletedCheckBoxXpath, gridXpath, createButtonXpath, showOnlyDeletableCodeStores);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
@@ -111,6 +119,13 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         checkNoMoreNotificationsVisible();
     }
 
+    @Test
+    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
+    }
+
 
     @Test
     public void gettingAllCodeStoresFailed() throws InterruptedException {
@@ -121,7 +136,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         checkNotificationText("Error happened while getting codestores");
         checkNoMoreNotificationsVisible();
         assertEquals(0, countVisibleGridDataRows(gridXpath));
-        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
     }
 
     @Test

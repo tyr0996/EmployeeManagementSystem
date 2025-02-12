@@ -4,14 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.core.auth.CustomUserDetailsService;
-import hu.martin.ems.core.auth.SecurityService;
 import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.vaadin.api.base.WebClientProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
@@ -28,22 +26,16 @@ import java.util.List;
 @Slf4j
 //@Lazy
 public abstract class EmsApiClient<T> {
-    protected WebClient webClient;
+//    private WebClient.Builder webClientBuilder;
 
-    private WebClient.Builder webClientBuilder;
-
-    private String entityName;
+    protected String entityName;
     private Class<T> entityType;
 
     protected Logger logger;
 
+    
     @Autowired
-    SecurityService securityService;
-
-
-    @Autowired
-    @Lazy
-    private ServletWebServerApplicationContext webServerAppCtxt;
+    protected WebClientProvider webClientProvider;
 
     @Autowired
     protected Gson gson;
@@ -52,7 +44,7 @@ public abstract class EmsApiClient<T> {
     public EmsApiClient(Class<T> entityType) {
         this.entityType = entityType;
         this.entityName = decapitalizeFirstLetter(entityType.getSimpleName());
-        this.webClientBuilder = WebClient.builder();
+//        this.webClientBuilder = WebClient.builder();
         this.logger = LoggerFactory.getLogger(entityType);
     }
 
@@ -62,15 +54,11 @@ public abstract class EmsApiClient<T> {
 
     public EmsResponse save(T entity) {
         CustomUserDetailsService.getLoggedInUsername();
-        initWebClient();
+        WebClient webClientCsrf = webClientProvider.initCsrfWebClient(entityName);
         try{
-            String response =  webClient.post()
+            String response =  webClientCsrf.post()
                     .uri("save")
                     .contentType(MediaType.APPLICATION_JSON)
-//                    .header("X-CSRF-TOKEN", csrf)
-//                    .cookie("X-CSRF-TOKEN", csrf)
-//                    .cookie("_csrf", csrf)
-//                    .header("_csrf", csrf)
                     .bodyValue(writeValueAsString(entity))
                     .retrieve()
                     .bodyToMono(String.class)
@@ -81,24 +69,17 @@ public abstract class EmsApiClient<T> {
             return new EmsResponse(500, "Internal server error");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - save - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - save - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
         }
     }
 
-    // Kérés naplózása
-    private ExchangeFilterFunction logRequest() {
-        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
-            logger.info("Request: " + clientRequest.method() + " " + clientRequest.url());
-            clientRequest.headers().forEach((name, values) -> values.forEach(value -> logger.info(name + ": " + value)));
-            return Mono.just(clientRequest);
-        });
-    }
+
 
     public EmsResponse update(T entity) {
-        initWebClient();
+        WebClient webClientCsrf = webClientProvider.initCsrfWebClient(entityName);
         try{
-            String response =  webClient.put()
+            String response =  webClientCsrf.put()
                     .uri("update")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(writeValueAsString(entity))
@@ -117,9 +98,9 @@ public abstract class EmsApiClient<T> {
     }
 
     public T restore(T entity){
-        initWebClient();
+        WebClient webClientCsrf = webClientProvider.initCsrfWebClient(entityName);
         try{
-            String response = webClient.put()
+            String response = webClientCsrf.put()
                     .uri("restore")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(writeValueAsString(entity))
@@ -129,34 +110,39 @@ public abstract class EmsApiClient<T> {
             return gson.fromJson(response, entityType);
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - restore - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - restore - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
             //TODO
             return null;
         }
     }
 
-    public void delete(T entity){
-        initWebClient();
+    public EmsResponse delete(T entity){
+        WebClient webClientCsrf = webClientProvider.initCsrfWebClient(entityName);
         try{
-            webClient.put()
+            String json = webClientCsrf.put()
                     .uri("delete")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(writeValueAsString(entity))
                     .retrieve()
-                    .bodyToMono(Void.class)
+                    .bodyToMono(String.class)
                     .block();
+            if(json != null && json != "null"){
+                return new EmsResponse(200, gson.fromJson(json, entityType), "");
+            }
+            else{
+                return new EmsResponse(500, "Internal Server Error");
+            }
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            //TODO
-            //return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
         }
     }
 
     public void clearDatabaseTable(){
-        initWebClient();
-        webClient.delete()
+        WebClient webClientCsrf = webClientProvider.initCsrfWebClient(entityName);
+        webClientCsrf.delete()
                 .uri("clearDatabaseTable")
                 .retrieve()
                 .bodyToMono(Void.class)
@@ -164,23 +150,23 @@ public abstract class EmsApiClient<T> {
     }
 
     public void permanentlyDelete(Long entityId){
-        initWebClient();
+        WebClient webClientCsrf = webClientProvider.initCsrfWebClient(entityName);
         try{
-            String response = webClient.delete()
+            String response = webClientCsrf.delete()
                     .uri("permanentlyDelete?id={id}", entityId)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - permanently delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - permanently delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
             //TODO
         }
     }
 
     public EmsResponse findAll(){
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String jsonResponse = webClient.mutate().codecs(
                             configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
@@ -202,7 +188,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public EmsResponse findAllWithNegativeID(){
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String jsonResponse = webClient.mutate().codecs(
                             configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
@@ -218,14 +204,14 @@ public abstract class EmsApiClient<T> {
             return new EmsResponse(500, "Internal Server Error");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - findAllWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - findAllWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
         }
     }
 
 
     public EmsResponse findAllWithGraph(){
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String jsonResponse = webClient.mutate().codecs(
                             configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
@@ -241,13 +227,13 @@ public abstract class EmsApiClient<T> {
             return new EmsResponse(500, "Internal Server Error");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - findAllWithGraph - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - findAllWithGraph - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
         }
     }
 
     public EmsResponse findAllWithGraphWithNegativeID(){
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String jsonResponse = webClient.mutate().codecs(
                             configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
@@ -263,14 +249,14 @@ public abstract class EmsApiClient<T> {
             return new EmsResponse(500, "Internal Server Error");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - findAllWithGraphWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - findAllWithGraphWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
         }
     }
 
 
     public EmsResponse findAllWithGraphWithDeleted(){
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String jsonResponse = webClient.mutate().codecs(
                             configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
@@ -292,7 +278,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public EmsResponse findAllWithGraphWithDeletedWithNegativeID(){
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String jsonResponse = webClient.mutate().codecs(
                             configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
@@ -308,13 +294,13 @@ public abstract class EmsApiClient<T> {
             return new EmsResponse(500, "Internal Server Error");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - findAllWithGraphWithDeletedWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - findAllWithGraphWithDeletedWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
         }
     }
 
     public EmsResponse findAllWithDeleted() {
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String jsonResponse = webClient.mutate().codecs(
                             configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
@@ -336,7 +322,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public T findById(Long id) {
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         String response = webClient.get()
                 .uri("findById?id={id}", id)
                 .retrieve()
@@ -347,7 +333,7 @@ public abstract class EmsApiClient<T> {
     }
 
     public EmsResponse findAllByIds(List<Long> ids){
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String response = webClient.get()
                     .uri("findAllByIds?ids=" + Arrays.toString(ids.toArray()))
@@ -357,20 +343,18 @@ public abstract class EmsApiClient<T> {
             return new EmsResponse(200, gson.fromJson(response, entityType), "");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - findAllByIds - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - findAllByIds - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
         }
     }
     public void forcePermanentlyDelete(Long id){
-        initWebClient();
-        webClient.delete()
+        WebClient webClientCsrf = webClientProvider.initCsrfWebClient(entityName);
+        webClientCsrf.delete()
                 .uri("forcePermanentlyDelete?id={id}", id)
                 .retrieve()
                 .bodyToMono(Void.class)
                 .block();
     }
-
-
 
     public List<T> convertResponseToEntityList(String jsonResponse) throws JsonParseException {
         return convertResponseToEntityList(jsonResponse, this.entityType);
@@ -392,38 +376,7 @@ public abstract class EmsApiClient<T> {
         return resultList;
     }
 
-    public void initWebClient(){
-        if(webClient == null){
-            String baseUrl = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/api/" + entityName + "/";
-            webClient = webClientBuilder
-                    .baseUrl(baseUrl)
-                .filter(logRequest())
-                    .defaultCookie("SameSite", "Strict")
-                    .defaultCookie("X-XSRF-TOKEN", securityService.getXsrfToken())
-                    .defaultCookie("JSESSIONID", securityService.getSessionId())
-                    .build();
-        }
-    }
 
-//    public void initBaseWebClient(){
-//        webClient = webClientBuilder
-//                .baseUrl("http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/")
-//                .defaultCookie("SameSite", "Strict")
-//                .build();
-//    }
-
-//    private String getCsrfTokenFromCookie() {
-//        VaadinServletRequest vaadinRequest = (VaadinServletRequest) VaadinRequest.getCurrent();
-//        Cookie[] cookies = vaadinRequest.getHttpServletRequest().getCookies();
-//
-//        for (Cookie cookie : cookies) {
-//            if ("XSRF-TOKEN".equals(cookie.getName())) {
-//                return cookie.getValue();
-//            }
-//        }
-//
-//        return null;
-//    }
 
     public T convertResponseToEntity(String jsonResponse) {
         return convertResponseToEntityList("[" + jsonResponse + "]").get(0);
@@ -432,4 +385,16 @@ public abstract class EmsApiClient<T> {
     public String writeValueAsString(T entity) {
         return gson.toJson(entity);
     }
+
+    // Kérés naplózása
+    private ExchangeFilterFunction logRequest() {
+        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
+            logger.info("Request: " + clientRequest.method() + " " + clientRequest.url());
+            clientRequest.headers().forEach((name, values) -> values.forEach(value -> logger.info(name + "[HEADER]: " + value)));
+            clientRequest.cookies().forEach((name, values) -> values.forEach(value -> logger.info("[COOKIE]: " + name + ": " + value)));
+            return Mono.just(clientRequest);
+        });
+    }
+
+
 }

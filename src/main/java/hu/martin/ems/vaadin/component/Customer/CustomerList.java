@@ -123,9 +123,19 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
             });
 
             deleteButton.addClickListener(event -> {
-                this.customerApi.delete(customerVO.original);
-                Notification.show("Customer deleted: " + customerVO.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.customerApi.delete(customerVO.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("Customer deleted: " + customerVO.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
+                setupCustomers();
                 updateGridItems();
             });
 

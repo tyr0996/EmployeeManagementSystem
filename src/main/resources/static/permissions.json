@@ -7,6 +7,18 @@
       "deleted": 0
     },
     {
+      "name": "RoleMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "PermissionMenuOpenPermission",
+      "deleted": 0
+    },
+    {
+      "name": "RoleXPermissionMenuOpenPermission",
+      "deleted": 0
+    },
+    {
       "name": "AccessManagementCreatePermission",
       "deleted": 0
     },

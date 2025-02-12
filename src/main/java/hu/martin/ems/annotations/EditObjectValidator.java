@@ -23,8 +23,8 @@ public class EditObjectValidator extends AbstractProcessor {
 
             VariableElement field = (VariableElement) element;
 
-            if (!field.getModifiers().contains(Modifier.STATIC)) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "You can annotate static field with @EditObject" , field);
+            if (field.getModifiers().contains(Modifier.STATIC)) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "You cann't annotate static field with @EditObject" , field);
                 return false;
             }
             TypeElement enclosingClass = (TypeElement) field.getEnclosingElement();

@@ -19,8 +19,10 @@ public class JsonConfig {
     @Primary
     public Gson gson() {
         Gson gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
+                .registerTypeAdapter(LocalDate.class, new LocalDateSerializer())
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(LocalDate.class, new LocalDateDeserializer())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
                 .excludeFieldsWithoutExposeAnnotation()
                 .create();
         return gson;

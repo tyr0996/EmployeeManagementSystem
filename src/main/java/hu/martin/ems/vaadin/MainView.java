@@ -12,8 +12,11 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLayout;
+import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServletService;
+import com.vaadin.flow.server.VaadinSession;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.auth.SecurityService;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.vaadin.component.AccessManagement.AccessManagement;
 import hu.martin.ems.vaadin.component.Address.AddressList;
@@ -61,6 +64,9 @@ public class MainView extends HorizontalLayout implements RouterLayout {
     @Setter
     private Div contentLayout;
 
+    @Autowired
+    private SecurityService securityService;
+
     public MainView() {
         menuLayout = new VerticalLayout();
         menuLayout.setClassName("side-menu");
@@ -85,8 +91,9 @@ public class MainView extends HorizontalLayout implements RouterLayout {
 
         addLogoutButton();
 
-        addClassName("main-view");
+//        addClassName("main-view");
         add(menuLayout, contentLayout);
+//        add(menuLayout);
         setSizeFull();
     }
 
@@ -100,6 +107,13 @@ public class MainView extends HorizontalLayout implements RouterLayout {
 
             UI.getCurrent().getPage().setLocation("logout");
             Notification.show("Logging out successfully!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+            securityService.logout();
+
+            VaadinSession.getCurrent().close();
+            VaadinService.getCurrentRequest().getWrappedSession().invalidate();
+
+            SecurityContextHolder.clearContext();
         });
         logoutButton.addClassNames("logout-button");
         menuLayout.add(logoutButton);

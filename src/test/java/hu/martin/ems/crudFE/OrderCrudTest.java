@@ -12,6 +12,7 @@ import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.config.JPAConfig;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.sftp.SftpSender;
@@ -31,6 +32,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.regex.Matcher;
@@ -46,14 +48,12 @@ import static org.testng.AssertJUnit.assertEquals;
 public class OrderCrudTest extends BaseCrudTest {
 
     private static WebDriverWait notificationDisappearWait;
-
-
-    private static final String gridXpath =                  "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
-    private static final String showDeletedXpath =           "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-checkbox";
-    private static final String createOrderGridXpathModify = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
-    private static final String sendReportViaSFTPButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-button";
-    private static final String fromDatePickerXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-date-picker[1]/input";
-    private static final String toDatePickerXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-date-picker[2]/input";
+    private static final String gridXpath = contentXpath + "/vaadin-grid";
+    private static final String showDeletedXpath = contentXpath + "/vaadin-checkbox";
+    private static final String createOrderGridXpathModify = contentXpath + "/vaadin-grid";
+    private static final String sendReportViaSFTPButtonXpath = contentXpath + "/vaadin-button";
+    private static final String fromDatePickerXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-date-picker[1]/input";
+    private static final String toDatePickerXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-date-picker[2]/input";
     private static final String createOrderPaymentComboBox = OrderCreateTest.paymentMethodComboBoxXpath;
     private static final String createOrderCurrencyComboBox = OrderCreateTest.currencyComboBoxXpath;
     private static final String createOrderSaveOrderButton = OrderCreateTest.orderCreateOrderButtonXpath;
@@ -218,7 +218,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void sendSFTPFailedTest(){
+    public void sendSFTPFailedTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXpath);
@@ -289,6 +289,27 @@ public class OrderCrudTest extends BaseCrudTest {
         sendEmailButton.click();
         Thread.sleep(100);
 //        checkNotificationContainsTexts("Email sent!", 5000);
+    }
+
+    @Test
+    public void generateEmailFailedDueToCantGetOrderFromOrderId() throws InterruptedException, SQLException {
+        JPAConfig.resetCallIndex();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+
+        navigateMenu(mainMenu, subMenu);
+        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        if(rowLocation == null) {
+            OrderCreateTest.setupTest();
+            OrderCreateTest.createOrder();
+            rowLocation = new ElementLocation(1, 0);
+        }
+
+        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
+        mockDatabaseNotAvailable(getClass(), spyDataSource, 2);
+        sendEmailButton.click();
+        Thread.sleep(2000);
+        checkNotificationText("Email generation failed");
     }
 
     @Test
@@ -411,6 +432,13 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
+    }
+
+    @Test
     public void deleteOrderElementWhatMemberOfAnOrder() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -433,7 +461,7 @@ public class OrderCrudTest extends BaseCrudTest {
         navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
 
         String oeGridXpath = OrderElementCrudTest.gridXpath;
-        String oeShowDeletedXpath = OrderElementCrudTest.showDeletedChecBoxXpath;
+        String oeShowDeletedXpath = OrderElementCrudTest.showDeletedCheckBoxXpath;
         WebElement oeDeleteButton = getDeleteButton(oeGridXpath, 0);
         while(oeDeleteButton != null){
             oeDeleteButton.click();
@@ -459,7 +487,7 @@ public class OrderCrudTest extends BaseCrudTest {
         while(oeDeleteButtonCreatedOrder != null){
             oeDeleteButtonCreatedOrder.click();
             //removeNotification(); //TODO létrehozni egy ilyen függvényt, ami csak szimplán bezárja a notification-t
-            Thread.sleep(5);
+            Thread.sleep(100);
             oeDeleteButtonCreatedOrder = getDeleteButton(oeGridXpath, 0);
         }
 
@@ -497,7 +525,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void fromToDateSelectorFromIsLaterThenTo(){
+    public void fromToDateSelectorFromIsLaterThenTo() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         WebElement grid = findVisibleElementWithXpath(gridXpath);

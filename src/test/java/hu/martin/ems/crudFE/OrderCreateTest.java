@@ -25,23 +25,24 @@ import static org.testng.Assert.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class OrderCreateTest extends BaseCrudTest {
 
-    public static final String customerComboBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-form-layout[1]/vaadin-combo-box";
-    public static final String currencyComboBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-form-layout[2]/vaadin-combo-box[1]";
-    public static final String paymentMethodComboBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-form-layout[2]/vaadin-combo-box[2]";
-    private static final String orderElementShowDeletedXpath = OrderElementCrudTest.showDeletedChecBoxXpath;
+    public static final String customerComboBoxXpath = contentXpath + "/vaadin-form-layout[1]/vaadin-combo-box";
+    public static final String currencyComboBoxXpath = contentXpath + "/vaadin-form-layout[2]/vaadin-combo-box[1]";
+    public static final String paymentMethodComboBoxXpath = contentXpath + "/vaadin-form-layout[2]/vaadin-combo-box[2]";
+    private static final String orderElementShowDeletedXpath = OrderElementCrudTest.showDeletedCheckBoxXpath;
     private static final String orderElementGridXpath = OrderElementCrudTest.gridXpath;
     private static final String orderElementCreateButtonXpath = OrderElementCrudTest.createButtonXpath;
-    private static final String orderXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid";
-    public static final String orderCreateOrderButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-form-layout[2]/vaadin-button";
 
-    public static final String previouslyOrderedCheckboxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
+    private static final String orderXpath = contentXpath + "/vaadin-grid";
+    public static final String orderCreateOrderButtonXpath = contentXpath + "/vaadin-form-layout[2]/vaadin-button";
+
+    public static final String previouslyOrderedCheckboxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
 
     public static final SoftAssert softAssert = new SoftAssert();
 
     private static CrudTestingUtil crudTestingUtil;
     private static CrudTestingUtil orderElementCrudTestingUtil;
 
-    public static final String createOrderGridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
+    public static final String createOrderGridXpath = contentXpath + "/vaadin-grid";
 
 
     private static final String mainMenu = UIXpaths.ORDERS_MENU;
@@ -169,7 +170,7 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void gettingCustomersFailedTest() {
+    public void gettingCustomersFailedTest() throws InterruptedException {
         Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben opcionális paraméterként jön.
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -197,7 +198,7 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void getPaymentTypesFailedTest(){
+    public void getPaymentTypesFailedTest() throws InterruptedException {
         Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -206,7 +207,7 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void getCurrencyTypesFailedTest(){
+    public void getCurrencyTypesFailedTest() throws InterruptedException {
         Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -459,7 +460,7 @@ public class OrderCreateTest extends BaseCrudTest {
         mockDatabaseNotAvailable(this, spyDataSource, 1);
 
         findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
-        checkNotificationText("Order saving failed: Internal server error");
+        checkNotificationText("Order saving failed: Internal Server Error");
 
         navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
         Thread.sleep(100);

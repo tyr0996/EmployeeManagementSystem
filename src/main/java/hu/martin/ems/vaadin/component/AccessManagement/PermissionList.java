@@ -20,23 +20,25 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
+import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,9 +49,10 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
 import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/grid.css")
-@RolesAllowed("ROLE_AccessManagementMenuOpenPermission")
+@RolesAllowed("ROLE_PermissionMenuOpenPermission")
 @NeedCleanCoding
-public class PermissionList extends VerticalLayout implements Creatable<Permission> {
+@Route(value = "/accessManagement/list/permission", layout = MainView.class)
+public class PermissionList extends AccessManagement implements Creatable<Permission> {
     private boolean withDeleted = false;
     private PaginatedGrid<PermissionVO, String> grid;
     private final PaginationSetting paginationSetting;
@@ -83,6 +86,7 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
 
     @Autowired
     public PermissionList(PaginationSetting paginationSetting) {
+        super(paginationSetting);
         this.paginationSetting = paginationSetting;
 
         PermissionVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
@@ -122,9 +126,19 @@ public class PermissionList extends VerticalLayout implements Creatable<Permissi
             });
 
             deleteButton.addClickListener(event -> {
-                permissionApi.delete(permission.original);
-                Notification.show("Permission deleted: " + permission.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.permissionApi.delete(permission.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("Permission deleted: " + permission.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
+                setupPermissions();
                 updateGridItems();
             });
 

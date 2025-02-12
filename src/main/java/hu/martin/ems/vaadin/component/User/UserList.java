@@ -22,6 +22,7 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.auth.SecurityService;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
@@ -81,6 +82,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
 
     private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
+    private final SecurityService securityService = BeanProvider.getBean(SecurityService.class);
     private static String usernameFilterText = "";
     private static String passwordHashFilterText = "";
     private static String enabledFilterText = "";
@@ -130,9 +132,9 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         });
 
         TextField enabledFilter = new TextField();
-        passwordHashFilter.setPlaceholder("Search enabled...");
-        passwordHashFilter.setClearButtonVisible(true);
-        passwordHashFilter.addValueChangeListener(event -> {
+        enabledFilter.setPlaceholder("Search enabled...");
+        enabledFilter.setClearButtonVisible(true);
+        enabledFilter.addValueChangeListener(event -> {
             enabledFilterText = event.getValue().trim();
             grid.getDataProvider().refreshAll();
             updateGridItems();
@@ -312,18 +314,20 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     }
 
     private Boolean usernameCheck(String username){
-        EmsResponse response = userApi.userExists(username);
-        if(response.getResponseData() != null && editableUser != null) {
-            User u = (User) response.getResponseData();
-            return u.getId() == editableUser.getId();
-        }
-        else if(response.getResponseData() != null){
-            return false;
-        }
-        else if(editableUser != null){
+        EmsResponse response = userApi.findByUsername(username);
+        if(editableUser != null && editableUser.getUsername().equals(username)) {
             return true;
         }
-        return true;
+        else{
+            return response.getResponseData() == null;
+        }
+//        else if(response.getResponseData() != null){
+//            return false;
+//        }
+//        else if(editableUser != null){
+//            return true;
+//        }
+//        return true;
     }
 
     private void setGridColumns(){
@@ -334,6 +338,21 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     }
 
     private void addOptionsColumn(){
+        EmsResponse response = userApi.findByUsername(securityService.getAuthenticatedUser().getUsername());
+        final UserVO loggedInUserVO;
+        switch (response.getCode()){
+            case 200:{
+                loggedInUserVO = new UserVO((User) response.getResponseData());
+                break;
+            }
+            default: {
+                loggedInUserVO = null;
+                Notification.show("Error happened while getting the logged in user. Deletion and modification is disabled");
+                break;
+            }
+        }
+
+
         extraData = this.grid.addComponentColumn(entry -> {
             Button editButton = new Button(EDIT.create());
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
@@ -342,6 +361,11 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             restoreButton.addClassNames("info_button_variant");
             Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+
+            if(loggedInUserVO == null || loggedInUserVO.equals(entry)){
+                editButton.setEnabled(false);
+                deleteButton.setEnabled(false);
+            }
 
             editButton.addClickListener(event -> {
                 editableUser = entry.original;
@@ -357,9 +381,19 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             });
 
             deleteButton.addClickListener(event -> {
-                userApi.delete(entry.original);
-                Notification.show("User deleted: " + entry.username)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.userApi.delete(entry.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("User deleted: " + entry.original.getUsername())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
+                setupUsers();
                 updateGridItems();
             });
 
@@ -407,8 +441,9 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     private Stream<UserVO> getFilteredStream() {
         return userVOS.stream().filter(userVO ->
                 (usernameFilterText.isEmpty() || userVO.username.toLowerCase().contains(usernameFilterText.toLowerCase())) &&
-                        (passwordHashFilterText.isEmpty() || userVO.passwordHash.toLowerCase().contains(passwordHashFilterText.toLowerCase())) &&
-                        userVO.filterExtraData()
+                (passwordHashFilterText.isEmpty() || userVO.passwordHash.toLowerCase().contains(passwordHashFilterText.toLowerCase())) &&
+                (enabledFilterText.isEmpty() || userVO.enabled.toLowerCase().equals(enabledFilterText.toLowerCase())) &&
+                userVO.filterExtraData()
 //                        (showDeleted ? (userVO.deleted == 0 || userVO.deleted == 1) : userVO.deleted == 0)
         );
     }

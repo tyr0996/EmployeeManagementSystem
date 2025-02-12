@@ -25,30 +25,27 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 
 
     //Ezek nem tudom, hogy mire kellenek
-    private static final String showDeletedChecBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-vertical-layout/vaadin-grid";
-    private static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
+    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout[2]/vaadin-checkbox";
+    private static final String gridXpath = contentXpath + "/vaadin-grid";
+    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout[2]/vaadin-button";
+    private static final String rolesButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[1]";
+    private static final String permissionsButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[2]";
+    private static final String roleXPermisisonPairingButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[3]";
 
-    private static final String rolesButtonXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button[1]";
-    private static final String permissionsButtonXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button[2]";
-    private static final String roleXPermisisonPairingButtonXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button[3]";
+    private static final String roleDropboxXpath = contentXpath + "/vaadin-form-layout/vaadin-combo-box";
+    private static final String permissionsMultiselectComboBoxXpath = contentXpath + "/vaadin-form-layout/vaadin-multi-select-combo-box";
 
-
-    private static final String roleDropboxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-combo-box";
-    private static final String permissionsMultiselectComboBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-multi-select-combo-box";
-
-    private static final String saveButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-vertical-layout/vaadin-form-layout/vaadin-button";
+    private static final String saveButtonXpath = contentXpath + "/vaadin-form-layout/vaadin-button";
 
     private static final String mainMenu = UIXpaths.ADMIN_MENU;
     private static final String subMenu = UIXpaths.ACESS_MANAGEMENT_SUBMENU;
 
     @BeforeClass
     public void setup() {
-        crudTestingUtil = new CrudTestingUtil(driver, "Permission", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
+        crudTestingUtil = new CrudTestingUtil(driver, "Permission", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
-    @Test
     public void createRoleXPermissionTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);

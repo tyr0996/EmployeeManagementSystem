@@ -48,7 +48,7 @@ public class Order extends BaseEntity {
     @Expose
     private CodeStore currency;
 
-    @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.EAGER)
     @Expose
 //    @JoinColumn(name = "order_order_id")
     private List<OrderElement> orderElements;

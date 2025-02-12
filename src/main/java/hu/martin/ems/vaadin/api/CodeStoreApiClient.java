@@ -4,6 +4,7 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.CodeStore;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Component
@@ -14,7 +15,7 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
     }
 
     public EmsResponse getChildren(Long parentCodeStoreId){
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String jsonResponse = webClient.get()
                     .uri("getChildren?parentCodeStoreId=" + parentCodeStoreId)
@@ -27,13 +28,13 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
             return new EmsResponse(500, null, "Internal Server Error");
         }
         catch (WebClientResponseException ex){
-            logger.error("WebClient error - getChildren - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - getChildren - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
         }
     }
 
     public EmsResponse getAllByName(String name){
-        initWebClient();
+        WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String jsonResponse = webClient.get()
                     .uri("getByName?name=" + name)
@@ -46,8 +47,8 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
             return new EmsResponse(500, null, null);
         }
         catch(WebClientResponseException ex) {
-            logger.error("WebClient error getAllByName - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error getAllByName - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
         }
     }
 }

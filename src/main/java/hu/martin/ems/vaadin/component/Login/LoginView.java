@@ -1,6 +1,5 @@
 package hu.martin.ems.vaadin.component.Login;
 
-import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -16,6 +15,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinServletRequest;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.auth.CustomUserDetailsService;
@@ -27,7 +27,6 @@ import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +37,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-import java.util.Base64;
 
 @Route(value = "login")
 @AnonymousAllowed
@@ -77,9 +74,8 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         Button register = new Button("Register");
         register.setClassName("register-button");
 
-        Role r = getRoleByNameWithNegativeId("NO_ROLE");
-
         register.addClickListener(event -> {
+            Role r = getNoRole();
             Dialog registerDialog = getRegistrationDialog(r);
             if(r != null) {
                 registerDialog.open();
@@ -246,14 +242,14 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         return d;
     }
 
-    private Role getRoleByNameWithNegativeId(String roleName){
-        EmsResponse response = roleApi.findByNameWithNegativeId(roleName);
+    private Role getNoRole(){
+        EmsResponse response = roleApi.getNoRole();
         switch (response.getCode()){
             case 200:
                 return (Role) response.getResponseData();
             default:
-                logger.error("Role findByNameWithNegativeIdError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("Error happened while getting roles")
+                logger.error("Role getNoRoleError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                Notification.show("Error happened while getting NO_ROLE")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return null;
         }
@@ -262,17 +258,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {}
 
-    private void createRememberMeCookie(HttpServletResponse response, String username) {
-        String tokenValue = Base64.getEncoder().encodeToString((username + ":" + key).getBytes());
-        Cookie rememberMeCookie = new Cookie("rememberMe", tokenValue);
-
-        rememberMeCookie.setMaxAge(60 * 60 * 24 * 7); // 7 nap
-        rememberMeCookie.setHttpOnly(true);
-        rememberMeCookie.setSecure(false);
-        rememberMeCookie.setPath("/");
-
-        response.addCookie(rememberMeCookie);
-    }
 
     private String getCsrfTokenFromCookie() {
         VaadinServletRequest vaadinRequest = (VaadinServletRequest) VaadinRequest.getCurrent();
@@ -283,7 +268,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 return cookie.getValue();
             }
         }
-
         return null;
     }
 }

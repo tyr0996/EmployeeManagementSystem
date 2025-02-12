@@ -25,16 +25,16 @@ public class OrderElementCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
 
-    public static final String showDeletedChecBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
-    public static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
-    public static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
+    public static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    public static final String gridXpath = contentXpath + "/vaadin-grid";
+    public static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
 
     private static final String mainMenu = UIXpaths.ORDERS_MENU;
     private static final String subMenu = UIXpaths.ORDER_ELEMENT_SUBMENU;
 
     @BeforeClass
     public void setup() {
-        crudTestingUtil = new CrudTestingUtil(driver, "OrderElement", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
+        crudTestingUtil = new CrudTestingUtil(driver, "OrderElement", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
@@ -79,6 +79,13 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
 
     @Test
+    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
+    }
+
+    @Test
     //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/products.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void orderElementUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -118,7 +125,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         checkNotificationText("Error happened while getting order elements");
         checkNoMoreNotificationsVisible();
         assertEquals(0, countVisibleGridDataRows(gridXpath));
-        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
     }
 
     @Test
@@ -158,5 +165,12 @@ public class OrderElementCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
+    }
+
+    @Test
+    public void databaseUnavailableWhenModifying() throws SQLException, InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseUnavailableWhenUpdateEntity(spyDataSource, null, null, 0);
     }
 }

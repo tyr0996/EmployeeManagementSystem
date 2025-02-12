@@ -25,16 +25,16 @@ public class SupplierCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
 
-    private static final String showDeletedChecBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
-    private static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
+    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    private static final String gridXpath = contentXpath + "/vaadin-grid";
+    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
     
     private static final String mainMenu = UIXpaths.ADMIN_MENU;
     private static final String subMenu = UIXpaths.SUPPLIER_SUBMENU;
 
     @BeforeClass
     public void setup() {
-        crudTestingUtil = new CrudTestingUtil(driver, "Supplier", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
+        crudTestingUtil = new CrudTestingUtil(driver, "Supplier", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
@@ -43,6 +43,13 @@ public class SupplierCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
          navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
+    }
+
+    @Test
+    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
     }
 
     @Test
@@ -117,7 +124,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         Thread.sleep(100);
         checkNotificationText("Error happened while getting suppliers");
         assertEquals(0, countVisibleGridDataRows(gridXpath));
-        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
     }
 
     @Test

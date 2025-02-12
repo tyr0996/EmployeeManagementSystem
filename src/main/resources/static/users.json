@@ -17,6 +17,18 @@
     },
     {
       "deleted": 0,
+      "username": "Erzsi",
+      "passwordHash": "$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG",
+      "role_role_id": {
+        "refClass": "Role",
+        "filter": {
+          "id": 1
+        }
+      },
+      "enabled": false
+    },
+    {
+      "deleted": 0,
       "username": "robi",
       "passwordHash": "$2a$12$nEBYNfVpfUZ9.qFFUGWs5.5mDLxXAGNlDcqKsxi7eoEFleys7Lvym",
       "role_role_id": {

@@ -155,9 +155,19 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
             });
 
             deleteButton.addClickListener(event -> {
-                this.productApi.delete(productVo.original);
-                Notification.show("Product deleted: " + productVo.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.productApi.delete(productVo.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("Product deleted: " + productVo.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
+                setupProducts();
                 updateGridItems();
             });
 

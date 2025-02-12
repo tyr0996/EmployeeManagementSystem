@@ -6,6 +6,7 @@ import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.model.City;
+import lombok.Getter;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,10 +25,12 @@ public class CityCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
 
-    private static final String showDeletedChecBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath =               "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
-
-    private static final String createButtonXpath =       "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
+    @Getter
+    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    @Getter
+    private static final String gridXpath = contentXpath + "/vaadin-grid";
+    @Getter
+    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
 
     private static final String subMenu = UIXpaths.CITY_SUBMENU;
     private static final String mainMenu = UIXpaths.ADMIN_MENU;
@@ -35,7 +38,7 @@ public class CityCrudTest extends BaseCrudTest {
 
     @BeforeClass
     public void setup() {
-        crudTestingUtil = new CrudTestingUtil(driver, "City", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
+        crudTestingUtil = new CrudTestingUtil(driver, "City", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
@@ -85,6 +88,13 @@ public class CityCrudTest extends BaseCrudTest {
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
         checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
     }
 
 //    @Test
@@ -167,7 +177,7 @@ public class CityCrudTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void gettingCitiesFailed() {
+    public void gettingCitiesFailed() throws InterruptedException {
         Mockito.doReturn(null).when(spyCityService).findAll(true); //ApiClient-ben findAllWithDeleted
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);

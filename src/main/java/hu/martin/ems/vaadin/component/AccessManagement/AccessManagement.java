@@ -6,6 +6,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouterLayout;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.vaadin.MainView;
@@ -16,11 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 @RolesAllowed("ROLE_AccessManagementMenuOpenPermission")
 //@Secured("ROLE_AccessManagementMenuOpenPermission")
 @NeedCleanCoding
-public class AccessManagement extends VerticalLayout {
+public class AccessManagement extends VerticalLayout implements RouterLayout {
 
-    private RoleList roleList;
-    private PermissionList permissionList;
-    private RoleXPermissionCreate roleXPermissionCreate;
     private final PaginationSetting paginationSetting;
 
     private Button listRoles;
@@ -36,36 +34,26 @@ public class AccessManagement extends VerticalLayout {
 //        this.roleList = new RoleList(paginationSetting);
 //        this.permissionList = new PermissionList(paginationSetting);
 //        this.roleXPermissionCreate = new RoleXPermissionCreate();
-        this.buttonsLayout = new HorizontalLayout();
-        initButtons();
-        addClickListeners();
-        createLayout();
-    }
-
-    private void initButtons(){
-        this.listRoles = new Button("Roles");
-        this.listRoles.setId("AccessManagement_RolesButton");
-        this.listPermissions = new Button("Permissions");
-        this.listPermissions.setId("AccessManagement_Permissions_button");
-        this.pairRolesWithPermissions = new Button("Role-permission pairing");
-        this.pairRolesWithPermissions.setId("AccessManagement_RolePermissionPairingButton");
-    }
-
-    private void addClickListeners() {
-        listRoles.addClickListener(event ->{
-            refreshLayout(RoleList.class);
-        });
-        listPermissions.addClickListener(event -> {
-            refreshLayout(PermissionList.class);
-        });
-        pairRolesWithPermissions.addClickListener(event -> {
-            refreshLayout(RoleXPermissionCreate.class);
-        });
-    }
-
-    private void createLayout(){
-        this.buttonsLayout.add(listRoles, listPermissions, pairRolesWithPermissions);
+        this.buttonsLayout = createButtonRow();
         add(buttonsLayout);
+    }
+
+    public HorizontalLayout createButtonRow(){
+        HorizontalLayout hl = new HorizontalLayout();
+
+        Button listRoles = new Button("Roles");
+        listRoles.setId("AccessManagement_RolesButton");
+        Button listPermissions = new Button("Permissions");
+        listPermissions.setId("AccessManagement_Permissions_button");
+        Button pairRolesWithPermissions = new Button("Role-permission pairing");
+        pairRolesWithPermissions.setId("AccessManagement_RolePermissionPairingButton");
+
+        listRoles.addClickListener(event -> refreshLayout(RoleList.class));
+        listPermissions.addClickListener(event -> refreshLayout(PermissionList.class));
+        pairRolesWithPermissions.addClickListener(event -> refreshLayout(RoleXPermissionCreate.class));
+
+        hl.add(listRoles, listPermissions, pairRolesWithPermissions);
+        return hl;
     }
 
     private void refreshLayout(Class<? extends Component> c){

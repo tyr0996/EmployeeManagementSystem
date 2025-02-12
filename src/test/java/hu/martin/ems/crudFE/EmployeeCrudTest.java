@@ -7,6 +7,7 @@ import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
 import hu.martin.ems.model.Employee;
+import lombok.Getter;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,9 +27,13 @@ public class EmployeeCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
 
-    public static final String showDeletedChecBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
-    public static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-grid";
-    public static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
+    @Getter
+    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    @Getter
+    private static final String gridXpath = contentXpath + "/vaadin-grid";
+
+    @Getter
+    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
 
     private static final String mainMenu = UIXpaths.ADMIN_MENU;
     private static final String subMenu = UIXpaths.EMPLOYEE_SUBMENU;
@@ -36,7 +41,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @BeforeClass
     public void setup() {
         GridTestingUtil.driver = driver;
-        crudTestingUtil = new CrudTestingUtil(driver, "Employee", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
+        crudTestingUtil = new CrudTestingUtil(driver, "Employee", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
@@ -142,7 +147,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         checkNotificationText("Error happened while getting employees");
         checkNoMoreNotificationsVisible();
         assertEquals(0, countVisibleGridDataRows(gridXpath));
-        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
     }
 
     @Test
@@ -150,5 +155,12 @@ public class EmployeeCrudTest extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
+    }
+
+    @Test
+    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
     }
 }

@@ -1,6 +1,7 @@
 package hu.martin.ems.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.repository.RoleRepository;
@@ -39,6 +40,18 @@ public class RoleController extends BaseController<Role, RoleService, RoleReposi
         }
         else{
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @AnonymousAllowed
+    @GetMapping(path = "/getNoRole")
+    public ResponseEntity<String> getNoRole(){
+        Role noRole = service.getNoRole();
+        if(noRole != null){
+            return new ResponseEntity<>(gson.toJson(noRole), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<>("Cann't find NO_ROLE role.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

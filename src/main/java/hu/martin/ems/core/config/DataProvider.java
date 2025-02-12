@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.metamodel.EntityType;
 import lombok.AllArgsConstructor;
@@ -147,35 +148,42 @@ public class DataProvider {
     }
 
     private void saveJsonToDatabase(File jsonFile) {
-        EntityTransaction entityTransaction = em.getTransaction();
+        EntityManagerFactory factory = em.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
+        EntityTransaction entityTransaction = tempEm.getTransaction();
         try (FileReader reader = new FileReader(jsonFile)){
             JsonFile json = gson.fromJson(reader, JsonFile.class);
             json.init();
             String sql = json.toSQL();
             entityTransaction.begin();
-            em.createNativeQuery(sql).executeUpdate();
-            em.flush();
+            tempEm.createNativeQuery(sql).executeUpdate();
+            tempEm.flush();
             entityTransaction.commit();
-            json.setPrimaryKeyStartIfRequired(em);
+            json.setPrimaryKeyStartIfRequired(tempEm);
             logger.info("Data loaded successfully from JSON! " + jsonFile.getName());
             loaded.add(jsonFile);
         } catch (JsonMappingException e) {
             logger.error("Hiba a json fájlban! " + jsonFile.getName());
         } catch (IOException e){
             logger.error("HIBA: " + jsonFile.getName());
+        } finally {
+            tempEm.close();
         }
     }
 
     private void resetIDSequences(){
+        EntityManagerFactory factory = em.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
+
         List<String> tableNames = getTableNames();
-        EntityTransaction emt = em.getTransaction();
+        EntityTransaction emt = tempEm.getTransaction();
         emt.begin();
-        List<String> allSeq = em.createNativeQuery("SELECT relname sequence_name FROM pg_class WHERE relkind = 'S'").getResultList();
+        List<String> allSeq = tempEm.createNativeQuery("SELECT relname sequence_name FROM pg_class WHERE relkind = 'S'").getResultList();
         int reseted = 0;
         for(String seq : allSeq) {
             if(seq.split("_").length == 3){
                 String sql = "ALTER SEQUENCE " + seq + " RESTART WITH 1";
-                em.createNativeQuery(sql).executeUpdate();
+                tempEm.createNativeQuery(sql).executeUpdate();
                 reseted++;
             }
         }
@@ -185,6 +193,7 @@ public class DataProvider {
             emt.rollback();
         }
         emt.commit();
+        tempEm.close();
     }
 
     private List<EntityType<?>> getAllManagedEntities() {
@@ -210,17 +219,23 @@ public class DataProvider {
     }
 
     private List<String> getTableNames(){
-        List<Object[]> tables = em.createNativeQuery("SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'").getResultList();
+        EntityManagerFactory factory = em.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
+        List<Object[]> tables = tempEm.createNativeQuery("SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'").getResultList();
         List<String> tableNames = new ArrayList<>();
         tables.forEach(v -> tableNames.add((String) v[1]));
+        tempEm.close();
         return tableNames;
     }
 
     public void executeSQL(String sql){
-        EntityTransaction entityTransaction = em.getTransaction();
+        EntityManagerFactory factory = em.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
+        EntityTransaction entityTransaction = tempEm.getTransaction();
         entityTransaction.begin();
-        em.createNativeQuery(sql).executeUpdate();
+        tempEm.createNativeQuery(sql).executeUpdate();
         entityTransaction.commit();
+        tempEm.close();
     }
 
     @NoArgsConstructor

@@ -129,9 +129,18 @@ public class CityList extends VerticalLayout implements Creatable<City>, BeforeE
             });
 
             deleteButton.addClickListener(event -> {
-                this.cityApi.delete(city.original);
-                Notification.show("City deleted: " + city.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.cityApi.delete(city.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("City deleted: " + city.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
                 setupCities();
                 updateGridItems();
             });

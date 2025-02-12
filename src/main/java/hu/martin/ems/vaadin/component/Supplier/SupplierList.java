@@ -117,9 +117,19 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             });
 
             deleteButton.addClickListener(event -> {
-                this.supplierApi.delete(supplier.original);
-                Notification.show("Supplier deleted: " + supplier.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                EmsResponse resp = this.supplierApi.delete(supplier.original);
+                switch (resp.getCode()){
+                    case 200: {
+                        Notification.show("Supplier deleted: " + supplier.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
+                setupSuppliers();
                 updateGridItems();
             });
 

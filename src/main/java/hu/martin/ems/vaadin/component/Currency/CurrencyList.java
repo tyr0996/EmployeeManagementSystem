@@ -110,6 +110,7 @@ public class CurrencyList extends VerticalLayout {
                 EmsResponse response = currencyApiClient.fetchAndSaveRates();
                 switch (response.getCode()) {
                     case 200:
+                        System.out.println(response.getResponseData());
                         currency = gson.fromJson((String) response.getResponseData(), Currency.class);
                         break;
                     default: {

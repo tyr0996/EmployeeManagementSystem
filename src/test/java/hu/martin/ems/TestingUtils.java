@@ -13,7 +13,7 @@ public class TestingUtils {
         return element.findElement(By.xpath("./.."));
     }
 
-    public static void loginWith(WebDriver driver, Integer port, String username, String password) {
+    public static void loginWith(WebDriver driver, Integer port, String username, String password, boolean requiredSuccess){
         driver.get("http://localhost:" + port + "/login");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
 
@@ -25,5 +25,17 @@ public class TestingUtils {
         usernameField.sendKeys(username);
         passwordField.sendKeys(password);
         loginButton.click();
+
+        if(requiredSuccess){
+            WebDriverWait loginWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            loginWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout")));
+        }
+    }
+
+    public static void loginWith(WebDriver driver, Integer port, String username, String password) throws InterruptedException {
+        loginWith(driver, port, username, password, true);
+
+        //*[@id="ROOT-2521314"]/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-horizontal-layout[1]/span
+
     }
 }

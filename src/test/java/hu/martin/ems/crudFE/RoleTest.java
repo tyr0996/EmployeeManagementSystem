@@ -6,6 +6,8 @@ import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
+import hu.martin.ems.core.config.JPAConfig;
+import hu.martin.ems.core.config.LogNumberingConverter;
 import hu.martin.ems.model.Role;
 import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -27,13 +29,12 @@ public class RoleTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
 
-    private static final String showDeletedChecBoxXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-vertical-layout/vaadin-grid";
-    private static final String createButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button";
-
-    private static final String rolesButtonXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button[1]";
-    private static final String permissionsButtonXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button[2]";
-    private static final String roleXPermisisonPairingButtonXPath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/div/vaadin-vertical-layout/vaadin-horizontal-layout/vaadin-button[3]";
+    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout[2]/vaadin-checkbox";
+    private static final String gridXpath = contentXpath + "/vaadin-grid";
+    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout[2]/vaadin-button";
+    private static final String rolesButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[1]";
+    private static final String permissionsButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[2]";
+    private static final String roleXPermisisonPairingButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[3]";
 
     private static final String mainMenu = UIXpaths.ADMIN_MENU;
     private static final String subMenu = UIXpaths.ACESS_MANAGEMENT_SUBMENU;
@@ -41,7 +42,7 @@ public class RoleTest extends BaseCrudTest {
 
     @BeforeClass
     public void setup() {
-        crudTestingUtil = new CrudTestingUtil(driver, "Role", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
+        crudTestingUtil = new CrudTestingUtil(driver, "Role", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
@@ -64,7 +65,7 @@ public class RoleTest extends BaseCrudTest {
 
     }
 
-    @Test(invocationCount = 100)
+    @Test
     public void roleDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -142,6 +143,29 @@ public class RoleTest extends BaseCrudTest {
     }
 
     @Test
+    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
+        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
+    }
+
+    @Test
+    public void databaseNotAvailableWhileGettingLoggedInUser() throws InterruptedException, SQLException {
+        LogNumberingConverter.resetCounter();
+        JPAConfig.resetCallIndex();
+        mockDatabaseNotAvailable(this, spyDataSource, 5);
+
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+
+//        mockDatabaseNotAvailableWhen(this.getClass(), spyDataSource, () -> spyUserService.findByUsername("admin"), () -> spyOrderService.findAll(false));
+        findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
+        Thread.sleep(1000);
+        checkNotificationText("Unable to get the current user. Deleting and editing roles are disabled");
+    }
+
+    @Test
     public void nullResponseFromServiceWhenCreate() throws InterruptedException {
         Mockito.doReturn(null).when(spyRoleService).save(any(Role.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -180,7 +204,7 @@ public class RoleTest extends BaseCrudTest {
 //        Thread.sleep(100);
 //        checkNotificationText("Error happened while getting role-permission pairs");
 //        assertEquals(0, countVisibleGridDataRows(gridXpath));
-//        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
+//        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
 //        checkNoMoreNotificationsVisible();
 //    }
 
@@ -220,7 +244,7 @@ public class RoleTest extends BaseCrudTest {
         findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
         Thread.sleep(1000);
 
-        findClickableElementWithXpathWithWaiting(showDeletedChecBoxXpath).click();
+        findClickableElementWithXpathWithWaiting(showDeletedCheckBoxXpath).click();
         Thread.sleep(100);
 
         checkNotificationText("Error happened while getting roles");

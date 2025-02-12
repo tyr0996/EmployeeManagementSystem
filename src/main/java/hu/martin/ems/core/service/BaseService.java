@@ -69,4 +69,8 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
     public void forcePermanentlyDelete(Long entityId) {
         repo.customForcePermanentlyDelete(entityId);
     }
+
+    public T findById(Long id) {
+        return repo.customFindById(id);
+    }
 }

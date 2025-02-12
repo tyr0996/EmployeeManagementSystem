@@ -44,7 +44,8 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
     @PostMapping(path = "/createDocumentAsPDF")
     public ResponseEntity<byte[]> createDocumentAsPDF(@RequestBody Order order) {
         try{
-            return new ResponseEntity<>(service.createDocumentAsPDF(order, new ByteArrayOutputStream()), HttpStatus.OK);
+            byte[] res = service.createDocumentAsPDF(order, new ByteArrayOutputStream());
+            return new ResponseEntity<>(res, HttpStatus.OK);
         }
         catch(IOException e){
             return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -54,9 +55,14 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
         }
     }
 
-    @PostMapping(path = "/generateHTMLEmail")
-    public ResponseEntity<String> generateHTMLEmail(@RequestBody Order order){
-        return new ResponseEntity<>(service.generateHTMLEmail(order), HttpStatus.OK);
+    @GetMapping(path = "/generateHTMLEmail")
+    public ResponseEntity<String> generateHTMLEmail(@RequestParam Long orderId){
+        try{
+            return new ResponseEntity<>(service.generateHTMLEmail(orderId), HttpStatus.OK);
+        }
+        catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping(path = "/sendReportSFTPToAccountant")

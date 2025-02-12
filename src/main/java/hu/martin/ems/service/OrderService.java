@@ -170,7 +170,8 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         return null;
     }
 
-    public String generateHTMLEmail(Order o){
+    public String generateHTMLEmail(Long orderId){
+        Order o = findById(orderId);
         String customerName = o.getCustomer().getName();
         String orderNumber = o.getId().toString();
         String orderDate = o.getTimeOfOrder().toString();

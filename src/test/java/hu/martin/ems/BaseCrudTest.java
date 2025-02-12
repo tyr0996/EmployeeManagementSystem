@@ -3,15 +3,16 @@ package hu.martin.ems;
 import hu.martin.ems.controller.CodeStoreController;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.DataProvider;
+import hu.martin.ems.core.config.JPAConfig;
 import hu.martin.ems.core.controller.EmailSendingController;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.service.UserService;
 import hu.martin.ems.service.*;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
 import hu.martin.ems.vaadin.component.ComponentManager;
-import jakarta.persistence.EntityManager;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -47,8 +48,8 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
 
     protected static final String contentXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]";
 
-    @SpyBean
-    protected static EntityManager em;
+//    @SpyBean
+//    protected static EntityManager em;
 
 
     protected static WebDriver driver;
@@ -83,7 +84,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     protected static CityService spyCityService;
     
     @SpyBean
-    @Autowired
+//    @Autowired
     protected static DataSource spyDataSource;
 
     @SpyBean
@@ -124,6 +125,9 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
 
     @SpyBean
     protected static EmailSendingController spyEmailSendingController;
+
+    @SpyBean
+    protected static AdminToolsService spyAdminToolsService;
 
 
 //    @Mock
@@ -203,12 +207,11 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     @AfterMethod(alwaysRun = true)
     @BeforeMethod(alwaysRun = true)
     public void afterTest(){
+        JPAConfig.resetCallIndex();
         resetServicesMock();
         clearInvocationsInServices();
-        Mockito.reset(spyComponentManager);
-        Mockito.reset(spyRestTemplate);
-        Mockito.clearInvocations(spyComponentManager);
-        Mockito.clearInvocations(spyRestTemplate);
+
+
 
 
 
@@ -232,6 +235,8 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
         Mockito.reset(spyDataSource);
         Mockito.reset(spyOrderService);
         Mockito.reset(spyCodeStoreService);
+        Mockito.reset(spyComponentManager);
+        Mockito.reset(spyRestTemplate);
     }
 
     private void clearInvocationsInServices(){
@@ -250,7 +255,9 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
                 spySupplierService,
                 spyDataSource,
                 spyOrderService,
-                spyCodeStoreService
+                spyCodeStoreService,
+                spyComponentManager,
+                spyRestTemplate
         );
     }
 
@@ -259,17 +266,20 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
         System.out.println("database reseted");
     }
 
-
-
     protected void logout() throws InterruptedException {
-        WebElement logoutButton = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-button");
-        logoutButton.click();
-        Thread.sleep(10);
-        assertEquals(true, driver.getCurrentUrl().contains("http://localhost:" + port + "/login"), "Nem történt meg a kijelentkeztetés");
+        if(!driver.getCurrentUrl().contains("http://localhost:" + port + "/login") &&
+            !driver.getCurrentUrl().contains("data:,")){
+            WebElement logoutButton = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-button");
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+//            logoutButton.click();
+            js.executeScript("arguments[0].click()", logoutButton);
+            Thread.sleep(100);
+            assertEquals(true, driver.getCurrentUrl().contains("http://localhost:" + port + "/login"), "Nem történt meg a kijelentkeztetés");
+        }
     }
 
     @AfterSuite
-    protected void destroy(){
+    protected void destroy() throws InterruptedException {
         if(driver != null){
             driver.quit();
         }

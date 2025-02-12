@@ -10,13 +10,14 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.EditObject;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.Order;
@@ -27,17 +28,17 @@ import hu.martin.ems.vaadin.api.CustomerApiClient;
 import hu.martin.ems.vaadin.api.OrderApiClient;
 import hu.martin.ems.vaadin.api.OrderElementApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,10 +46,10 @@ import java.util.stream.Stream;
 @Route(value = "order/create", layout = MainView.class)
 @RolesAllowed("ROLE_OrderCreateMenuOpenPermission")
 @NeedCleanCoding
-public class OrderCreate extends VerticalLayout {
+public class OrderCreate extends VerticalLayout implements BeforeEnterObserver {
 
     @EditObject
-    public static Order editObject;
+    public Order editObject;
     private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private final CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
@@ -67,11 +68,38 @@ public class OrderCreate extends VerticalLayout {
     List<Customer> customerList;
     List<CodeStore> paymentTypeList;
     List<CodeStore> currencyList;
-    private MainView mainView;
 
-    //The autowired here is need because the MainView addmenu function
-    @Autowired
-    public OrderCreate(PaginationSetting paginationSetting) {
+    ComboBox<Customer> customers;
+    Checkbox showPreviouslyOrderedElements;
+
+    public OrderCreate(){
+        init();
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        Map<String, List<String>> params = event.getLocation().getQueryParameters().getParameters();
+        List<String> paramOrderId = params.get("orderId");
+        if(paramOrderId != null){
+            Long orderId = Long.parseLong(paramOrderId.getFirst());
+            this.editObject = orderApi.findById(orderId);
+            loadEditObject();
+        }
+    }
+
+    private void loadEditObject(){
+        customers.setEnabled(false);
+        customers.setValue(editObject.getCustomer());
+        showPreviouslyOrderedElements.setValue(true);
+        showPreviously = true;
+        paymentTypes.setValue(editObject.getPaymentType());
+        currencies.setValue(editObject.getCurrency());
+        orderElementVOS = getOrderElementsByCustomer(editObject.getCustomer()).stream().map(OrderElementVO::new).collect(Collectors.toList());
+        updateGridItems();
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+    }
+
+    private void init(){
         FormLayout formLayout = new FormLayout();
 
         Button saveButton = new Button("Create order");
@@ -82,7 +110,7 @@ public class OrderCreate extends VerticalLayout {
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.asMultiSelect();
 
-        ComboBox<Customer> customers = new ComboBox<>("Customer");
+        customers = new ComboBox<>("Customer");
         ComboBox.ItemFilter<Customer> customerFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         setupCustomers();
@@ -110,7 +138,7 @@ public class OrderCreate extends VerticalLayout {
             updateGridItems();
         });
 
-        Checkbox showPreviouslyOrderedElements = new Checkbox("Show previously ordered elements");
+        showPreviouslyOrderedElements = new Checkbox("Show previously ordered elements");
         showPreviouslyOrderedElements.addValueChangeListener(event -> {
             showPreviously = !showPreviously;
             orderElementVOS = customers.getValue() == null ?
@@ -171,20 +199,6 @@ public class OrderCreate extends VerticalLayout {
             currencies.setItems(currencyFilter, currencyList);
             currencies.setItemLabelGenerator(CodeStore::getName);
         }
-
-
-        if(editObject != null){
-            customers.setEnabled(false);
-            customers.setValue(editObject.getCustomer());
-            showPreviouslyOrderedElements.setValue(true);
-            showPreviously = true;
-            paymentTypes.setValue(editObject.getPaymentType());
-            currencies.setValue(editObject.getCurrency());
-            orderElementVOS = getOrderElementsByCustomer(editObject.getCustomer()).stream().map(OrderElementVO::new).collect(Collectors.toList());
-            updateGridItems();
-            grid.setSelectionMode(Grid.SelectionMode.MULTI);
-        }
-
 
         saveButton.addClickListener(event -> {
             CodeStore pending = getPendingCodeStore();

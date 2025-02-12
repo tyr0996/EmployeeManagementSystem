@@ -1,8 +1,8 @@
 package hu.martin.ems.controller;
 
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.service.AdminToolsService;
+import jakarta.annotation.security.PermitAll;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,8 @@ import java.lang.reflect.InvocationTargetException;
 
 @Controller
 @RequestMapping("/api/adminTools")
-@AnonymousAllowed
+@PermitAll
+//@AnonymousAllowed
 @Slf4j
 public class AdminToolsController {
 

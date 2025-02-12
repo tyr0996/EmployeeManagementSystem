@@ -8,17 +8,20 @@ import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.model.Address;
 import lombok.Getter;
 import org.mockito.Mockito;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.testng.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -29,7 +32,7 @@ public class AddressTest extends BaseCrudTest {
     private static WebDriverWait notificationDisappearWait;
 
     @Getter
-    private static final String showDeletedChecBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
     @Getter
     private static final String gridXpath = contentXpath + "/vaadin-grid";
 
@@ -39,71 +42,85 @@ public class AddressTest extends BaseCrudTest {
     private static final String mainMenu = UIXpaths.ADMIN_MENU;
     @Getter
     private static final String subMenu = UIXpaths.ADDRESS_SUBMENU;
+
+    private void loginAndNavigate() throws InterruptedException {
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+    }
     
     @BeforeClass
     public void setup() {
-        crudTestingUtil = new CrudTestingUtil(driver, "Address", showDeletedChecBoxXpath, gridXpath, createButtonXpath);
+        crudTestingUtil = new CrudTestingUtil(driver, "Address", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
+    }
+
+    @Test
+    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
+        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
     }
 
     @Test
     public void addressCreateTest() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
+        loginAndNavigate();
         crudTestingUtil.createTest();
     }
 
     @Test
     public void addressReadTest() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
+        loginAndNavigate();
         crudTestingUtil.readTest();
     }
 
     @Test
     public void addressDeleteTest() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
+        loginAndNavigate();
         crudTestingUtil.deleteTest();
     }
 
     @Test
     public void addressUpdateTest() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
+        loginAndNavigate();
         crudTestingUtil.updateTest();
     }
 
     @Test
     public void addressRestoreTest() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
+        loginAndNavigate();
         crudTestingUtil.restoreTest();
     }
 
     @Test
     public void addressPermanentlyDeleteTest() throws InterruptedException {
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
+        loginAndNavigate();
         crudTestingUtil.permanentlyDeleteTest();
     }
     @Test
     public void nullResponseWhenGettingAllAddress() throws InterruptedException {
-//        Mockito.doReturn(null).when(spyAddressService).findAll();
-        Mockito.doReturn(null).when(spyAddressService).findAll(any(Boolean.class)); //ApiClientben findAllWithDeleted
+//        logout();
 
+//        Mockito.doReturn(null).when(spyAddressService).findAll();
+         //ApiClientben findAllWithDeleted
+//        Mockito.when(spyAddressService.findAll(anyBoolean())).thenReturn(null);
 //        MockitoAnnotations.openMocks(this);
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
+        loginAndNavigate();
+
+        Mockito.doReturn(null).when(spyAddressService).findAll(anyBoolean());
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
         checkNotificationText("Error happened while getting addresses");
         assertEquals(0, countVisibleGridDataRows(gridXpath));
-        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedChecBoxXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+        closeNotification(100);
+        closeNotification(100);
+        checkNoMoreNotificationsVisible();
     }
 
     @Test
     public void nullResponseWhenGettingStreetTypes() throws InterruptedException {
+        loginAndNavigate();
         Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.STREET_TYPES_CODESTORE_ID);
 
 //        MockitoAnnotations.openMocks(this);
@@ -117,6 +134,7 @@ public class AddressTest extends BaseCrudTest {
 
     @Test
     public void nullResponseWhenGettingCities() throws InterruptedException {
+        loginAndNavigate();
 //        Mockito.doReturn(new EmsResponse(522, "Error happened while getting cities")).when(spyCityApiClient).findAllByIds();
         Mockito.doReturn(null).when(spyCityService).findAll(any(Boolean.class));
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -130,8 +148,8 @@ public class AddressTest extends BaseCrudTest {
     @Test
     public void nullResponseWhenGettingCountries() throws InterruptedException {
         Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
+        loginAndNavigate();
+
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
         failedFieldData.put("Country code", "Error happened while getting countries");
 
@@ -141,7 +159,7 @@ public class AddressTest extends BaseCrudTest {
     @Test
     public void nullResponseFromServiceWhenModify() throws InterruptedException {
         Mockito.doReturn(null).when(spyAddressService).update(any(Address.class));
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
+        loginAndNavigate();
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest(null, "Address modifying failed: internal server error", false);
         checkNoMoreNotificationsVisible();
@@ -150,15 +168,23 @@ public class AddressTest extends BaseCrudTest {
     @Test
     public void nullResponseFromServiceWhenCreate() throws InterruptedException {
         Mockito.doReturn(null).when(spyAddressService).save(any(Address.class));
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        loginAndNavigate();
         crudTestingUtil.createTest(null, "Address saving failed: internal server error", false);
         checkNoMoreNotificationsVisible();
     }
 
-    @AfterClass
-    public void afterClass() throws InterruptedException {
+    @AfterMethod
+    public void afterMethod() throws InterruptedException {
+        closeCreateDialogIfNeeded();
         logout();
     }
 
+    private void closeCreateDialogIfNeeded() throws InterruptedException {
+        WebElement dialog = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay");
+        if(dialog != null){
+            WebElement closeButton = findVisibleElementWithXpath("/html/body/vaadin-dialog-overlay/div/div/vaadin-button");
+            closeButton.click();
+        }
+        Thread.sleep(100);
+    }
 }

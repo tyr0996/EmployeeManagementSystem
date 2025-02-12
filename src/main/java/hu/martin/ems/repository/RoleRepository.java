@@ -20,5 +20,9 @@ public interface RoleRepository extends BaseRepository<Role, Long> {
             "WHERE r.name = :name and r.deleted = 0")
     Role findByNameWithNegativeId(@Param("name") String name);
 
+    @Query("SELECT r FROM Role r " +
+           "WHERE r.id = -1")
+    Role getNoRole();
+
 
 }
