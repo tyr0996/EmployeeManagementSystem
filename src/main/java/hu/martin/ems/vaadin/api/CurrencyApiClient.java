@@ -38,19 +38,26 @@ public class CurrencyApiClient extends EmsApiClient<Currency>{
 
     public EmsResponse findByDate(LocalDate date) {
         WebClient webClient = webClientProvider.initWebClient(entityName);
-        String response = webClient.get()
-                .uri("findByDate?date={year}-{month}-{day}", date.getYear(), date.getMonthValue(), date.getDayOfMonth())
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-        if(response != null && response instanceof String && !response.equals("null")){
-            return new EmsResponse(200, gson.fromJson((String) response, Currency.class), "");
+        try{
+            String response = webClient.get()
+                    .uri("findByDate?date={year}-{month}-{day}", date.getYear(), date.getMonthValue(), date.getDayOfMonth())
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            return new EmsResponse(200, response, "");
+//            if(response instanceof String && !response.equals("null")){
+//                return new EmsResponse(200, gson.fromJson((String) response, Currency.class), "");
+//            }
+//            else if(response.equals("null")){
+//                return new EmsResponse(200, null);
+//            }
+//            else{
+//                return new EmsResponse(500, "Error happened while getting currencies by wdate: Internal server error");
+//            }
         }
-        else if(response instanceof String && response.equals("null")){
-            return new EmsResponse(200, null);
+        catch (WebClientResponseException ex){
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         }
-        else{
-            return new EmsResponse(500, "Error happened while getting currencies by wdate: Internal server error");
-        }
+
     }
 }

@@ -15,15 +15,6 @@ public class UserApiClient extends EmsApiClient<User> {
         super(User.class);
     }
 
-    public EmsResponse userExists(String userName){
-        WebClient webClient = webClientProvider.initWebClient(entityName);
-        String jsonResponse = webClient.get()
-                .uri("userExists?username=" + userName)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-        return new EmsResponse(200, convertResponseToEntity(jsonResponse), "");
-    }
 
     @AnonymousAllowed
     public EmsResponse findByUsername(String userName) {

@@ -263,8 +263,12 @@ public class OrderList extends VerticalLayout {
     }
 
     private void processEmailSendingResponse(EmsResponse emailSendingResponse){
-        Notification.show(emailSendingResponse.getDescription())
-                .addThemeVariants(emailSendingResponse.getCode() == 200 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
+        if(emailSendingResponse.getCode() == 200){
+            Notification.show(emailSendingResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        }
+        else{
+            Notification.show(emailSendingResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+        }
     }
 
     private void setupOrderList() {

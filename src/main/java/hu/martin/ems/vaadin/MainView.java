@@ -23,7 +23,7 @@ import hu.martin.ems.vaadin.component.Address.AddressList;
 import hu.martin.ems.vaadin.component.AdminTools.AdminTools;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.CodeStore.CodeStoreList;
-import hu.martin.ems.vaadin.component.ComponentManager;
+//import hu.martin.ems.vaadin.component.ComponentManager;
 import hu.martin.ems.vaadin.component.Currency.CurrencyList;
 import hu.martin.ems.vaadin.component.Customer.CustomerList;
 import hu.martin.ems.vaadin.component.Employee.EmployeeList;
@@ -57,8 +57,8 @@ public class MainView extends HorizontalLayout implements RouterLayout {
     @Autowired
     private PaginationSetting paginationSetting;
 
-    @Autowired
-    private ComponentManager componentManager;
+//    @Autowired
+//    private ComponentManager componentManager;
 
     @Getter
     @Setter

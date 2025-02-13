@@ -15,7 +15,6 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinServletRequest;
-import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.auth.CustomUserDetailsService;
@@ -25,7 +24,6 @@ import hu.martin.ems.core.model.User;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,9 +60,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
 
     public LoginView() {
-        addAttachListener(event -> {
-            VaadinSession.getCurrent().setAttribute("csrfToken", getCsrfTokenFromCookie());
-        });
+//        addAttachListener(event -> {
+//            VaadinSession.getCurrent().setAttribute("csrfToken", getCsrfTokenFromCookie());
+//        });
 
         NO_ROLE_USER.setTitle("Permission error");
         NO_ROLE_USER.setMessage("You have no permission to log in. Contact the administrator about your roles, and try again.");
@@ -258,16 +256,16 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {}
 
-
-    private String getCsrfTokenFromCookie() {
-        VaadinServletRequest vaadinRequest = (VaadinServletRequest) VaadinRequest.getCurrent();
-        Cookie[] cookies = vaadinRequest.getHttpServletRequest().getCookies();
-
-        for (Cookie cookie : cookies) {
-            if ("XSRF-TOKEN".equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        return null;
-    }
+//
+//    private String getCsrfTokenFromCookie() {
+//        VaadinServletRequest vaadinRequest = (VaadinServletRequest) VaadinRequest.getCurrent();
+//        Cookie[] cookies = vaadinRequest.getHttpServletRequest().getCookies();
+//
+//        for (Cookie cookie : cookies) {
+//            if ("XSRF-TOKEN".equals(cookie.getName())) {
+//                return cookie.getValue();
+//            }
+//        }
+//        return null;
+//    }
 }

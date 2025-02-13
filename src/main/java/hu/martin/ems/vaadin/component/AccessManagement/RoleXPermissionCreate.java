@@ -95,7 +95,6 @@ public class RoleXPermissionCreate extends AccessManagement {
                         Notification.show("Can't get logged in User object").addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 }
-
                 break;
             default:
                 roleList = null;

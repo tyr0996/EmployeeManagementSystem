@@ -4,13 +4,11 @@ import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.GridTestingUtil;
-import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class ErrorPageTest extends BaseCrudTest {
@@ -21,8 +19,7 @@ public class ErrorPageTest extends BaseCrudTest {
     }
 
     @Test
-    public void pageLoadFailedIllegalAccessException() throws IllegalAccessException, InterruptedException {
-        Mockito.doThrow(IllegalAccessException.class).when(spyComponentManager).setEditObjectFieldToNull(any());
+    public void pageLoadFailedIllegalAccessException() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "robi", "robi");
         navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
         checkNoPermissionPage();

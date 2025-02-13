@@ -1,6 +1,5 @@
 package hu.martin.ems.crudFE;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
@@ -15,17 +14,16 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.JPAConfig;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.service.OrderService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -43,8 +41,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.testng.AssertJUnit.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@PrepareForTest(jakarta.mail.Transport.class)
-@RunWith(PowerMockRunner.class)
+//@PrepareForTest(jakarta.mail.Transport.class)
+//@RunWith(PowerMockRunner.class)
 public class OrderCrudTest extends BaseCrudTest {
 
     private static WebDriverWait notificationDisappearWait;
@@ -267,13 +265,11 @@ public class OrderCrudTest extends BaseCrudTest {
     @Captor
     ArgumentCaptor<EmailProperties> orderArgumentCaptor;
 
-    @Test
-    public void sendEmailSuccessTest() throws InterruptedException, JsonProcessingException, MessagingException {
-        Mockito.doNothing().when(spyEmailSendingService).transportSend(any(MimeMessage.class));
-        doEmailSendingTest();
-    }
 
-    private void doEmailSendingTest() throws InterruptedException {
+
+    @Test
+    public void sendEmailSuccessTest() throws InterruptedException, MessagingException {
+        Mockito.doNothing().when(spyEmailSendingService).transportSend(any(MimeMessage.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
 
@@ -287,8 +283,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
         WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
         sendEmailButton.click();
-        Thread.sleep(100);
-//        checkNotificationContainsTexts("Email sent!", 5000);
+        checkNotificationContainsTexts("Email sent!", 5000);
     }
 
     @Test

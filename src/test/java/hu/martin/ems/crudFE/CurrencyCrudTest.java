@@ -23,6 +23,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -207,6 +208,18 @@ public class CurrencyCrudTest extends BaseCrudTest {
         Thread.sleep(100);
         checkNotificationText("Not expected status-code in fetching currencies");
         Assert.assertEquals(0, countVisibleGridDataRows(gridXPath));
+    }
+
+    @Test
+    public void databaseNotAvailableWhileFindCurrencyByDate() throws SQLException, InterruptedException {
+        mockDatabaseNotAvailable(getClass(), spyDataSource, 2);
+        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+
+        navigateMenu(mainMenu, subMenu);
+        checkNotificationContainsTexts("Error happened while getting currencies by date", 2000);
+
+        assertEquals(0, countVisibleGridDataRows(gridXPath));
     }
 
 //    @Test

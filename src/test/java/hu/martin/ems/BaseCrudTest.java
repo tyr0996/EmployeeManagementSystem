@@ -9,7 +9,6 @@ import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.service.UserService;
 import hu.martin.ems.service.*;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
-import hu.martin.ems.vaadin.component.ComponentManager;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.JavascriptExecutor;
@@ -74,8 +73,8 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     @SpyBean
     protected static RestTemplate spyRestTemplate;
 
-    @SpyBean
-    protected static ComponentManager spyComponentManager;
+//    @SpyBean
+//    protected static ComponentManager spyComponentManager;
 
     @SpyBean
     protected static EmailSendingApi spyEmailSendingApi;
@@ -129,13 +128,16 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     @SpyBean
     protected static AdminToolsService spyAdminToolsService;
 
+    @SpyBean
+    protected static EmailSendingService spyEmailSendingService;
+
 
 //    @Mock
 //    protected static Transport transport;
 
-    @SpyBean
-//    @InjectMocks
-    protected static EmailSendingService spyEmailSendingService;
+//    @SpyBean
+////    @InjectMocks
+//    protected static EmailSendingService spyEmailSendingService;
 
 //    @Spy
 //    protected static Properties spyEmailProperties;
@@ -235,7 +237,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
         Mockito.reset(spyDataSource);
         Mockito.reset(spyOrderService);
         Mockito.reset(spyCodeStoreService);
-        Mockito.reset(spyComponentManager);
+//        Mockito.reset(spyComponentManager);
         Mockito.reset(spyRestTemplate);
     }
 
@@ -256,7 +258,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
                 spyDataSource,
                 spyOrderService,
                 spyCodeStoreService,
-                spyComponentManager,
+//                spyComponentManager,
                 spyRestTemplate
         );
     }

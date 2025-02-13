@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.sql.SQLException;
 import java.time.Duration;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
@@ -127,6 +128,21 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(roleDropboxXpath)), false);
         assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(roleDropboxXpath)), "Error happened while getting roles");
         assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(saveButtonXpath)), false);
+        checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    public void databaseNotAvailableWhileReturnWhileGettingLoggedInUser() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+        mockDatabaseNotAvailable(getClass(), spyDataSource, 3);
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
+        Thread.sleep(100);
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(roleDropboxXpath)), false);
+        assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(roleDropboxXpath)), "Error happened while getting roles");
+        assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(saveButtonXpath)), false);
+        checkNotificationText("Can't get logged in User object");
         checkNoMoreNotificationsVisible();
     }
 

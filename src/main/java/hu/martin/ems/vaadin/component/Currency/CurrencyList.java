@@ -151,7 +151,7 @@ public class CurrencyList extends VerticalLayout {
                 return (Currency) response.getResponseData();
             default:
                 logger.error("Currency findByDateError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("Error happened while getting currencies by date: " + response.getDescription())
+                Notification.show("Error happened while getting currencies by date")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return null;
         }

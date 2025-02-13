@@ -340,11 +340,15 @@ public class LoginTests extends BaseCrudTest {
         SearchContext shadow = login.getShadowRoot();
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
         WebElement errorMessage = (WebElement) js.executeScript("return arguments[0].querySelector('div[part=\"error-message\"]');", shadow);
 
+        WebElement errorTitleElement = wait.until(ExpectedConditions.visibilityOf(errorMessage.findElement(By.tagName("h5"))));
+        WebElement errorDescriptionElement = wait.until(ExpectedConditions.visibilityOf(errorMessage.findElement(By.tagName("p"))));
 
-        String errorTitle = errorMessage.findElement(By.tagName("h5")).getText();
-        String errorDescription = errorMessage.findElement(By.tagName("p")).getText();
+        String errorTitle = errorTitleElement.getText();
+        String errorDescription = errorDescriptionElement.getText();
 
         assertEquals(title, errorTitle, "Nem megfelelő a hibaüzenet címe");
         assertEquals(description, errorDescription, "Nem megfelelő a hibaüzenet leírás");
