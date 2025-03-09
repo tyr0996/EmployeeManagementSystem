@@ -29,7 +29,6 @@ public class UserController extends BaseController<User, UserService, UserReposi
             return new ResponseEntity<>(gson.toJson(user), HttpStatus.OK);
         }
         catch (WebClientResponseException ex){
-            System.out.println("sanyika");
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -41,7 +40,6 @@ public class UserController extends BaseController<User, UserService, UserReposi
             return new ResponseEntity<>(gson.toJson(user), HttpStatus.OK);
         }
         catch (WebClientResponseException ex){
-            System.out.println("Sanyi");
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

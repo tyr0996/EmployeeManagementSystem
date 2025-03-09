@@ -133,7 +133,9 @@ public class JPAConfig {
         jpaProperties.setProperty("hibernate.dialect", hibernateDialect);
         jpaProperties.setProperty("hibernate.hbm2ddl.auto", dllAuto);
         jpaProperties.setProperty("hibernate.show_sql", hibernateShowSql);
-        jpaProperties.setProperty("spring.jpa.properties.hibernate.format_sql", formatSql);
+        jpaProperties.setProperty("hibernate.format_sql", formatSql);
+//        jpaProperties.setProperty("hibernate.use_sql_comments", useSqlComments);
+//        jpaProperties.setProperty("spring.jpa.properties.hibernate.format_sql", formatSql);
         jpaProperties.setProperty("spring.jpa.properties.hibernate.use_sql_comments", useSqlComments);
         em.setJpaProperties(jpaProperties);
 

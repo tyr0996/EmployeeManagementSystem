@@ -1,24 +1,25 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
-import hu.martin.ems.model.Role;
-import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.Arrays;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.testng.Assert.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Listeners(UniversalVideoListener.class)
 public class RoleXPermissionCreateTest extends BaseCrudTest {
 
     private static CrudTestingUtil crudTestingUtil;
@@ -47,6 +48,11 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
+    @BeforeMethod
+    public void beforeMethod(){
+        resetRolesAndPermissions();
+    }
+
     public void createRoleXPermissionTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -60,11 +66,13 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseWhenCreateRoleXPermissionFailedTest() throws InterruptedException {
+    @Video
+    public void databaseNotAvailableWhenCreateRoleXPermissionFailedTest() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 6);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
 
-        Mockito.doReturn(null).when(spyRoleService).update(Mockito.any(Role.class));
+//        Mockito.doReturn(null).when(spyRoleService).update(Mockito.any(Role.class));
         findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
         Thread.sleep(100);
         fillElementWith(findVisibleElementWithXpath(roleDropboxXpath), false, "");
@@ -91,8 +99,10 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void nullReturnWhileGettingAllPermissions() throws InterruptedException {
-        Mockito.doReturn(null).when(spyPermissionService).findAll(false);
+    @Video
+    public void databaseNotAvailableWhileGettingAllPermissions() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyPermissionService).findAll(false);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
@@ -119,8 +129,10 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void nullReturnWhileGettingAllRoles() throws InterruptedException {
-        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+    @Video
+    public void databaseNotAvailableWhileGettingAllRoles() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
@@ -132,9 +144,10 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhileReturnWhileGettingLoggedInUser() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-        mockDatabaseNotAvailable(getClass(), spyDataSource, 3);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
@@ -147,9 +160,12 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseWhileGettingAllPermissionsAndRoles() throws InterruptedException {
-        Mockito.doReturn(null).when(spyPermissionService).findAll(false);
-        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+    @Video
+    public void databaseNotAvailableWhileGettingAllPermissionsAndRoles() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyPermissionService).findAll(false);
+//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+        mockDatabaseNotAvailableWhen(getClass(), spyDataSource, Arrays.asList(2, 3));
+
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
@@ -160,5 +176,10 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         assertEquals(getFieldErrorMessage(findVisibleElementWithXpath(roleDropboxXpath)), "Error happened while getting roles");
         assertEquals(GridTestingUtil.isEnabled(findVisibleElementWithXpath(saveButtonXpath)), false);
         checkNoMoreNotificationsVisible();
+    }
+
+    @AfterClass
+    public void afterClass(){
+        resetRolesAndPermissions();
     }
 }

@@ -1,9 +1,6 @@
 package hu.martin.ems.base;
 
 import com.google.gson.Gson;
-import com.zaxxer.hikari.HikariDataSource;
-import com.zaxxer.hikari.pool.HikariProxyConnection;
-import com.zaxxer.hikari.pool.HikariProxyPreparedStatement;
 import hu.martin.ems.PaginatorComponents;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
@@ -11,6 +8,7 @@ import hu.martin.ems.UITests.PaginationData;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.repository.CustomerRepository;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.mockito.ArgumentCaptor;
@@ -23,12 +21,15 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.asserts.SoftAssert;
 
 import javax.naming.OperationNotSupportedException;
 import javax.sql.DataSource;
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -50,8 +51,11 @@ public class GridTestingUtil {
     @Captor
     static ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
 
-    private static String getSQLQueryFromRepository(DataSource spyDataSource, Supplier function) throws SQLException {
+    private static Logger logger = LoggerFactory.getLogger(GridTestingUtil.class);
 
+    private static int screenshotId = 0;
+
+    private static String getSQLQueryFromRepository(DataSource spyDataSource, Supplier function) throws SQLException {
         Connection spyConnection = spy(Connection.class);
         Mockito.doReturn(spyConnection).when(spyDataSource).getConnection();
         when(spyDataSource.getConnection()).thenReturn(spyConnection);
@@ -60,42 +64,33 @@ public class GridTestingUtil {
         } catch (Exception e){}
 
         verify(spyConnection).prepareStatement(sqlCaptor.capture());
-        System.out.println("generated SQL: " + sqlCaptor.getValue());
         Mockito.reset(spyConnection);;
         Mockito.clearInvocations(spyConnection);
 
         return sqlCaptor.getValue();
     }
 
-    public static void mockDatabaseNotAvailableWhen(Class<?> testClass, DataSource spyDatasource, Supplier<?> function, Supplier<?> otherFunction) throws SQLException, NoSuchFieldException, IllegalAccessException {
-        DataSource ds = mock(HikariDataSource.class);
-        String sql = getSQLQueryFromRepository(spyDatasource, function);
-        Connection conn = mock(HikariProxyConnection.class);
-        PreparedStatement ps = mock(HikariProxyPreparedStatement.class);
-//        Statement st = mock(Statement.class);
-//        doCallRealMethod().when(ps).setString(anyInt(), anyString());
-        doCallRealMethod().doReturn(conn).when(ds).getConnection();
+    public static void mockDatabaseNotAvailableWhen(Object testClass, DataSource spyDataSource, List<Integer> failedCallIndexes) throws SQLException {
+        AtomicInteger callCount = new AtomicInteger(0);
+        MockitoAnnotations.openMocks(testClass);
 
-        doThrow(new SQLException("asdfdfsaadfs")).when(ps).execute();
-        doThrow(new SQLException("asdfdfsaadfs")).when(ps).executeQuery();
-        doThrow(new SQLException("asdfdfsaadfs")).when(ps).executeUpdate();
-        doReturn(ps).when(conn).prepareStatement(eq(sql));
-
-
-//        when(spyConnection.prepareStatement(argThat(s -> s != null && !s.equals(sql)))).thenCallRealMethod();
-//        doCallRealMethod().when(spyConnection).prepareStatement(argThat(s -> s != null && !s.equals(sql)));
-
-        try{
-            otherFunction.get();
-            System.out.println("Most jön a rossz");
-            function.get();
-        }
-        catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        doAnswer(invocation -> {
+            int currentCall = callCount.incrementAndGet();
+            if(failedCallIndexes.contains(currentCall - 1)) {
+                throw new SQLException("Connection refused: getsockopt");
+            }
+            else {
+                return invocation.callRealMethod();
+            }
+        }).when(spyDataSource).getConnection();
     }
 
-    public static void mockDatabaseNotAvailable(Object testClass, DataSource spyDataSource, int preSuccess) throws SQLException {
+
+    public static void mockDatabaseNotAvailableOnlyOnce(Object testClass, DataSource spyDataSource, Integer preSuccess) throws SQLException {
+        mockDatabaseNotAvailableWhen(testClass, spyDataSource, Arrays.asList(preSuccess));
+    }
+
+    public static void mockDatabaseNotAvailableAfter(Object testClass, DataSource spyDataSource, int preSuccess) throws SQLException {
         AtomicInteger callCount = new AtomicInteger(0);
         MockitoAnnotations.openMocks(testClass);
 
@@ -108,7 +103,7 @@ public class GridTestingUtil {
                 throw new SQLException("Connection refused: getsockopt");
             }
             else {
-                return invocation.callRealMethod();
+                throw new SQLException("Connection refused: getsockopt");
             }
         }).when(spyDataSource).getConnection();
     }
@@ -292,24 +287,49 @@ public class GridTestingUtil {
     }
 
 
-    public static WebElement findVisibleElementWithXpath(String xpath) {
+    public static WebElement findVisibleElementWithXpath(String xpath, int timeoutInMillis) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(500));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(timeoutInMillis));
             return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
         } catch (Exception e) {
             return null;
         }
     }
 
+    public static WebElement findVisibleElementWithXpath(String xpath) {
+        return findVisibleElementWithXpath(xpath, 500);
+    }
+
+    public static void takeScreenshot(WebDriver driver) {
+        File f = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        try{
+            String path = "D:\\Fejleszto\\selenium\\screenshotFolder\\" + screenshotId + ".png";
+            FileUtils.copyFile(f, new File(path));
+            logger.info("Screenshot taken. Path: {}", path);
+            screenshotId++;
+        } catch (IOException e) {
+            throw new RuntimeException("Saving screenshot failed! " + e);
+        }
+
+    }
+
     public static int countVisibleGridDataRows(String gridXpath) throws InterruptedException {
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        WebElement grid = findVisibleElementWithXpath(gridXpath, 200);
         WebElement parent = TestingUtils.getParent(grid);
         Thread.sleep(100);
         String total = parent.findElement(By.tagName("span")).findElement(By.tagName("lit-pagination")).getDomAttribute("total");
         return Integer.parseInt(total);
     }
 
-    public static int countHiddenGridDataRows(String gridXpath, String showDeletedXpath) throws InterruptedException {
+    /**
+     *
+     * @param gridXpath
+     * @param showDeletedXpath
+     * @param notification1 The notification which appears when showDeleted switched from false to true
+     * @param notification2 The notification which appears when showDeleted switched from true to false
+     * @return
+     */
+    public static int countHiddenGridDataRows(String gridXpath, String showDeletedXpath, String notification1, String notification2) throws InterruptedException {
         if(showDeletedXpath == null){
             return 0;
         }
@@ -317,9 +337,23 @@ public class GridTestingUtil {
         setCheckboxStatus(showDeletedXpath, false);
         int visible = countVisibleGridDataRows(gridXpath);
         setCheckboxStatus(showDeletedXpath, true);
+        if(notification1 != null){
+            checkNotificationContainsTexts(notification1);
+        }
         int visibleWithHidden = countVisibleGridDataRows(gridXpath);
         setCheckboxStatus(showDeletedXpath, false);
+        if(notification2 != null){
+            checkNotificationContainsTexts(notification2);
+        }
         return visibleWithHidden - visible;
+    }
+
+    public static int countHiddenGridDataRows(String gridXpath, String showDeletedXpath) throws InterruptedException {
+        return countHiddenGridDataRows(gridXpath, showDeletedXpath, null, null);
+    }
+
+    public static int countHiddenGridDataRows(String gridXpath, String showDeletedXpath, String notification) throws InterruptedException {
+        return countHiddenGridDataRows(gridXpath, showDeletedXpath, notification, notification);
     }
 
     public static int countVisibleGridDataRowsOnPage(String gridXpath){
@@ -339,7 +373,7 @@ public class GridTestingUtil {
             return null;
         }
         else if(elementNumber > 1){
-            selectedElementIndex = rnd.nextInt(0, elementNumber); //TODO lehet, hogy ezt ki kell venni elementNumber - 1
+            selectedElementIndex = rnd.nextInt(0, elementNumber);
         }
         else{
             return new ElementLocation(1, 0);

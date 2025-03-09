@@ -1,15 +1,15 @@
 {
   "objectName": "Employee",
   "required": [
-    "roles.json"
+    "users.json"
   ],
   "data": [
     {
       "deleted": 0,
       "firstName": "Erdei",
       "lastName": "Róbert",
-      "role_role_id": {
-        "refClass": "Role",
+      "user_loginuser_id": {
+        "refClass": "loginuser",
         "filter": {
           "id": 1
         }
@@ -20,13 +20,25 @@
       "deleted": 0,
       "firstName": "Gálber",
       "lastName": "Martin",
-      "role_role_id": {
-        "refClass": "Role",
+      "user_loginuser_id": {
+        "refClass": "loginuser",
         "filter": {
           "id": 2
         }
       },
       "salary": 10000
+    },
+    {
+      "deleted": 0,
+      "firstName": "Kasszás",
+      "lastName": "Erzsi",
+      "user_loginuser_id": {
+        "refClass": "loginuser",
+        "filter": {
+          "id": 3
+        }
+      },
+      "salary": 100
     }
   ]
 }

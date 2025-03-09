@@ -50,6 +50,11 @@ public class Consumes{
         public static final String JSON = "application/json;charset=UTF8";
     }
 
+    public class Selenium{
+        public static final String downloadPath = "D:\\Fejleszto\\selenium\\_downloadForSelenium";
+
+    }
+
     public enum Icons {
         PDF_FILE("pdf-file"),
         ODT_FILE("odt-file"),

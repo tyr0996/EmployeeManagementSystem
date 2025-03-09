@@ -1,20 +1,20 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.core.config.StaticDatas;
-import hu.martin.ems.model.Product;
-import org.mockito.Mockito;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
@@ -22,10 +22,10 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Listeners(UniversalVideoListener.class)
 public class ProductCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
@@ -44,6 +44,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void productCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -51,6 +52,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void productReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -58,6 +60,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -65,6 +68,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void productDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -72,6 +76,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void productUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -79,6 +84,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void productRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -86,6 +92,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void productPermanentlyDeleteTest() throws InterruptedException {
         //Azért nem lehet törölni, mert vannak olyan megrendelések, amikben benne van.
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -103,6 +110,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sellToCustomerTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -120,6 +128,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void orderFromSupplierTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -152,8 +161,11 @@ public class ProductCrudTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void nullResponseFromServiceWhenModify() throws InterruptedException {
-        Mockito.doReturn(null).when(spyProductService).update(any(Product.class));
+    @Video
+    public void databaseNotAvailableWhenModify() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyProductService).update(any(Product.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 8);
+
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest(null, "Internal server error", false);
@@ -161,8 +173,10 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
-        Mockito.doReturn(null).when(spyProductService).save(any(Product.class));
+    @Video
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyProductService).save(any(Product.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 10);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest(null, "Product saving failed: Internal server error", false);
@@ -170,8 +184,10 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullReturnWhenGettingAllCustomers() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCustomerService).findAll(false);
+    @Video
+    public void nullReturnWhenGettingAllCustomers() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCustomerService).findAll(false);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
         LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
         failedData.put("Customer", "Error happened while getting customers");
 
@@ -191,8 +207,10 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseWhenGettingAllSuppliers() throws InterruptedException {
-        Mockito.doReturn(null).when(spySupplierService).findAll(false);
+    @Video
+    public void nullResponseWhenGettingAllSuppliers() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spySupplierService).findAll(false);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
         LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
         failedData.put("Supplier", "Error happened while getting suppliers");
 
@@ -211,9 +229,11 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void unexpectedResponseCodeWhenGettingAllProducts() throws InterruptedException {
-        Mockito.doReturn(null).when(spyProductService).findAll(any(Boolean.class));
+    @Video
+    public void unexpectedResponseCodeWhenGettingAllProducts() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyProductService).findAll(any(Boolean.class));
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyProductApiClient).findAllWithDeleted();
+        mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
@@ -223,8 +243,10 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void unexpectedResponseCodeWhenGettingCurrenciesNames() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
+    @Video
+    public void unexpectedResponseCodeWhenGettingCurrenciesNames() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID); //id 1
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -235,8 +257,10 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void unexpectedResponseCodeWhenGettingTaxKeys() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.TAXKEYS_CODESTORE_ID);
+    @Video
+    public void unexpectedResponseCodeWhenGettingTaxKeys() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.TAXKEYS_CODESTORE_ID); // id 4
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -246,8 +270,10 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void unexpectedResponseCodeWhenGettingAmountUnits() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID);
+    @Video
+    public void unexpectedResponseCodeWhenGettingAmountUnits() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID); //id 2
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -257,6 +283,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);

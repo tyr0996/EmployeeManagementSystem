@@ -21,12 +21,12 @@ import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CurrencyApiClient;
+import jakarta.annotation.security.RolesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -110,7 +110,6 @@ public class CurrencyList extends VerticalLayout {
                 EmsResponse response = currencyApiClient.fetchAndSaveRates();
                 switch (response.getCode()) {
                     case 200:
-                        System.out.println(response.getResponseData());
                         currency = gson.fromJson((String) response.getResponseData(), Currency.class);
                         break;
                     default: {

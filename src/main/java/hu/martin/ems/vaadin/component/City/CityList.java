@@ -13,14 +13,13 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
@@ -55,7 +54,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 @Route(value = "city/list", layout = MainView.class)
 @RolesAllowed("ROLE_CityMenuOpenPermission")
 @NeedCleanCoding
-public class CityList extends VerticalLayout implements Creatable<City>, BeforeEnterObserver {
+public class CityList extends VerticalLayout implements Creatable<City> {
 
     private final CityApiClient cityApi = BeanProvider.getBean(CityApiClient.class);
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
@@ -287,8 +286,16 @@ public class CityList extends VerticalLayout implements Creatable<City>, BeforeE
         }
     }
 
+    private void appendCloseButton(Dialog d){
+        Button closeButton = new Button(new Icon("lumo", "cross"),
+                (e) -> d.close());
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        d.getHeader().add(closeButton);
+    }
+
     public Dialog getSaveOrUpdateDialog(City entity){
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " city");
+        appendCloseButton(createDialog);
 
         Button saveButton = new Button("Save");
         FormLayout fl = new FormLayout();
@@ -371,11 +378,6 @@ public class CityList extends VerticalLayout implements Creatable<City>, BeforeE
                 logger.error("CodeStore getChildrenError [countries]. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
-    }
-
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        System.out.println("BEFORE_ENTER");
     }
 
     @NeedCleanCoding

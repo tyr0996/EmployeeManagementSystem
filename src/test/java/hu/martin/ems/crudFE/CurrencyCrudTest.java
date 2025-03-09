@@ -1,5 +1,6 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
@@ -26,6 +27,7 @@ import org.testng.annotations.Test;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -34,7 +36,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 import static org.testng.AssertJUnit.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CurrencyCrudTest extends BaseCrudTest {
 
     private static final String datePickerXPath = contentXpath + "/vaadin-date-picker/input";
@@ -56,8 +58,9 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void selectDateRetroactively_NotSavedDate() throws InterruptedException {
-        spyCurrencyService.clearDatabaseTable();
+        clearCurrencyDatabaseTable();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXPath);
@@ -66,6 +69,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         String todayString = today.format(DateTimeFormatter.ofPattern("yyyy. MM. dd"));
         assertEquals(todayString, findVisibleElementWithXpath(datePickerXPath).getAttribute("value"));
         Thread.sleep(1000);
+        checkNotificationText("Fetching exchange rates was successful!");
         assertEquals(162, countVisibleGridDataRows(gridXPath));
         WebElement datePicker = findVisibleElementWithXpath(datePickerXPath);
         selectDateFromDatePicker(datePickerXPath, RandomGenerator.generateRandomDate());
@@ -95,6 +99,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void checkEuroExistsInGrid() throws InterruptedException {
         clearCurrencyDatabaseTable();
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -105,6 +110,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void checkEuroValueExistsInGrid() throws InterruptedException {
         clearCurrencyDatabaseTable();
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -118,49 +124,45 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
-//    @DirtiesContext
+    @Video
     public void fetchingCurrenciesFailedThenSuccessTest() throws InterruptedException {
         clearCurrencyDatabaseTable();
         Object originalCurrency = BeanProvider.getBean(RestTemplate.class).getForObject(fetchingCurrencyApiUrl + baseCurrency, Object.class);
 
         Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).doReturn(originalCurrency).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
-//        Mockito.doReturn(null).when(spyCurrencyService).findByDate(LocalDate.now());
 
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXPath);
-        Thread.sleep(1000);
         checkNotificationText(EmsResponse.Description.FETCHING_CURRENCIES_FAILED);
         assertEquals(0, countVisibleGridDataRows(gridXPath));
 
         Mockito.reset(spyCurrencyService);
 
         findVisibleElementWithXpath(fetchButtonXpath).click();
-        Thread.sleep(1000);
         checkNotificationText("Fetching exchange rates was successful!");
 
         findVisibleElementWithXpath(fetchButtonXpath).click();
-        Thread.sleep(10);
         checkNotificationText("Currencies already fetched");
     }
 
     @Test
+    @Video
     public void fetchingCurrenciesSuccessTest() throws InterruptedException {
         clearCurrencyDatabaseTable();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findVisibleElementWithXpath(gridXPath);
-        Thread.sleep(2000);
         checkNotificationText("Fetching exchange rates was successful!");
         assertEquals(true, countVisibleGridDataRows(gridXPath) > 0);
 
         findVisibleElementWithXpath(fetchButtonXpath).click();
-        Thread.sleep(100);
         checkNotificationText("Currencies already fetched");
         assertEquals(true, countVisibleGridDataRows(gridXPath) > 0);
     }
 
     @Test
+    @Video
     public void fetchingCurrenciesNotCorrectResponseTest() throws InterruptedException {
         clearCurrencyDatabaseTable();
         LinkedHashMap<String, Object> badResponse = new LinkedHashMap<>();
@@ -185,34 +187,34 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseWhenFetchAndSaveRates() throws InterruptedException, CurrencyException {
-        Mockito.doReturn(null).when(spyCurrencyService).fetchAndSaveRates();
-        Mockito.doReturn(null).when(spyCurrencyService).findByDate(any(LocalDate.class));
+    @Video
+    public void nullResponseWhenFetchAndSaveRates() throws InterruptedException, SQLException {
+        clearCurrencyDatabaseTable();
+        mockDatabaseNotAvailableWhen(getClass(), spyDataSource, Arrays.asList(4));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        Thread.sleep(100);
-        checkNotificationText("Internal server error");
+        checkNotificationText("Internal Server Error");
         Assert.assertEquals(0, countVisibleGridDataRows(gridXPath));
     }
 
     @Test(enabled = false)
+    @Video
     public void notExpectedStatusCodeWhenFetchAndSaveRates() throws InterruptedException, CurrencyException {
+        clearCurrencyDatabaseTable();
         when(spyCurrencyService.fetchAndSaveRates()).thenReturn(null);
         when(spyCurrencyService.findByDate(any(LocalDate.class))).thenReturn(null);
-//        Mockito.doReturn(null).when(spyCurrencyService).fetchAndSaveRates();
-//        Mockito.doReturn(null).when(spyCurrencyService).findByDate(LocalDate.now());
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyCurrencyApiClientClient).fetchAndSaveRates();
-//        Mockito.doReturn(new EmsResponse(200, null, "")).when(spyCurrencyApiClientClient).findByDate(any(LocalDate.class));
+
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        Thread.sleep(100);
         checkNotificationText("Not expected status-code in fetching currencies");
         Assert.assertEquals(0, countVisibleGridDataRows(gridXPath));
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhileFindCurrencyByDate() throws SQLException, InterruptedException {
-        mockDatabaseNotAvailable(getClass(), spyDataSource, 2);
+        clearCurrencyDatabaseTable();
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
         Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
 

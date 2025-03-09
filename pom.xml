@@ -97,6 +97,13 @@
             <version>1.4.14</version>
         </dependency>
 
+<!--        Videó felvételhez kell a tesztekhez-->
+        <dependency>
+            <groupId>com.automation-remarks</groupId>
+            <artifactId>video-recorder-testng</artifactId>
+            <version>LATEST</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 <!--        <dependency>-->
 <!--            <groupId>org.slf4j</groupId>-->
@@ -359,6 +366,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.1.2</version>
                 <configuration>
+                    <argLine>-Djava.awt.headless=false</argLine>
                     <skipTests>${skipTests}</skipTests>
                     <includes>
                         <include>**/*Tests.java</include>

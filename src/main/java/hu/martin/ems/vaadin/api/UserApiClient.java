@@ -28,8 +28,6 @@ public class UserApiClient extends EmsApiClient<User> {
             return new EmsResponse(200, convertResponseToEntity(jsonResponse), "");
         }
         catch (WebClientResponseException e){
-            System.out.println(e.getStatusCode());
-            System.out.println(e.getResponseBodyAsString());
             return new EmsResponse(e.getStatusCode().value(), e.getResponseBodyAsString(), "");
         }
     }

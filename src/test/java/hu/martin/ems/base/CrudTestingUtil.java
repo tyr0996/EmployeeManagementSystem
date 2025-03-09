@@ -405,7 +405,7 @@ public class CrudTestingUtil {
             }
         }
 
-        mockDatabaseNotAvailable(this, spyDatasource, 0);
+        mockDatabaseNotAvailableOnlyOnce(this, spyDatasource, 0);
 
         deleteButton.click();
         Thread.sleep(100);
@@ -646,9 +646,6 @@ public class CrudTestingUtil {
             setExtraDataFilterValue(gridXpath, extraDataFilter, notificationCheck);
         }
         int elements = countElementResultsFromGridWithFilter(gridXpath, data);
-        if(elements != 1){
-            System.out.println("SANYI");
-        }
         assertEquals(1, elements);
         if(extraDataFilter != null){
             clearExtraDataFilter(gridXpath);
@@ -708,6 +705,7 @@ public class CrudTestingUtil {
      * @param failedFieldData key: the label of the field
      *                        value: required error message of the field
      */
+    @Deprecated
     public void createUnexpectedResponseCodeWhileGettingData(LinkedHashMap<String, String> withData, LinkedHashMap<String, String> failedFieldData) throws InterruptedException {
         WebElement createButton = findClickableElementWithXpathWithWaiting(createButtonXpath);
         createButton.click();
@@ -733,7 +731,7 @@ public class CrudTestingUtil {
 //    public void databaseUnavailableWhenGetAllEntity(Class<?> testClass, DataSource spyDataSource, int port, String mainMenu, String subMenu, String notificationEntityClassName) throws SQLException, InterruptedException {
 //        TestingUtils.loginWith(driver, port, "admin", "admin");
 //        Thread.sleep(100);
-//        mockDatabaseNotAvailable(testClass, spyDataSource, );
+//        mockDatabaseNotAvailableOnlyOnce(testClass, spyDataSource, );
 ////        Mockito.doThrow(new SQLException("Connection refused: getsockopt")).when(spyDataSource).getConnection();
 //        navigateMenu(mainMenu, subMenu);
 //        checkNotificationText("Getting " + notificationEntityClassName + " failed");
@@ -815,7 +813,7 @@ public class CrudTestingUtil {
 
 
 
-        mockDatabaseNotAvailable(testClass, spyDataSource, preSuccess);
+        mockDatabaseNotAvailableOnlyOnce(testClass, spyDataSource, preSuccess);
 
 //        Mockito.doCallRealMethod().when(spyDataSource).getConnection();
 //        Mockito.doThrow(new SQLException("Connection refused: getsockopt")).doCallRealMethod().when(spyDataSource).getConnection();

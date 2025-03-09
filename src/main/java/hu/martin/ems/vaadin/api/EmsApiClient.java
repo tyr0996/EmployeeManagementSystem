@@ -89,11 +89,12 @@ public abstract class EmsApiClient<T> {
             if(response != null && !response.equals("null")){
                 return new EmsResponse(200, convertResponseToEntity(response), "");
             }
-            return new EmsResponse(500, "");
+            return new EmsResponse(500, "Internal server error");
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - update - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+
         }
     }
 
@@ -365,7 +366,6 @@ public abstract class EmsApiClient<T> {
             throw new JsonParseException("The response was null!");
         }
         if(jsonResponse.startsWith("{")){
-            System.out.println(jsonResponse);
             jsonResponse = "[" + jsonResponse + "]";
         }
         List<LinkedTreeMap<String, Object>> mapList = gson.fromJson(jsonResponse, List.class);
@@ -380,6 +380,10 @@ public abstract class EmsApiClient<T> {
 
     public T convertResponseToEntity(String jsonResponse) {
         return convertResponseToEntityList("[" + jsonResponse + "]").get(0);
+    }
+
+    public <X> X convertResponseToEntity(String jsonResponse, Class<X> entityType) {
+        return convertResponseToEntityList("[" + jsonResponse + "]", entityType).get(0);
     }
 
     public String writeValueAsString(T entity) {

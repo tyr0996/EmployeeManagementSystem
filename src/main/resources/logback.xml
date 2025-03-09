@@ -1,36 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml" />
 
-    <conversionRule conversionWord="logNumber"
-                    converterClass="hu.martin.ems.core.config.LogNumberingConverter"/>
+    <logger name="org.hibernate.type.descriptor.sql" level="OFF"/>
+    <logger name="org.hibernate.orm.jdbc.bind" level="OFF"/>
 
-    <!-- Fájl appender beállítása -->
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>C:\\Users\\Martin\\Documents\\GitHub\\EmployeeManagementSystem\\hibernate.log</file>
-        <encoder>
-            <pattern>%logNumber %d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <logger name="org.hibernate.SQL" level="debug">
-        <appender-ref ref="FILE"/>
-    </logger>
-
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="trace">
-        <appender-ref ref="FILE"/>
-    </logger>
-
-    <logger name="root" level="info">
+    <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-    </logger>
-
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
-            <charset>utf8</charset>
-        </encoder>
-    </appender>
-
+    </root>
 </configuration>

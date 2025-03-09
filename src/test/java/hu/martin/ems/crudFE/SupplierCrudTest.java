@@ -1,15 +1,16 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.model.Supplier;
-import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
@@ -17,10 +18,10 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Listeners(UniversalVideoListener.class)
 public class SupplierCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
@@ -39,6 +40,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void supplierCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
          navigateMenu(mainMenu, subMenu);
@@ -46,6 +48,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -53,6 +56,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void supplierReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
          navigateMenu(mainMenu, subMenu);
@@ -60,6 +64,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void supplierDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
          navigateMenu(mainMenu, subMenu);
@@ -67,6 +72,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void supplierUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
          navigateMenu(mainMenu, subMenu);
@@ -74,6 +80,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/addresses.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void supplierRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -82,6 +89,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void supplierPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
          navigateMenu(mainMenu, subMenu);
@@ -97,8 +105,10 @@ public class SupplierCrudTest extends BaseCrudTest {
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
     }
     @Test
-    public void nullResponseFromServiceWhenModify() throws InterruptedException {
-        Mockito.doReturn(null).when(spySupplierService).update(any(Supplier.class));
+    @Video
+    public void databaseNotAvailableWhenModify() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spySupplierService).update(any(Supplier.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest(null, "Internal server error", false);
@@ -106,8 +116,10 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
-        Mockito.doReturn(null).when(spySupplierService).save(any(Supplier.class));
+    @Video
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spySupplierService).save(any(Supplier.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 7);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest(null, "Supplier saving failed: Internal server error", false);
@@ -115,8 +127,10 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void unexpectedResponseCodeWhenGettingAllSuppliers() throws InterruptedException {
-        Mockito.doReturn(null).when(spySupplierService).findAll(any(Boolean.class));
+    @Video
+    public void unexpectedResponseCodeWhenGettingAllSuppliers() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
+//        Mockito.doReturn(null).when(spySupplierService).findAll(any(Boolean.class));
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spySupplierApiClient).findAll();
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spySupplierApiClient).findAllWithDeleted();
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -128,9 +142,11 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void unexpectedResponseCodeWhenGettingAddresses() throws InterruptedException {
+    @Video
+    public void unexpectedResponseCodeWhenGettingAddresses() throws InterruptedException, SQLException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyAddressApiClient).findAll();
-        Mockito.doReturn(null).when(spyAddressService).findAll(false);
+//        Mockito.doReturn(null).when(spyAddressService).findAll(false);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -140,6 +156,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);

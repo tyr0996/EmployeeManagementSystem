@@ -1,5 +1,6 @@
 package hu.martin.ems.vaadin.component.Login;
 
+import com.google.gson.Gson;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -55,6 +56,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
     @Value("${rememberme.key}")
     private String key;
+
+    @Autowired
+    private Gson gson; //TODO: ha jó a random port-os teszt futtatás, akkor ki kell törölni
 
     Logger logger = LoggerFactory.getLogger(User.class);
 
@@ -127,6 +131,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     getUI().ifPresent(ui -> ui.navigate("/"));
                 }
                 catch (AuthenticationException ex) {
+                    System.err.println("NEM JÓ BEJELENTKEZÉS1");
                     login.setErrorMessage(BAD_CREDIDENTALS);
                     loginOverlay.setI18n(login);
                     loginOverlay.setError(true);
@@ -134,6 +139,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 }
             }
             else{
+                System.err.println("NEM JÓ BEJELENTKEZÉS2");
                 login.setErrorMessage(BAD_CREDIDENTALS);
                 loginOverlay.setI18n(login);
                 loginOverlay.setError(true);

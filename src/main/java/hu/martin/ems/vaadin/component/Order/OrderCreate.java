@@ -260,7 +260,7 @@ public class OrderCreate extends VerticalLayout implements BeforeEnterObserver {
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                         break;
                     default:
-                        Notification.show("Order saving failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        Notification.show("Order " + (editObject == null ? "saving " : "modifying ") + " failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         updateGridItems();
                         return;
                 }

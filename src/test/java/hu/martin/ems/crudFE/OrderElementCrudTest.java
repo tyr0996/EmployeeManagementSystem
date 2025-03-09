@@ -1,14 +1,16 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
@@ -19,8 +21,10 @@ import java.util.List;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Listeners(UniversalVideoListener.class)
 public class OrderElementCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
@@ -39,6 +43,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void orderElementCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -46,6 +51,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void orderElementReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -71,6 +77,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void orderElementDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -79,6 +86,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
 
     @Test
+    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -86,6 +94,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/products.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void orderElementUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -94,6 +103,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void orderElementRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -101,6 +111,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void orderElementPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -118,19 +129,40 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
 
     @Test
-    public void findAllOrderElementWithDeletedFailed() throws InterruptedException {
-        Mockito.doReturn(null).when(spyOrderElementService).findAll(true); //ApiClientben findAllWithDeleted();
+    @Video
+    public void findAllOrderElementWithDeletedFailedButWithoutIsSuccess() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
+//        Mockito.doReturn(null).when(spyOrderElementService).findAll(true); //ApiClientben findAllWithDeleted();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        checkNotificationText("Error happened while getting order elements");
+        int elements =  countVisibleGridDataRows(gridXpath);
+        assertNotEquals(0, elements);
         checkNoMoreNotificationsVisible();
-        assertEquals(0, countVisibleGridDataRows(gridXpath));
-        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+        findVisibleElementWithXpath(showDeletedCheckBoxXpath).click();
+        Thread.sleep(100);
+        checkNotificationText("Getting order elements failed");
+        assertNotEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath)); //Ez azért hal meg, mert nincs törölt elem a sima futáskor. Viszont ha az egészet futtatom, akkor viszont van törölt elem.
+        assertEquals(elements, countVisibleGridDataRows(gridXpath));
     }
 
     @Test
-    public void findAllSuppliersFailed() throws InterruptedException {
-        Mockito.doReturn(null).when(spySupplierService).findAll(false);//Controllerben alapértelmezett
+    @Video
+    public void findAllOrderElementWithAndWithoutFailed() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
+//        Mockito.doReturn(null).when(spyOrderElementService).findAll(true); //ApiClientben findAllWithDeleted();
+        TestingUtils.loginWith(driver, port, "admin", "admin");
+        navigateMenu(mainMenu, subMenu);
+        checkNotificationText("Error happened while getting order elements");
+        assertEquals(0, countVisibleGridDataRows(gridXpath));
+        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath, "Getting order elements failed"));
+        checkNoMoreNotificationsVisible();
+    }
+
+    @Test
+    @Video
+    public void findAllSuppliersFailed() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spySupplierService).findAll(false);//Controllerben alapértelmezett
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -139,8 +171,10 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void findAllCustomersFailed() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben alapértelmezett
+    @Video
+    public void findAllCustomersFailed() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
+//        Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben alapértelmezett
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -150,8 +184,10 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void findAllProductsFailed() throws InterruptedException {
-        Mockito.doReturn(null).when(spyProductService).findAll(false); //Controllerben alapértelmezett
+    @Video
+    public void findAllProductsFailed() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyProductService).findAll(false); //Controllerben alapértelmezett
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -161,6 +197,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -168,6 +205,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenModifying() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);

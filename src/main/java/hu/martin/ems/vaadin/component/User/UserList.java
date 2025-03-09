@@ -13,6 +13,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -200,8 +201,16 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         add(buttonsLayout, grid);
     }
 
+    private void appendCloseButton(Dialog d){
+        Button closeButton = new Button(new Icon("lumo", "cross"),
+                (e) -> d.close());
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        d.getHeader().add(closeButton);
+    }
+
     public void generateSaveOrUpdateDialog() {
         createOrModifyDialog = new Dialog((editableUser == null ? "Create" : "Modify") + " user");
+        appendCloseButton(createOrModifyDialog);
         createSaveOrUpdateForm();
         saveButton.addClickListener(event -> {
             EmsResponse response = saveUser();

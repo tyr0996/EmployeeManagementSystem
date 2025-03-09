@@ -1,25 +1,26 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
 import hu.martin.ems.core.config.JPAConfig;
-import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
+import static org.testng.Assert.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Listeners(UniversalVideoListener.class)
 public class UserCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
@@ -36,16 +37,13 @@ public class UserCrudTest extends BaseCrudTest {
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
-    public void clearUsers() throws InterruptedException {
-        dp.executeSQL("DELETE FROM loginuser");
-        dp.executeSQL("INSERT INTO loginuser (id, deleted, username, passwordHash, role_role_id, enabled) VALUES ('1', '0', 'admin', '$2a$12$Ei2ntwIK/6lePBO2UecedetPpxxDee3kmxnkWTXZI.CiPb86vejHe', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), true)");
-        dp.executeSQL("INSERT INTO loginuser (id, deleted, username, passwordHash, role_role_id, enabled) VALUES ('2', '0', 'robi', '$2a$12$/LIbE6V8xP/2frZmSbe5.OSMyqiIbwQEau0nNsGk./P2PXP1M8BFi', (SELECT id as role_role_id FROM Role WHERE id = 2 LIMIT 1), true)");
-        dp.executeSQL("INSERT INTO loginuser (id, deleted, username, passwordHash, role_role_id, enabled) VALUES ('3', '0', 'Erzsi', '$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), false)");
-        logger.info("Admin user successfully recovered");
-        Thread.sleep(1000);
+    @BeforeMethod
+    public void beforeMethod(){
+        resetUsers();
     }
 
     @Test
+    @Video
     //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/addresses.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void userCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -55,6 +53,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void useReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -63,6 +62,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void userDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -71,8 +71,9 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
-//            mockDatabaseNotAvailable(getClass(), spyDataSource, 10);
+//            mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 10);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
@@ -80,6 +81,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void userUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -88,22 +90,25 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhenGettingLoggedInUser() throws InterruptedException, SQLException {
-        mockDatabaseNotAvailable(getClass(), spyDataSource, 2);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkNotificationText("Error happened while getting the logged in user. Deletion and modification is disabled");
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhenGettingAllUser() throws InterruptedException, SQLException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        mockDatabaseNotAvailable(getClass(), spyDataSource, 1);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 1);
         navigateMenu(mainMenu, subMenu);
         checkNotificationText("Getting users failed");
     }
 
     @Test
+    @Video
     public void userRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -112,6 +117,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void userPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -120,6 +126,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void createUserAllreadyExists() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -130,6 +137,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void modifyUserAllreadyExists() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -144,6 +152,7 @@ public class UserCrudTest extends BaseCrudTest {
 
 
     @Test
+    @Video
     public void createUserPasswordDoesntMatch() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -155,6 +164,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void updateUserEmptyPassword() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
          navigateMenu(mainMenu, subMenu);
@@ -166,6 +176,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void updateUserPasswordDouesntMatch() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -189,17 +200,20 @@ public class UserCrudTest extends BaseCrudTest {
 
 
     @Test
-    public void finalAllWithDeletedUnexpectedResponse() throws InterruptedException {
-        Mockito.doReturn(null).when(spyUserService).findAll(true); //ApiClient-ben.findAllWithDeleted();
+    @Video
+    public void finalAllWithDeletedUnexpectedResponse() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
+//        Mockito.doReturn(null).when(spyUserService).findAll(true); //ApiClient-ben.findAllWithDeleted();
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(500);
         checkNotificationText("Getting users failed");
         checkNoMoreNotificationsVisible();
-        
+        assertEquals(countVisibleGridDataRows(gridXpath), 0);
     }
 
     @Test
+    @Video
     public void updateUserButUsernameNotChanged() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -212,8 +226,10 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void findAllRoleUnexpectedResponse() throws InterruptedException {
-        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+    @Video
+    public void databaseNotAvailableWhenFindAllRole() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(500);
@@ -222,13 +238,13 @@ public class UserCrudTest extends BaseCrudTest {
 
         crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
         checkNoMoreNotificationsVisible();
-        
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenGetAllUser() throws SQLException, InterruptedException {
         JPAConfig.resetCallIndex();
-        mockDatabaseNotAvailable(getClass(), spyDataSource, 3);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
 //        Mockito.doReturn(null).when(spyRoleService).findAll(false);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -237,6 +253,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenSavingUser() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -244,14 +261,15 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenUpdateUser() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseUnavailableWhenUpdateEntity(spyDataSource, null, null, 1);
     }
 
-    @AfterMethod
-    public void destroy() throws InterruptedException {
-        clearUsers();
+    @AfterClass
+    public void afterClass() throws InterruptedException {
+        resetUsers();
     }
 }

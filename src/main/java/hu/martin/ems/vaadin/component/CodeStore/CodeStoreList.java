@@ -13,6 +13,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -269,8 +270,17 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
+    private void appendCloseButton(Dialog d){
+        Button closeButton = new Button(new Icon("lumo", "cross"),
+                (e) -> d.close());
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        d.getHeader().add(closeButton);
+    }
+
     public Dialog getSaveOrUpdateDialog(CodeStore entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " codestore");
+
+        appendCloseButton(createDialog);
         FormLayout formLayout = new FormLayout();
 
         TextField nameTextField = new TextField("Name");

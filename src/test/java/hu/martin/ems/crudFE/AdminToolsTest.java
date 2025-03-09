@@ -1,5 +1,6 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
@@ -16,7 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import static hu.martin.ems.base.GridTestingUtil.checkNotificationText;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AdminToolsTest extends BaseCrudTest {
     @BeforeClass
     public void setup() {
@@ -27,6 +28,7 @@ public class AdminToolsTest extends BaseCrudTest {
     private static String clearDatabaseButtonXpath = contentXpath + "/vaadin-button";
 
     @Test
+    @Video
     public void clearDatabaseTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         GridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
@@ -36,6 +38,7 @@ public class AdminToolsTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void clearDatabaseExceptionsTestThanSuccess() throws Exception {
         MockitoAnnotations.openMocks(this);
         Mockito.doThrow(new ClassNotFoundException())

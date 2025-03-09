@@ -30,9 +30,8 @@ public class CurrencyApiClient extends EmsApiClient<Currency>{
             return new EmsResponse(500, "Internal server error");
         }
         catch(WebClientResponseException ex){
-            System.out.println(ex.getResponseBodyAsString());
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), gson.fromJson(ex.getResponseBodyAsString(), Error.class).getError());
         }
     }
 
@@ -40,17 +39,21 @@ public class CurrencyApiClient extends EmsApiClient<Currency>{
         WebClient webClient = webClientProvider.initWebClient(entityName);
         try{
             String response = webClient.get()
-                    .uri("findByDate?date={year}-{month}-{day}", date.getYear(), date.getMonthValue(), date.getDayOfMonth())
+                    .uri("findByDate?date={date}", date)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return new EmsResponse(200, response, "");
+            return new EmsResponse(200, convertResponseToEntity(response, Currency.class), "");
+            // return new EmsResponse(200, response, "");
 //            if(response instanceof String && !response.equals("null")){
 //                return new EmsResponse(200, gson.fromJson((String) response, Currency.class), "");
 //            }
-//            else if(response.equals("null")){
-//                return new EmsResponse(200, null);
+//            else{
+//                return new EmsResponse(200, null, "");
 //            }
+            //else if(response.equals("null")){
+            //    return new EmsResponse(200, null,"");
+            //}
 //            else{
 //                return new EmsResponse(500, "Error happened while getting currencies by wdate: Internal server error");
 //            }

@@ -1,13 +1,11 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.core.config.StaticDatas;
-import hu.martin.ems.model.City;
 import lombok.Getter;
-import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
@@ -18,9 +16,8 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.mockito.ArgumentMatchers.any;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CityCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
@@ -43,6 +40,7 @@ public class CityCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void cityCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -51,6 +49,7 @@ public class CityCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void cityReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -59,6 +58,7 @@ public class CityCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void cityDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -67,6 +67,7 @@ public class CityCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void cityUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -75,6 +76,7 @@ public class CityCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void cityRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -83,6 +85,7 @@ public class CityCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void cityPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -91,6 +94,7 @@ public class CityCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -124,8 +128,10 @@ public class CityCrudTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void nullResponseFromServiceWhenModify() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCityService).update(any(City.class));
+    @Video
+    public void nullResponseFromServiceWhenModify() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCityService).update(any(City.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 6);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest(null, "Internal server error", false);
@@ -133,8 +139,10 @@ public class CityCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCityService).save(any(City.class));
+    @Video
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCityService).save(any(City.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 6);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest(null, "City saving failed", false);
@@ -155,8 +163,10 @@ public class CityCrudTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void gettingCountriesFailed() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
+    @Video
+    public void gettingCountriesFailed() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.COUNTRIES_CODESTORE_ID); //id:6
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -177,8 +187,10 @@ public class CityCrudTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void gettingCitiesFailed() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCityService).findAll(true); //ApiClient-ben findAllWithDeleted
+    @Video
+    public void gettingCitiesFailed() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
+//        Mockito.doReturn(null).when(spyCityService).findAll(true); //ApiClient-ben findAllWithDeleted
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkNotificationText("Getting cities failed");
@@ -186,6 +198,7 @@ public class CityCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);

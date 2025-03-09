@@ -1,25 +1,24 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.model.Permission;
-import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.mockito.ArgumentMatchers.any;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Listeners(UniversalVideoListener.class)
 public class PermissionTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
@@ -41,7 +40,13 @@ public class PermissionTest extends BaseCrudTest {
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
+    @BeforeMethod
+    public void beforeMethod(){
+        resetRolesAndPermissions();
+    }
+
     @Test
+    @Video
     public void permissionCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -51,6 +56,7 @@ public class PermissionTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void permissionReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -61,6 +67,7 @@ public class PermissionTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void permissionDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -70,6 +77,7 @@ public class PermissionTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void permissionUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -79,6 +87,7 @@ public class PermissionTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void permissionRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -88,6 +97,7 @@ public class PermissionTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void permissionPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -126,9 +136,11 @@ public class PermissionTest extends BaseCrudTest {
 
 
     @Test
-    public void nullResponseFromServiceWhenModify() throws InterruptedException {
+    @Video
+    public void databaseNotAvailableWhenModify() throws InterruptedException, SQLException {
 //        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyPermissionApiClient).update(any(Permission.class));
-        Mockito.doReturn(null).when(spyPermissionService).update(any(Permission.class));
+//        Mockito.doReturn(null).when(spyPermissionService).update(any(Permission.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 6);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
@@ -137,6 +149,7 @@ public class PermissionTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -145,8 +158,10 @@ public class PermissionTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
-        Mockito.doReturn(null).when(spyPermissionService).save(any(Permission.class));
+    @Video
+    public void databaseNotAvailableWhenCreate() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 10);
+//        Mockito.doReturn(null).when(spyPermissionService).save(any(Permission.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
@@ -165,8 +180,10 @@ public class PermissionTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void gettingPermissionsFailed() throws InterruptedException {
-        Mockito.doReturn(null).when(spyPermissionService).findAll(true); //ApiClientben.findAllWithDeleted();
+    @Video
+    public void gettingPermissionsFailed() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyPermissionService).findAll(true); //ApiClientben.findAllWithDeleted();
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
@@ -189,8 +206,10 @@ public class PermissionTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void findAllRoleFailed() throws InterruptedException {
-        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+    @Video
+    public void findAllRoleFailed() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+        mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 3);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
@@ -229,11 +248,17 @@ public class PermissionTest extends BaseCrudTest {
 //    }
 
     @Test
+    @Video
     public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
         Thread.sleep(100);
         crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
+    }
+
+    @AfterClass
+    public void afterClass(){
+        resetRolesAndPermissions();
     }
 }

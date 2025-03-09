@@ -1,12 +1,11 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.model.Customer;
 import lombok.Getter;
-import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
@@ -17,13 +16,13 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CustomerCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
+//    private static WebDriver driver = WebDriverProvider.get();
 
     @Getter
     private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
@@ -43,6 +42,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -50,6 +50,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void customerCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -57,6 +58,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void customerReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -64,6 +66,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void customerDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -71,6 +74,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void customerUpdateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -78,6 +82,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void customerRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -85,6 +90,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void customerPermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -92,8 +98,10 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseFromServiceWhenModify() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCustomerService).update(any(Customer.class));
+    @Video
+    public void nullResponseFromServiceWhenModify() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
+//        Mockito.doReturn(null).when(spyCustomerService).update(any(Customer.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest(null, "Internal server error", false);
@@ -101,8 +109,10 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCustomerService).save(any(Customer.class));
+    @Video
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCustomerService).save(any(Customer.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 7);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest(null, "Customer saving failed", false);
@@ -112,8 +122,10 @@ public class CustomerCrudTest extends BaseCrudTest {
 
 
     @Test
-    public void unexpectedResponseCodeWhenFindAllCustomer() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCustomerService).findAll(true); //ApiClient .findAllWithDeleted();
+    @Video
+    public void unexpectedResponseCodeWhenFindAllCustomer() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCustomerService).findAll(true); //ApiClient .findAllWithDeleted();
+        mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(200);
@@ -124,8 +136,10 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void unexpectedResponseCodeWhenFindAllAddress() throws InterruptedException {
-        Mockito.doReturn(null).when(spyAddressService).findAll(false);
+    @Video
+    public void unexpectedResponseCodeWhenFindAllAddress() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyAddressService).findAll(false);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
@@ -136,6 +150,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);

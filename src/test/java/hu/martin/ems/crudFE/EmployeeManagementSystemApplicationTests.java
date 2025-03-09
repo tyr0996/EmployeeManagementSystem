@@ -1,16 +1,14 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.vaadin.component.BaseVO;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -19,17 +17,21 @@ import java.util.List;
 
 import static org.testng.Assert.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//@SpringBootTest
 public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
 
-
-    @BeforeClass
-    public void setUp() throws IOException {
-        DataProvider.saveAllSqlsFromJsons();
+    @Test
+    @Video
+    public void getIDSeqNameTest(){
+        assertEquals("role_id_seq", dp.getIDSequenceName("role"));
+        assertEquals("permission_id_seq", dp.getIDSequenceName("permission"));
+        assertEquals("loginuser_id_seq", dp.getIDSequenceName("loginuser"));
+        assertEquals(dp.getIDSequenceName("roles_permissions"), null);
     }
 
-
     @Test
+    @Video
     public void testSqlFileCount() {
         Integer sqlFileCount = fileCountInFolder(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH, ".sql");
         Integer jsonFileCount = fileCountInFolder(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH, ".json");
@@ -48,6 +50,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void testSqlGenerationFromJson(){
         String generatedSql = dp.generateSqlFromJson(new File(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
         assertEquals(generatedSql,
@@ -56,6 +59,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void mergeMapsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         LinkedHashMap<String, List<String>> a = new LinkedHashMap<>();
         a.put("deleted", Arrays.asList("0", "1"));
@@ -73,6 +77,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void equalsTest(){
         TestVO a = new TestVO(2, 0);
         TestVO b = new TestVO(2, 1);

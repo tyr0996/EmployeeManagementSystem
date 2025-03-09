@@ -1,6 +1,7 @@
 {
   "objectName": "User",
   "required": [
+    "roles.json"
   ],
   "data": [
     {

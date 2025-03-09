@@ -1,22 +1,19 @@
 package hu.martin.ems;
 
-import hu.martin.ems.controller.CodeStoreController;
+import hu.martin.ems.base.selenium.WebDriverProvider;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.JPAConfig;
-import hu.martin.ems.core.controller.EmailSendingController;
+import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.service.EmailSendingService;
-import hu.martin.ems.core.service.UserService;
-import hu.martin.ems.service.*;
-import hu.martin.ems.vaadin.api.EmailSendingApi;
+import hu.martin.ems.service.AdminToolsService;
+import hu.martin.ems.service.CurrencyService;
+import hu.martin.ems.service.OrderService;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -24,6 +21,7 @@ import org.springframework.boot.web.servlet.context.ServletWebServerApplicationC
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.web.client.RestTemplate;
+import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
@@ -32,26 +30,14 @@ import org.testng.annotations.BeforeSuite;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 
-import static hu.martin.ems.base.GridTestingUtil.findVisibleElementWithXpath;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BaseCrudTest extends AbstractTestNGSpringContextTests {
 
     //TODO megcsinálni, hogy ha módosítottunk egy elemet vagy valamit, akkor ellenőrizzük a létrehozás gombot! fontos, hogy üres legyen a form és létrehozás legyen a címben!
 
-//    @Spy
-//    protected static Connection spyConnection;
-
     protected static final String contentXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]";
-
-//    @SpyBean
-//    protected static EntityManager em;
-
-
-    protected static WebDriver driver;
+//    protected static WebDriver driver;
 
     @Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
@@ -59,13 +45,16 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     @Autowired
     protected DataProvider dataProvider;
 
+    private Logger logger = LoggerFactory.getLogger(BaseCrudTest.class);
+
     @Autowired
     private Environment env;
 
     protected static Integer port;
     protected static DataProvider dp;
+    public static String screenshotPath;
 
-    public static String downloadPath;
+    protected static WebDriver driver;
 
     @SpyBean
     protected static CurrencyService spyCurrencyService;
@@ -73,83 +62,17 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     @SpyBean
     protected static RestTemplate spyRestTemplate;
 
-//    @SpyBean
-//    protected static ComponentManager spyComponentManager;
-
     @SpyBean
-    protected static EmailSendingApi spyEmailSendingApi;
-
-    @SpyBean
-    protected static CityService spyCityService;
-    
-    @SpyBean
-//    @Autowired
     protected static DataSource spyDataSource;
 
-    @SpyBean
+    @SpyBean //Ide mindenképp kell a SpyBean, mert különben nem működik a dokumentum-generálól mock!
     public static OrderService spyOrderService;
-
-    @SpyBean
-    protected static CodeStoreService spyCodeStoreService;
-
-    @SpyBean
-    protected static CodeStoreController spyCodeStoreController;
-
-    @SpyBean
-    protected static PermissionService spyPermissionService;
-
-    @SpyBean
-    protected static CustomerService spyCustomerService;
-
-    @SpyBean
-    protected static EmployeeService spyEmployeeService;
-
-    @SpyBean
-    protected static RoleService spyRoleService;
-
-    @SpyBean
-    protected static SupplierService spySupplierService;
-
-    @SpyBean
-    protected static ProductService spyProductService;
-
-    @SpyBean
-    protected static AddressService spyAddressService;
-
-    @SpyBean
-    protected static OrderElementService spyOrderElementService;
-
-    @SpyBean
-    protected static UserService spyUserService;
-
-    @SpyBean
-    protected static EmailSendingController spyEmailSendingController;
 
     @SpyBean
     protected static AdminToolsService spyAdminToolsService;
 
     @SpyBean
     protected static EmailSendingService spyEmailSendingService;
-
-
-//    @Mock
-//    protected static Transport transport;
-
-//    @SpyBean
-////    @InjectMocks
-//    protected static EmailSendingService spyEmailSendingService;
-
-//    @Spy
-//    protected static Properties spyEmailProperties;
-//
-//    @Mock
-//    protected static Session spySession;
-//
-//    @Mock
-//    protected static MimeMessage spyMimeMessage;
-//
-//    @Mock
-//    protected static Transport spyTransport;
 
     protected static String fetchingCurrencyApiUrl;
 
@@ -160,41 +83,30 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
 
 
     @BeforeSuite(alwaysRun = true)
-//    @BeforeSuite
     @Override
     protected void springTestContextPrepareTestInstance() throws Exception {
         super.springTestContextPrepareTestInstance();
+
+        DataProvider.saveAllSqlsFromJsons();
+
         MockitoAnnotations.openMocks(this);
         originalDataSource = BeanProvider.getBean(DataSource.class);
-        downloadPath = env.getProperty("chrome.download.path");
+        screenshotPath = env.getProperty("selenium.screenshot.folder");
         fetchingCurrencyApiUrl = env.getProperty("api.currency.url");
         baseCurrency = env.getProperty("api.currency.baseCurrency");
         databaseLogPath = env.getProperty("database.logpath");
 
         clearDownloadFolder();
+        clearScreenshotFolder();
 
-        ChromeOptions options = new ChromeOptions();
-        HashMap<String, Object> chromePref = new HashMap<>();
+        driver = WebDriverProvider.get();
 
-        chromePref.put("download.default_directory", downloadPath);
-        chromePref.put("download.prompt_for_download", false);
-        chromePref.put("directory_upgrade", true);
-        options.setExperimentalOption("prefs", chromePref);
-        chromePref.put("plugins.always_open_pdf_externally", true);
-
-
-
-        //options.addArguments("--headless");
-
-        driver = new ChromeDriver(options);
         port = webServerAppCtxt.getWebServer().getPort();
-        driver.manage().window().setPosition(new Point(1280, -760));
-        driver.manage().window().maximize();
         dp = dataProvider;
     }
 
-    private void clearDownloadFolder(){
-        File dir = new File(downloadPath);
+    private void clearFolder(String folderPath){
+        File dir = new File(folderPath);
         File[] files = dir.listFiles();
 
         if (files != null) {
@@ -206,84 +118,82 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
         }
     }
 
-    @AfterMethod(alwaysRun = true)
-    @BeforeMethod(alwaysRun = true)
-    public void afterTest(){
+    private void clearDownloadFolder(){
+        clearFolder(StaticDatas.Selenium.downloadPath);
+    }
+
+    private void clearScreenshotFolder(){
+        clearFolder(screenshotPath);
+    }
+
+    private void clearEnvironment(){
         JPAConfig.resetCallIndex();
         resetServicesMock();
         clearInvocationsInServices();
+        logger.debug("Mockito reset and clear happened");
+    }
 
+    @AfterMethod(alwaysRun = true)
+    public void afterMethod(ITestResult result){
+        clearEnvironment();
+    }
 
-
-
-
-//        spyDataSource = originalDataSource;
-        logger.info("Mockito reset and clear happened");
+    @BeforeMethod(alwaysRun = true)
+    public void beforeMethod(){
+        clearEnvironment();
     }
 
     private void resetServicesMock(){
-        Mockito.reset(spyPermissionService);
-        Mockito.reset(spyRoleService);
-        Mockito.reset(spyUserService);
-        Mockito.reset(spyOrderService);
-        Mockito.reset(spyOrderElementService);
-        Mockito.reset(spyAddressService);
-        Mockito.reset(spyCityService);
-        Mockito.reset(spyCustomerService);
-        Mockito.reset(spyEmployeeService);
         Mockito.reset(spyCurrencyService);
-        Mockito.reset(spyProductService);
-        Mockito.reset(spySupplierService);
         Mockito.reset(spyDataSource);
-        Mockito.reset(spyOrderService);
-        Mockito.reset(spyCodeStoreService);
-//        Mockito.reset(spyComponentManager);
         Mockito.reset(spyRestTemplate);
     }
 
     private void clearInvocationsInServices(){
-        Mockito.clearInvocations(
-                spyPermissionService,
-                spyRoleService,
-                spyUserService,
-                spyOrderService,
-                spyOrderElementService,
-                spyAddressService,
-                spyCityService,
-                spyCustomerService,
-                spyEmployeeService,
-                spyCurrencyService,
-                spyProductService,
-                spySupplierService,
-                spyDataSource,
-                spyOrderService,
-                spyCodeStoreService,
-//                spyComponentManager,
-                spyRestTemplate
-        );
+        Mockito.clearInvocations(spyCurrencyService);
+        Mockito.clearInvocations(spyDataSource);
+        Mockito.clearInvocations(spyRestTemplate);
     }
 
     public void resetDatabase() throws IOException {
         dp.resetDatabase();
-        System.out.println("database reseted");
+        logger.info("Database reseted");
     }
 
-    protected void logout() throws InterruptedException {
-        if(!driver.getCurrentUrl().contains("http://localhost:" + port + "/login") &&
-            !driver.getCurrentUrl().contains("data:,")){
-            WebElement logoutButton = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-button");
-            JavascriptExecutor js = (JavascriptExecutor) driver;
-//            logoutButton.click();
-            js.executeScript("arguments[0].click()", logoutButton);
-            Thread.sleep(100);
-            assertEquals(true, driver.getCurrentUrl().contains("http://localhost:" + port + "/login"), "Nem történt meg a kijelentkeztetés");
-        }
-    }
+
 
     @AfterSuite
     protected void destroy() throws InterruptedException {
         if(driver != null){
             driver.quit();
         }
+    }
+
+    protected void resetRolesAndPermissions(){
+        dp.executeSQL("DELETE FROM roles_permissions CASCADE");
+        dp.executeSQL("ALTER SEQUENCE roles_permissions_permission_id_seq RESTART WITH 1");
+        dp.executeSQL("ALTER SEQUENCE roles_permissions_role_id_seq RESTART WITH 1");
+
+        dp.executeSQL("BEGIN; SET session_replication_role = 'replica'; DELETE FROM role; SET session_replication_role = 'origin'; COMMIT;");
+        dp.executeSQL("ALTER SEQUENCE role_id_seq RESTART WITH 3"); //TODO Erre azért van szükség, mert van a json-ben id, így nem lépteti automatikusan a számlálót, és hibát fog írni mentésnél
+
+        dp.executeSQL("DELETE FROM permission CASCADE");
+        dp.executeSQL("ALTER SEQUENCE permission_id_seq RESTART WITH 1");
+
+        dp.executeSQLFile(new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH + "\\roles.sql"));
+        dp.executeSQLFile(new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH + "\\permissions.sql"));
+        dp.executeSQLFile(new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH + "\\rolexpermissions.sql"));
+
+        JPAConfig.resetCallIndex();
+    }
+
+    protected void resetUsers() {
+        dp.executeSQL("BEGIN; SET session_replication_role = 'replica'; DELETE FROM loginuser; SET session_replication_role = 'origin'; COMMIT;");
+        dp.executeSQL("ALTER SEQUENCE loginuser_id_seq RESTART WITH 1");
+        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'admin', '$2a$12$Ei2ntwIK/6lePBO2UecedetPpxxDee3kmxnkWTXZI.CiPb86vejHe', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), true)");
+        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'robi', '$2a$12$/LIbE6V8xP/2frZmSbe5.OSMyqiIbwQEau0nNsGk./P2PXP1M8BFi', (SELECT id as role_role_id FROM Role WHERE id = 2 LIMIT 1), true)");
+        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'Erzsi', '$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), false)");
+        logger.info("All user recovered");
+        JPAConfig.resetCallIndex();
     }
 }

@@ -1,5 +1,7 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
@@ -12,9 +14,9 @@ import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.NotificationCheck;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.JPAConfig;
+import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.service.OrderService;
 import jakarta.mail.MessagingException;
@@ -23,8 +25,8 @@ import org.mockito.*;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -40,9 +42,10 @@ import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.AssertJUnit.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 //@PrepareForTest(jakarta.mail.Transport.class)
 //@RunWith(PowerMockRunner.class)
+@Listeners(UniversalVideoListener.class)
 public class OrderCrudTest extends BaseCrudTest {
 
     private static WebDriverWait notificationDisappearWait;
@@ -80,6 +83,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void generateODTFailedIOException() throws Exception {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
@@ -105,6 +109,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void generateODTFailedXDocReportException() throws Exception {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
@@ -129,6 +134,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void generatePDFFailedIOException() throws Exception {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
@@ -153,6 +159,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void generatePDFFailedXDocReportException() throws Exception {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
@@ -178,6 +185,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
 
     @Test
+    @Video
     public void generateODTTest() throws Exception {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -197,6 +205,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void generatePDFTest() throws Exception {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -216,6 +225,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sendSFTPFailedTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -226,6 +236,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sendSFTPSuccessTest() throws InterruptedException {
         BeanProvider.getBean(OrderService.class).setSender(sftpSender);
         Mockito.doReturn(true).when(sftpSender).send(any(byte[].class), any(String.class));
@@ -268,6 +279,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
 
     @Test
+    @Video
     public void sendEmailSuccessTest() throws InterruptedException, MessagingException {
         Mockito.doNothing().when(spyEmailSendingService).transportSend(any(MimeMessage.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -287,6 +299,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void generateEmailFailedDueToCantGetOrderFromOrderId() throws InterruptedException, SQLException {
         JPAConfig.resetCallIndex();
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -301,16 +314,15 @@ public class OrderCrudTest extends BaseCrudTest {
         }
 
         WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
-        mockDatabaseNotAvailable(getClass(), spyDataSource, 2);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
         sendEmailButton.click();
         Thread.sleep(2000);
         checkNotificationText("Email generation failed");
     }
 
     @Test
+    @Video
     public void sendEmailFailedTest() throws InterruptedException {
-        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
-
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
 
@@ -329,6 +341,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sendEmailPDFGenerationFailedIOException() throws InterruptedException, IOException, XDocReportException {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 //        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
@@ -352,6 +365,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sendEmailPDFGenerationFailedXDocReportException() throws InterruptedException, IOException, XDocReportException {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
@@ -374,6 +388,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void deleteOrderTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -381,6 +396,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void modifyOrderTest() throws InterruptedException {
         modifyOrder(null, true);
     }
@@ -427,6 +443,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -434,6 +451,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void deleteOrderElementWhatMemberOfAnOrder() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -494,6 +512,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void restoreOrderTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -507,6 +526,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void permanentlyDeleteOrderTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -520,6 +540,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void fromToDateSelectorFromIsLaterThenTo() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -571,8 +592,10 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void gettingOrdersFailed() throws InterruptedException {
-        Mockito.doReturn(null).when(spyOrderService).findAll(true); //ApiClintben .findAllWithDeleted();
+    @Video
+    public void gettingOrdersFailed() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyOrderService).findAll(true); //ApiClintben .findAllWithDeleted();
+        mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkNotificationText("Error happened while getting orders");
@@ -584,12 +607,9 @@ public class OrderCrudTest extends BaseCrudTest {
 
     private boolean waitForDownload(String fileNameRegex, int timeOut) throws Exception {
         Pattern pattern = Pattern.compile(fileNameRegex);
-        if(downloadPath == null){
-            downloadPath = System.getenv("chrome.download.path");
-        }
 
         for (int i = 0; i < timeOut; i++) {
-            File dir = new File(downloadPath);
+            File dir = new File(StaticDatas.Selenium.downloadPath);
             File[] files = dir.listFiles();
 
             if (files != null) {

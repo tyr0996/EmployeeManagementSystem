@@ -1,5 +1,7 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
@@ -12,8 +14,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import java.sql.SQLException;
 import java.time.Duration;
@@ -22,7 +23,8 @@ import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Listeners(UniversalVideoListener.class)
 public class LoginTests extends BaseCrudTest {
 
     private static WebDriverWait notificationDisappearWait;
@@ -34,6 +36,11 @@ public class LoginTests extends BaseCrudTest {
     public void setup() {
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
         GridTestingUtil.driver = driver;
+    }
+
+    @BeforeMethod
+    public void beforeMethod(){
+        resetUsers();
     }
 
     private void register(String username, String password, String passwordAgain, String notification) throws InterruptedException {
@@ -74,6 +81,7 @@ public class LoginTests extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void registrationSuccessButNoPermissionTest() throws InterruptedException {
         String userName = RandomGenerator.generateRandomOnlyLetterString();
         String password = RandomGenerator.generateRandomOnlyLetterString();
@@ -85,10 +93,10 @@ public class LoginTests extends BaseCrudTest {
 
         checkLoginErrorMessage("Permission error",
                 "You have no permission to log in. Contact the administrator about your roles, and try again.");
-        clearUsers();
     }
 
     @Test
+    @Video
     public void registrationFailedPasswordDoesNotMatchTest() throws InterruptedException {
 
         String userName = RandomGenerator.generateRandomOnlyLetterString();
@@ -103,10 +111,10 @@ public class LoginTests extends BaseCrudTest {
 
         checkLoginErrorMessage("Incorrect username or password",
                 "Check that you have entered the correct username and password and try again.");
-        clearUsers();
     }
 
     @Test
+    @Video
     public void registrationUsernameAllreadyExists() throws InterruptedException {
         String password = RandomGenerator.generateRandomOnlyLetterString();
         register("admin", password, password, "Username already exists!");
@@ -117,10 +125,10 @@ public class LoginTests extends BaseCrudTest {
 
         checkLoginErrorMessage("Incorrect username or password",
                 "Check that you have entered the correct username and password and try again.");
-        clearUsers();
     }
 
     @Test
+    @Video
     public void unauthorizedCredidentalsTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "unauthorized", "unauthorized", false);
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
@@ -131,28 +139,27 @@ public class LoginTests extends BaseCrudTest {
 
         checkLoginErrorMessage("Incorrect username or password",
                 "Check that you have entered the correct username and password and try again.");
-        clearUsers();
     }
 
     @Test
+    @Video
     public void forgotPassword_userNotFoundTest() throws InterruptedException {
         modifyPassword("notExistingUserName", "asdf", "asdf");
         checkNotificationContainsTexts("User not found!");
-        clearUsers();
     }
 
     @Test
+    @Video
     public void forgotPassword_passwordDoesNotMatchAndUserNotFound() throws InterruptedException {
         modifyPassword("notExistingUserName", "asdf", "asd");
         checkNotificationContainsTexts("The passwords doesn't match!");
-        clearUsers();
     }
 
     @Test
+    @Video
     public void forgotPassword_passwordDoesNotMatch() throws InterruptedException {
         modifyPassword("admin", "asdf", "asd");
         checkNotificationContainsTexts("The passwords doesn't match!");
-        clearUsers();
     }
 
     private void modifyPassword(String userName, String password, String againPassword) throws InterruptedException {
@@ -181,10 +188,10 @@ public class LoginTests extends BaseCrudTest {
         passwordAgainField.sendKeys(againPassword);
 
         submitButton.click();
-        clearUsers();
     }
 
     @Test
+    @Video
     public void forgotPassword_success() throws InterruptedException {
         modifyPassword("admin", "asdf", "asdf");
         checkNotificationContainsTexts("Password changed successfully!");
@@ -192,18 +199,18 @@ public class LoginTests extends BaseCrudTest {
         TestingUtils.loginWith(driver, port, "admin", "asdf");
         Thread.sleep(200);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem engedett be az új felhasználónév-jelszó párossal!");
-        clearUsers();
     }
 
     @Test
+    @Video
     public void authorizedCredidentalsTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         Thread.sleep(5000);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
-        clearUsers();
     }
 
     @Test
+    @Video
     public void logoutTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         Thread.sleep(10);
@@ -213,12 +220,12 @@ public class LoginTests extends BaseCrudTest {
         Thread.sleep(100);
 
         assertEquals( true, driver.getCurrentUrl().contains("http://localhost:" + port + "/login"), "Nem történt meg a kijelentkeztetés");
-        clearUsers();
     }
 
 
 
     @Test
+    @Video
     public void sideMenuElementsTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         findClickableElementWithXpathWithWaiting(UIXpaths.SIDE_MENU);
@@ -250,14 +257,14 @@ public class LoginTests extends BaseCrudTest {
         adminMenu.click();
         assertEquals(true, adminSubMenusVisible());
         assertEquals(true, ordersSubMenusVisible());
-        clearUsers();
     }
 
     @Test
+    @Video
     public void invalidStatusCodeWhenGettingAllRoles() throws InterruptedException, SQLException {
 
 //        Mockito.doReturn(null).when(spyRoleService).findByName(any(String.class));
-        mockDatabaseNotAvailable(this, spyDataSource, 0);
+        mockDatabaseNotAvailableOnlyOnce(this, spyDataSource, 0);
         String username = RandomGenerator.generateRandomOnlyLetterString();
         String password = RandomGenerator.generateRandomOnlyLetterString();
         register(username, password, password, "Error happened while getting no_role", false);
@@ -268,10 +275,10 @@ public class LoginTests extends BaseCrudTest {
         Thread.sleep(300);
         checkLoginErrorMessage("Incorrect username or password",
                 "Check that you have entered the correct username and password and try again.");
-        clearUsers();
     }
     
     @Test
+    @Video
     public void invalidStatusCodeWhenGettingUserByUsernameNewRegistrationTheRegistrationWasSuccess() throws InterruptedException {
 //        Mockito.doCallRealMethod().doReturn(null).when(spyUserService).findByUsername(any(String.class));
         String username = RandomGenerator.generateRandomOnlyLetterString();
@@ -284,20 +291,19 @@ public class LoginTests extends BaseCrudTest {
         Thread.sleep(300);
         checkLoginErrorMessage("Permission error",
                 "You have no permission to log in. Contact the administrator about your roles, and try again.");
-        clearUsers();
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhenGettingUserByUsernameNewRegistrationExistingUser() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyUserService).findByUsername(any(String.class));
-        mockDatabaseNotAvailable(getClass(), spyDataSource, 0);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 0);
         TestingUtils.loginWith(driver, port, "admin", "admin", false);
         Thread.sleep(10);
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
         Thread.sleep(300);
         checkLoginErrorMessage("Incorrect username or password",
                 "Check that you have entered the correct username and password and try again.");
-        clearUsers();
     }
 
     private boolean adminSubMenusVisible(){
@@ -352,16 +358,13 @@ public class LoginTests extends BaseCrudTest {
 
         assertEquals(title, errorTitle, "Nem megfelelő a hibaüzenet címe");
         assertEquals(description, errorDescription, "Nem megfelelő a hibaüzenet leírás");
-        clearUsers();
     }
 
-    public void clearUsers() throws InterruptedException {
-        dp.executeSQL("DELETE FROM loginuser");
-        dp.executeSQL("INSERT INTO loginuser (id, deleted, username, passwordHash, role_role_id, enabled) VALUES ('1', '0', 'admin', '$2a$12$Ei2ntwIK/6lePBO2UecedetPpxxDee3kmxnkWTXZI.CiPb86vejHe', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), true)");
-        dp.executeSQL("INSERT INTO loginuser (id, deleted, username, passwordHash, role_role_id, enabled) VALUES ('2', '0', 'robi', '$2a$12$/LIbE6V8xP/2frZmSbe5.OSMyqiIbwQEau0nNsGk./P2PXP1M8BFi', (SELECT id as role_role_id FROM Role WHERE id = 2 LIMIT 1), true)");
-        dp.executeSQL("INSERT INTO loginuser (id, deleted, username, passwordHash, role_role_id, enabled) VALUES ('3', '0', 'Erzsi', '$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), false)");
-        logger.info("Admin user successfully recovered");
-        Thread.sleep(1000);
+    @AfterClass
+    public void afterClass(){
+        resetUsers();
     }
+
+
 }
 

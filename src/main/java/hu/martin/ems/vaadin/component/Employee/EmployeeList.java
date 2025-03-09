@@ -13,6 +13,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.NativeLabel;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -25,11 +26,11 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.model.User;
 import hu.martin.ems.model.Employee;
-import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmployeeApiClient;
-import hu.martin.ems.vaadin.api.RoleApiClient;
+import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import jakarta.annotation.security.RolesAllowed;
@@ -53,7 +54,7 @@ import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 public class EmployeeList extends VerticalLayout implements Creatable<Employee> {
 
     private final EmployeeApiClient employeeApi = BeanProvider.getBean(EmployeeApiClient.class);
-    private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
+    private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
     private final Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
     private PaginatedGrid<EmployeeVO, String> grid;
@@ -63,17 +64,17 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
 
     Grid.Column<EmployeeVO> firstNameColumn;
     Grid.Column<EmployeeVO> lastNameColumn;
-    Grid.Column<EmployeeVO> roleColumn;
+    Grid.Column<EmployeeVO> userColumn;
     Grid.Column<EmployeeVO> salaryColumn;
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<EmployeeVO> extraData;
 
     private String firstNameFilterText = "";
     private String lastNameFilterText = "";
-    private String roleFilterText = "";
+    private String userFilterText = "";
     private String salaryFilterText = "";
     private Logger logger = LoggerFactory.getLogger(Employee.class);
-    List<Role> roleList;
+    List<User> userList;
     private MainView mainView;
     @Autowired
     public EmployeeList(PaginationSetting paginationSetting) {
@@ -87,7 +88,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
 //        this.grid.removeAllColumns(); // TODO megnézni az összesnél, hogy így nézzen ki
         firstNameColumn = this.grid.addColumn(v -> v.firstName);
         lastNameColumn = this.grid.addColumn(v -> v.lastName);
-        roleColumn = this.grid.addColumn(v -> v.role);
+        userColumn = this.grid.addColumn(v -> v.user);
         salaryColumn = this.grid.addColumn(v -> v.salary);
 
         grid.addClassName("styling");
@@ -196,7 +197,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         return employeeVOS.stream().filter(employeeVO ->
                 (firstNameFilterText.isEmpty() || employeeVO.firstName.toLowerCase().contains(firstNameFilterText.toLowerCase())) &&
                 (lastNameFilterText.isEmpty() || employeeVO.lastName.toLowerCase().contains(lastNameFilterText.toLowerCase())) &&
-                (roleFilterText.isEmpty() || employeeVO.role.toLowerCase().contains(roleFilterText.toLowerCase())) &&
+                (userFilterText.isEmpty() || employeeVO.user.toLowerCase().contains(userFilterText.toLowerCase())) &&
                 (salaryFilterText.isEmpty() || employeeVO.salary.toString().toLowerCase().contains(salaryFilterText.toLowerCase())) &&
                 employeeVO.filterExtraData()
         );
@@ -234,11 +235,11 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             updateGridItems();
         });
 
-        TextField roleFilter = new TextField();
-        roleFilter.setPlaceholder("Search role...");
-        roleFilter.setClearButtonVisible(true);
-        roleFilter.addValueChangeListener(event -> {
-            roleFilterText = event.getValue().trim();
+        TextField userFilter = new TextField();
+        userFilter.setPlaceholder("Search user...");
+        userFilter.setClearButtonVisible(true);
+        userFilter.addValueChangeListener(event -> {
+            userFilterText = event.getValue().trim();
             grid.getDataProvider().refreshAll();
             updateGridItems();
         });
@@ -269,7 +270,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(firstNameColumn).setComponent(filterField(firstNameFilter, "First name"));
         filterRow.getCell(lastNameColumn).setComponent(filterField(lastNameFilter, "Last name"));
-        filterRow.getCell(roleColumn).setComponent(filterField(roleFilter, "Role"));
+        filterRow.getCell(userColumn).setComponent(filterField(userFilter, "User"));
         filterRow.getCell(salaryColumn).setComponent(filterField(salaryFilter, "Salary"));
         filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
@@ -284,8 +285,16 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
+    private void appendCloseButton(Dialog d){
+        Button closeButton = new Button(new Icon("lumo", "cross"),
+                (e) -> d.close());
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        d.getHeader().add(closeButton);
+    }
+
     public Dialog getSaveOrUpdateDialog(Employee entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " employee");
+        appendCloseButton(createDialog);
         FormLayout formLayout = new FormLayout();
 
         Button saveButton = new Button("Save");
@@ -294,26 +303,26 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         TextField lastNameField = new TextField("Last Name");
         NumberField salaryField = new NumberField("Salary");
 
-        setupRoles();
-        ComboBox<Role> roles = new ComboBox<>("Role");
-        ComboBox.ItemFilter<Role> filter = (role, filterString) ->
-                role.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(roleList == null){
-            roles.setEnabled(false);
-            roles.setErrorMessage("Error happened while getting roles");
-            roles.setInvalid(true);
+        setupUsers();
+        ComboBox<User> users = new ComboBox<>("User");
+        ComboBox.ItemFilter<User> filter = (user, filterString) ->
+                user.getUsername().toLowerCase().contains(filterString.toLowerCase());
+        if(userList == null){
+            users.setEnabled(false);
+            users.setErrorMessage("Error happened while getting users");
+            users.setInvalid(true);
             saveButton.setEnabled(false);
         }
         else{
-            roles.setItems(filter, roleList);
-            roles.setItemLabelGenerator(Role::getName);
+            users.setItems(filter, userList);
+            users.setItemLabelGenerator(User::getUsername);
         }
 
         if (entity != null) {
             firstNameField.setValue(entity.getFirstName());
             lastNameField.setValue(entity.getLastName());
             salaryField.setValue(entity.getSalary().doubleValue());
-            roles.setValue(entity.getRole());
+            users.setValue(entity.getUser());
         }
 
         saveButton.addClickListener(event -> {
@@ -322,7 +331,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             employee.setLastName(lastNameField.getValue());
             employee.setDeleted(0L);
             employee.setSalary(salaryField.getValue().intValue());
-            employee.setRole(roles.getValue());
+            employee.setUser(users.getValue());
             EmsResponse response = null;
             if(entity != null){
                 response = employeeApi.update(employee);
@@ -349,27 +358,27 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             firstNameField.clear();
             lastNameField.clear();
             salaryField.clear();
-            roles.clear();
+            users.clear();
             createDialog.close();
             setupEmployees();
             updateGridItems();
         });
 
-        formLayout.add(firstNameField, lastNameField, salaryField, roles, saveButton);
+        formLayout.add(firstNameField, lastNameField, salaryField, users, saveButton);
 
         createDialog.add(formLayout);
         return createDialog;
     }
 
-    private void setupRoles() {
-        EmsResponse emsResponse = roleApi.findAll();
+    private void setupUsers() {
+        EmsResponse emsResponse = userApi.findAll();
         switch (emsResponse.getCode()){
             case 200:
-                roleList = (List<Role>) emsResponse.getResponseData();
+                userList = (List<User>) emsResponse.getResponseData();
                 break;
             default:
-                roleList = null;
-                logger.error("Role findAllError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
+                userList = null;
+                logger.error("User findAllError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
                 break;
         }
     }
@@ -379,7 +388,7 @@ public class EmployeeVO extends BaseVO {
         private Employee original;
         private String firstName;
         private String lastName;
-        private String role;
+        private String user;
         private Integer salary;
 
         public EmployeeVO(Employee employee) {
@@ -389,7 +398,7 @@ public class EmployeeVO extends BaseVO {
             this.deleted = employee.getDeleted();
             this.firstName = original.getFirstName();
             this.lastName = original.getLastName();
-            this.role = original.getRole().getName();
+            this.user = original.getUser().getUsername();
             this.salary = original.getSalary();
         }
     }

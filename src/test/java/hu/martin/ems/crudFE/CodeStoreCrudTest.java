@@ -1,12 +1,11 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.model.CodeStore;
 import lombok.Getter;
-import org.mockito.Mockito;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
@@ -18,9 +17,8 @@ import java.time.Duration;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CodeStoreCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
@@ -45,6 +43,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void codestoreCreateTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -52,6 +51,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void codestoreReadTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -59,6 +59,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void codestoreDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -66,6 +67,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void codestoreUpdateTest() throws InterruptedException, IOException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -74,6 +76,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void codestoreRestoreTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -81,6 +84,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void codestorePermanentlyDeleteTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -102,17 +106,21 @@ public class CodeStoreCrudTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void nullResponseFromServiceWhenModify() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCodeStoreService).update(any(CodeStore.class));
+    @Video
+    public void nullResponseFromServiceWhenModify() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
+//        Mockito.doReturn(null).when(spyCodeStoreService).update(any(CodeStore.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest(null, "Codestore modifying failed: internal server error", false, showOnlyDeletableCodeStores); //TODO ez meghal
+        crudTestingUtil.updateTest(null, "Codestore modifying failed: internal server error", false, showOnlyDeletableCodeStores);
         checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCodeStoreService).save(any(CodeStore.class));
+    @Video
+    public void nullResponseFromServiceWhenCreate() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCodeStoreService).save(any(CodeStore.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest(null, "CodeStore saving failed", false);
@@ -120,6 +128,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -128,8 +137,10 @@ public class CodeStoreCrudTest extends BaseCrudTest {
 
 
     @Test
-    public void gettingAllCodeStoresFailed() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCodeStoreService).findAll(true);
+    @Video
+    public void gettingAllCodeStoresFailed() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCodeStoreService).findAll(true);
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
@@ -140,6 +151,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenSavingCodeStore() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);

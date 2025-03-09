@@ -1,17 +1,17 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
-import hu.martin.ems.core.config.StaticDatas;
-import hu.martin.ems.model.Order;
-import org.mockito.Mockito;
 import org.openqa.selenium.WebElement;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
@@ -19,10 +19,10 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 
 import static hu.martin.ems.base.GridTestingUtil.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Listeners(UniversalVideoListener.class)
 public class OrderCreateTest extends BaseCrudTest {
 
     public static final String customerComboBoxXpath = contentXpath + "/vaadin-form-layout[1]/vaadin-combo-box";
@@ -61,11 +61,13 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void createOrderTest() throws InterruptedException {
         createOrder();
     }
 
     @Test
+    @Video
     public void customerNotSelectedShowPreviouslyGridIsEmptyTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -126,7 +128,7 @@ public class OrderCreateTest extends BaseCrudTest {
         //selectRandomFromComboBox(customerComboBox);
         Thread.sleep(200);
         findVisibleElementWithXpath(createOrderGridXpath);
-        assertEquals(originalOrderElements + 3, countVisibleGridDataRows(createOrderGridXpath)); //TODO valamiért ez mindig 0-ra jön ki éles futáskor.
+        assertEquals(originalOrderElements + 3, countVisibleGridDataRows(createOrderGridXpath));
 
         selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath, 2);
         selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
@@ -151,27 +153,33 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void nullResponseFromServiceWhenModify() throws InterruptedException {
-         Mockito.doReturn(null).when(spyOrderService).update(any(Order.class));
+    @Video
+    public void nullResponseFromServiceWhenModify() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 21);
+//         Mockito.doReturn(null).when(spyOrderService).update(any(Order.class));
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        updateOrder("Order saving failed: Internal server error", false);
+        updateOrder("Order modifying failed: Internal Server Error", false);
 //        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
         checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException {
-        Mockito.doReturn(null).when(spyOrderService).save(any(Order.class));
+    @Video
+    public void databaseNotAvailableWhenCreate() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyOrderService).save(any(Order.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 95);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
-        createOrder("Order saving failed: Internal server error", false);
+        createOrder("Order saving failed: Internal Server Error", false);
         checkNoMoreNotificationsVisible();
     }
 
     @Test
-    public void gettingCustomersFailedTest() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben opcionális paraméterként jön.
+    @Video
+    public void gettingCustomersFailedTest() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
+//        Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben opcionális paraméterként jön.
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkField(customerComboBoxXpath, "Error happened while getting customers");
@@ -179,8 +187,10 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void getOrderElementsByCustomerFailedTest() throws InterruptedException {
-        Mockito.doReturn(null).when(spyOrderElementService).getByCustomer(any(Long.class));
+    @Video
+    public void getOrderElementsByCustomerFailedTest() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyOrderElementService).getByCustomer(any(Long.class));
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         selectRandomFromComboBox(findVisibleElementWithXpath(customerComboBoxXpath));
@@ -190,16 +200,20 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void getPendingCodeStoreFailedTest() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCodeStoreService).findByName("Pending"); //ApiClint-ben getAllByName("Pending");
+    @Video
+    public void getPendingCodeStoreFailedTest() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCodeStoreService).findByName("Pending"); //ApiClint-ben getAllByName("Pending");
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 93);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         createOrder("Error happened while getting \"Pending\" status", false);
     }
 
     @Test
-    public void getPaymentTypesFailedTest() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID);
+    @Video
+    public void getPaymentTypesFailedTest() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID); //id:7
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkField(paymentMethodComboBoxXpath, "Error happened while getting payment methods");
@@ -207,8 +221,10 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void getCurrencyTypesFailedTest() throws InterruptedException {
-        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
+    @Video
+    public void getCurrencyTypesFailedTest() throws InterruptedException, SQLException {
+//        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID); //id 1
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
         checkField(currencyComboBoxXpath, "Error happened while getting currencies");
@@ -216,6 +232,7 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void updateOrder() throws InterruptedException {
         updateOrder(null, true);
     }
@@ -235,6 +252,7 @@ public class OrderCreateTest extends BaseCrudTest {
         ElementLocation randomLocation = getRandomLocationFromGrid(createOrderGridXpath);
         goToPageInPaginatedGrid(createOrderGridXpath, randomLocation.getPageNumber());
         String[] originalData = getDataFromRowLocation(createOrderGridXpath, randomLocation);
+        Thread.sleep(200);
         applyFilter(createOrderGridXpath, originalData);
         assertEquals(1, countVisibleGridDataRows(createOrderGridXpath));
         resetFilter(createOrderGridXpath);
@@ -242,8 +260,9 @@ public class OrderCreateTest extends BaseCrudTest {
         getModifyButton(createOrderGridXpath, randomLocation.getRowIndex()).click();
 
         Thread.sleep(200);
-        findVisibleElementWithXpath(createOrderGridXpath);
+        findVisibleElementWithXpath(createOrderGridXpath, 5000);
 
+        Thread.sleep(200);
         selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath, 1);
         selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
         selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
@@ -273,14 +292,17 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    public void getOrderElementsByOrderIdFailedWhenSaveOrder() throws InterruptedException {
-        Mockito.doReturn(null).when(spyOrderService).save(any(Order.class));
+    @Video
+    public void getOrderElementsByOrderIdFailedWhenSaveOrder() throws InterruptedException, SQLException {
+        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 90);
+//        Mockito.doReturn(null).when(spyOrderService).save(any(Order.class));
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).save(any(Order.class));
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).getOrderElements(any(Long.class));
-        createOrder("Order saving failed: Internal server error", false);
+        createOrder("Order saving failed: Internal Server Error", false);
     }
 
     @Test
+    @Video
     public void noneSelectedFromTheOrderCreationGrid() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -342,6 +364,7 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenGettingAllByCustomer() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -384,7 +407,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
         customerComboBox = findVisibleElementWithXpath(customerComboBoxXpath);
 
-        mockDatabaseNotAvailable(this, spyDataSource, 0);
+        mockDatabaseNotAvailableOnlyOnce(this, spyDataSource, 0);
 
         selectElementByTextFromComboBox(customerComboBox, customerName);
         //selectRandomFromComboBox(customerComboBox);
@@ -405,6 +428,7 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
         navigateMenu(mainMenu, subMenu);
@@ -457,7 +481,7 @@ public class OrderCreateTest extends BaseCrudTest {
         selectRandomFromComboBox(findVisibleElementWithXpath(paymentMethodComboBoxXpath));
 
 
-        mockDatabaseNotAvailable(this, spyDataSource, 1);
+        mockDatabaseNotAvailableOnlyOnce(this, spyDataSource, 1);
 
         findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
         checkNotificationText("Order saving failed: Internal Server Error");
@@ -468,6 +492,7 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void moreThanOneOrderExistsForCustomerEditOne() throws InterruptedException {
         init();
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -512,7 +537,7 @@ public class OrderCreateTest extends BaseCrudTest {
             //selectRandomFromComboBox(customerComboBox);
             Thread.sleep(200);
             findVisibleElementWithXpath(createOrderGridXpath);
-            assertEquals(originalOrderElements + 3, countVisibleGridDataRows(createOrderGridXpath)); //TODO valamiért ez mindig 0-ra jön ki éles futáskor.
+            assertEquals(originalOrderElements + 3, countVisibleGridDataRows(createOrderGridXpath));
 
             selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath, 2);
             selectRandomFromComboBox(findVisibleElementWithXpath(currencyComboBoxXpath));
@@ -528,6 +553,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
 
     @Test
+    @Video
     public void noCustomerSelectedButShowPreviouslyEnabledThanGridWillBeIsEmpty() throws InterruptedException {
         init();
         TestingUtils.loginWith(driver, port, "admin", "admin");
@@ -539,6 +565,7 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void deselectShowPreviouslyChangesGridSelectionMode() throws InterruptedException {
         init();
         TestingUtils.loginWith(driver, port, "admin", "admin");

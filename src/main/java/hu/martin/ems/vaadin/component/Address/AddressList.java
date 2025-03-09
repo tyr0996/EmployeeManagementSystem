@@ -22,7 +22,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
-import hu.martin.ems.core.auth.SecurityService;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmsResponse;
@@ -93,15 +92,12 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
 
     @Autowired
     public AddressList(PaginationSetting paginationSetting) {
-//        this.mainView = mainView;
-        System.out.println("Felhasználó: " + BeanProvider.getBean(SecurityService.class).getAuthenticatedUser().getUsername());
         this.paginationSetting = paginationSetting;
 
         AddressVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(AddressVO.class);
         setupAddresses();
-
 
         List<AddressVO> data = addresses.stream().map(AddressVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
@@ -324,15 +320,19 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
         this.grid.setItems(data);
     }
 
+    private void appendCloseButton(Dialog d){
+        Button closeButton = new Button(new Icon("lumo", "cross"),
+                (e) -> d.close());
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        d.getHeader().add(closeButton);
+    }
+
     public Dialog getSaveOrUpdateDialog(Address entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " address");
         saveButton = new Button("Save");
         FormLayout formLayout = new FormLayout();
 
-        Button closeButton = new Button(new Icon("lumo", "cross"),
-                (e) -> createDialog.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        createDialog.getHeader().add(closeButton);
+        appendCloseButton(createDialog);
 
         ComboBox<CodeStore> countryCodes = createCountryCodesComboBox();
         TextField streetNameField = new TextField("Street name");

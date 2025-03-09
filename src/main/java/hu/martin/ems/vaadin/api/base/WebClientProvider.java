@@ -25,7 +25,6 @@ public class WebClientProvider {
         String baseUrl = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/api/" + entityName + "/";
         return WebClient.builder()
                 .baseUrl(baseUrl)
-//                    .filter(logRequest())
                 .defaultCookie("X-XSRF-TOKEN", securityService.getXsrfToken())
                 .defaultCookie("JSESSIONID", securityService.getSessionId())
                 .build();

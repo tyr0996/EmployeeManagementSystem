@@ -171,6 +171,30 @@ public class DataProvider {
         }
     }
 
+    public String getIDSequenceName(String table){
+        EntityManagerFactory factory = em.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
+
+        EntityTransaction emt = tempEm.getTransaction();
+        emt.begin();
+        List<String> possibleRes = new ArrayList<>();
+
+        List<String> allSeq = tempEm.createNativeQuery("SELECT relname sequence_name FROM pg_class WHERE relkind = 'S'").getResultList();
+
+        int tableNameUnderscores = table.split("_").length - 1;
+
+        possibleRes = allSeq.stream().filter(v -> (v.equals(table + "_id_seq"))).toList();
+        if(possibleRes.size() != 1){
+            logger.error("Couldn't get id sequence name for the table {}, because there was {} possible sequence names! Maybe it is a cross-table?", table, possibleRes.size());
+            emt.commit();
+            tempEm.close();
+            return null;
+        }
+        emt.commit();
+        tempEm.close();
+        return possibleRes.getFirst();
+    }
+
     private void resetIDSequences(){
         EntityManagerFactory factory = em.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
@@ -210,7 +234,6 @@ public class DataProvider {
     }
 
     private void deleteAllRecordsFromAllTable(){
-        System.out.println("Table names size: " + getTableNames().size());
         getTableNames().forEach(v -> deleteAllRecordsFromTable(v));
     }
 
@@ -236,6 +259,17 @@ public class DataProvider {
         tempEm.createNativeQuery(sql).executeUpdate();
         entityTransaction.commit();
         tempEm.close();
+    }
+
+    public void executeSQLFile(File sql){
+        if (sql == null || !sql.exists() || !sql.isFile()) {
+            throw new IllegalArgumentException("Invalid SQL file");
+        }
+        try {
+            executeSQL(Files.readString(sql.toPath()));
+        } catch (IOException e) {
+            throw new RuntimeException("Error reading SQL file", e);
+        }
     }
 
     @NoArgsConstructor
