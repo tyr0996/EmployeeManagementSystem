@@ -15,14 +15,13 @@ import org.testng.annotations.Test;
 
 import java.lang.reflect.InvocationTargetException;
 
-import static hu.martin.ems.base.GridTestingUtil.checkNotificationText;
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AdminToolsTest extends BaseCrudTest {
+    private GridTestingUtil gridTestingUtil;
     @BeforeClass
     public void setup() {
-        new CrudTestingUtil(driver, null, null, null, null);
-        GridTestingUtil.driver = driver;
+        new CrudTestingUtil(driver, gridTestingUtil, null, null, null, null);
+        gridTestingUtil = new GridTestingUtil(driver);
     }
 
     private static String clearDatabaseButtonXpath = contentXpath + "/vaadin-button";
@@ -31,10 +30,10 @@ public class AdminToolsTest extends BaseCrudTest {
     @Video
     public void clearDatabaseTest() throws InterruptedException {
         TestingUtils.loginWith(driver, port, "admin", "admin");
-        GridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
-        WebElement button = GridTestingUtil.findVisibleElementWithXpath(clearDatabaseButtonXpath);
+        gridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
+        WebElement button = gridTestingUtil.findVisibleElementWithXpath(clearDatabaseButtonXpath);
         button.click();
-        checkNotificationText("Clearing database was successful");
+        gridTestingUtil.checkNotificationText("Clearing database was successful");
     }
 
     @Test
@@ -52,19 +51,19 @@ public class AdminToolsTest extends BaseCrudTest {
 
         TestingUtils.loginWith(driver, port, "admin", "admin");
         Thread.sleep(100);
-        GridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
+        gridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
 
-        WebElement button = GridTestingUtil.findVisibleElementWithXpath(clearDatabaseButtonXpath);
+        WebElement button = gridTestingUtil.findVisibleElementWithXpath(clearDatabaseButtonXpath);
         button.click();
-        checkNotificationText("Clearing database failed for one or more table");
+        gridTestingUtil.checkNotificationText("Clearing database failed for one or more table");
         button.click();
-        checkNotificationText("Clearing database failed for one or more table");
+        gridTestingUtil.checkNotificationText("Clearing database failed for one or more table");
         button.click();
-        checkNotificationText("Clearing database failed for one or more table");
+        gridTestingUtil.checkNotificationText("Clearing database failed for one or more table");
         button.click();
-        checkNotificationText("Clearing database failed for one or more table");
+        gridTestingUtil.checkNotificationText("Clearing database failed for one or more table");
         button.click();
-        checkNotificationText("Clearing database was successful");
+        gridTestingUtil.checkNotificationText("Clearing database was successful");
 //        Mockito.reset(adminToolsService);
 //        BeanProvider.getBean(AdminToolsController.class).setAdminToolsService(originalAdminToolsService);
     }
