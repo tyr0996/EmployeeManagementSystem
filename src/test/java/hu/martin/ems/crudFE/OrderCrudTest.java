@@ -6,7 +6,6 @@ import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.TestingUtils;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
@@ -25,7 +24,7 @@ import org.mockito.*;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
@@ -38,7 +37,6 @@ import java.time.LocalDate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static hu.martin.ems.base.GridTestingUtil.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -73,13 +71,19 @@ public class OrderCrudTest extends BaseCrudTest {
     public XDocReportRegistry spyRegistry;
 
 
-    @BeforeMethod
+    private GridTestingUtil gridTestingUtil;
+
+    
+    private OrderCreateTest orderCreateTest;
+
+    @BeforeClass
     public void setup() {
+        gridTestingUtil = new GridTestingUtil(getDriver());
         MockitoAnnotations.openMocks(this);
-        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
-        crudTestingUtil = new CrudTestingUtil(driver, "Order", showDeletedXpath, gridXpath, createButtonXpath);
-        GridTestingUtil.driver = driver;
+        notificationDisappearWait = new WebDriverWait(getDriver(), Duration.ofMillis(5000));
+        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, getDriver(), "Order", showDeletedXpath, gridXpath, createButtonXpath);
         spyOrderService.setRegistry(spyRegistry);
+        orderCreateTest = new OrderCreateTest();
     }
 
     @Test
@@ -87,22 +91,22 @@ public class OrderCrudTest extends BaseCrudTest {
     public void generateODTFailedIOException() throws Exception {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement odtButton = getOptionDownloadButton(gridXpath, rowLocation, 1);
+        WebElement odtButton = gridTestingUtil.getOptionDownloadButton(gridXpath, rowLocation, 1);
         odtButton.click();
         Thread.sleep(100);
-        checkNotificationText("Document generation failed. Missing template file.");
-        checkNoMoreNotificationsVisible();
+        gridTestingUtil.checkNotificationText("Document generation failed. Missing template file.");
+        gridTestingUtil.checkNoMoreNotificationsVisible();
         assertEquals(false, waitForDownload("order_[0-9]{1,}.odt", 10));
 
         Mockito.reset(spyRegistry);
@@ -113,22 +117,22 @@ public class OrderCrudTest extends BaseCrudTest {
     public void generateODTFailedXDocReportException() throws Exception {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement odtButton = getOptionDownloadButton(gridXpath, rowLocation, 1);
+        WebElement odtButton = gridTestingUtil.getOptionDownloadButton(gridXpath, rowLocation, 1);
         odtButton.click();
         Thread.sleep(100);
-        checkNotificationText("Document generation failed. Not supported file type");
-        checkNoMoreNotificationsVisible();
+        gridTestingUtil.checkNotificationText("Document generation failed. Not supported file type");
+        gridTestingUtil.checkNoMoreNotificationsVisible();
         assertEquals(false, waitForDownload("order_[0-9]{1,}.odt", 10));
         Mockito.reset(spyRegistry);
     }
@@ -138,22 +142,22 @@ public class OrderCrudTest extends BaseCrudTest {
     public void generatePDFFailedIOException() throws Exception {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement pdfButton = getOptionDownloadButton(gridXpath, rowLocation, 2);
+        WebElement pdfButton = gridTestingUtil.getOptionDownloadButton(gridXpath, rowLocation, 2);
         pdfButton.click();
         Thread.sleep(100);
-        checkNotificationText("Document generation failed. Missing template file.");
-        checkNoMoreNotificationsVisible();
+        gridTestingUtil.checkNotificationText("Document generation failed. Missing template file.");
+        gridTestingUtil.checkNoMoreNotificationsVisible();
         assertEquals(false, waitForDownload("order_[0-9]{1,}.pdf", 10));
         Mockito.reset(spyRegistry);
     }
@@ -163,22 +167,22 @@ public class OrderCrudTest extends BaseCrudTest {
     public void generatePDFFailedXDocReportException() throws Exception {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement pdfButton = getOptionDownloadButton(gridXpath, rowLocation, 2);
+        WebElement pdfButton = gridTestingUtil.getOptionDownloadButton(gridXpath, rowLocation, 2);
         pdfButton.click();
         Thread.sleep(100);
-        checkNotificationText("Document generation failed. Not supported file type");
-        checkNoMoreNotificationsVisible();
+        gridTestingUtil.checkNotificationText("Document generation failed. Not supported file type");
+        gridTestingUtil.checkNoMoreNotificationsVisible();
         assertEquals(false, waitForDownload("order_[0-9]{1,}.pdf", 10));
         Mockito.reset(spyRegistry);
     }
@@ -187,18 +191,18 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     @Video
     public void generateODTTest() throws Exception {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement odtButton = getOptionDownloadButton(gridXpath, rowLocation, 1);
+        WebElement odtButton = gridTestingUtil.getOptionDownloadButton(gridXpath, rowLocation, 1);
         odtButton.click();
         Thread.sleep(100);
         assertEquals(true, waitForDownload("order_[0-9]{1,}.odt", 10));
@@ -207,18 +211,18 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     @Video
     public void generatePDFTest() throws Exception {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement pdfButton = getOptionDownloadButton(gridXpath, rowLocation, 2);
+        WebElement pdfButton = gridTestingUtil.getOptionDownloadButton(gridXpath, rowLocation, 2);
         pdfButton.click();
         Thread.sleep(100);
         assertEquals(true, waitForDownload("order_[0-9]{1,}.pdf", 10));
@@ -227,12 +231,12 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     @Video
     public void sendSFTPFailedTest() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        findVisibleElementWithXpath(gridXpath);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.findVisibleElementWithXpath(gridXpath);
 
-        findVisibleElementWithXpath(sendReportViaSFTPButtonXpath).click();
-        checkNotificationContainsTexts("Error happened when sending with SFTP", 30000);
+        gridTestingUtil.findVisibleElementWithXpath(sendReportViaSFTPButtonXpath).click();
+        gridTestingUtil.checkNotificationContainsTexts("Error happened when sending with SFTP", 30000);
     }
 
     @Test
@@ -240,13 +244,13 @@ public class OrderCrudTest extends BaseCrudTest {
     public void sendSFTPSuccessTest() throws InterruptedException {
         BeanProvider.getBean(OrderService.class).setSender(sftpSender);
         Mockito.doReturn(true).when(sftpSender).send(any(byte[].class), any(String.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        findVisibleElementWithXpath(gridXpath);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.findVisibleElementWithXpath(gridXpath);
 
-        findVisibleElementWithXpath(sendReportViaSFTPButtonXpath).click();
+        gridTestingUtil.findVisibleElementWithXpath(sendReportViaSFTPButtonXpath).click();
         Thread.sleep(100);
-        checkNotificationContainsTexts("SFTP sending is done", 30000);
+        gridTestingUtil.checkNotificationContainsTexts("SFTP sending is done", 30000);
     }
 
 
@@ -256,21 +260,21 @@ public class OrderCrudTest extends BaseCrudTest {
 //    public void sendEmailSuccessTest() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(200, true, "Email sent!")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
 //
-//        TestingUtils.loginWith(driver, port, "admin", "admin");
-//        navigateMenu(mainMenu, subMenu);
+//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //
-//        WebElement grid = findVisibleElementWithXpath(gridXpath);
-//        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+//        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+//        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
 //        if (rowLocation == null) {
-//            OrderCreateTest.setupTest();
-//            OrderCreateTest.createOrder();
+//            orderCreateTest.setup();
+//            orderCreateTest.createOrder();
 //            rowLocation = new ElementLocation(1, 0);
 //        }
 //
-//        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
+//        WebElement sendEmailButton = gridTestingUtil.getOptionColumnButton(gridXpath, rowLocation, 3);
 //        sendEmailButton.click();
 //        Thread.sleep(100);
-//        checkNotificationContainsTexts("Email sent!", 5000);
+//        gridTestingUtil.checkNotificationContainsTexts("Email sent!", 5000);
 //    }
 
     @Captor
@@ -282,62 +286,62 @@ public class OrderCrudTest extends BaseCrudTest {
     @Video
     public void sendEmailSuccessTest() throws InterruptedException, MessagingException {
         Mockito.doNothing().when(spyEmailSendingService).transportSend(any(MimeMessage.class));
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if (rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
+        WebElement sendEmailButton = gridTestingUtil.getOptionColumnButton(gridXpath, rowLocation, 3);
         sendEmailButton.click();
-        checkNotificationContainsTexts("Email sent!", 5000);
+        gridTestingUtil.checkNotificationContainsTexts("Email sent!", 5000);
     }
 
     @Test
     @Video
     public void generateEmailFailedDueToCantGetOrderFromOrderId() throws InterruptedException, SQLException {
         JPAConfig.resetCallIndex();
-        TestingUtils.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
 
-        navigateMenu(mainMenu, subMenu);
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
-        mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
+        WebElement sendEmailButton = gridTestingUtil.getOptionColumnButton(gridXpath, rowLocation, 3);
+        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
         sendEmailButton.click();
         Thread.sleep(2000);
-        checkNotificationText("Email generation failed");
+        gridTestingUtil.checkNotificationText("Email generation failed");
     }
 
     @Test
     @Video
     public void sendEmailFailedTest() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
+        WebElement sendEmailButton = gridTestingUtil.getOptionColumnButton(gridXpath, rowLocation, 3);
         sendEmailButton.click();
         Thread.sleep(100);
-        checkNotificationText("Email sending failed");
+        gridTestingUtil.checkNotificationText("Email sending failed");
     }
 
     @Test
@@ -346,21 +350,21 @@ public class OrderCrudTest extends BaseCrudTest {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 //        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
 
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
+        WebElement sendEmailButton = gridTestingUtil.getOptionColumnButton(gridXpath, rowLocation, 3);
         sendEmailButton.click();
         Thread.sleep(100);
-        checkNotificationText("Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE);
+        gridTestingUtil.checkNotificationText("Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE);
         Mockito.reset(spyRegistry);
     }
 
@@ -369,29 +373,29 @@ public class OrderCrudTest extends BaseCrudTest {
     public void sendEmailPDFGenerationFailedXDocReportException() throws InterruptedException, IOException, XDocReportException {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        WebElement sendEmailButton = getOptionColumnButton(gridXpath, rowLocation, 3);
+        WebElement sendEmailButton = gridTestingUtil.getOptionColumnButton(gridXpath, rowLocation, 3);
         sendEmailButton.click();
         Thread.sleep(100);
-        checkNotificationText("Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE);
+        gridTestingUtil.checkNotificationText("Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE);
         Mockito.reset(spyDataSource);
     }
 
     @Test
     @Video
     public void deleteOrderTest() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
     }
 
@@ -402,124 +406,124 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     public void modifyOrder(String notificationText, Boolean needSuccess) throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             rowLocation = new ElementLocation(1, 0);
         }
 
-        int original = countVisibleGridDataRows(gridXpath);
-        String[] originalData = getDataFromRowLocation(gridXpath, rowLocation);
+        int original = gridTestingUtil.countVisibleGridDataRows(gridXpath);
+        String[] originalData = gridTestingUtil.getDataFromRowLocation(gridXpath, rowLocation);
 
-        goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
+        gridTestingUtil.goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
         Thread.sleep(200);
-        WebElement modifyButton = getModifyButton(gridXpath, rowLocation.getRowIndex());
+        WebElement modifyButton = gridTestingUtil.getModifyButton(gridXpath, rowLocation.getRowIndex());
         Thread.sleep(200);
         modifyButton.click();
-        findVisibleElementWithXpath(createOrderGridXpathModify);
+        gridTestingUtil.findVisibleElementWithXpath(createOrderGridXpathModify);
         Thread.sleep(2000);
-        selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpathModify, 3);
+        gridTestingUtil.selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpathModify, 3);
 
         Thread.sleep(200);
-        //setCheckboxStatus(OrderCreateTest.previouslyOrderedCheckboxXpath, true);
+        //gridTestingUtil.setCheckboxStatus(orderCreateTest.previouslyOrderedCheckboxXpath, true);
 
-        selectRandomFromComboBox(findVisibleElementWithXpath(createOrderCurrencyComboBox));
-        selectRandomFromComboBox(findVisibleElementWithXpath(createOrderPaymentComboBox));
-        findClickableElementWithXpathWithWaiting(createOrderSaveOrderButton).click();
-        checkNotificationContainsTexts(notificationText == null ? "Order updated:" : notificationText);
+        gridTestingUtil.selectRandomFromComboBox(gridTestingUtil.findVisibleElementWithXpath(createOrderCurrencyComboBox));
+        gridTestingUtil.selectRandomFromComboBox(gridTestingUtil.findVisibleElementWithXpath(createOrderPaymentComboBox));
+        gridTestingUtil.findClickableElementWithXpathWithWaiting(createOrderSaveOrderButton).click();
+        gridTestingUtil.checkNotificationContainsTexts(notificationText == null ? "Order updated:" : notificationText);
 
         Thread.sleep(100);
 
 
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
-        assertEquals(needSuccess ? 0 : 1, countElementResultsFromGridWithFilter(gridXpath, originalData));
-        assertEquals(original, countVisibleGridDataRows(gridXpath));
+        assertEquals(needSuccess ? 0 : 1, gridTestingUtil.countElementResultsFromGridWithFilter(gridXpath, originalData));
+        assertEquals(original, gridTestingUtil.countVisibleGridDataRows(gridXpath));
     }
 
     @Test
     @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
     }
 
     @Test
     @Video
     public void deleteOrderElementWhatMemberOfAnOrder() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        int originalVisibleRows = countVisibleGridDataRows(gridXpath);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+        int originalVisibleRows = gridTestingUtil.countVisibleGridDataRows(gridXpath);
 
-        WebElement deleteButton = getDeleteButton(gridXpath, 0);
+        WebElement deleteButton = gridTestingUtil.getDeleteButton(gridXpath, 0);
         while(deleteButton != null){
             deleteButton.click();
-            closeNotification(200);
-            deleteButton = getDeleteButton(gridXpath, 0);
+            gridTestingUtil.closeNotification(200);
+            deleteButton = gridTestingUtil.getDeleteButton(gridXpath, 0);
         }
-        setCheckboxStatus(showDeletedXpath, true);
-        WebElement permanentlyDeleteButton = getPermanentlyDeleteButton(gridXpath, 0);
+        gridTestingUtil.setCheckboxStatus(showDeletedXpath, true);
+        WebElement permanentlyDeleteButton = gridTestingUtil.getPermanentlyDeleteButton(gridXpath, 0);
         while(permanentlyDeleteButton != null){
             permanentlyDeleteButton.click();
-            closeNotification(200);
-            permanentlyDeleteButton = getPermanentlyDeleteButton(gridXpath, 0);
+            gridTestingUtil.closeNotification(200);
+            permanentlyDeleteButton = gridTestingUtil.getPermanentlyDeleteButton(gridXpath, 0);
         }
 
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
 
         String oeGridXpath = OrderElementCrudTest.gridXpath;
         String oeShowDeletedXpath = OrderElementCrudTest.showDeletedCheckBoxXpath;
-        WebElement oeDeleteButton = getDeleteButton(oeGridXpath, 0);
+        WebElement oeDeleteButton = gridTestingUtil.getDeleteButton(oeGridXpath, 0);
         while(oeDeleteButton != null){
             oeDeleteButton.click();
-            closeNotification(200);
+            gridTestingUtil.closeNotification(200);
             Thread.sleep(5);
-            oeDeleteButton = getDeleteButton(oeGridXpath, 0);
+            oeDeleteButton = gridTestingUtil.getDeleteButton(oeGridXpath, 0);
         }
-        setCheckboxStatus(oeShowDeletedXpath, true);
-        WebElement oePermanentlyDeleteButton = getPermanentlyDeleteButton(oeGridXpath, 0);
+        gridTestingUtil.setCheckboxStatus(oeShowDeletedXpath, true);
+        WebElement oePermanentlyDeleteButton = gridTestingUtil.getPermanentlyDeleteButton(oeGridXpath, 0);
         while(oePermanentlyDeleteButton != null){
             oePermanentlyDeleteButton.click();
-            closeNotification(200);
+            gridTestingUtil.closeNotification(200);
             Thread.sleep(5);
-            oePermanentlyDeleteButton = getPermanentlyDeleteButton(gridXpath, 0);
+            oePermanentlyDeleteButton = gridTestingUtil.getPermanentlyDeleteButton(gridXpath, 0);
         }
 
-        OrderCreateTest.setupTest();
-        OrderCreateTest.createOrder();
+        orderCreateTest.setup();
+        orderCreateTest.createOrder();
 
-        navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
+        gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
 
-        WebElement oeDeleteButtonCreatedOrder = getDeleteButton(oeGridXpath, 0);
+        WebElement oeDeleteButtonCreatedOrder = gridTestingUtil.getDeleteButton(oeGridXpath, 0);
         while(oeDeleteButtonCreatedOrder != null){
             oeDeleteButtonCreatedOrder.click();
             //removeNotification(); //TODO létrehozni egy ilyen függvényt, ami csak szimplán bezárja a notification-t
             Thread.sleep(100);
-            oeDeleteButtonCreatedOrder = getDeleteButton(oeGridXpath, 0);
+            oeDeleteButtonCreatedOrder = gridTestingUtil.getDeleteButton(oeGridXpath, 0);
         }
 
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
         Thread.sleep(20);
-        getModifyButton(gridXpath, 0).click(); //TODO megcsinálni, hogy előtte nézze meg a szerkesztésben, hogy látja-e őket.
+        gridTestingUtil.getModifyButton(gridXpath, 0).click(); //TODO megcsinálni, hogy előtte nézze meg a szerkesztésben, hogy látja-e őket.
         Thread.sleep(1000);
-        assertEquals(0, countVisibleGridDataRows(OrderCreateTest.createOrderGridXpath));
+        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(orderCreateTest.createOrderGridXpath));
     }
 
     @Test
     @Video
     public void restoreOrderTest() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        int originalInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedXpath);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+        int originalInvisibleRows = gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedXpath);
         if(originalInvisibleRows == 0) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             deleteOrderTest();
         }
         crudTestingUtil.restoreTest();
@@ -528,12 +532,12 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     @Video
     public void permanentlyDeleteOrderTest() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        int originalInvisibleRows = countHiddenGridDataRows(gridXpath, showDeletedXpath);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+        int originalInvisibleRows = gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedXpath);
         if(originalInvisibleRows == 0) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
             deleteOrderTest();
         }
         crudTestingUtil.permanentlyDeleteTest();
@@ -542,9 +546,9 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     @Video
     public void fromToDateSelectorFromIsLaterThenTo() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
 
         LocalDate a = LocalDate.of(2024, 1, 15);
         LocalDate b = LocalDate.of(2024, 1, 30);
@@ -568,24 +572,24 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     private void checkFromToDatePicker(String datePicker1Xpath, String datePicker2Xpath, LocalDate date1, LocalDate date2, LocalDate expectedDate1, LocalDate expectedDate2, String dateFormat){
-        selectDateFromDatePicker(datePicker1Xpath, date1);
-        selectDateFromDatePicker(datePicker2Xpath, date2);
-        assertEquals(expectedDate1, getDateFromDatePicker(datePicker1Xpath, dateFormat));
-        assertEquals(expectedDate2, getDateFromDatePicker(datePicker2Xpath, dateFormat));
+        gridTestingUtil.selectDateFromDatePicker(datePicker1Xpath, date1);
+        gridTestingUtil.selectDateFromDatePicker(datePicker2Xpath, date2);
+        assertEquals(expectedDate1, gridTestingUtil.getDateFromDatePicker(datePicker1Xpath, dateFormat));
+        assertEquals(expectedDate2, gridTestingUtil.getDateFromDatePicker(datePicker2Xpath, dateFormat));
     }
 
     //@Test
     public void extraFilterInvalidValue() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
 
-        WebElement grid = findVisibleElementWithXpath(gridXpath);
-        ElementLocation rowLocation = getRandomLocationFromGrid(gridXpath);
+        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
+        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
         if(rowLocation == null) {
-            OrderCreateTest.setupTest();
-            OrderCreateTest.createOrder();
+            orderCreateTest.setup();
+            orderCreateTest.createOrder();
         }
 
         crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
@@ -595,14 +599,14 @@ public class OrderCrudTest extends BaseCrudTest {
     @Video
     public void gettingOrdersFailed() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyOrderService).findAll(true); //ApiClintben .findAllWithDeleted();
-        mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
-        TestingUtils.loginWith(driver, port, "admin", "admin");
-        navigateMenu(mainMenu, subMenu);
-        checkNotificationText("Error happened while getting orders");
-        checkNoMoreNotificationsVisible();
-        assertEquals(0, countVisibleGridDataRows(gridXpath));
-        assertEquals(0, countHiddenGridDataRows(gridXpath, showDeletedXpath));
-        checkNoMoreNotificationsVisible();
+        gridTestingUtil.mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+        gridTestingUtil.checkNotificationText("Error happened while getting orders");
+        gridTestingUtil.checkNoMoreNotificationsVisible();
+        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXpath));
+        assertEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedXpath));
+        gridTestingUtil.checkNoMoreNotificationsVisible();
     }
 
     private boolean waitForDownload(String fileNameRegex, int timeOut) throws Exception {

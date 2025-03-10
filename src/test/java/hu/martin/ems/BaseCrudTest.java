@@ -1,6 +1,5 @@
 package hu.martin.ems;
 
-import hu.martin.ems.base.selenium.WebDriverProvider;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.JPAConfig;
@@ -54,7 +53,17 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
     protected static DataProvider dp;
     public static String screenshotPath;
 
-    protected static WebDriver driver;
+//    protected static WebDriver driver;
+    
+    private ThreadLocal<WebDriver> threadLocalWebDriver = new ThreadLocal<>();
+    
+    public void setWebDriver(WebDriver driver){
+        threadLocalWebDriver.set(driver);
+    }
+    
+    public WebDriver getDriver(){
+        return threadLocalWebDriver.get();
+    }
 
     @SpyBean
     protected static CurrencyService spyCurrencyService;
@@ -99,7 +108,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
         clearDownloadFolder();
         clearScreenshotFolder();
 
-        driver = WebDriverProvider.get();
+//        driver = WebDriverProvider.get();
 
         port = webServerAppCtxt.getWebServer().getPort();
         dp = dataProvider;
@@ -164,9 +173,10 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests {
 
     @AfterSuite
     protected void destroy() throws InterruptedException {
-        if(driver != null){
-            driver.quit();
-        }
+        //TODO megcsinálni, hogy zárja be.
+//        if(driver != null){
+//            getDriver().quit();
+//        }
     }
 
     protected void resetRolesAndPermissions(){

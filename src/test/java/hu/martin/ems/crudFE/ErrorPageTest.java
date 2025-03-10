@@ -11,32 +11,34 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import static hu.martin.ems.base.GridTestingUtil.*;
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Listeners(UniversalVideoListener.class)
 public class ErrorPageTest extends BaseCrudTest {
 
+    private GridTestingUtil gridTestingUtil;
+
+    
+
     @BeforeClass
     public void setup() {
-        GridTestingUtil.driver = driver;
+        gridTestingUtil = new GridTestingUtil(getDriver());
     }
 
     @Test
     @Video
     public void pageLoadFailedIllegalAccessException() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "robi", "robi");
-        navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
-        checkNoPermissionPage();
+        gridTestingUtil.loginWith(getDriver(), port, "robi", "robi");
+        gridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
+        gridTestingUtil.checkNoPermissionPage();
     }
 
     @Test
     @Video
     public void pageLoadFailedNotFoundException() throws InterruptedException {
-        TestingUtils.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
         Thread.sleep(100);
-        driver.get("http://localhost:" + port + "/notExistingPageURL");
+        getDriver().get("http://localhost:" + port + "/notExistingPageURL");
         Thread.sleep(100);
-        checkNotFoundPage();
+        gridTestingUtil.checkNotFoundPage();
     }
 }

@@ -1,6 +1,5 @@
 package hu.martin.ems;
 
-import hu.martin.ems.UITests.PaginationData;
 import hu.martin.ems.base.GridTestingUtil;
 import lombok.Getter;
 import org.openqa.selenium.*;
@@ -39,11 +38,14 @@ public class PaginatorComponents {
     }
 
     private int lastKnownPageNumber;
-
-    public PaginatorComponents(WebElement grid, WebDriver driver) throws InterruptedException {
+    private GridTestingUtil gridTestingUtil;
+    
+    public PaginatorComponents(WebElement grid, WebDriver driver, GridTestingUtil gridTestingUtil) throws InterruptedException {
         this.grid = grid;
         this.driver = driver;
-        WebElement span = TestingUtils.getParent(grid).findElement(By.tagName("span"));
+        this.gridTestingUtil = gridTestingUtil;
+        
+        WebElement span = gridTestingUtil.getParent(grid).findElement(By.tagName("span"));
         WebElement litPagination = span.findElement(By.tagName("lit-pagination"));
         SearchContext shadow = litPagination.getShadowRoot();
         JavascriptExecutor executor = (JavascriptExecutor) driver;
@@ -68,7 +70,7 @@ public class PaginatorComponents {
         });
 
         //Get max page number
-//        WebElement parent = TestingUtils.getParent(grid);
+//        WebElement parent = gridTestingUtil.getParent(grid);
 //        WebElement paginationComponent = parent.findElement(By.tagName("span")).findElement(By.tagName("lit-pagination"));
 //        Integer total = Integer.parseInt(paginationComponent.getDomAttribute("total"));
 //        Integer currentPage = Integer.parseInt(paginationComponent.getDomAttribute("page"));
@@ -76,7 +78,7 @@ public class PaginatorComponents {
     }
 
     public void refresh(){
-        WebElement span = TestingUtils.getParent(grid).findElement(By.tagName("span"));
+        WebElement span = gridTestingUtil.getParent(grid).findElement(By.tagName("span"));
         WebElement litPagination = span.findElement(By.tagName("lit-pagination"));
         SearchContext shadow = litPagination.getShadowRoot();
         JavascriptExecutor executor = (JavascriptExecutor) driver;

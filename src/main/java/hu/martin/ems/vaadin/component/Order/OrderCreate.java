@@ -13,7 +13,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
-import hu.martin.ems.annotations.EditObject;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
@@ -48,7 +47,6 @@ import java.util.stream.Stream;
 @NeedCleanCoding
 public class OrderCreate extends VerticalLayout implements BeforeEnterObserver {
 
-    @EditObject
     public Order editObject;
     private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
