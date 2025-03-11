@@ -273,7 +273,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @AfterClass
-    public void afterClass() throws InterruptedException {
+    public void afterClass() {
         resetUsers();
     }
 }

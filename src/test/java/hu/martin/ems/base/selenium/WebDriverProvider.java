@@ -9,9 +9,9 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import java.util.HashMap;
 
 public class WebDriverProvider {
-    private WebDriverProvider(){}
+    public WebDriverProvider(){}
 
-    public static WebDriver get(){
+    public WebDriver get(){
         ChromeOptions options = new ChromeOptions();
         HashMap<String, Object> chromePref = new HashMap<>();
 

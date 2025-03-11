@@ -5,10 +5,12 @@ import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
+import hu.martin.ems.service.AdminToolsService;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.WebElement;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -16,12 +18,16 @@ import java.lang.reflect.InvocationTargetException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AdminToolsTest extends BaseCrudTest {
+
     private GridTestingUtil gridTestingUtil;
 
-    
+    @SpyBean
+    public AdminToolsService spyAdminToolsService;
+
 
     @BeforeClass
     public void setup() {
+        MockitoAnnotations.openMocks(this);
         gridTestingUtil = new GridTestingUtil(getDriver());
         new CrudTestingUtil(gridTestingUtil, getDriver(), null, null, null, null);
     }
@@ -41,7 +47,8 @@ public class AdminToolsTest extends BaseCrudTest {
     @Test
     @Video
     public void clearDatabaseExceptionsTestThanSuccess() throws Exception {
-        MockitoAnnotations.openMocks(this);
+//        MockitoAnnotations.openMocks(this);
+//        MockitoAnnotations.openMocks(this);
         Mockito.doThrow(new ClassNotFoundException())
                .doThrow(new InvocationTargetException(new Throwable()))
                .doThrow(new InstantiationException())
