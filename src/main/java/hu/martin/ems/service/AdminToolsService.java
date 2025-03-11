@@ -14,9 +14,7 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -32,54 +30,18 @@ public class AdminToolsService {
         this.applicationContext = applicationContext;
     }
 
-    public void clearAllDatabaseTable() throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public void clearAllDatabaseTable() throws ClassNotFoundException {
         ClassPathScanningCandidateComponentProvider serviceProvider = new ClassPathScanningCandidateComponentProvider(false);
         serviceProvider.addIncludeFilter(new AssignableTypeFilter(BaseService.class));
         Set<BeanDefinition> services = serviceProvider.findCandidateComponents("hu/martin/ems/service");
-
-        HashMap<Class<?>, Class<?>> pair = mapServicesWithRepositories(services);
-
-        clearDatabaseTables(pair);
+        clearDatabaseTables(services.stream().toList());
     }
 
-    private void clearDatabaseTables(HashMap<Class<?>, Class<?>> paired) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        for(int i = 0; i < paired.size(); i++){
-            Class<?> service = (Class<?>) paired.keySet().toArray()[i];
-            runClearDatabaseTableOnBeanClass(service, paired.get(service));
+    private void clearDatabaseTables(List<BeanDefinition> services) throws ClassNotFoundException {
+        for(int i = 0; i < services.size(); i++){
+            BaseService service = (BaseService) BeanProvider.getBean(Class.forName(services.get(i).getBeanClassName()));
+            System.out.println("Kiskutya");
+//            service.clearDatabaseTable();
         }
     }
-
-
-    private HashMap<Class<?>, Class<?>> mapServicesWithRepositories(Set<BeanDefinition> services) throws ClassNotFoundException {
-        HashMap<Class<?>, Class<?>> serviceRepositoryMap = new HashMap<>();
-
-        for (BeanDefinition serviceDef : services) {
-            Class<?> serviceClass = Class.forName(serviceDef.getBeanClassName());
-            Class<?> repositoryClass = serviceClass.getConstructors()[0].getParameterTypes()[0];
-            serviceRepositoryMap.put(serviceClass, repositoryClass);
-        }
-
-        return serviceRepositoryMap;
-    }
-
-    private void runClearDatabaseTableOnBeanClass(Class<?> service, Class<?> repo) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        Object o = null;
-        try{
-            o = service.getDeclaredConstructor(repo).newInstance(BeanProvider.getBean(repo));
-        }
-        catch (NoSuchMethodException ex){
-            logger.error("Service called " + service.getSimpleName() + " has no declaredConstructor with zero arguments. Define a no-args constructor in the service class");
-            return;
-        }
-
-        applicationContext.getAutowireCapableBeanFactory().autowireBean(o);
-        try{
-            Method m = service.getMethod("clearDatabaseTable");
-            m.invoke(o);
-        }
-        catch(NoSuchMethodException ex){
-            logger.error("clearDatabaseTable method not found in service called " + service.getSimpleName() + ". Define this method in the service class.");
-        }
-    }
-
 }

@@ -12,8 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.lang.reflect.InvocationTargetException;
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AdminToolsTest extends BaseCrudTest {
 
@@ -45,9 +43,6 @@ public class AdminToolsTest extends BaseCrudTest {
 //        MockitoAnnotations.openMocks(this);
 //        MockitoAnnotations.openMocks(this);
         Mockito.doThrow(new ClassNotFoundException())
-               .doThrow(new InvocationTargetException(new Throwable()))
-               .doThrow(new InstantiationException())
-               .doThrow(new IllegalAccessException())
                .doCallRealMethod()
         .when(spyAdminToolsService).clearAllDatabaseTable();
 //        AdminToolsService originalAdminToolsService = BeanProvider.getBean(AdminToolsService.class);
@@ -58,12 +53,6 @@ public class AdminToolsTest extends BaseCrudTest {
         gridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
 
         WebElement button = gridTestingUtil.findVisibleElementWithXpath(clearDatabaseButtonXpath);
-        button.click();
-        gridTestingUtil.checkNotificationText("Clearing database failed for one or more table");
-        button.click();
-        gridTestingUtil.checkNotificationText("Clearing database failed for one or more table");
-        button.click();
-        gridTestingUtil.checkNotificationText("Clearing database failed for one or more table");
         button.click();
         gridTestingUtil.checkNotificationText("Clearing database failed for one or more table");
         button.click();

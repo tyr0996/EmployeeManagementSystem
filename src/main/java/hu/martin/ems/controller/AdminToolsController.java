@@ -12,8 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.lang.reflect.InvocationTargetException;
-
 @Controller
 @RequestMapping("/api/adminTools")
 @PermitAll
@@ -34,7 +32,7 @@ public class AdminToolsController {
         try{
             adminToolsService.clearAllDatabaseTable();
             return new ResponseEntity<>(EmsResponse.Description.CLEAR_DATABASE_SUCCESS, HttpStatus.OK);
-        } catch (ClassNotFoundException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+        } catch (ClassNotFoundException e) {
             return new ResponseEntity<>(EmsResponse.Description.CLEAR_DATABASE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
