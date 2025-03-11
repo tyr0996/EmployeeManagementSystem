@@ -5,12 +5,10 @@ import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
-import hu.martin.ems.service.AdminToolsService;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.WebElement;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -20,9 +18,6 @@ import java.lang.reflect.InvocationTargetException;
 public class AdminToolsTest extends BaseCrudTest {
 
     private GridTestingUtil gridTestingUtil;
-
-    @SpyBean
-    public AdminToolsService spyAdminToolsService;
 
 
     @BeforeClass

@@ -9,6 +9,7 @@ import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.service.AdminToolsService;
 import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.service.OrderService;
+import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.WebDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,8 +77,8 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     @SpyBean //Ide mindenképp kell a SpyBean, mert különben nem működik a dokumentum-generálól mock!
     public static OrderService spyOrderService;
 
-//    @SpyBean
-//    public static AdminToolsService spyAdminToolsService;
+    @SpyBean
+    public static AdminToolsService spyAdminToolsService;
 
     ThreadLocal<AdminToolsService> adminToolsServiceThreadLocal = new ThreadLocal<>();
 
@@ -99,7 +100,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
         DataProvider.saveAllSqlsFromJsons();
 
-//        MockitoAnnotations.openMocks(this);
+        MockitoAnnotations.openMocks(this);
         originalDataSource = BeanProvider.getBean(DataSource.class);
         screenshotPath = env.getProperty("selenium.screenshot.folder");
         fetchingCurrencyApiUrl = env.getProperty("api.currency.url");
