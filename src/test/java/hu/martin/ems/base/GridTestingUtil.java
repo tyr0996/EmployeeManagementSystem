@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static hu.martin.ems.BaseCrudTest.contentXpath;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -318,8 +319,12 @@ public class GridTestingUtil {
 
 
     public WebElement findVisibleElementWithXpath(String xpath, int timeoutInMillis) {
+        return findVisibleElementWithXpath(xpath, timeoutInMillis, 500);
+    }
+
+    public WebElement findVisibleElementWithXpath(String xpath, int timeoutInMillis, int sleepTimeInMillis){
         try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(timeoutInMillis));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(timeoutInMillis), Duration.ofMillis(sleepTimeInMillis));
             return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
         } catch (Exception e) {
             return null;
@@ -882,10 +887,10 @@ public class GridTestingUtil {
 
     public void checkNoPermissionPage(){
         SoftAssert sa = new SoftAssert();
-        WebElement catImage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/img");
-        WebElement dontHavePermissionMessage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/div[1]");
-        WebElement tryToGetPermissionMessage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/div[2]");
-        WebElement coffeeBreakMessage = findVisibleElementWithXpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/div[3]");
+        WebElement catImage = findVisibleElementWithXpath(contentXpath + "/img", 2000, 10);
+        WebElement dontHavePermissionMessage = findVisibleElementWithXpath(contentXpath + "/div[1]", 2000, 10);
+        WebElement tryToGetPermissionMessage = findVisibleElementWithXpath(contentXpath + "/div[2]", 2000, 10);
+        WebElement coffeeBreakMessage = findVisibleElementWithXpath(contentXpath + "/div[3]", 2000, 10);
         sa.assertNotNull(catImage, "cat image");
         sa.assertNotNull(dontHavePermissionMessage, "don't have permission message");
         sa.assertNotNull(tryToGetPermissionMessage, "try to get permission message");

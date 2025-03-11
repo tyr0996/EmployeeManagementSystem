@@ -40,25 +40,18 @@ public class AdminToolsTest extends BaseCrudTest {
     @Test
     @Video
     public void clearDatabaseExceptionsTestThanSuccess() throws Exception {
-//        MockitoAnnotations.openMocks(this);
-//        MockitoAnnotations.openMocks(this);
         Mockito.doThrow(new ClassNotFoundException())
                .doCallRealMethod()
         .when(spyAdminToolsService).clearAllDatabaseTable();
-//        AdminToolsService originalAdminToolsService = BeanProvider.getBean(AdminToolsService.class);
-//        BeanProvider.getBean(AdminToolsController.class).setAdminToolsService(adminToolsService);
 
         gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
         Thread.sleep(100);
         gridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
-
         WebElement button = gridTestingUtil.findVisibleElementWithXpath(clearDatabaseButtonXpath);
         button.click();
         gridTestingUtil.checkNotificationText("Clearing database failed for one or more table");
         button.click();
         gridTestingUtil.checkNotificationText("Clearing database was successful");
-//        Mockito.reset(adminToolsService);
-//        BeanProvider.getBean(AdminToolsController.class).setAdminToolsService(originalAdminToolsService);
     }
 
 
