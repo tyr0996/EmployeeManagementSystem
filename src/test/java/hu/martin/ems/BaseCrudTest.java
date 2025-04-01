@@ -1,5 +1,6 @@
 package hu.martin.ems;
 
+import hu.martin.ems.base.selenium.ScreenshotMaker;
 import hu.martin.ems.base.selenium.WebDriverProvider;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.DataProvider;
@@ -51,18 +52,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     protected static DataProvider dp;
     public static String screenshotPath;
 
-//    protected static WebDriver driver;
-    
-    private ThreadLocal<WebDriver> threadLocalWebDriver = new ThreadLocal<>();
-    
-    public void setDriver(WebDriver driver){
-        threadLocalWebDriver.set(driver);
-    }
-    
-    public WebDriver getDriver(){
-        return threadLocalWebDriver.get();
-    }
-
+    protected static WebDriver driver;
 
 
     @SpyBean
@@ -79,8 +69,6 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
     @SpyBean
     public static AdminToolsService spyAdminToolsService;
-
-    ThreadLocal<AdminToolsService> adminToolsServiceThreadLocal = new ThreadLocal<>();
 
     @SpyBean
     protected static EmailSendingService spyEmailSendingService;
@@ -112,6 +100,8 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         
         port = webServerAppCtxt.getWebServer().getPort();
         dp = dataProvider;
+        
+        driver = WebDriverProvider.get();
     }
 
     private void clearFolder(String folderPath){
@@ -170,11 +160,10 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     }
 
     @AfterSuite
-    protected void destroy() throws InterruptedException {
-        //TODO megcsinálni, hogy zárja be.
-//        if(driver != null){
-//            getDriver().quit();
-//        }
+    protected void destroy() {
+        if(driver != null){
+            driver.quit();
+        }
     }
 
     protected void resetRolesAndPermissions(){
@@ -195,24 +184,15 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         JPAConfig.resetCallIndex();
     }
 
-    @BeforeClass(alwaysRun = true)
-    public void beforeClass(){
-        setupBrowser();
-    }
-
-    private void setupBrowser() {
-        setDriver(new WebDriverProvider().get());
-    }
-
     @Override
     public void onTestFailure(ITestResult result) {
         //TODO megcsinálni a fényképezést
-//        Object instance = result.getInstance();
-//        WebDriver instanceDriver = ((BaseCrudTest) instance).getDriver();
-//        GridTestingUtil instanceGridTestingUtil = ((BaseCrudTest) instance).getGridTestingUtil();
-//        if (instanceDriver != null) {
-//            instanceGridTestingUtil.takeScreenshot(instanceDriver);
-//        }
+        Object instance = result.getInstance();
+        WebDriver instanceDriver = ((BaseCrudTest) instance).driver;
+
+        if (instanceDriver != null) {
+            ScreenshotMaker.takeScreenshot(instanceDriver);
+        }
     }
 
     protected void resetUsers() {
@@ -225,12 +205,10 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         JPAConfig.resetCallIndex();
     }
 
-    @AfterClass(alwaysRun = true)
+    @AfterSuite(alwaysRun = true)
     public void afterClass() {
-        WebDriver driver = getDriver();
         if (driver != null) {
             driver.quit();
-            threadLocalWebDriver.remove();
         }
     }
 }

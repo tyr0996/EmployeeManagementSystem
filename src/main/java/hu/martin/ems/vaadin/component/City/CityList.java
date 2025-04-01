@@ -145,11 +145,19 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.cityApi.permanentlyDelete(city.original.getId());
-                Notification.show("City permanently deleted: " + city.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                setupCities();
-                updateGridItems();
+                EmsResponse response = this.cityApi.permanentlyDelete(city.original.getId());
+                switch (response.getCode()){
+                    case 200: {
+                        Notification.show("City permanently deleted: " + city.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        setupCities();
+                        updateGridItems();
+                    }
+                    default: {
+                        Notification.show("City permanently deletion failed: " + response.getDescription());
+                    }
+                }
+
             });
 
             HorizontalLayout actions = new HorizontalLayout();

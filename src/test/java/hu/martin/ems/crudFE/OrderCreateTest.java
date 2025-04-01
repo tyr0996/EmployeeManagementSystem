@@ -1,7 +1,6 @@
 package hu.martin.ems.crudFE;
 
 import com.automation.remarks.testng.UniversalVideoListener;
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.UIXpaths;
@@ -53,25 +52,25 @@ public class OrderCreateTest extends BaseCrudTest {
 
     @BeforeClass
     public void setup() {
-        gridTestingUtil = new GridTestingUtil(getDriver());
+        gridTestingUtil = new GridTestingUtil(driver);
         init();
     }
 
     private void init(){
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, getDriver(), "Order", null, createOrderGridXpath, null);
-        orderElementCrudTestingUtil = new CrudTestingUtil(gridTestingUtil, getDriver(), "OrderElement", orderElementShowDeletedXpath, orderElementGridXpath, orderElementCreateButtonXpath);
+        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "Order", null, createOrderGridXpath, null);
+        orderElementCrudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "OrderElement", orderElementShowDeletedXpath, orderElementGridXpath, orderElementCreateButtonXpath);
     }
 
     @Test
-    @Video
+    
     public void createOrderTest() throws InterruptedException {
         createOrder();
     }
 
     @Test
-    @Video
+    
     public void customerNotSelectedShowPreviouslyGridIsEmptyTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
         int originalRows = gridTestingUtil.countVisibleGridDataRows(createOrderGridXpath);
@@ -89,7 +88,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
     public void createOrder(String notificationText, Boolean requiredSuccess) throws InterruptedException {
         init();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
         Thread.sleep(100);
 
@@ -155,11 +154,11 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void nullResponseFromServiceWhenModify() throws InterruptedException, SQLException {
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 21);
 //         Mockito.doReturn(null).when(spyOrderService).update(any(Order.class));
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         updateOrder("Order modifying failed: Internal Server Error", false);
 //        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
@@ -167,33 +166,33 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void databaseNotAvailableWhenCreate() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyOrderService).save(any(Order.class));
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 95);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         createOrder("Order saving failed: Internal Server Error", false);
         gridTestingUtil.checkNoMoreNotificationsVisible();
     }
 
     @Test
-    @Video
+    
     public void gettingCustomersFailedTest() throws InterruptedException, SQLException {
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
 //        Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben opcionális paraméterként jön.
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         checkField(customerComboBoxXpath, "Error happened while getting customers");
         gridTestingUtil.checkNoMoreNotificationsVisible();
     }
 
     @Test
-    @Video
+    
     public void getOrderElementsByCustomerFailedTest() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyOrderElementService).getByCustomer(any(Long.class));
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         gridTestingUtil.selectRandomFromComboBox(gridTestingUtil.findVisibleElementWithXpath(customerComboBoxXpath));
         Thread.sleep(100);
@@ -202,46 +201,46 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void getPendingCodeStoreFailedTest() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyCodeStoreService).findByName("Pending"); //ApiClint-ben getAllByName("Pending");
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 93);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         createOrder("Error happened while getting \"Pending\" status", false);
     }
 
     @Test
-    @Video
+    
     public void getPaymentTypesFailedTest() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID); //id:7
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         checkField(paymentMethodComboBoxXpath, "Error happened while getting payment methods");
         gridTestingUtil.checkNoMoreNotificationsVisible();
     }
 
     @Test
-    @Video
+    
     public void getCurrencyTypesFailedTest() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID); //id 1
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         checkField(currencyComboBoxXpath, "Error happened while getting currencies");
         gridTestingUtil.checkNoMoreNotificationsVisible();
     }
 
     @Test
-    @Video
+    
     public void updateOrder() throws InterruptedException {
         updateOrder(null, true);
     }
 
     public void updateOrder(String notificationText, Boolean requiredSuccess) throws InterruptedException {
         init();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
         Thread.sleep(100);
         int originalOrderNumber = gridTestingUtil.countVisibleGridDataRows(createOrderGridXpath);
@@ -294,7 +293,7 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void getOrderElementsByOrderIdFailedWhenSaveOrder() throws InterruptedException, SQLException {
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 90);
 //        Mockito.doReturn(null).when(spyOrderService).save(any(Order.class));
@@ -304,12 +303,12 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void noneSelectedFromTheOrderCreationGrid() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         init();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
         Thread.sleep(100);
 
@@ -366,12 +365,12 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void databaseUnavailableWhenGettingAllByCustomer() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         init();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
         Thread.sleep(100);
 
@@ -430,12 +429,12 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         init();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
         Thread.sleep(100);
 
@@ -494,10 +493,10 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void moreThanOneOrderExistsForCustomerEditOne() throws InterruptedException {
         init();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
         Thread.sleep(100);
 
@@ -555,10 +554,10 @@ public class OrderCreateTest extends BaseCrudTest {
 
 
     @Test
-    @Video
+    
     public void noCustomerSelectedButShowPreviouslyEnabledThanGridWillBeIsEmpty() throws InterruptedException {
         init();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_CREATE_SUBMENU);
         Thread.sleep(100);
         assertEquals(gridTestingUtil.countVisibleGridDataRows(orderElementGridXpath), 0);
@@ -567,10 +566,10 @@ public class OrderCreateTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void deselectShowPreviouslyChangesGridSelectionMode() throws InterruptedException {
         init();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_CREATE_SUBMENU);
         Thread.sleep(100);
         assertEquals(gridTestingUtil.countVisibleGridDataRows(orderElementGridXpath), 0);

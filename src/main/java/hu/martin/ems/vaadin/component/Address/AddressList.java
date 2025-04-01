@@ -154,10 +154,19 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.addressApi.permanentlyDelete(address.original.getId());
-                Notification.show("Address permanently deleted: " + address.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                updateGridItems();
+                EmsResponse response = this.addressApi.permanentlyDelete(address.original.getId());
+                switch (response.getCode()){
+                    case 200:{
+                        Notification.show("Address permanently deleted: " + address.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        updateGridItems();
+                        break;
+                    }
+                    default: {
+                        Notification.show("Address permanently deletion failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        break;
+                    }
+                }
             });
 
             HorizontalLayout actions = new HorizontalLayout();

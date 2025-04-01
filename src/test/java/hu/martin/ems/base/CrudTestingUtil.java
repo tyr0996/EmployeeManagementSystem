@@ -33,7 +33,7 @@ public class CrudTestingUtil {
     
     private GridTestingUtil gridTestingUtil;
 
-    public CrudTestingUtil(GridTestingUtil gridTestingUtil,
+    public  CrudTestingUtil(GridTestingUtil gridTestingUtil,
                            WebDriver driver,
                            String className,
                            String showDeletedCheckBoxXpath,
@@ -462,7 +462,6 @@ public class CrudTestingUtil {
             originalInvisibleDeletable = gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath);
             gridTestingUtil.setCheckboxStatus(showOnlyDeletableCheckboxXpath, false);
         }
-
 
         if(originalVisibleDeletable == 0 && originalInvisibleDeletable == 0){
             createTest();

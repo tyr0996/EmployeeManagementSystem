@@ -1,209 +1,205 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.GridTestingUtil;
-import lombok.Getter;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.pages.CityPage;
+import hu.martin.ems.pages.LoginPage;
+import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
+import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
+import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.component.saveOrUpdateDialog.CitySaveOrUpdateDialog;
+import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
-import java.time.Duration;
-import java.util.LinkedHashMap;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CityCrudTest extends BaseCrudTest {
-    private static CrudTestingUtil crudTestingUtil;
-    private static WebDriverWait notificationDisappearWait;
+    @Test
+    public void cityCreateTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
-    @Getter
-    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
-    @Getter
-    private static final String gridXpath = contentXpath + "/vaadin-grid";
-    @Getter
-    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
+        CityPage cityPage = new CityPage(driver, port);
+        DoCreateTestData testResult = cityPage.doCreateTest();
 
-    private static final String subMenu = UIXpaths.CITY_SUBMENU;
-    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-
-    private GridTestingUtil gridTestingUtil;
-
-    
-
-    @BeforeClass
-    public void setup() {
-        gridTestingUtil = new GridTestingUtil(getDriver());
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, getDriver(), "City", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-        notificationDisappearWait = new WebDriverWait(getDriver(), Duration.ofMillis(5000));
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("City saved: ");
     }
 
     @Test
-    @Video
-    public void cityCreateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest();
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+    public void cityReadTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
+
+        CityPage cityPage = new CityPage(driver, port);
+        DoReadTestData testResult = cityPage.doReadTest(null, true);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertNull(testResult.getNotificationWhenPerform());
     }
 
     @Test
-    @Video
-    public void cityReadTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.readTest();
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+    public void cityDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
+
+        CityPage cityPage = new CityPage(driver, port);
+        DoDeleteTestData testResult = cityPage.doDeleteTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("City deleted: ");
+
+        cityPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
+        assertEquals(1, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
+        assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
+        cityPage.getGrid().resetFilter();
     }
 
     @Test
-    @Video
-    public void cityDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.deleteTest();
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+    public void cityUpdateTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
+
+        CityPage cityPage = new CityPage(driver, port);
+        DoUpdateTestData testResult = cityPage.doUpdateTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("City updated: ");
+
+        cityPage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
+        assertEquals(0, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
+        assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
+        cityPage.getGrid().resetFilter();
     }
 
     @Test
-    @Video
-    public void cityUpdateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest();
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+    public void cityRestoreTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
+
+        CityPage cityPage = new CityPage(driver, port);
+        DoRestoreTestData testResult = cityPage.doRestoreTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("City restored: ");
+
+        cityPage = new CityPage(driver, port);
+        cityPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
+        cityPage.getGrid().waitForRefresh();
+        assertEquals(cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 0);
+        assertEquals(cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 1);
+        cityPage.getGrid().resetFilter();
+
     }
 
     @Test
-    @Video
-    public void cityRestoreTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.restoreTest();
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+    public void cityPermanentlyDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
+
+        CityPage cityPage = new CityPage(driver, port);
+        DoPermanentlyDeleteTestData testResult = cityPage.doPermanentlyDeleteTest();
+        assertThat(testResult.getNotificationWhenPerform()).contains("City permanently deleted: ");
+
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        cityPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
+        assertEquals(0, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
+        assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
+        cityPage.getGrid().resetFilter();
     }
 
     @Test
-    @Video
-    public void cityPermanentlyDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.permanentlyDeleteTest();
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+    public void gettingCountryCodesFailed() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
+
+        CityPage cityPage = new CityPage(driver, port);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
+        cityPage.getCreateButton().click();
+
+        CitySaveOrUpdateDialog dialog = new CitySaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
+        assertEquals(failedComponents.size(), 1);
+        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting countries");
     }
 
     @Test
-    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
-    }
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
-//    @Test
-//    public void extraFilterInvalidValue() throws InterruptedException {
-//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        NotificationCheck nc = new NotificationCheck();
-//        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-//        crudTestingUtil.readTest(null, "{invalid json}", true, nc);
-//    }
+        CityPage cityPage = new CityPage(driver, port);
+        DoDeleteFailedTestData testResult = cityPage.doDatabaseNotAvailableWhenDeleteTest(spyDataSource);
 
-
-//    @Test(enabled = false)
-//    public void unexpcetedResponseCodeCreate() throws InterruptedException {
-//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        crudTestingUtil.createNotExpectedStatusCodeSave(spyCityApiClient, City.class);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-//
-//    @Test(enabled = false)
-//    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
-//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        crudTestingUtil.updateNotExpectedStatusCode(spyCityApiClient, City.class);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-
-    @Test
-    @Video
-    public void nullResponseFromServiceWhenModify() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyCityService).update(any(City.class));
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 6);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest(null, "Internal server error", false);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
     }
 
     @Test
-    @Video
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyCityService).save(any(City.class));
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 6);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest(null, "City saving failed", false);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
-    }
+    public void databaseNotAvailableWhilePermanentlyDeleteTest() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
-//    @Test
-//    public void gettingCountriesFailed() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyCodeStoreApiClient).getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
-//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-//        failedFieldData.put("Country code", "Error happened while getting countries");
-//        Thread.sleep(100);
-//
-//        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
+        CityPage cityPage = new CityPage(driver, port);
+        DoPermanentlyDeleteFailedTestData testResult = cityPage.doDatabaseNotAvailableWhenPermanentlyDeleteTest(spyDataSource);
 
-    @Test
-    @Video
-    public void gettingCountriesFailed() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.COUNTRIES_CODESTORE_ID); //id:6
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-        failedFieldData.put("Country code", "Error happened while getting countries");
-        Thread.sleep(100);
-
-        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
-    }
-
-//    @Test
-//    public void gettingCitiesFailed() {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyCityApiClient).findAllWithDeleted();
-//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.checkNotificationText("Getting cities failed");
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-
-    @Test
-    @Video
-    public void gettingCitiesFailed() throws InterruptedException, SQLException {
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-//        Mockito.doReturn(null).when(spyCityService).findAll(true); //ApiClient-ben findAllWithDeleted
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.checkNotificationText("Getting cities failed");
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("City permanently deletion failed: Internal Server Error");
     }
 
     @Test
-    @Video
-    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
+    public void databaseNotAvailableWhenModify() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
+
+        CityPage cityPage = new CityPage(driver, port);
+        DoUpdateFailedTestData testResult = cityPage.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getResult().getNotificationText()).contains("City modifying failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
+    }
+
+    @Test
+    public void databaseNotAvailableWhenCreate() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
+
+        CityPage cityPage = new CityPage(driver, port);
+        DoCreateFailedTestData testResult = cityPage.doDatabaseNotAvailableWhenCreateTest(spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("City saving failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 }

@@ -6,16 +6,14 @@ import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.PaginationData;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.repository.CustomerRepository;
-import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -24,10 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.asserts.SoftAssert;
 
-import javax.naming.OperationNotSupportedException;
 import javax.sql.DataSource;
-import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -121,33 +116,45 @@ public class GridTestingUtil {
         assertEquals(null, notification, "No more notification expected but there was one or more. The last one was \"" + notificationText + "\"");
     }
 
+    @Deprecated
     public WebElement getParent(WebElement element){
         return element.findElement(By.xpath("./.."));
     }
 
+    @Deprecated
     public void loginWith(WebDriver driver, Integer port, String username, String password, boolean requiredSuccess){
-        driver.get("http://localhost:" + port + "/login");
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
-
-        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"input-vaadin-text-field-6\"]")));
-        WebElement passwordField = driver.findElement(By.xpath("//*[@id=\"input-vaadin-password-field-7\"]"));
-        WebElement loginButton = driver.findElement(By.xpath("//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[1]"));
-
-
-        usernameField.sendKeys(username);
-        passwordField.sendKeys(password);
-        loginButton.click();
+        LoginPage.goToLoginPage(driver, port).logIntoApplication(username, password, requiredSuccess);
+//        driver.get("http://localhost:" + port + "/login");
+//        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
+//
+//        WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"input-vaadin-text-field-6\"]")));
+//        WebElement passwordField = driver.findElement(By.xpath("//*[@id=\"input-vaadin-password-field-7\"]"));
+//        WebElement loginButton = driver.findElement(By.xpath("//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[1]"));
+//
+//
+//        usernameField.sendKeys(username);
+//        passwordField.sendKeys(password);
+//        loginButton.click();
 
         if(requiredSuccess){
-            WebDriverWait loginWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebDriverWait loginWait = new WebDriverWait(driver, Duration.ofSeconds(10), Duration.ofMillis(10));
             loginWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"ROOT-2521314\"]/vaadin-horizontal-layout/vaadin-vertical-layout")));
         }
     }
 
+    @Deprecated
     public void loginWith(WebDriver driver, Integer port, String username, String password) throws InterruptedException {
         loginWith(driver, port, username, password, true);
     }
 
+    /**
+     * Use VaadinGridComponent.goToPage() insted
+     * @param gridXpath
+     * @param requiredPageNumber
+     * @return
+     * @throws InterruptedException
+     */
+    @Deprecated
     public WebElement goToPageInPaginatedGrid(String gridXpath, int requiredPageNumber) throws InterruptedException {
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         PaginatorComponents paginatorComponents = new PaginatorComponents(grid, driver, this);
@@ -181,6 +188,7 @@ public class GridTestingUtil {
         return getVisibleGridRow(gridXpath, location.getRowIndex());
     }
 
+    @Deprecated
     public void navigateMenu(String mainUIXpath, String subIXpath) {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         try{
@@ -202,6 +210,7 @@ public class GridTestingUtil {
         js.executeScript("arguments[0].click()", menu);
     }
 
+    @Deprecated
     public int getGridColumnNumber(String gridXpath){
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         WebElement e2 = grid.getShadowRoot().findElement(By.id("scroller"));
@@ -212,6 +221,7 @@ public class GridTestingUtil {
         return headers.size();
     }
 
+    @Deprecated
     public WebElement getVisibleGridRow(String gridXpath, int rowIndex){
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         WebElement e2 = grid.getShadowRoot().findElement(By.id("scroller"));
@@ -224,7 +234,7 @@ public class GridTestingUtil {
         }
         return null;
     }
-
+    @Deprecated
     public PaginationData getGridPaginationData(String gridXpath){
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         WebElement parent = getParent(grid);
@@ -237,18 +247,18 @@ public class GridTestingUtil {
     }
 
 
-
+    @Deprecated
     public WebElement getVisibleGridCell(String gridXpath, int rowIndex, int columnIndex){
         WebElement row = getVisibleGridRow(gridXpath, rowIndex);
         List<WebElement> rowElements = row.findElements(By.xpath(".//td"));
         return rowElements.get(columnIndex);
     }
-
+    @Deprecated
     public WebElement getVisibleGridCell(WebElement row, int columnIndex){
         List<WebElement> rowElements = row.findElements(By.xpath(".//td"));
         return rowElements.get(columnIndex);
     }
-
+    @Deprecated
     public WebElement getDeleteButton(String gridXpath, int rowIndex){
         try{
             WebElement grid = findVisibleElementWithXpath(gridXpath);
@@ -261,7 +271,7 @@ public class GridTestingUtil {
             return null;
         }
     }
-
+    @Deprecated
     public WebElement getModifyButton(String gridXpath, int rowIndex){
         try{
             WebElement grid = findVisibleElementWithXpath(gridXpath);
@@ -274,7 +284,7 @@ public class GridTestingUtil {
             return null;
         }
     }
-
+    @Deprecated
     public WebElement getPermanentlyDeleteButton(String gridXpath, int rowIndex){
         try{
             WebElement grid = findVisibleElementWithXpath(gridXpath);
@@ -287,7 +297,7 @@ public class GridTestingUtil {
             return null;
         }
     }
-
+    @Deprecated
     public WebElement getRestoreButton(String gridXpath, int rowIndex){
         try{
             WebElement grid = findVisibleElementWithXpath(gridXpath);
@@ -305,10 +315,10 @@ public class GridTestingUtil {
         }
     }
 
-
+    @Deprecated
     public WebElement findClickableElementWithXpathWithWaiting(String xpath){
         try{
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(100));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(100), Duration.ofMillis(10));
             WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath)));
             return registerButton;
         }
@@ -318,10 +328,12 @@ public class GridTestingUtil {
     }
 
 
+    @Deprecated
     public WebElement findVisibleElementWithXpath(String xpath, int timeoutInMillis) {
         return findVisibleElementWithXpath(xpath, timeoutInMillis, 500);
     }
 
+    @Deprecated
     public WebElement findVisibleElementWithXpath(String xpath, int timeoutInMillis, int sleepTimeInMillis){
         try {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(timeoutInMillis), Duration.ofMillis(sleepTimeInMillis));
@@ -331,22 +343,12 @@ public class GridTestingUtil {
         }
     }
 
+    @Deprecated
     public WebElement findVisibleElementWithXpath(String xpath) {
         return findVisibleElementWithXpath(xpath, 500);
     }
 
-    public void takeScreenshot(WebDriver driver) {
-        File f = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-        try{
-            String path = "D:\\Fejleszto\\selenium\\screenshotFolder\\" + screenshotId + ".png";
-            FileUtils.copyFile(f, new File(path));
-            logger.info("Screenshot taken. Path: {}", path);
-            screenshotId++;
-        } catch (IOException e) {
-            throw new RuntimeException("Saving screenshot failed! " + e);
-        }
 
-    }
 
     public int countVisibleGridDataRows(String gridXpath) throws InterruptedException {
         WebElement grid = findVisibleElementWithXpath(gridXpath, 200);
@@ -400,6 +402,7 @@ public class GridTestingUtil {
         return e5.stream().filter(v -> v.isDisplayed()).toList().size();
     }
 
+    @Deprecated
     public ElementLocation getRandomLocationFromGrid(String gridXpath) throws InterruptedException {
         int elementNumber = countVisibleGridDataRows(gridXpath);
         Random rnd = new Random();
@@ -575,10 +578,23 @@ public class GridTestingUtil {
         return webElement.findElement(By.tagName("div")).getText();
     }
 
+    /**
+     * Use VaadinBaseComponent.isEnabled instead.
+     * @param element
+     * @return
+     */
+    @Deprecated
     public Boolean isEnabled(WebElement element){
         return element.getDomAttribute("disabled") == null;
     }
 
+    /**
+     * Use VaadinCheckboxComponent.setStatus instead.
+     * @param checkboxXpath
+     * @param selected
+     * @throws InterruptedException
+     */
+    @Deprecated
     public void setCheckboxStatus(String checkboxXpath, boolean selected) throws InterruptedException {
         Boolean checkboxStatus = getCheckboxStatus(checkboxXpath);
         Thread.sleep(100);
@@ -643,7 +659,7 @@ public class GridTestingUtil {
         int i = 0;
         while(comboBoxOptions.size() == 0){
             System.err.println("Nincs elem a combo boxban! ");
-            printToConsole(comboBox);
+//            printToConsole(comboBox);
         }
         if(comboBoxOptions.size() == 1){
             comboBoxOptions.get(0).click();
@@ -838,6 +854,12 @@ public class GridTestingUtil {
     }
 
 
+    /**
+     * Use VaadinMultipleSelectGridComponent.getHeaderFilterInputFields instead.
+     * @param gridXpath
+     * @return
+     */
+    @Deprecated
     public List<WebElement> getHeaderFilterInputFields(String gridXpath){
         WebElement grid = findVisibleElementWithXpath(gridXpath);
         List<WebElement> all = grid.findElements(By.xpath("./*"));
@@ -945,6 +967,7 @@ public class GridTestingUtil {
         js.executeScript("arguments[0].remove();", notification);
     }
 
+    @Deprecated
     public String[] getDataFromRowLocation(String gridXpath, ElementLocation location, Boolean hasOptionColumn) throws InterruptedException {
         int columnNumber =  getGridColumnNumber(gridXpath);
         goToPageInPaginatedGrid(gridXpath, location.getPageNumber());
@@ -966,14 +989,19 @@ public class GridTestingUtil {
         return getDataFromRowLocation(gridXpath, location, true);
     }
 
+    /**
+     * Use VaadinCheckboxComponent.getStatus();
+     * @param checboxXpath
+     * @return
+     */
+    @Deprecated
     public boolean getCheckboxStatus(String checboxXpath){
         return findClickableElementWithXpathWithWaiting(checboxXpath).getDomAttribute("checked") != null;
     }
 
-    public void printToConsole(WebElement e){
-        System.out.println(e.getAttribute("outerHTML"));
-    }
 
+
+    @Deprecated
     public void selectDateFromDatePicker(String datePickerXpath, LocalDate date){
 
         WebElement datePicker = findVisibleElementWithXpath(datePickerXpath);
@@ -993,7 +1021,13 @@ public class GridTestingUtil {
         return LocalDate.parse(value, DateTimeFormatter.ofPattern(dateFormat));
     }
 
-
+    /**
+     * Use VaadinMultipleSelectGridComponent.selectElements instead.
+     * @param gridXpath
+     * @param indexesToBeSelected
+     * @throws InterruptedException
+     */
+    @Deprecated
     private void selectElementsFromMultipleSelectionGrid(String gridXpath, List<Integer> indexesToBeSelected) throws InterruptedException {
         findVisibleElementWithXpath(gridXpath);
         int rows = countVisibleGridDataRows(gridXpath);
@@ -1009,6 +1043,13 @@ public class GridTestingUtil {
         }
     }
 
+    /**
+     * Use VaadinMultipleSelectGridComponent.selectElements instead.
+     * @param gridXpath
+     * @param selectElementNumber
+     * @throws InterruptedException
+     */
+    @Deprecated
     public void selectMultipleElementsFromMultibleSelectionGrid(String gridXpath, int selectElementNumber) throws InterruptedException {
         int gridRows = countVisibleGridDataRows(gridXpath);
         deselectAllFromGrid(gridXpath);
@@ -1029,10 +1070,8 @@ public class GridTestingUtil {
         Thread.sleep(1);
     }
 
+    @Deprecated
     public List<Integer> getRandomIndexes(int max, int count) {
-        List<Integer> selectedElements = new ArrayList<>();
-        Random random = new Random();
-
         List<Integer> numbers = new ArrayList<>();
         for (int i = 0; i < max; i++) {
             numbers.add(i);
@@ -1040,36 +1079,8 @@ public class GridTestingUtil {
         if (count > max) {
             return numbers;
         }
-        Collections.shuffle(numbers, random);
+        Collections.shuffle(numbers, new Random());
         return numbers.subList(0, count);
     }
 
-    private class ResultSetAnswer implements Answer {
-
-        private final List<Map<String, Object>> values;
-        private int index = -1;
-
-        public ResultSetAnswer(List<Map<String, Object>> values) {
-            this.values = values;
-        }
-
-        @Override
-        public Object answer(InvocationOnMock invocation) throws Throwable {
-            if (invocation.getMethod().getName().equals("next"))
-                return next();
-
-            if (invocation.getMethod().getName().equals("getObject"))
-                return getObject(invocation.getArgument(0));
-            throw new OperationNotSupportedException();
-        }
-
-        private Object getObject(String column) {
-            return values.get(index).get(column);
-        }
-
-        private boolean next() {
-            index++;
-            return index < values.size();
-        }
-    }
 }

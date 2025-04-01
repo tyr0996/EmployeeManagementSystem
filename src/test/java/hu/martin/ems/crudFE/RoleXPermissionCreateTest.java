@@ -1,94 +1,70 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.testng.UniversalVideoListener;
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.GridTestingUtil;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.*;
+import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.pages.AccessManagementHeader;
+import hu.martin.ems.pages.LoginPage;
+import hu.martin.ems.pages.RoleXPermissionPage;
+import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
+import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
-import java.time.Duration;
 import java.util.Arrays;
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Listeners(UniversalVideoListener.class)
 public class RoleXPermissionCreateTest extends BaseCrudTest {
-
-    private static CrudTestingUtil crudTestingUtil;
-    private static WebDriverWait notificationDisappearWait;
-
-
-    //Ezek nem tudom, hogy mire kellenek
-    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout[2]/vaadin-checkbox";
-    private static final String gridXpath = contentXpath + "/vaadin-grid";
-    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout[2]/vaadin-button";
-    private static final String rolesButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[1]";
-    private static final String permissionsButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[2]";
-    private static final String roleXPermisisonPairingButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[3]";
-
-    private static final String roleDropboxXpath = contentXpath + "/vaadin-form-layout/vaadin-combo-box";
-    private static final String permissionsMultiselectComboBoxXpath = contentXpath + "/vaadin-form-layout/vaadin-multi-select-combo-box";
-
-    private static final String saveButtonXpath = contentXpath + "/vaadin-form-layout/vaadin-button";
-
-    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-    private static final String subMenu = UIXpaths.ACESS_MANAGEMENT_SUBMENU;
-
-    private GridTestingUtil gridTestingUtil;
-
-    
-
-    @BeforeClass
-    public void setup() {
-        gridTestingUtil = new GridTestingUtil(getDriver());
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, getDriver(), "Permission", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-        notificationDisappearWait = new WebDriverWait(getDriver(), Duration.ofMillis(5000));
-    }
-
     @BeforeMethod
     public void beforeMethod(){
         resetRolesAndPermissions();
     }
 
-    public void createRoleXPermissionTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
-        Thread.sleep(100);
-        gridTestingUtil.fillElementWith(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath), false, "");
-        gridTestingUtil.fillElementWith(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath), false, "");
-        gridTestingUtil.findClickableElementWithXpathWithWaiting(saveButtonXpath).click();
-        gridTestingUtil.checkNotificationContainsTexts("Role successfully paired!");
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+    @Test
+    public void createRoleXPermissionTest() {
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
+        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
+        header.getRoleXPermissionButton().click();
+
+        RoleXPermissionPage page = new RoleXPermissionPage(driver, port);
+        page.getRoleComboBox().fillWithRandom();
+        page.getPermissionsComboBox().fillWithRandom();
+        page.getSaveButton().click();
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Role successfully paired!");
+        notification.close();
     }
 
     @Test
-    @Video
-    public void databaseNotAvailableWhenCreateRoleXPermissionFailedTest() throws InterruptedException, SQLException {
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 6);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+    
+    public void databaseNotAvailableWhenCreateRoleXPermissionFailedTest() throws SQLException {
+//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 6);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 6);
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
+        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
+        header.getRoleXPermissionButton().click();
 
-//        Mockito.doReturn(null).when(spyRoleService).update(Mockito.any(Role.class));
-        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
-        Thread.sleep(100);
-        gridTestingUtil.fillElementWith(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath), false, "");
-        gridTestingUtil.fillElementWith(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath), false, "");
-        gridTestingUtil.findClickableElementWithXpathWithWaiting(saveButtonXpath).click();
-        gridTestingUtil.checkNotificationContainsTexts("Role pairing failed!");
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+        RoleXPermissionPage page = new RoleXPermissionPage(driver, port);
+        page.getRoleComboBox().fillWithRandom();
+        page.getPermissionsComboBox().fillWithRandom();
+        page.getSaveButton().click();
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Role pairing failed!");
+        notification.close();
     }
 
 //    @Test
 //    public void notExpectedStatusCodeWhileGettingPariedPermissionsTo() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleXPermissionApiClient).findAllPairedPermissionsTo(any(Role.class));
-//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
 //        Thread.sleep(100);
@@ -102,25 +78,26 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 //    }
 
     @Test
-    @Video
-    public void databaseNotAvailableWhileGettingAllPermissions() throws InterruptedException, SQLException {
+    public void databaseNotAvailableWhileGettingAllPermissions() throws SQLException {
 //        Mockito.doReturn(null).when(spyPermissionService).findAll(false);
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
-        Thread.sleep(100);
-        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), false);
-        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(saveButtonXpath)), false);
-        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "Error happened while getting permissions");
-        gridTestingUtil.fillElementWith(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath), false, "");
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
+        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2);
+        header.getRoleXPermissionButton().click();
+
+        RoleXPermissionPage page = new RoleXPermissionPage(driver, port);
+        assertFalse(page.getPermissionsComboBox().isEnabled());
+        assertFalse(page.getSaveButton().isEnabled());
+        assertTrue(page.getRoleComboBox().isEnabled());
+        assertEquals(page.getPermissionsComboBox().getErrorMessage(), "Error happened while getting permissions");
     }
 
 //    @Test
 //    public void notExpectedStatusCodeWhileGettingAllPermissions() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionApiClient).findAll();
-//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
 //        Thread.sleep(100);
@@ -132,53 +109,77 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 //    }
 
     @Test
-    @Video
-    public void databaseNotAvailableWhileGettingAllRoles() throws InterruptedException, SQLException {
+    public void databaseNotAvailableWhileGettingAllRoles() throws SQLException {
 //        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
-        Thread.sleep(100);
-        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath)), false);
-        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath)), "Error happened while getting roles");
-        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(saveButtonXpath)), false);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+
+
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
+        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 1);
+        header.getRoleXPermissionButton().click();
+
+        RoleXPermissionPage page = new RoleXPermissionPage(driver, port);
+
+        SoftAssert sa = new SoftAssert();
+
+        sa.assertFalse(page.getRoleComboBox().isEnabled(), "Role combo box is not disabled");
+        sa.assertEquals(page.getRoleComboBox().getErrorMessage(), "Error happened while getting roles", "Role combo box's error message doesn't match");
+
+        sa.assertFalse(page.getSaveButton().isEnabled(), "Save button is not disabled");
+        sa.assertTrue(page.getPermissionsComboBox().isEnabled(), "Permission combo box disabled");
+        sa.assertEquals(page.getPermissionsComboBox().getErrorMessage(), "", "Permission combo box has error message");
+
+        sa.assertAll();
     }
 
     @Test
-    @Video
-    public void databaseNotAvailableWhileReturnWhileGettingLoggedInUser() throws InterruptedException, SQLException {
+    public void databaseNotAvailableWhileReturnWhileGettingLoggedInUser() throws SQLException {
 //        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
-        Thread.sleep(100);
-        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath)), false);
-        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath)), "Error happened while getting roles");
-        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(saveButtonXpath)), false);
-        gridTestingUtil.checkNotificationText("Can't get logged in User object");
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
+        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
+        header.getRoleXPermissionButton().click();
+
+        SoftAssert sa = new SoftAssert();
+
+        RoleXPermissionPage page = new RoleXPermissionPage(driver, port);
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification.getText(), "Can't get logged in User object");
+        notification.close();
+
+        sa.assertFalse(page.getRoleComboBox().isEnabled());
+        sa.assertFalse(page.getPermissionsComboBox().isEnabled());
+        sa.assertFalse(page.getSaveButton().isEnabled());
+        sa.assertEquals(page.getRoleComboBox().getErrorMessage(), "");
+        sa.assertEquals(page.getPermissionsComboBox().getErrorMessage(), "");
+
+        sa.assertAll();
     }
 
     @Test
-    @Video
-    public void databaseNotAvailableWhileGettingAllPermissionsAndRoles() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyPermissionService).findAll(false);
-//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-        gridTestingUtil.mockDatabaseNotAvailableWhen(getClass(), spyDataSource, Arrays.asList(2, 3));
+    public void databaseNotAvailableWhileGettingAllPermissionsAndRoles() throws SQLException {
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(3, 4));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
+        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
+        header.getRoleXPermissionButton().click();
 
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
-        Thread.sleep(100);
-        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), false);
-        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath)), false);
-        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "Error happened while getting permissions");
-        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath)), "Error happened while getting roles");
-        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(saveButtonXpath)), false);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+        SoftAssert sa = new SoftAssert();
+
+        RoleXPermissionPage page = new RoleXPermissionPage(driver, port);
+
+
+        sa.assertFalse(page.getRoleComboBox().isEnabled());
+        sa.assertFalse(page.getPermissionsComboBox().isEnabled());
+        sa.assertEquals(page.getRoleComboBox().getErrorMessage(), "Error happened while getting roles");
+        sa.assertEquals(page.getPermissionsComboBox().getErrorMessage(), "Error happened while getting permissions");
+        sa.assertFalse(page.getSaveButton().isEnabled());
+
+        sa.assertAll();
     }
 
     @AfterClass

@@ -1,6 +1,5 @@
 package hu.martin.ems.vaadin.component.Login;
 
-import com.google.gson.Gson;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -25,6 +24,7 @@ import hu.martin.ems.core.model.User;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
+import hu.martin.ems.vaadin.core.EmsDialog;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,9 +56,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
     @Value("${rememberme.key}")
     private String key;
-
-    @Autowired
-    private Gson gson; //TODO: ha jó a random port-os teszt futtatás, akkor ki kell törölni
 
     Logger logger = LoggerFactory.getLogger(User.class);
 
@@ -166,7 +163,14 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private Dialog getRegistrationDialog(Role noRole) {
-        Dialog d = new Dialog("Registration");
+        EmsDialog d = new EmsDialog("Registration");
+        d.addCloseButton();
+
+//        Button closeButton = new Button(new Icon("lumo", "cross"),
+//                (e) -> d.close());
+//        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+//        d.getHeader().add(closeButton);
+
         FormLayout form = new FormLayout();
         TextField userName = new TextField("Username");
         PasswordField password = new PasswordField("Password");

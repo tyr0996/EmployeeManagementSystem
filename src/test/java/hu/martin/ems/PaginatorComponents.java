@@ -6,6 +6,7 @@ import org.openqa.selenium.*;
 
 import java.util.List;
 
+@Deprecated
 public class PaginatorComponents {
     @Getter
     private WebElement firstButton;
@@ -39,8 +40,8 @@ public class PaginatorComponents {
 
     private int lastKnownPageNumber;
     private GridTestingUtil gridTestingUtil;
-    
-    public PaginatorComponents(WebElement grid, WebDriver driver, GridTestingUtil gridTestingUtil) throws InterruptedException {
+
+    public PaginatorComponents(WebElement grid, WebDriver driver, GridTestingUtil gridTestingUtil) {
         this.grid = grid;
         this.driver = driver;
         this.gridTestingUtil = gridTestingUtil;

@@ -1,26 +1,22 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.ElementLocation;
-import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.RandomGenerator;
+import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.date.Date;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.exception.CurrencyException;
 import hu.martin.ems.model.Currency;
+import hu.martin.ems.pages.CurrencyPage;
+import hu.martin.ems.pages.LoginPage;
+import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
+import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import org.mockito.Mockito;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebElement;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
@@ -30,142 +26,132 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.when;
 import static org.testng.AssertJUnit.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CurrencyCrudTest extends BaseCrudTest {
-
-    private static final String datePickerXPath = contentXpath + "/vaadin-date-picker/input";
-
-    private static final String gridXPath = contentXpath + "/vaadin-grid";
-
-    private static final String fetchButtonXpath = contentXpath + "/vaadin-button";
-    private static CrudTestingUtil crudTestingUtil;
-    
-    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-    private static final String subMenu = UIXpaths.CURRENCY_SUBMENU;
-
-
-
-    private GridTestingUtil gridTestingUtil;
-
-    
-
-    @BeforeClass
-    public void setup() {
-        gridTestingUtil = new GridTestingUtil(getDriver());
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, getDriver(), "Product", null, gridXPath, null);
-    }
-
     @Test
-    @Video
-    public void selectDateRetroactively_NotSavedDate() throws InterruptedException {
+    public void selectDateRetroactively_NotSavedDate() {
         clearCurrencyDatabaseTable();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findVisibleElementWithXpath(gridXPath);
-       // gridTestingUtil.checkNotificationText("Fetching exchange rates was successful!");
-        LocalDate today = LocalDate.now();
-        String todayString = today.format(DateTimeFormatter.ofPattern("yyyy. MM. dd"));
-        assertEquals(todayString, gridTestingUtil.findVisibleElementWithXpath(datePickerXPath).getAttribute("value"));
-        Thread.sleep(1000);
-        gridTestingUtil.checkNotificationText("Fetching exchange rates was successful!");
-        assertEquals(162, gridTestingUtil.countVisibleGridDataRows(gridXPath));
-        WebElement datePicker = gridTestingUtil.findVisibleElementWithXpath(datePickerXPath);
-        gridTestingUtil.selectDateFromDatePicker(datePickerXPath, RandomGenerator.generateRandomDate());
-        Thread.sleep(100);
-        gridTestingUtil.checkNotificationText("Exchange rates cannot be downloaded retroactively!");
-        assertEquals(todayString, gridTestingUtil.findVisibleElementWithXpath(datePickerXPath).getAttribute("value"));
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+        CurrencyPage page = new CurrencyPage(driver, port);
+        assertEquals(LocalDate.now(), page.getDatePicker().getDate());
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals("Fetching exchange rates was successful!", notification.getText());
+        notification.close();
+
+        assertEquals(163, page.getGrid().getPaginationData().getTotalElements().intValue());
+        page.getDatePicker().selectDate(RandomGenerator.generateRandomDate());
+
+        VaadinNotificationComponent notificationRetro = new VaadinNotificationComponent(driver);
+        assertEquals("Exchange rates cannot be downloaded retroactively!", notificationRetro.getText());
+        notificationRetro.close();
+
+        assertEquals(LocalDate.now(), page.getDatePicker().getDate());
     }
 
-   // @Test
-    public void tryToEnterAllPossibleGoodDateFormats() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findVisibleElementWithXpath(gridXPath);
-        LocalDate today = LocalDate.now();
-        String todayString = today.format(DateTimeFormatter.ofPattern("yyyy. MM. dd"));
-        assertEquals(todayString, gridTestingUtil.findVisibleElementWithXpath(datePickerXPath).getAttribute("value"));
-        Thread.sleep(1000);
-        assertEquals(162, gridTestingUtil.countVisibleGridDataRows(gridXPath));
-        WebElement datePicker = gridTestingUtil.findVisibleElementWithXpath(datePickerXPath);
-        List<String> generatedDates = Date.generateAllFormatDate(today);
+    @Test(enabled = false)
+    public void tryToEnterAllPossibleGoodDateFormats() {
+        clearCurrencyDatabaseTable();
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+        CurrencyPage page = new CurrencyPage(driver, port);
+        assertEquals(LocalDate.now(), page.getDatePicker().getDate());
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals("Fetching exchange rates was successful!", notification.getText());
+        notification.close();
+
+        LocalDate todayDate = LocalDate.now();
+
+        List<String> generatedDates = Date.generateAllFormatDate(todayDate);
         for(String generatedTodayDate : generatedDates){
-            datePicker.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
-            datePicker.sendKeys(generatedTodayDate);
-            datePicker.sendKeys(Keys.ENTER);
-            assertEquals(todayString, datePicker.getAttribute("value"));
+            page.getDatePicker().clear();
+            page.getDatePicker().selectDate(generatedTodayDate);
+            assertEquals(todayDate, page.getDatePicker().getDate());
         }
     }
 
+
+
     @Test
-    @Video
-    public void checkEuroExistsInGrid() throws InterruptedException {
-        clearCurrencyDatabaseTable();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findVisibleElementWithXpath(gridXPath);
-        Thread.sleep(100);
-        assertEquals(1, gridTestingUtil.countElementResultsFromGridWithFilter(gridXPath,  "EUR", ""));
+    public void checkEuroExistsInGrid() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+        CurrencyPage page = new CurrencyPage(driver, port);
+        page.getGrid().applyFilter("EUR", "");
+        assertEquals(1, page.getGrid().getPaginationData().getTotalElements().intValue());
+        page.getGrid().resetFilter();
+        assertEquals(163, page.getGrid().getPaginationData().getTotalElements().intValue());
     }
 
     @Test
-    @Video
-    public void checkEuroValueExistsInGrid() throws InterruptedException {
+    public void checkEuroValueExistsInGrid() {
         clearCurrencyDatabaseTable();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findVisibleElementWithXpath(gridXPath);
-        Thread.sleep(100);
-        gridTestingUtil.applyFilter(gridXPath, "EUR");
-        String[] eurData = gridTestingUtil.getDataFromRowLocation(gridXPath, new ElementLocation(1, 0), false);
-        gridTestingUtil.resetFilter(gridXPath);
-        assertEquals(1, gridTestingUtil.countElementResultsFromGridWithFilter(gridXPath,  "", eurData[1]));
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+        CurrencyPage page = new CurrencyPage(driver, port);
+        page.getGrid().applyFilter("EUR", "");
+
+        String[] eurData = page.getGrid().getDataFromRowLocation(new ElementLocation(1, 0), false);
+        page.getGrid().resetFilter();
+        page.getGrid().applyFilter(eurData);
+        assertEquals(1, page.getGrid().getPaginationData().getTotalElements().intValue());
     }
 
     @Test
-    @Video
-    public void fetchingCurrenciesFailedThenSuccessTest() throws InterruptedException {
+    public void fetchingCurrenciesFailedThenSuccessTest() {
         clearCurrencyDatabaseTable();
         Object originalCurrency = BeanProvider.getBean(RestTemplate.class).getForObject(fetchingCurrencyApiUrl + baseCurrency, Object.class);
 
         Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).doReturn(originalCurrency).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
 
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findVisibleElementWithXpath(gridXPath);
-        gridTestingUtil.checkNotificationText(EmsResponse.Description.FETCHING_CURRENCIES_FAILED);
-        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXPath));
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+        CurrencyPage page = new CurrencyPage(driver, port);
 
-        Mockito.reset(spyCurrencyService);
+        VaadinNotificationComponent notificationFailed = new VaadinNotificationComponent(driver);
+        assertEquals(EmsResponse.Description.FETCHING_CURRENCIES_FAILED, notificationFailed.getText());
+        notificationFailed.close();
+        assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
 
-        gridTestingUtil.findVisibleElementWithXpath(fetchButtonXpath).click();
-        gridTestingUtil.checkNotificationText("Fetching exchange rates was successful!");
+        page.getFetchButton().click();
+        VaadinNotificationComponent notificationSucc = new VaadinNotificationComponent(driver);
+        assertEquals("Fetching exchange rates was successful!", notificationSucc.getText());
+        notificationSucc.close();
+        assertEquals(163, page.getGrid().getPaginationData().getTotalElements().intValue());
+        page.getFetchButton().click();
 
-        gridTestingUtil.findVisibleElementWithXpath(fetchButtonXpath).click();
-        gridTestingUtil.checkNotificationText("Currencies already fetched");
+        VaadinNotificationComponent notificationAlready = new VaadinNotificationComponent(driver);
+        assertEquals("Currencies already fetched", notificationAlready.getText());
+        notificationAlready.close();
     }
 
     @Test
-    @Video
-    public void fetchingCurrenciesSuccessTest() throws InterruptedException {
+    public void fetchingCurrenciesSuccessTest() {
         clearCurrencyDatabaseTable();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findVisibleElementWithXpath(gridXPath);
-        gridTestingUtil.checkNotificationText("Fetching exchange rates was successful!");
-        assertEquals(true, gridTestingUtil.countVisibleGridDataRows(gridXPath) > 0);
 
-        gridTestingUtil.findVisibleElementWithXpath(fetchButtonXpath).click();
-        gridTestingUtil.checkNotificationText("Currencies already fetched");
-        assertEquals(true, gridTestingUtil.countVisibleGridDataRows(gridXPath) > 0);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+        CurrencyPage page = new CurrencyPage(driver, port);
+        assertEquals(LocalDate.now(), page.getDatePicker().getDate());
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals("Fetching exchange rates was successful!", notification.getText());
+        notification.close();
+        assertEquals(163, page.getGrid().getPaginationData().getTotalElements().intValue());
     }
 
     @Test
-    @Video
-    public void fetchingCurrenciesNotCorrectResponseTest() throws InterruptedException {
+    public void fetchingCurrenciesNotCorrectResponseTest() {
         clearCurrencyDatabaseTable();
         LinkedHashMap<String, Object> badResponse = new LinkedHashMap<>();
         badResponse.put("provider", "not used in my code");
@@ -179,61 +165,57 @@ public class CurrencyCrudTest extends BaseCrudTest {
         Mockito.doReturn(badResponse).doReturn(badResponse).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
 //        Mockito.doReturn(null).when(spyCurrencyService).findByDate(Mockito.any(LocalDate.class));
 
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.findVisibleElementWithXpath(gridXPath);
-        gridTestingUtil.checkNotificationText("Currencies fetched successfully, but the currency server sent bad data");
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+        CurrencyPage page = new CurrencyPage(driver, port);
+        assertEquals(LocalDate.now(), page.getDatePicker().getDate());
 
-        gridTestingUtil.findVisibleElementWithXpath(fetchButtonXpath).click();
-        gridTestingUtil.checkNotificationText("Currencies fetched successfully, but the currency server sent bad data");
+        VaadinNotificationComponent notificationFailed1 = new VaadinNotificationComponent(driver);
+        assertEquals("Currencies fetched successfully, but the currency server sent bad data", notificationFailed1.getText());
+        notificationFailed1.close();
+        assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
+
+        page.getFetchButton().click();
+        VaadinNotificationComponent notificationFailed2 = new VaadinNotificationComponent(driver);
+        assertEquals("Currencies fetched successfully, but the currency server sent bad data", notificationFailed2.getText());
+        notificationFailed2.close();
+        assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
     }
 
     @Test
-    @Video
-    public void nullResponseWhenFetchAndSaveRates() throws InterruptedException, SQLException {
+    public void nullResponseWhenFetchAndSaveRates() throws SQLException {
         clearCurrencyDatabaseTable();
-        gridTestingUtil.mockDatabaseNotAvailableWhen(getClass(), spyDataSource, Arrays.asList(4));
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.checkNotificationText("Internal Server Error");
-        Assert.assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXPath));
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(4));
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+        CurrencyPage page = new CurrencyPage(driver, port);
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals("Internal Server Error", notification.getText());
+        notification.close();
+        assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
     }
 
-    @Test(enabled = false)
-    @Video
-    public void notExpectedStatusCodeWhenFetchAndSaveRates() throws InterruptedException, CurrencyException {
-        clearCurrencyDatabaseTable();
-        when(spyCurrencyService.fetchAndSaveRates()).thenReturn(null);
-        when(spyCurrencyService.findByDate(any(LocalDate.class))).thenReturn(null);
-
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.checkNotificationText("Not expected status-code in fetching currencies");
-        Assert.assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXPath));
-    }
 
     @Test
-    @Video
-    public void databaseNotAvailableWhileFindCurrencyByDate() throws SQLException, InterruptedException {
+    public void databaseNotAvailableWhileFindCurrencyByDate() throws SQLException {
         clearCurrencyDatabaseTable();
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2);
         Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
 
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.checkNotificationContainsTexts("Error happened while getting currencies by date", 2000);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+        CurrencyPage page = new CurrencyPage(driver, port);
 
-        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXPath));
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals("Error happened while getting currencies by date", notification.getText());
+        notification.close();
+        assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
     }
-
-//    @Test
-//    public void jsonProcessingExceptionAfterFetching() throws JsonProcessingException, InterruptedException {
-//        Mockito.doThrow(JsonProcessingException.class).when(spyObjectMapper).readValue(any(String.class), any(Class.class));
-//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        Thread.sleep(100);
-//        gridTestingUtil.checkNotificationText("Currencies fetched successfully, but the currency server sent bad data");
-//    }
 
     private void clearCurrencyDatabaseTable(){
         List<Currency> currentCurrencies = spyCurrencyService.findAll(false);

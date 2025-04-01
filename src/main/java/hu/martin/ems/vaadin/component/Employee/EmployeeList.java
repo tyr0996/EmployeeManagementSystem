@@ -137,11 +137,20 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.employeeApi.permanentlyDelete(employee.original.getId());
-                Notification.show("Employee permanently deleted: " + employee.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                setupEmployees();
-                updateGridItems();
+                EmsResponse response = this.employeeApi.permanentlyDelete(employee.original.getId());
+                switch (response.getCode()){
+                    case 200:
+                        Notification.show("Employee permanently deleted: " + employee.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        setupEmployees();
+                        updateGridItems();
+                        break;
+                    default:
+                        Notification.show("Employee permanently deletion failed: " + response.getDescription())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        setupEmployees();
+                        updateGridItems();
+                }
             });
 
             HorizontalLayout actions = new HorizontalLayout();

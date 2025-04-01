@@ -38,6 +38,7 @@ public class RoleXPermissionCreate extends AccessManagement {
     private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
     private final SecurityService securityService = BeanProvider.getBean(SecurityService.class);
     private final UserApiClient userApiClient = BeanProvider.getBean(UserApiClient.class);
+    private User loggedInUser;
     List<Role> roleList;
     List<Permission> permissionList;
     Button saveButton;
@@ -52,9 +53,20 @@ public class RoleXPermissionCreate extends AccessManagement {
 
     public FormLayout buildFormLayout() {
         FormLayout formLayout = new FormLayout();
+        ComboBox<Role> roleComboBox = null;
+        MultiSelectComboBox<Permission> permissionComboBox = null;
+        loggedInUser = getLoggedInUser();
+        if(loggedInUser != null){
+            roleComboBox = createRoleComboBox();
+            permissionComboBox = createPermissionComboBox(roleComboBox);
+        }
+        else{
+            roleComboBox = new ComboBox<>("Role");
+            permissionComboBox = new MultiSelectComboBox<>("Permission");
+            roleComboBox.setEnabled(false);
+            permissionComboBox.setEnabled(false);
+        }
 
-        ComboBox<Role> roleComboBox = createRoleComboBox();
-        MultiSelectComboBox<Permission> permissionComboBox = createPermissionComboBox(roleComboBox);
         saveButton = createSaveButton(roleComboBox, permissionComboBox);
 
         formLayout.add(roleComboBox, permissionComboBox, saveButton);
@@ -82,24 +94,25 @@ public class RoleXPermissionCreate extends AccessManagement {
         switch (response.getCode()){
             case 200:
                 roleList = (List<Role>) response.getResponseData();
-                EmsResponse e = userApiClient.findByUsername(securityService.getAuthenticatedUser().getUsername());
-                switch (e.getCode()){
-                    case 200: {
-                        User loggedInUser = (User) e.getResponseData();
-                        roleList.remove(loggedInUser.getRoleRole());
-                        break;
-                    }
-                    default: {
-                        roleList = null;
-                        logger.error("Can't get logged in User object");
-                        Notification.show("Can't get logged in User object").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
-                }
                 break;
             default:
                 roleList = null;
                 logger.error("Role findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
+        }
+    }
+
+    private User getLoggedInUser(){
+        EmsResponse e = userApiClient.findByUsername(securityService.getAuthenticatedUser().getUsername());
+        switch (e.getCode()){
+            case 200: {
+                return (User) e.getResponseData();
+            }
+            default: {
+                logger.error("Can't get logged in User object");
+                Notification.show("Can't get logged in User object").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return null;
+            }
         }
     }
 
@@ -140,7 +153,7 @@ public class RoleXPermissionCreate extends AccessManagement {
 
     private Button createSaveButton(ComboBox<Role> roleComboBox, MultiSelectComboBox<Permission> permissionComboBox) {
         Button saveButton = new Button("Save");
-        if(roleList == null || permissionList == null){
+        if(!roleComboBox.isEnabled() || !permissionComboBox.isEnabled()){
             saveButton.setEnabled(false);
         }
 

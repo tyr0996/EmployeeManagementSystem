@@ -1,164 +1,214 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.GridTestingUtil;
-import lombok.Getter;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import hu.martin.ems.pages.CodeStorePage;
+import hu.martin.ems.pages.LoginPage;
+import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
+import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.sql.SQLException;
-import java.time.Duration;
+import java.util.LinkedHashMap;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CodeStoreCrudTest extends BaseCrudTest {
-    private static CrudTestingUtil crudTestingUtil;
-    private static WebDriverWait notificationDisappearWait;
+    @Test
+    public void codeStoreCreateTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
-    @Getter
-    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
-    @Getter
-    private static final String gridXpath =                contentXpath + "/vaadin-grid";
-    @Getter
-    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Deletable", true);
+        DoCreateTestData testResult = codeStorePage.doCreateTest(withData);
 
-    @Getter
-    private static final String showOnlyDeletableCodeStores = contentXpath + "/vaadin-checkbox";
-
-
-    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-    private static final String subMenu = UIXpaths.CODESTORE_SUBMENU;
-    private GridTestingUtil gridTestingUtil;
-
-    
-
-    @BeforeClass
-    public void setup() {
-        gridTestingUtil = new GridTestingUtil(getDriver());
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, getDriver(), "CodeStore", showDeletedCheckBoxXpath, gridXpath, createButtonXpath, showOnlyDeletableCodeStores);
-        notificationDisappearWait = new WebDriverWait(getDriver(), Duration.ofMillis(5000));
+        Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore saved: ");
     }
 
     @Test
-    @Video
-    public void codestoreCreateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest();
+    public void codeStoreReadTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
+
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+        DoReadTestData testResult = codeStorePage.doReadTest(null, true);
+
+        Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertNull(testResult.getNotificationWhenPerform());
     }
 
     @Test
-    @Video
-    public void codestoreReadTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.readTest();
+    public void codeStoreDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
+
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+
+        LinkedHashMap<String, Object> withDataCreate = new LinkedHashMap<>();
+        withDataCreate.put("Deletable", true);
+
+        DoDeleteTestData testResult = codeStorePage.doDeleteTest();
+
+        Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
+        Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
+        Assert.assertEquals(testResult.getNonDeletedRowNumberOnlyDeletableAfterMethod(), testResult.getOriginalNonDeletedOnlyDeletable() - 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("Codestore deleted: ");
+
+        codeStorePage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
+        Assert.assertEquals(1, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
+        Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
+        codeStorePage.getGrid().resetFilter();
     }
 
     @Test
-    @Video
-    public void codestoreDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.deleteTest();
+    public void codeStoreUpdateTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
+
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Deletable", true);
+        DoUpdateTestData testResult = codeStorePage.doUpdateTest(withData, withData);
+
+        Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore updated: ");
+
+        codeStorePage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
+        Assert.assertEquals(0, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
+        Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
+        codeStorePage.getGrid().resetFilter();
     }
 
     @Test
-    @Video
-    public void codestoreUpdateTest() throws InterruptedException, IOException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest(null, null, true, showOnlyDeletableCodeStores);
-        resetDatabase();
+    public void codeStoreRestoreTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
+
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+        DoRestoreTestData testResult = codeStorePage.doRestoreTest();
+
+        Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore restored: ");
+
+        codeStorePage = new CodeStorePage(driver, port);
+        codeStorePage.getGrid().applyFilter(testResult.getResult().getRestoredData());
+        codeStorePage.getGrid().waitForRefresh();
+        Assert.assertEquals(codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
+        Assert.assertEquals(codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 1);
+        codeStorePage.getGrid().resetFilter();
+
     }
 
     @Test
-    @Video
-    public void codestoreRestoreTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.restoreTest();
+    public void codeStorePermanentlyDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
+
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+        DoPermanentlyDeleteTestData testResult = codeStorePage.doPermanentlyDeleteTest();
+        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore permanently deleted: ");
+
+
+        Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        codeStorePage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
+        Assert.assertEquals(0, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
+        Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
+        codeStorePage.getGrid().resetFilter();
     }
 
-    @Test
-    @Video
-    public void codestorePermanentlyDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.permanentlyDeleteTest();
-    }
-
-//    @Test(enabled = false)
-//    public void unexpcetedResponseCodeCreate() throws InterruptedException {
-//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        crudTestingUtil.createNotExpectedStatusCodeSave(spyCodeStoreApiClient, CodeStore.class);
-//    }
+//    @Test
+//    public void gettingCountryCodesFailed() throws SQLException {
+//        EmptyLoggedInVaadinPage loggedInPage =
+//                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+//        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 //
-//    @Test(enabled = false)
-//    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
-//        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        crudTestingUtil.updateNotExpectedStatusCode(spyCodeStoreApiClient, CodeStore.class, showOnlyDeletableCodeStores);
+//        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+//        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 1);
+//        codeStorePage.getCreateButton().click();
+//
+//        CodeStoreSaveOrUpdateDialog dialog = new CodeStoreSaveOrUpdateDialog(driver);
+//        dialog.initWebElements();
+//        List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
+//        Assert.assertEquals(failedComponents.size(), 1);
+//        Assert.assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting countries");
 //    }
 
     @Test
-    @Video
-    public void nullResponseFromServiceWhenModify() throws InterruptedException, SQLException {
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-//        Mockito.doReturn(null).when(spyCodeStoreService).update(any(CodeStore.class));
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest(null, "Codestore modifying failed: internal server error", false, showOnlyDeletableCodeStores);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
-    }
-
-    @Test
-    @Video
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyCodeStoreService).save(any(CodeStore.class));
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest(null, "CodeStore saving failed", false);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
-    }
-
-    @Test
-    @Video
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
-    }
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+        DoDeleteFailedTestData testResult = codeStorePage.doDatabaseNotAvailableWhenDeleteTest(spyDataSource);
 
-    @Test
-    @Video
-    public void gettingAllCodeStoresFailed() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyCodeStoreService).findAll(true);
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        Thread.sleep(100);
-        gridTestingUtil.checkNotificationText("Error happened while getting codestores");
-        gridTestingUtil.checkNoMoreNotificationsVisible();
-        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXpath));
-        assertEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+        Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
     }
 
     @Test
-    @Video
-    public void databaseUnavailableWhenSavingCodeStore() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
+    public void databaseNotAvailableWhilePermanentlyDeleteTest() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
+
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+        DoPermanentlyDeleteFailedTestData testResult = codeStorePage.doDatabaseNotAvailableWhenPermanentlyDeleteTest(spyDataSource);
+
+        Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore permanently deletion failed: Internal Server Error");
+    }
+
+    @Test
+    public void databaseNotAvailableWhenModify() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
+
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Deletable", true);
+        DoUpdateFailedTestData testResult = codeStorePage.doDatabaseNotAvailableWhenUpdateTest(withData, null, spyDataSource);
+
+        Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getResult().getNotificationText()).contains("CodeStore modifying failed: Internal Server Error");
+        Assert.assertEquals(0, testResult.getResult().getFailedFields().size());
+    }
+
+    @Test
+    public void databaseNotAvailableWhenCreate() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
+
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+        DoCreateFailedTestData testResult = codeStorePage.doDatabaseNotAvailableWhenCreateTest(spyDataSource);
+
+        Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore saving failed: Internal Server Error");
+        Assert.assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 }

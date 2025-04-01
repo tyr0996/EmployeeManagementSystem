@@ -22,7 +22,7 @@ import static org.testng.Assert.assertEquals;
 public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
 
     @Test
-    @Video
+    
     public void getIDSeqNameTest(){
         assertEquals("role_id_seq", dp.getIDSequenceName("role"));
         assertEquals("permission_id_seq", dp.getIDSequenceName("permission"));
@@ -31,7 +31,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void testSqlFileCount() {
         Integer sqlFileCount = fileCountInFolder(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH, ".sql");
         Integer jsonFileCount = fileCountInFolder(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH, ".json");
@@ -50,7 +50,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void testSqlGenerationFromJson(){
         String generatedSql = dp.generateSqlFromJson(new File(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
         assertEquals(generatedSql,
@@ -59,7 +59,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void mergeMapsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         LinkedHashMap<String, List<String>> a = new LinkedHashMap<>();
         a.put("deleted", Arrays.asList("0", "1"));
@@ -77,7 +77,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void equalsTest(){
         TestVO a = new TestVO(2, 0);
         TestVO b = new TestVO(2, 1);

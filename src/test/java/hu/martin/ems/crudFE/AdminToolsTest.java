@@ -1,58 +1,52 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.GridTestingUtil;
+import hu.martin.ems.pages.AdminToolsPage;
+import hu.martin.ems.pages.LoginPage;
+import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
+import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.openqa.selenium.WebElement;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+import static org.testng.Assert.assertEquals;
+
 public class AdminToolsTest extends BaseCrudTest {
 
-    private GridTestingUtil gridTestingUtil;
-
-
-    @BeforeClass
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-        gridTestingUtil = new GridTestingUtil(getDriver());
-        new CrudTestingUtil(gridTestingUtil, getDriver(), null, null, null, null);
-    }
-
-    private static String clearDatabaseButtonXpath = contentXpath + "/vaadin-button";
-
     @Test
-    @Video
-    public void clearDatabaseTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
-        WebElement button = gridTestingUtil.findVisibleElementWithXpath(clearDatabaseButtonXpath);
-        button.click();
-        gridTestingUtil.checkNotificationText("Clearing database was successful");
+    public void clearDatabaseTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponent.getText(), "Clearing database was successful");
+        notificationComponent.close();
     }
 
     @Test
-    @Video
     public void clearDatabaseExceptionsTestThanSuccess() throws Exception {
         Mockito.doThrow(new ClassNotFoundException())
                .doCallRealMethod()
         .when(spyAdminToolsService).clearAllDatabaseTable();
 
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        Thread.sleep(100);
-        gridTestingUtil.navigateMenu(UIXpaths.ADMIN_MENU, UIXpaths.ADMINTOOLS_SUB_MENU);
-        WebElement button = gridTestingUtil.findVisibleElementWithXpath(clearDatabaseButtonXpath);
-        button.click();
-        gridTestingUtil.checkNotificationText("Clearing database failed for one or more table");
-        button.click();
-        gridTestingUtil.checkNotificationText("Clearing database was successful");
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponentFail = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponentFail.getText(), "Clearing database failed for one or more table");
+        notificationComponentFail.close();
+
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponentSucc = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponentSucc.getText(), "Clearing database was successful");
+        notificationComponentSucc.close();
     }
-
-
 }

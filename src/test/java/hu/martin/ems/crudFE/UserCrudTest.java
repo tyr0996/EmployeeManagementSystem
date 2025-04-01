@@ -1,7 +1,6 @@
 package hu.martin.ems.crudFE;
 
 import com.automation.remarks.testng.UniversalVideoListener;
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
@@ -36,9 +35,9 @@ public class UserCrudTest extends BaseCrudTest {
 
     @BeforeClass
     public void setup() {
-        gridTestingUtil = new GridTestingUtil(getDriver());
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, getDriver(), "User", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-        notificationDisappearWait = new WebDriverWait(getDriver(), Duration.ofMillis(5000));
+        gridTestingUtil = new GridTestingUtil(driver);
+        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "User", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
+        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
     }
 
     @BeforeMethod
@@ -47,92 +46,92 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/addresses.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void userCreateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
         
     }
 
     @Test
-    @Video
+    
     public void useReadTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.readTest();
         
     }
 
     @Test
-    @Video
+    
     public void userDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
         
     }
 
     @Test
-    @Video
+    
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
 //            gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 10);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
         
     }
 
     @Test
-    @Video
+    
     public void userUpdateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest();
         
     }
 
     @Test
-    @Video
+    
     public void databaseNotAvailableWhenGettingLoggedInUser() throws InterruptedException, SQLException {
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         gridTestingUtil.checkNotificationText("Error happened while getting the logged in user. Deletion and modification is disabled");
     }
 
     @Test
-    @Video
+    
     public void databaseNotAvailableWhenGettingAllUser() throws InterruptedException, SQLException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 1);
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         gridTestingUtil.checkNotificationText("Getting users failed");
     }
 
     @Test
-    @Video
+    
     public void userRestoreTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.restoreTest();
         
     }
 
     @Test
-    @Video
+    
     public void userPermanentlyDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
         
     }
 
     @Test
-    @Video
+    
     public void createUserAllreadyExists() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Username", "admin");
@@ -141,9 +140,9 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void modifyUserAllreadyExists() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Username", "robi");
@@ -156,9 +155,9 @@ public class UserCrudTest extends BaseCrudTest {
 
 
     @Test
-    @Video
+    
     public void createUserPasswordDoesntMatch() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Password", "asdf");
@@ -168,9 +167,9 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void updateUserEmptyPassword() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
          gridTestingUtil.navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Password", "");
@@ -180,9 +179,9 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void updateUserPasswordDouesntMatch() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Password", "asdf");
@@ -194,7 +193,7 @@ public class UserCrudTest extends BaseCrudTest {
 
     //@Test
     public void extraFilterInvalidValue() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
@@ -204,11 +203,11 @@ public class UserCrudTest extends BaseCrudTest {
 
 
     @Test
-    @Video
+    
     public void finalAllWithDeletedUnexpectedResponse() throws InterruptedException, SQLException {
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
 //        Mockito.doReturn(null).when(spyUserService).findAll(true); //ApiClient-ben.findAllWithDeleted();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         Thread.sleep(500);
         gridTestingUtil.checkNotificationText("Getting users failed");
@@ -217,9 +216,9 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void updateUserButUsernameNotChanged() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> withData = new LinkedHashMap<>();
         withData.put("Username", "robi");
@@ -230,11 +229,11 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void databaseNotAvailableWhenFindAllRole() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyRoleService).findAll(false);
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         Thread.sleep(500);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -245,29 +244,29 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
+    
     public void databaseUnavailableWhenGetAllUser() throws SQLException, InterruptedException {
         JPAConfig.resetCallIndex();
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
 //        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         gridTestingUtil.checkNotificationText("Getting users failed");
 //        crudTestingUtil.databaseUnavailableWhenGetAllEntity(this.getClass(), spyDataSource, port, mainMenu, subMenu, "users");
     }
 
     @Test
-    @Video
+    
     public void databaseUnavailableWhenSavingUser() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 1);
     }
 
     @Test
-    @Video
+    
     public void databaseUnavailableWhenUpdateUser() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "admin");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseUnavailableWhenUpdateEntity(spyDataSource, null, null, 1);
     }

@@ -53,8 +53,8 @@ public class CurrencyList extends VerticalLayout {
 
     Grid.Column<CurrencyVO> nameColumn;
     Grid.Column<CurrencyVO> valColumn;
-    private static String nameFilterText = "";
-    private static String valFilterText = "";
+    private String nameFilterText = "";
+    private String valFilterText = "";
 
     private DatePicker datePicker;
     Logger logger = LoggerFactory.getLogger(CurrencyList.class);
@@ -202,7 +202,7 @@ public class CurrencyList extends VerticalLayout {
     }
 
     @NeedCleanCoding
-public class CurrencyVO {
+    public class CurrencyVO {
         private String name;
         private String val;
 

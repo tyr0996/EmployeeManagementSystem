@@ -150,7 +150,7 @@ public abstract class EmsApiClient<T> {
                 .block();
     }
 
-    public void permanentlyDelete(Long entityId){
+    public EmsResponse permanentlyDelete(Long entityId){
         WebClient webClientCsrf = webClientProvider.initCsrfWebClient(entityName);
         try{
             String response = webClientCsrf.delete()
@@ -158,10 +158,12 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
+            return new EmsResponse(200, "");
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - permanently delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
             //TODO
         }
     }

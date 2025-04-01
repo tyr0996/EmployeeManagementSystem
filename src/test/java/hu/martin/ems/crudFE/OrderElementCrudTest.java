@@ -1,29 +1,33 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.testng.UniversalVideoListener;
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
-import hu.martin.ems.base.NotificationCheck;
+import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.pages.LoginPage;
+import hu.martin.ems.pages.OrderCreatePage;
+import hu.martin.ems.pages.OrderElementPage;
+import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
+import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.component.saveOrUpdateDialog.OrderElementSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.doTestData.*;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.testng.Assert.assertNotEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.Assert.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Listeners(UniversalVideoListener.class)
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//@Listeners(UniversalVideoListener.class)
 public class OrderElementCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
@@ -43,179 +47,336 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
     @BeforeClass
     public void setup() {
-        gridTestingUtil = new GridTestingUtil(getDriver());
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, getDriver(), "OrderElement", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-        notificationDisappearWait = new WebDriverWait(getDriver(), Duration.ofMillis(5000));
+        gridTestingUtil = new GridTestingUtil(driver);
+        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "OrderElement", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
+        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
         orderCreateTest = new OrderCreateTest();
     }
 
     @Test
-    @Video
-    public void orderElementCreateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest();
+    public void orderElementCreateTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+        DoCreateTestData testResult = page.doCreateTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saved: ");
     }
 
     @Test
-    @Video
-    public void orderElementReadTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        List<String[]> allFullLines = crudTestingUtil.getAllDataLinesFull();
-        List<String[]> allNonOrderedLines = crudTestingUtil.getAllDataLinesWithEmpty();
+    public void orderElementReadTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+
+
+
+
+
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+        List<String[]> allFullLines = page.getGrid().getAllFullLines(true);
+        List<String[]> allNonOrderedLines = page.getGrid().getAllLackingLines(true);
         while(allFullLines.size() == 0){
-            orderCreateTest.createOrder();
-            gridTestingUtil.navigateMenu(mainMenu, subMenu);
-            allFullLines = crudTestingUtil.getAllDataLinesFull();
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+            OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
+            orderCreatePage.performCreate(null);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+            allFullLines = page.getGrid().getAllFullLines(true);
+
+//            orderCreateTest.createOrder();
+//            gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//            allFullLines = crudTestingUtil.getAllDataLinesFull();
         }
 
         while(allNonOrderedLines.size() == 0) {
-            orderElementCreateTest();
-            gridTestingUtil.navigateMenu(mainMenu, subMenu);
-            allNonOrderedLines = crudTestingUtil.getAllDataLinesWithEmpty();
+            page.performCreate(null);
+            allNonOrderedLines = page.getGrid().getAllLackingLines(true);
+//            orderElementCreateTest();
+//            gridTestingUtil.navigateMenu(mainMenu, subMenu); //TODO: itt volt egy ilyen navigate, amit nem értek, hogy miért kell.
+//            allNonOrderedLines = crudTestingUtil.getAllDataLinesWithEmpty();
         }
 
         Collections.shuffle(allFullLines);
         Collections.shuffle(allNonOrderedLines);
 
-        crudTestingUtil.readTest(allFullLines.get(0), null, false, null);
-        crudTestingUtil.readTest(allNonOrderedLines.get(0), null, false, null);
+        SoftAssert sa = new SoftAssert();
+
+//        crudTestingUtil.readTest(allFullLines.get(0), null, false, null);
+        page.getGrid().applyFilter(allFullLines.get(0));
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        page.getGrid().resetFilter();
+
+        page.getGrid().applyFilter(allNonOrderedLines.get(0));
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        page.getGrid().resetFilter();
+
+        sa.assertAll();
+
+//        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+//        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+//        assertNull(testResult.getNotificationWhenPerform());
+//        crudTestingUtil.readTest(allNonOrderedLines.get(0), null, false, null);
     }
 
     @Test
-    @Video
-    public void orderElementDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.deleteTest();
-    }
+    public void orderElementDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+
+        DoDeleteTestData testResult = page.doDeleteTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement deleted: ");
+
+        page.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
+        assertEquals(1, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        page.getGrid().resetFilter();
 
 
-    @Test
-    @Video
-    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
-    }
-
-    @Test
-    @Video
-    //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/products.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    public void orderElementUpdateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest();
-    }
-
-    @Test
-    @Video
-    public void orderElementRestoreTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.restoreTest();
-    }
-
-    @Test
-    @Video
-    public void orderElementPermanentlyDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.permanentlyDeleteTest();
-    }
-
-    //@Test
-    public void extraFilterInvalidValue() throws InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        NotificationCheck nc = new NotificationCheck();
-        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+//
+//
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.deleteTest();
     }
 
 
     @Test
-    @Video
-    public void findAllOrderElementWithDeletedFailedButWithoutIsSuccess() throws InterruptedException, SQLException {
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-//        Mockito.doReturn(null).when(spyOrderElementService).findAll(true); //ApiClientben findAllWithDeleted();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        int elements =  gridTestingUtil.countVisibleGridDataRows(gridXpath);
-        assertNotEquals(0, elements);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
-        gridTestingUtil.findVisibleElementWithXpath(showDeletedCheckBoxXpath).click();
-        Thread.sleep(100);
-        gridTestingUtil.checkNotificationText("Getting order elements failed");
-        assertNotEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath)); //Ez azért hal meg, mert nincs törölt elem a sima futáskor. Viszont ha az egészet futtatom, akkor viszont van törölt elem.
-        assertEquals(elements, gridTestingUtil.countVisibleGridDataRows(gridXpath));
+    public void databaseNotAvailableWhileDeleteTest() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+
+        DoDeleteFailedTestData testResult = page.doDatabaseNotAvailableWhenDeleteTest(spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
     }
 
     @Test
-    @Video
-    public void findAllOrderElementWithAndWithoutFailed() throws InterruptedException, SQLException {
-        gridTestingUtil.mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
-//        Mockito.doReturn(null).when(spyOrderElementService).findAll(true); //ApiClientben findAllWithDeleted();
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.checkNotificationText("Error happened while getting order elements");
-        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXpath));
-        assertEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath, "Getting order elements failed"));
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+    public void orderElementUpdateTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+
+        DoUpdateTestData testResult = page.doUpdateTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement updated: ");
+
+        page.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
+        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        page.getGrid().resetFilter();
     }
 
     @Test
-    @Video
-    public void findAllSuppliersFailed() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spySupplierService).findAll(false);//Controllerben alapértelmezett
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-        failedFieldData.put("Supplier", "Error happened while getting suppliers");
-        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+    public void orderElementRestoreTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+        DoRestoreTestData testResult = page.doRestoreTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement restored: ");
+
+        page = new OrderElementPage(driver, port);
+        page.getGrid().applyFilter(testResult.getResult().getRestoredData());
+        page.getGrid().waitForRefresh();
+        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+        page.getGrid().resetFilter();
+//
+//
+//
+//
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.restoreTest();
     }
 
     @Test
-    @Video
-    public void findAllCustomersFailed() throws InterruptedException, SQLException {
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-//        Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben alapértelmezett
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-        failedFieldData.put("Customer", "Error happened while getting customers");
+    public void orderElementPermanentlyDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
 
-        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+        OrderElementPage page = new OrderElementPage(driver, port);
+
+        DoPermanentlyDeleteTestData testResult = page.doPermanentlyDeleteTest();
+        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement permanently deleted: ");
+
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        page.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
+        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        page.getGrid().resetFilter();
+    }
+
+//    //@Test
+//    public void extraFilterInvalidValue() throws InterruptedException {
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//        NotificationCheck nc = new NotificationCheck();
+//        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
+//        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+//    }
+
+
+    @Test
+    public void findAllOrderElementWithDeletedFailedButWithoutIsSuccess() throws SQLException {
+        SoftAssert sa = new SoftAssert();
+        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 3);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+        int elements = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox());
+        sa.assertNotEquals(elements, 0);
+        page.getShowDeletedCheckBox().setStatus(true);
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification.getText(), "Getting order elements failed");
+        notification.close();
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), elements);
+
+        sa.assertAll();
     }
 
     @Test
-    @Video
-    public void findAllProductsFailed() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyProductService).findAll(false); //Controllerben alapértelmezett
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-        failedFieldData.put("Product", "Error happened while getting products");
+    public void findAllOrderElementWithAndWithoutFailed() throws SQLException, InterruptedException {
+        SoftAssert sa = new SoftAssert();
+        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
 
-        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+        OrderElementPage page = new OrderElementPage(driver, port);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification_1 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification_1.getText(), "Error happened while getting order elements");
+        notification_1.close();
+
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification_2 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification_2.getText(), "Getting order elements failed");
+        notification_2.close();
+
+        sa.assertAll();
     }
 
     @Test
-    @Video
-    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
+    public void findAllSuppliersFailed() throws SQLException, InterruptedException {
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 5);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+        page.getCreateButton().click();
+        OrderElementSaveOrUpdateDialog dialog = new OrderElementSaveOrUpdateDialog(driver);
+        dialog.initWebElements();assertEquals(dialog.getFailedComponents().size(), 1);
+        assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "Error happened while getting suppliers");
+        assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Supplier");
+
+////        Mockito.doReturn(null).when(spySupplierService).findAll(false);//Controllerben alapértelmezett
+//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+//        failedFieldData.put("Supplier", "");
+//        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
     }
 
     @Test
-    @Video
-    public void databaseUnavailableWhenModifying() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(getDriver(), port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseUnavailableWhenUpdateEntity(spyDataSource, null, null, 0);
+    public void findAllCustomersFailed() throws SQLException {
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 4);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+        page.getCreateButton().click();
+        OrderElementSaveOrUpdateDialog dialog = new OrderElementSaveOrUpdateDialog(driver);
+        dialog.initWebElements();assertEquals(dialog.getFailedComponents().size(), 1);
+        assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "Error happened while getting customers");
+        assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Customer");
+    }
+
+    @Test
+    public void findAllProductsFailed() throws SQLException {
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+        page.getCreateButton().click();
+        OrderElementSaveOrUpdateDialog dialog = new OrderElementSaveOrUpdateDialog(driver);
+        dialog.initWebElements();assertEquals(dialog.getFailedComponents().size(), 1);
+        assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "Error happened while getting products");
+        assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Product");
+    }
+
+    @Test
+    public void databaseUnavailableWhenSaving() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+        DoCreateFailedTestData testResult = page.doDatabaseNotAvailableWhenCreateTest(spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saving failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
+
+
+
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
+    }
+
+    @Test
+    public void databaseUnavailableWhenModifying() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+        DoUpdateFailedTestData testResult = page.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getResult().getNotificationText()).contains("OrderElement modifying failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 }

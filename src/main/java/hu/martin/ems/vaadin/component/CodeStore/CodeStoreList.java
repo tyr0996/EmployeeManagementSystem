@@ -81,6 +81,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         CodeStoreVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(CodeStoreVO.class);
+        this.grid.setId("page-grid");
 
         setupCodeStores();
         updateGridItems();
@@ -133,11 +134,19 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                codeStoreApi.permanentlyDelete(codeStoreVO.id);
-                Notification.show("CodeStore permanently deleted: " + codeStoreVO.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                setupCodeStores();
-                updateGridItems();
+                EmsResponse response = codeStoreApi.permanentlyDelete(codeStoreVO.id);
+                switch (response.getCode()) {
+                    case 200: {
+                        Notification.show("CodeStore permanently deleted: " + codeStoreVO.name)
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        setupCodeStores();
+                        updateGridItems();
+                        break;
+                    }
+                    default:{
+                        Notification.show("CodeStore permanently deletion failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }
             });
             if (!codeStoreVO.deletable) {
                 editButton.setEnabled(false);
@@ -322,10 +331,13 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
                 case 200:{
                     Notification.show("CodeStore " + (entity == null ? "saved: " : "updated: ") + ((CodeStore) response.getResponseData()).getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    createDialog.close();
+                    updateGridItems();
                     break;
                 }
                 default: {
-                    Notification.show("CodeStore " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    Notification.show("CodeStore " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).
+                            addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
                     break;
