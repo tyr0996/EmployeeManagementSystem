@@ -7,10 +7,12 @@ import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import org.mockito.Mockito;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AdminToolsTest extends BaseCrudTest {
 
     @Test

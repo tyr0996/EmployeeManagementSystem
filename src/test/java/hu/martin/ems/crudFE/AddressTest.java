@@ -9,6 +9,7 @@ import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.saveOrUpdateDialog.AddressSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
@@ -18,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AddressTest extends BaseCrudTest {
     @Test
     public void addressCreateTest() {
@@ -213,7 +214,7 @@ public class AddressTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADDRESS_SUBMENU);
 
         AddressPage addressPage = new AddressPage(driver, port);
-        DoUpdateFailedTestData testResult = addressPage.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource);
+        DoUpdateFailedTestData testResult = addressPage.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource, 0);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());

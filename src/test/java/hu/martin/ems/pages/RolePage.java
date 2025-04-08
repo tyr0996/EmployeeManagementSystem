@@ -9,7 +9,6 @@ import hu.martin.ems.pages.core.component.saveOrUpdateDialog.RoleSaveOrUpdateDia
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class RolePage extends SimpleVaadinGridPage<RolePage> implements ISimpleVaadinGridPage<RolePage> {
     public RolePage(WebDriver driver, int port) {
@@ -26,9 +25,9 @@ public class RolePage extends SimpleVaadinGridPage<RolePage> implements ISimpleV
 
     @Override
     public RolePage initWebElements() {
-        this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(showDeletedCheckBoxXpath))));
-        this.createButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(createButtonXpath))));
-        this.grid = new VaadinGridComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(gridXpath))));
+        this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
+        this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));
+        this.grid = new VaadinGridComponent(getDriver(), By.xpath(gridXpath));
         this.saveOrUpdateDialog = new RoleSaveOrUpdateDialog(getDriver());
         this.header = new AccessManagementHeader(getDriver(), getPort());
 

@@ -6,7 +6,6 @@ import hu.martin.ems.pages.core.component.VaadinTextInputComponent;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class EmployeeSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
 
@@ -38,10 +37,10 @@ public class EmployeeSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     public void initWebElements() {
         super.initWebElements();
 
-        firstNameInputComponent = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(firstNameInputComponentXpath))));
-        lastNameInputComponent = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(lastNameInputComponentXpath))));
-        salaryInputComponent = new VaadinNumberInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(salaryInputComponentXpath))));
-        userDropdownComponent = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(userDropdownComponentXpath))));
+        firstNameInputComponent = new VaadinTextInputComponent(getDriver(), By.xpath(firstNameInputComponentXpath));
+        lastNameInputComponent = new VaadinTextInputComponent(getDriver(), By.xpath(lastNameInputComponentXpath));
+        salaryInputComponent = new VaadinNumberInputComponent(getDriver(), By.xpath(salaryInputComponentXpath));
+        userDropdownComponent = new VaadinDropdownComponent(getDriver(), By.xpath(userDropdownComponentXpath));
 
         setAllComponents();
     }

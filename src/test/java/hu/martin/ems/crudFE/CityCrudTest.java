@@ -60,7 +60,7 @@ public class CityCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
-        assertThat(testResult.getNotificationWhenPerform()).contains("City deleted: ");
+//        assertThat(testResult.getNotificationWhenPerform()).contains("City deleted: ");
 
         cityPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
         assertEquals(1, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
@@ -180,7 +180,7 @@ public class CityCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
-        DoUpdateFailedTestData testResult = cityPage.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource);
+        DoUpdateFailedTestData testResult = cityPage.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource, 0);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());

@@ -323,7 +323,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     }
 
     private Boolean usernameCheck(String username){
-        EmsResponse response = userApi.findByUsername(username);
+        EmsResponse response = userApi.findByUsername(username); //TODO: mi történik, ha nem érhető el az adatbázis?
         if(editableUser != null && editableUser.getUsername().equals(username)) {
             return true;
         }

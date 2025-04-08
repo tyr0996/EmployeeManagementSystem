@@ -5,7 +5,6 @@ import hu.martin.ems.pages.core.component.VaadinDropdownComponent;
 import hu.martin.ems.pages.core.component.VaadinTextInputComponent;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class CodeStoreSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
 
@@ -24,9 +23,9 @@ public class CodeStoreSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     @Override
     public void initWebElements(){
         super.initWebElements();
-        nameTextField = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(nameTextFieldXpath))));
-        parentDropdown = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(parentDropdownXpath))));
-        deletableCheckbox = new VaadinCheckboxComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(deletableCheckboxXpath))));
+        nameTextField = new VaadinTextInputComponent(getDriver(), By.xpath(nameTextFieldXpath));
+        parentDropdown = new VaadinDropdownComponent(getDriver(), By.xpath(parentDropdownXpath));
+        deletableCheckbox = new VaadinCheckboxComponent(getDriver(), By.xpath(deletableCheckboxXpath));
 
         setAllComponents();
     }

@@ -6,9 +6,11 @@ import hu.martin.ems.pages.Page403;
 import hu.martin.ems.pages.Page404;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ErrorPageTest extends BaseCrudTest {
     @Test
     public void pageLoadFailedIllegalAccessException()  {

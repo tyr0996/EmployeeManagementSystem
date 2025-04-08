@@ -8,7 +8,6 @@ import hu.martin.ems.pages.core.component.VaadinGridComponent;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class CurrencyPage extends EmptyLoggedInVaadinPage implements ILoggedInPage {
 
@@ -34,9 +33,9 @@ public class CurrencyPage extends EmptyLoggedInVaadinPage implements ILoggedInPa
 
     @Override
     public CurrencyPage initWebElements() {
-        grid = new VaadinGridComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(gridXPath))));
-        datePicker = new VaadinDatePickerComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(datePickerXPath))));
-        fetchButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(fetchButtonXpath))));
+        grid = new VaadinGridComponent(getDriver(), By.xpath(gridXPath));
+        datePicker = new VaadinDatePickerComponent(getDriver(), By.xpath(datePickerXPath));
+        fetchButton = new VaadinButtonComponent(getDriver(), By.xpath(fetchButtonXpath));
 
         return this;
     }

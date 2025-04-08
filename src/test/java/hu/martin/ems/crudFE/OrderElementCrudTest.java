@@ -14,6 +14,7 @@ import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.pages.core.component.saveOrUpdateDialog.OrderElementSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
@@ -28,6 +29,7 @@ import static org.testng.Assert.assertEquals;
 
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 //@Listeners(UniversalVideoListener.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderElementCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;
@@ -372,7 +374,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
 
         OrderElementPage page = new OrderElementPage(driver, port);
-        DoUpdateFailedTestData testResult = page.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource);
+        DoUpdateFailedTestData testResult = page.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource, 0);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());

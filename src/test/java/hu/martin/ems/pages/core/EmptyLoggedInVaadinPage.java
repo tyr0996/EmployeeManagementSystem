@@ -17,7 +17,7 @@ public class EmptyLoggedInVaadinPage extends VaadinPage implements ILoggedInPage
 
     @Override
     public EmptyLoggedInVaadinPage initWebElements(){
-        this.sideMenu = new SideMenu(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(sideMenuXpath))));
+        this.sideMenu = new SideMenu(getDriver(), By.xpath(sideMenuXpath));
         return this;
     }
 

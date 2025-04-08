@@ -1,44 +1,53 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.testng.UniversalVideoListener;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.GridTestingUtil;
-import hu.martin.ems.base.NotificationCheck;
-import hu.martin.ems.core.config.JPAConfig;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import hu.martin.ems.UITests.ElementLocation;
+import hu.martin.ems.base.RandomGenerator;
+import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.pages.LoginPage;
+import hu.martin.ems.pages.UserPage;
+import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
+import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
+import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.component.saveOrUpdateDialog.UserSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.sql.SQLException;
-import java.time.Duration;
 import java.util.LinkedHashMap;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//@Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Listeners(UniversalVideoListener.class)
 public class UserCrudTest extends BaseCrudTest {
-    private static CrudTestingUtil crudTestingUtil;
-    private static WebDriverWait notificationDisappearWait;
-    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath = contentXpath + "/vaadin-grid";
-    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
-    
-    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-    private static final String subMenu = UIXpaths.USER_SUB_MENU;
-
-    private GridTestingUtil gridTestingUtil;
-
-    
-
-    @BeforeClass
-    public void setup() {
-        gridTestingUtil = new GridTestingUtil(driver);
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "User", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
-    }
+//    private static CrudTestingUtil crudTestingUtil;
+//    private static WebDriverWait notificationDisappearWait;
+//    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+//    private static final String gridXpath = contentXpath + "/vaadin-grid";
+//    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
+//
+//    private static final String mainMenu = UIXpaths.ADMIN_MENU;
+//    private static final String subMenu = UIXpaths.USER_SUB_MENU;
+//
+//    private GridTestingUtil gridTestingUtil;
+//
+//
+//
+//    @BeforeClass
+//    public void setup() {
+//        gridTestingUtil = new GridTestingUtil(driver);
+//        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "User", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
+//        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
+//    }
 
     @BeforeMethod
     public void beforeMethod(){
@@ -46,229 +55,424 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    
-    //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/addresses.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    public void userCreateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest();
+    public void userCreateTest() {
+        String pass = RandomGenerator.generateRandomOnlyLetterString();
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Password", pass);
+        withData.put("Password again", pass);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        DoCreateTestData testResult = userPage.doCreateTest(withData);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("User saved: ");
         
     }
 
     @Test
-    
-    public void useReadTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.readTest();
+    public void useReadTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        DoReadTestData testResult = userPage.doReadTest(null, true);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertNull(testResult.getNotificationWhenPerform());
         
     }
 
     @Test
-    
-    public void userDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.deleteTest();
+    public void userDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        DoDeleteTestData testResult = userPage.doDeleteTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("User deleted: ");
+
+        userPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
+        assertEquals(1, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()));
+        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()));
+        userPage.getGrid().resetFilter();
         
     }
 
     @Test
-    
-    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
-//            gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 10);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
+    public void databaseNotAvailableWhileDeleteTest() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        DoDeleteFailedTestData testResult = userPage.doDatabaseNotAvailableWhenDeleteTest(spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+    }
+
+    @Test
+    public void userUpdateTest() {
+        String pass = RandomGenerator.generateRandomOnlyLetterString();
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Password", pass);
+        withData.put("Password again", pass);
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        DoUpdateTestData testResult = userPage.doUpdateTest(withData);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("User updated: ");
+
+        userPage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()));
+        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()));
+        userPage.getGrid().resetFilter();
         
     }
 
     @Test
-    
-    public void userUpdateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest();
+    public void databaseNotAvailableWhenGettingLoggedInUser() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Error happened while getting the logged in user. Deletion and modification is disabled");
+        notification.close();
+
+        UserPage supplierPage = new UserPage(driver, port);
+        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+//        gridTestingUtil.checkNotificationText("Error happened while getting the logged in user. Deletion and modification is disabled");
+    }
+
+    @Test
+    public void databaseNotAvailableWhenGettingAllUser() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 1);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Getting users failed");
+        notification.close();
+
+        UserPage supplierPage = new UserPage(driver, port);
+        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+    }
+
+    @Test
+    public void userRestoreTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage supplierPage = new UserPage(driver, port);
+        DoRestoreTestData testResult = supplierPage.doRestoreTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("User restored: ");
+
+        supplierPage = new UserPage(driver, port);
+        supplierPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
+        supplierPage.getGrid().waitForRefresh();
+        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 1);
+        supplierPage.getGrid().resetFilter();
+    }
+
+    @Test
+    public void userPermanentlyDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage supplierPage = new UserPage(driver, port);
+        DoPermanentlyDeleteTestData testResult = supplierPage.doPermanentlyDeleteTest();
+        assertThat(testResult.getNotificationWhenPerform()).contains("User permanently deleted: ");
+
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        supplierPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
+        assertEquals(0, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        supplierPage.getGrid().resetFilter();
         
     }
 
     @Test
-    
-    public void databaseNotAvailableWhenGettingLoggedInUser() throws InterruptedException, SQLException {
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 2);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.checkNotificationText("Error happened while getting the logged in user. Deletion and modification is disabled");
-    }
-
-    @Test
-    
-    public void databaseNotAvailableWhenGettingAllUser() throws InterruptedException, SQLException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 1);
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.checkNotificationText("Getting users failed");
-    }
-
-    @Test
-    
-    public void userRestoreTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.restoreTest();
-        
-    }
-
-    @Test
-    
-    public void userPermanentlyDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.permanentlyDeleteTest();
-        
-    }
-
-    @Test
-    
-    public void createUserAllreadyExists() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> withData = new LinkedHashMap<>();
+    public void createUserAllreadyExists() {
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
         withData.put("Username", "admin");
-        crudTestingUtil.createTest(withData, "Username already exists!", false);
-        
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        DoCreateTestData testResult = userPage.doCreateTest(withData);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertEquals(testResult.getNotificationWhenPerform(), "Username already exists!");
     }
 
     @Test
-    
-    public void modifyUserAllreadyExists() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> withData = new LinkedHashMap<>();
+    public void modifyUserAllreadyExists() {
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
         withData.put("Username", "robi");
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        userPage.getGrid().applyFilter("Erzsi", "$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG", "false");
+        DoUpdateTestData testData = userPage.doUpdateTest(withData);
+        userPage.getGrid().resetFilter();
+        assertEquals(testData.getDeletedRowNumberAfterMethod(), testData.getOriginalDeletedRowNumber());
+        assertEquals(testData.getNonDeletedRowNumberAfterMethod(), testData.getOriginalNonDeletedRowNumber());
+        assertEquals(testData.getNotificationWhenPerform(), "Username already exists!");
+        userPage.getGrid().applyFilter("Erzsi", "$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG", "false");
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 1);
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        userPage.getGrid().resetFilter();
+
 //        int users = gridTestingUtil.countVisibleGridDataRows(gridXpath);
 //        crudTestingUtil.createTest();
 
-        gridTestingUtil.applyFilter(gridXpath, "Erzsi", "$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG", "false");
-        crudTestingUtil.updateTest(withData, "Username already exists!", false);
+//        gridTestingUtil.applyFilter(gridXpath, "Erzsi", "$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG", "false");
+//        crudTestingUtil.updateTest(withData, "Username already exists!", false);
     }
 
 
     @Test
-    
-    public void createUserPasswordDoesntMatch() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> withData = new LinkedHashMap<>();
+    public void createUserPasswordDoesntMatch() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
         withData.put("Password", "asdf");
         withData.put("Password again", "asd");
-        crudTestingUtil.createTest(withData, "Passwords doesn't match!", false);
+
+        UserPage userPage = new UserPage(driver, port);
+        DoUpdateTestData testData = userPage.doUpdateTest(withData);
+        assertEquals(testData.getNotificationWhenPerform(), "Passwords doesn't match!");
+        assertEquals(testData.getDeletedRowNumberAfterMethod(), testData.getOriginalDeletedRowNumber());
+        assertEquals(testData.getNonDeletedRowNumberAfterMethod(), testData.getOriginalNonDeletedRowNumber());
+
+
+//        crudTestingUtil.createTest(withData, "Passwords doesn't match!", false);
         
     }
 
     @Test
-    
-    public void updateUserEmptyPassword() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-         gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> withData = new LinkedHashMap<>();
+    public void updateUserEmptyPassword() {
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
         withData.put("Password", "");
         withData.put("Password again", "");
-        crudTestingUtil.updateTest(withData, "Password is required!", false);
-        
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        DoUpdateTestData testData = userPage.doUpdateTest(withData);
+        assertEquals(testData.getDeletedRowNumberAfterMethod(), testData.getOriginalDeletedRowNumber());
+        assertEquals(testData.getNonDeletedRowNumberAfterMethod(), testData.getOriginalNonDeletedRowNumber());
+        assertEquals(testData.getNotificationWhenPerform(), "Password is required!");
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//        LinkedHashMap<String, String> withData = new LinkedHashMap<>();
+//        withData.put("Password", "");
+//        withData.put("Password again", "");
+
+//        crudTestingUtil.updateTest(withData, "Password is required!", false);
     }
 
     @Test
-    
-    public void updateUserPasswordDouesntMatch() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> withData = new LinkedHashMap<>();
-        withData.put("Password", "asdf");
-        withData.put("Password again", "asd");
-        crudTestingUtil.updateTest(withData, "Passwords doesn't match!", false);
+    public void updateUserPasswordDoesntMatch() {
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Password", "asd");
+        withData.put("Password again", "asdf");
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        DoUpdateTestData testData = userPage.doUpdateTest(withData);
+        assertEquals(testData.getDeletedRowNumberAfterMethod(), testData.getOriginalDeletedRowNumber());
+        assertEquals(testData.getNonDeletedRowNumberAfterMethod(), testData.getOriginalNonDeletedRowNumber());
+        assertEquals(testData.getNotificationWhenPerform(), "Passwords doesn't match!");
         
     }
 
 
     //@Test
-    public void extraFilterInvalidValue() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        NotificationCheck nc = new NotificationCheck();
-        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
-        
-    }
+//    public void extraFilterInvalidValue() throws InterruptedException {
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//        NotificationCheck nc = new NotificationCheck();
+//        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
+//        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+//
+//    }
 
 
     @Test
-    
-    public void finalAllWithDeletedUnexpectedResponse() throws InterruptedException, SQLException {
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-//        Mockito.doReturn(null).when(spyUserService).findAll(true); //ApiClient-ben.findAllWithDeleted();
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        Thread.sleep(500);
-        gridTestingUtil.checkNotificationText("Getting users failed");
-        gridTestingUtil.checkNoMoreNotificationsVisible();
-        assertEquals(gridTestingUtil.countVisibleGridDataRows(gridXpath), 0);
+    public void gettingUsersFailed() throws SQLException {
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Getting users failed");
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+//        gridTestingUtil.checkNotificationText("Getting users failed");
+//        gridTestingUtil.checkNoMoreNotificationsVisible();
+//        assertEquals(gridTestingUtil.countVisibleGridDataRows(gridXpath), 0);
     }
 
     @Test
-    
-    public void updateUserButUsernameNotChanged() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> withData = new LinkedHashMap<>();
+    public void updateUserButUsernameNotChanged() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+
+        String pass = RandomGenerator.generateRandomOnlyLetterString();
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
         withData.put("Username", "robi");
-        gridTestingUtil.applyFilter(gridXpath, "robi", "", "", "");
-        crudTestingUtil.updateTest(withData, null, true);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+        withData.put("Password", pass);
+        withData.put("Password again", pass);
+
+        userPage.getGrid().applyFilter("robi", "", "", "");
+        String[] original = userPage.getGrid().getDataFromRowLocation(new ElementLocation(1, 0), true);
+        DoUpdateTestData testData = userPage.doUpdateTest(withData);
+
+        userPage.getGrid().resetFilter();
+        userPage.getGrid().applyFilter("robi", "", "", "");
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 1);
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        userPage.getGrid().resetFilter();
+
+        userPage.getGrid().applyFilter(original);
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        userPage.getGrid().resetFilter();
+
+
+//        gridTestingUtil.applyFilter(gridXpath, "robi", "", "", "");
+//        crudTestingUtil.updateTest(withData, null, true);
+//        gridTestingUtil.checkNoMoreNotificationsVisible();
         
     }
 
     @Test
-    
-    public void databaseNotAvailableWhenFindAllRole() throws InterruptedException, SQLException {
+    public void databaseNotAvailableWhenFindAllRole() throws SQLException {
 //        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        Thread.sleep(500);
-        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-        failedFieldData.put("Role", "Error happened while getting roles");
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 4);
 
-        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        userPage.getCreateButton().click();
+
+        UserSaveOrUpdateDialog dialog = new UserSaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
+        assertEquals(failedComponents.size(), 1);
+        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting roles");
+
+//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//        Thread.sleep(500);
+//        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
+//        failedFieldData.put("Role", "Error happened while getting roles");
+//
+//        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+//        gridTestingUtil.checkNoMoreNotificationsVisible();
+    }
+
+//    @Test
+//
+//    public void databaseUnavailableWhenGetAllUser() throws SQLException, InterruptedException {
+//        JPAConfig.resetCallIndex();
+//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
+////        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//        gridTestingUtil.checkNotificationText("Getting users failed");
+////        crudTestingUtil.databaseUnavailableWhenGetAllEntity(this.getClass(), spyDataSource, port, mainMenu, subMenu, "users");
+//    }
+
+    @Test
+    public void databaseUnavailableWhenSavingUser() throws SQLException {
+        String pass = RandomGenerator.generateRandomOnlyLetterString();
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Password", pass);
+        withData.put("Password again", pass);
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        DoCreateFailedTestData testResult = userPage.doDatabaseNotAvailableWhenCreateTest(withData, spyDataSource, 1);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("User saving failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
     @Test
-    
-    public void databaseUnavailableWhenGetAllUser() throws SQLException, InterruptedException {
-        JPAConfig.resetCallIndex();
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        gridTestingUtil.checkNotificationText("Getting users failed");
-//        crudTestingUtil.databaseUnavailableWhenGetAllEntity(this.getClass(), spyDataSource, port, mainMenu, subMenu, "users");
-    }
+    public void databaseUnavailableWhenUpdateUser() throws SQLException {
+        String pass = RandomGenerator.generateRandomOnlyLetterString();
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Password", pass);
+        withData.put("Password again", pass);
 
-    @Test
-    
-    public void databaseUnavailableWhenSavingUser() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 1);
-    }
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
-    @Test
-    
-    public void databaseUnavailableWhenUpdateUser() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseUnavailableWhenUpdateEntity(spyDataSource, null, null, 1);
+        UserPage userPage = new UserPage(driver, port);
+        DoUpdateFailedTestData testResult = userPage.doDatabaseNotAvailableWhenUpdateTest(withData, withData, spyDataSource, 1);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getResult().getNotificationText()).contains("User modifying failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
     @AfterClass

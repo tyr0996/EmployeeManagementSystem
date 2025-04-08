@@ -1,6 +1,9 @@
 package hu.martin.ems.pages.core.component;
 
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -10,7 +13,14 @@ public class VaadinNotificationComponent extends VaadinBaseComponent {
     private static final String notificationXpath = "/html/body/vaadin-notification-container/vaadin-notification-card";
 
     public VaadinNotificationComponent(WebDriver driver) {
-        super(driver, notificationXpath);
+        super(driver, By.xpath(notificationXpath));
+    }
+    public VaadinNotificationComponent(WebDriver driver, Duration duration){
+        super(driver);
+        this.provider = By.xpath(notificationXpath);
+        this.scope = driver.findElement(By.xpath("/html")); //TODO: lehet, hogy ide kell a /body a html után.
+        wait = new WebDriverWait(driver, duration, Duration.ofMillis(10));
+        this.element = wait.until(ExpectedConditions.visibilityOfElementLocated(provider));
     }
 
     public String getText(){

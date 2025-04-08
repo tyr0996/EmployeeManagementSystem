@@ -13,8 +13,8 @@ import java.util.Random;
 
 public class VaadinGridComponent extends VaadinBaseComponent {
 
-    public VaadinGridComponent(WebDriver driver, WebElement element){
-        super(driver, element);
+    public VaadinGridComponent(WebDriver driver, By provider){
+        super(driver, provider);
     }
 
     public int countVisibleDataRows(){
@@ -58,7 +58,7 @@ public class VaadinGridComponent extends VaadinBaseComponent {
                 filterInputs.get(i).sendKeys(Keys.ENTER);
             }
             else if(role.equals("combobox")){
-                VaadinMultipleSelectDropdownComponent comboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), getParentWebElement(filterInputs.get(i)));
+                VaadinMultipleSelectDropdownComponent comboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), filterInputs.get(i), By.xpath("./.."), 0);
                 String[] data = attributes[i].split(", ");
                 comboBox.selectElements(data);
             }
@@ -200,8 +200,8 @@ public class VaadinGridComponent extends VaadinBaseComponent {
             WebElement optionsCell = getVisibleCell(rowIndex, optionsColumnIndex);
 //            WebElement deleteButton = optionsCell.findElements(By.xpath("//vaadin-icon[@icon='vaadin:trash']/parent::vaadin-button")).get(rowIndex);
 //            WebElement deleteButton = optionsCell.findElements(By.xpath("//vaadin-icon[@icon='vaadin:trash']")).get(rowIndex);
-            WebElement deleteButton = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(optionsCell, By.xpath("//vaadin-icon[@icon='vaadin:trash']"))).get(rowIndex);
-            return new VaadinButtonComponent(getDriver(), deleteButton);
+//            WebElement deleteButtonProvider = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(optionsCell, By.xpath("//vaadin-icon[@icon='vaadin:trash']"))).get(rowIndex);
+            return new VaadinButtonComponent(getDriver(), optionsCell, By.xpath("//vaadin-icon[@icon='vaadin:trash']"), rowIndex);
         }
         catch (Exception e){
             return null;
@@ -255,8 +255,8 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         try{
             int optionsColumnIndex = getColumnNumber() - 1;
             WebElement optionsCell = getVisibleCell(rowIndex, optionsColumnIndex);
-            WebElement modifyButton = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(optionsCell, By.xpath("//vaadin-icon[contains(@src, 'edit')]"))).get(rowIndex);
-            return new VaadinButtonComponent(getDriver(), modifyButton);
+//            WebElement modifyButton = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(optionsCell, By.xpath("//vaadin-icon[contains(@src, 'edit')]"))).get(rowIndex);
+            return new VaadinButtonComponent(getDriver(), optionsCell, By.xpath("//vaadin-icon[contains(@src, 'edit')]"), rowIndex);
         }
         catch (Exception e){
             return null;
@@ -274,9 +274,9 @@ public class VaadinGridComponent extends VaadinBaseComponent {
 //            2*oszlopok (üres) + 1*oszlopok (fejléc) + sorindex * oszlopok + oszlopindex + 1
 //
         int gridCellIndex = (3 + el.getRowIndex()) * getColumnNumber() + optionsColumnIndex + 1;
-        WebElement buttonElement = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(element, By.xpath("./vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/a[" + index + "]/vaadin-button"))).get(0);
+//        WebElement buttonElement = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(element, By.xpath("./vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/a[" + index + "]/vaadin-button"))).get(0);
 
-        return new VaadinButtonComponent(getDriver(), buttonElement);
+        return new VaadinButtonComponent(getDriver(), element, By.xpath("./vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/a[" + index + "]/vaadin-button"), 0);
 
         //return findClickableElementWithXpathWithWaiting("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
         //return null;
@@ -290,9 +290,9 @@ public class VaadinGridComponent extends VaadinBaseComponent {
 
 //        return findClickableElementWithXpathWithWaiting(gridXpath + "/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[" + index + "]");
 
-        WebElement buttonElement = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(element, By.xpath("/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[" + index + "]"))).get(0);
+//        WebElement buttonElement = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(element, By.xpath("./vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[" + index + "]"))).get(0);
 
-        return new VaadinButtonComponent(getDriver(), buttonElement);
+        return new VaadinButtonComponent(getDriver(), element, By.xpath("./vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[" + index + "]"), 0);
 
 
         //return findClickableElementWithXpathWithWaiting("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
@@ -305,8 +305,8 @@ public class VaadinGridComponent extends VaadinBaseComponent {
             int optionsColumnIndex = getColumnNumber() - 1;
             WebElement optionsCell = getVisibleCell(rowIndex, optionsColumnIndex);
 //            WebElement permanentlyDeleteButton = optionsCell.findElements(By.xpath("//vaadin-icon[contains(@src, 'clear')]")).get(0);
-            WebElement permanentlyDeleteButton = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(optionsCell, By.xpath("//vaadin-icon[contains(@src, 'clear')]"))).get(rowIndex);
-            return new VaadinButtonComponent(getDriver(), permanentlyDeleteButton);
+//            WebElement permanentlyDeleteButton = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(optionsCell, By.xpath("//vaadin-icon[contains(@src, 'clear')]"))).get(rowIndex);
+            return new VaadinButtonComponent(getDriver(), optionsCell, By.xpath("//vaadin-icon[contains(@src, 'clear')]"), rowIndex);
         }
         catch (Exception e){
             return null;
@@ -389,7 +389,7 @@ public class VaadinGridComponent extends VaadinBaseComponent {
                 v.sendKeys(Keys.ENTER);
             }
             else {
-                VaadinMultipleSelectDropdownComponent multiSelectDropboxFilter = new VaadinMultipleSelectDropdownComponent(getDriver(), v);
+                VaadinMultipleSelectDropdownComponent multiSelectDropboxFilter = new VaadinMultipleSelectDropdownComponent(getDriver(), v, By.xpath("."), 0);
                 multiSelectDropboxFilter.deselectAll();
             }
         });

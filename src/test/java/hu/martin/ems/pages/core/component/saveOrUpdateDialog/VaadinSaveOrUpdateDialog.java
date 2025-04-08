@@ -23,8 +23,8 @@ public abstract class VaadinSaveOrUpdateDialog extends VaadinDialogComponent imp
     @Override
     public void initWebElements(){
         getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(dialogXpath)));
-        closeButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(dialogXpath + "/div/div/vaadin-button"))));
-        saveButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(dialogXpath + "/vaadin-form-layout/vaadin-button"))));
+        closeButton = new VaadinButtonComponent(getDriver(), By.xpath(dialogXpath + "/div/div/vaadin-button"));
+        saveButton = new VaadinButtonComponent(getDriver(), By.xpath(dialogXpath + "/vaadin-form-layout/vaadin-button"));
     }
 
     @Override

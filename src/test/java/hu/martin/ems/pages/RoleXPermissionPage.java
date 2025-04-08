@@ -26,9 +26,9 @@ public class RoleXPermissionPage extends EmptyLoggedInVaadinPage implements ILog
 
     @Override
     public RoleXPermissionPage initWebElements() {
-        roleComboBox = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(roleComboBoxXpath))));
-        permissionsComboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(permissionsComboBoxXpath))));
-        saveButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(saveButtonXpath))));
+        roleComboBox = new VaadinDropdownComponent(getDriver(), By.xpath(roleComboBoxXpath));
+        permissionsComboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), By.xpath(permissionsComboBoxXpath));
+        saveButton = new VaadinButtonComponent(getDriver(), By.xpath(saveButtonXpath));
         return this;
     }
 }

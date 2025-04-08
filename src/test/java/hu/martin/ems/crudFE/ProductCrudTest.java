@@ -1,6 +1,5 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.testng.UniversalVideoListener;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
@@ -12,7 +11,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
@@ -21,8 +19,9 @@ import java.util.LinkedHashMap;
 
 import static org.testng.Assert.assertEquals;
 
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//@Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Listeners(UniversalVideoListener.class)
 public class ProductCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
     private static WebDriverWait notificationDisappearWait;

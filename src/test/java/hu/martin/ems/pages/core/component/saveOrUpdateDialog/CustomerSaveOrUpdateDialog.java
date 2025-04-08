@@ -4,7 +4,6 @@ import hu.martin.ems.pages.core.component.VaadinDropdownComponent;
 import hu.martin.ems.pages.core.component.VaadinTextInputComponent;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class CustomerSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     private static final String firstNameFieldXpath = dialogXpath + "/vaadin-form-layout/vaadin-text-field[1]";
@@ -26,10 +25,10 @@ public class CustomerSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     public void initWebElements() {
         super.initWebElements();
 
-        firstNameField = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(firstNameFieldXpath))));
-        lastNameField = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(lastNameFieldXpath))));
-        addressComboBox = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(addressComboBoxXpath))));
-        emailAddressField = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(emailAddressXpath))));
+        firstNameField = new VaadinTextInputComponent(getDriver(), By.xpath(firstNameFieldXpath));
+        lastNameField = new VaadinTextInputComponent(getDriver(), By.xpath(lastNameFieldXpath));
+        addressComboBox = new VaadinDropdownComponent(getDriver(), By.xpath(addressComboBoxXpath));
+        emailAddressField = new VaadinTextInputComponent(getDriver(), By.xpath(emailAddressXpath));
 
         setAllComponents();
     }

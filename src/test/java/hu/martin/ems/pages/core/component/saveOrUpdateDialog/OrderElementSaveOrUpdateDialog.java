@@ -5,7 +5,6 @@ import hu.martin.ems.pages.core.component.VaadinNumberInputComponent;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class OrderElementSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     private static final String productComboBoxXpath = dialogXpath + "/vaadin-form-layout/vaadin-combo-box[1]";
@@ -26,10 +25,10 @@ public class OrderElementSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     public void initWebElements(){
         super.initWebElements();
 
-        productComboBox = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(productComboBoxXpath))));
-        unitNumberInputField = new VaadinNumberInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(unitNumberFieldXpath))));
-        supplierComboBox = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(supplierComboBoxXpath))));
-        customerComboBox = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(customerComboBoxXpath))));
+        productComboBox = new VaadinDropdownComponent(getDriver(), By.xpath(productComboBoxXpath));
+        unitNumberInputField = new VaadinNumberInputComponent(getDriver(), By.xpath(unitNumberFieldXpath));
+        supplierComboBox = new VaadinDropdownComponent(getDriver(), By.xpath(supplierComboBoxXpath));
+        customerComboBox = new VaadinDropdownComponent(getDriver(), By.xpath(customerComboBoxXpath));
 
         setAllComponents();
     }

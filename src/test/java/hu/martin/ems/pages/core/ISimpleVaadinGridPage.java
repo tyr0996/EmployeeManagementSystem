@@ -31,7 +31,7 @@ public interface ISimpleVaadinGridPage<T> extends ILoggedInPage<T> {
     PerformPermanentlyDeleteResult performPermanentlyDelete();
     PerformUpdateResult performUpdate(LinkedHashMap<String, Object> withData, ElementLocation rowLocation);
 
-    PerformUpdateFailedResult performUpdate(LinkedHashMap<String, Object> withData, @NotNull ElementLocation rowLocation, DataSource spyDatasource) throws SQLException;
+    PerformUpdateFailedResult performUpdate(LinkedHashMap<String, Object> withData, @NotNull ElementLocation rowLocation, DataSource spyDatasource, Integer preSuccess) throws SQLException;
 
     DoCreateTestData doCreateTest();
 
@@ -53,7 +53,9 @@ public interface ISimpleVaadinGridPage<T> extends ILoggedInPage<T> {
     DoFailedTestData doDatabaseNotAvailableWhenCreateTest(DataSource spyDatasource) throws SQLException;
     DoDeleteFailedTestData doDatabaseNotAvailableWhenDeleteTest(DataSource spyDatasource) throws SQLException;
 
-    DoUpdateFailedTestData doDatabaseNotAvailableWhenUpdateTest(LinkedHashMap<String, Object> withDataCreate, LinkedHashMap<String, Object> withDataModify, DataSource spyDatasource) throws SQLException;
+    DoCreateFailedTestData doDatabaseNotAvailableWhenCreateTest(LinkedHashMap<String, Object> withData, DataSource spyDatasource) throws SQLException;
+
+    DoUpdateFailedTestData doDatabaseNotAvailableWhenUpdateTest(LinkedHashMap<String, Object> withDataCreate, LinkedHashMap<String, Object> withDataModify, DataSource spyDatasource, Integer preSuccess) throws SQLException;
 
     DoRestoreTestData doDatabaseNotAvailableWhenRestoreTest(DataSource spyDatasource) throws SQLException;
     DoPermanentlyDeleteFailedTestData doDatabaseNotAvailableWhenPermanentlyDeleteTest(DataSource spyDatasource) throws SQLException;

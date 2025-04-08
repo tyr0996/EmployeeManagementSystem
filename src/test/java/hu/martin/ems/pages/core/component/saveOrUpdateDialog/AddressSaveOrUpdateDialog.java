@@ -5,7 +5,6 @@ import hu.martin.ems.pages.core.component.VaadinTextInputComponent;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class AddressSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     private static final String countryCodeDropdownXpath = dialogXpath + "/vaadin-form-layout/vaadin-combo-box[1]";
@@ -34,11 +33,11 @@ public class AddressSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     public void initWebElements() {
         super.initWebElements();
 
-        countryCodeDropdown = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(countryCodeDropdownXpath))));
-        cityDropdown = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(cityDropdownXpath))));
-        streetNameTextInput = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(streetNameTextXpath))));
-        streetTypeDropdown = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(streetTypeDropdownXpath))));
-        houseNumberInput = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(houseNumberXpath))));
+        countryCodeDropdown = new VaadinDropdownComponent(getDriver(), By.xpath(countryCodeDropdownXpath));
+        cityDropdown = new VaadinDropdownComponent(getDriver(), By.xpath(cityDropdownXpath));
+        streetNameTextInput = new VaadinTextInputComponent(getDriver(), By.xpath(streetNameTextXpath));
+        streetTypeDropdown = new VaadinDropdownComponent(getDriver(), By.xpath(streetTypeDropdownXpath));
+        houseNumberInput = new VaadinTextInputComponent(getDriver(), By.xpath(houseNumberXpath));
 
         setAllComponents();
     }

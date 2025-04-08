@@ -128,7 +128,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     getUI().ifPresent(ui -> ui.navigate("/"));
                 }
                 catch (AuthenticationException ex) {
-                    System.err.println("NEM JÓ BEJELENTKEZÉS1");
                     login.setErrorMessage(BAD_CREDIDENTALS);
                     loginOverlay.setI18n(login);
                     loginOverlay.setError(true);
@@ -136,7 +135,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 }
             }
             else{
-                System.err.println("NEM JÓ BEJELENTKEZÉS2");
                 login.setErrorMessage(BAD_CREDIDENTALS);
                 loginOverlay.setI18n(login);
                 loginOverlay.setError(true);

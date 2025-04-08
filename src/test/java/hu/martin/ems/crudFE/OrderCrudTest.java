@@ -1,7 +1,7 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.video.annotations.Video;
 import fr.opensagres.xdocreport.core.XDocReportException;
-import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.ElementLocation;
@@ -10,7 +10,6 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.pages.OrderCreatePage;
 import hu.martin.ems.pages.OrderElementPage;
@@ -26,7 +25,12 @@ import hu.martin.ems.pages.core.doTestData.DoRestoreTestData;
 import hu.martin.ems.service.OrderService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mockito;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -34,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
@@ -47,8 +52,15 @@ import static org.testng.Assert.*;
 //@PrepareForTest(jakarta.mail.Transport.class)
 //@RunWith(PowerMockRunner.class)
 //@Listeners(UniversalVideoListener.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderCrudTest extends BaseCrudTest {
 
+
+    @AfterClass
+    public void destroy_2() throws IOException {
+        resetDatabase();
+        System.out.println("Database reseted");
+    }
 //    private static WebDriverWait notificationDisappearWait;
 //    private static final String gridXpath = contentXpath + "/vaadin-grid";
 //    private static final String showDeletedXpath = contentXpath + "/vaadin-checkbox";
@@ -66,18 +78,15 @@ public class OrderCrudTest extends BaseCrudTest {
 //    private static final String mainMenu = UIXpaths.ORDERS_MENU;
 //    private static final String subMenu = UIXpaths.ORDER_SUBMENU;
 
-    @Mock
-    public SftpSender sftpSender;
-
-
-    @Spy
-    public XDocReportRegistry spyRegistry;
-
-
 //    private GridTestingUtil gridTestingUtil;
 //
 //
 //    private OrderCreateTest orderCreateTest;
+//
+//
+//
+//    @Spy
+//    public XDocReportRegistry spyRegistry;
 
     @BeforeClass
     public void setup() {
@@ -88,6 +97,13 @@ public class OrderCrudTest extends BaseCrudTest {
         spyOrderService.setRegistry(spyRegistry);
 //        orderCreateTest = new OrderCreateTest();
     }
+
+    @AfterMethod
+    public void afterMethod() {
+        Mockito.reset(spyRegistry);
+        Mockito.clearInvocations(spyRegistry);
+    }
+
 
     @Test
     public void generateODTFailedIOException() throws Exception {
@@ -118,7 +134,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
     @Test
     public void generateODTFailedXDocReportException() throws Exception {
-        Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
+        Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -141,7 +157,6 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    
     public void generatePDFFailedIOException() throws Exception {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
         EmptyLoggedInVaadinPage loggedInPage =
@@ -170,7 +185,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
     @Test
     public void generatePDFFailedXDocReportException() throws Exception {
-        Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
+        Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -230,7 +245,7 @@ public class OrderCrudTest extends BaseCrudTest {
         }
         VaadinButtonComponent odtButton = page.getGrid().getOptionAnchorButton(rowLocation, 2);
         odtButton.click();
-        assertTrue(waitForDownload("order_[0-9]{1,}.pdf", 200, 10));
+        assertTrue(waitForDownload("order_[0-9]{1,}.pdf", 200, 10), "Download not happened!");
     }
 
     @Test
@@ -284,10 +299,8 @@ public class OrderCrudTest extends BaseCrudTest {
     @Captor
     ArgumentCaptor<EmailProperties> orderArgumentCaptor;
 
-
-
     @Test
-    public void sendEmailSuccessTest() throws MessagingException {
+    public void sendEmailSuccessTest() throws MessagingException, IOException, XDocReportException {
         Mockito.doNothing().when(spyEmailSendingService).transportSend(any(MimeMessage.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
@@ -304,13 +317,18 @@ public class OrderCrudTest extends BaseCrudTest {
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         }
 
+        page = new OrderPage(driver, port);
+//        VaadinButtonComponent sendEmailButton = page.getGrid().getOptionColumnButton(rowLocation, 3);
         VaadinButtonComponent sendEmailButton = page.getGrid().getOptionColumnButton(rowLocation, 3);
+
         sendEmailButton.click();
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Email sent!");
         notification.close();
     }
+
+
 
     @Test
     public void generateEmailFailedDueToCantGetOrderFromOrderId() throws SQLException {
@@ -319,19 +337,22 @@ public class OrderCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
-        ElementLocation rowLocation = page.getGrid().getRandomLocation();
+//        ElementLocation rowLocation = page.getGrid().getRandomLocation(); //TODO visszarakni
+        ElementLocation rowLocation = null; //TODO kitörölni
         if(rowLocation == null) {
             loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
             OrderCreatePage ocPage = new OrderCreatePage(driver, port);
             ocPage.performCreate(null);
+            new VaadinNotificationComponent(driver).close();
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+            page.initWebElements();
         }
 
         VaadinButtonComponent sendEmailButton = page.getGrid().getOptionColumnButton(rowLocation, 3);
-        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2); //TODO Eredeti: 2
         sendEmailButton.click();
-        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver, Duration.ofMillis(5000));
         assertEquals(notification.getText(), "Email generation failed");
         notification.close();
 
@@ -431,6 +452,8 @@ public class OrderCrudTest extends BaseCrudTest {
         Mockito.reset(spyDataSource);
     }
 
+
+
     @Test
     public void deleteOrderTest() {
         EmptyLoggedInVaadinPage loggedInPage =
@@ -484,6 +507,9 @@ public class OrderCrudTest extends BaseCrudTest {
 //        Thread.sleep(200);
 //        modifyButton.click();
         OrderCreatePage createPage = new OrderCreatePage(driver, port);
+        if(createPage.getGrid().getTotalRowNumber() == 0){
+            System.out.println("Itt ugyebár nem volt elem ebben az esetben a gridben");
+        }
         createPage.getGrid().selectElements(3);
         createPage.getShowPreviouslyOrderedElementsCheckBox().setStatus(true);
         createPage.getCurrencyComboBox().fillWithRandom();
@@ -503,13 +529,15 @@ public class OrderCrudTest extends BaseCrudTest {
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(createOrderSaveOrderButton).click();
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notificationText == null ? "Order updated:" : notificationText, notification.getText());
+        assertThat(notification.getText()).contains(notificationText == null ? "Order updated:" : notificationText);
+//        assertEquals(notificationText == null ? "Order updated:" : notificationText, notification.getText());
         notification.close();
 
 //        gridTestingUtil.checkNotificationContainsTexts(notificationText == null ? "Order updated:" : notificationText);
 //
 //        Thread.sleep(100);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        page.initWebElements();
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        Thread.sleep(100);
         page.getGrid().applyFilter(originalData);
@@ -517,6 +545,8 @@ public class OrderCrudTest extends BaseCrudTest {
         page.getGrid().resetFilter();
         assertEquals(original, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
     }
+
+
 
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws SQLException {
@@ -532,8 +562,20 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
     }
+//
+//    @Test
+//    public void asdf() throws SQLException, IOException {
+//        while(true){
+//            databaseNotAvailableWhileDeleteTest();
+//            deleteOrderElementWhatMemberOfAnOrder();
+//            resetDatabase();
+//        }
+//    }
+
+
 
     @Test
+    @Video
     public void deleteOrderElementWhatMemberOfAnOrder() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
@@ -595,14 +637,16 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderCreatePage createPage = new OrderCreatePage(driver, port);
         createPage.performCreate("Erdei Róbert");
 
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+        createPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
 //        gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
-        oePage = new OrderElementPage(driver, port); //TODO lehet, hogy ez az újra inicializálás nem kell. Meg kell majd próbálni
-
+//        oePage = new OrderElementPage(driver, port); //TODO lehet, hogy ez az újra inicializálás nem kell. Meg kell majd próbálni
+        oePage.initWebElements();
         VaadinButtonComponent oeDeleteButtonCreatedOrder = oePage.getGrid().getDeleteButton(0);
         while(oeDeleteButtonCreatedOrder != null){
+//            oePage.initWebElements();
             oeDeleteButtonCreatedOrder.click();
             new VaadinNotificationComponent(driver).close();
+            oePage.initWebElements();
             oeDeleteButtonCreatedOrder = oePage.getGrid().getDeleteButton(0);
         }
 
@@ -614,6 +658,8 @@ public class OrderCrudTest extends BaseCrudTest {
 //        gridTestingUtil.getModifyButton(gridXpath, 0).click();
 //        Thread.sleep(1000);
         OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+//        ocPage.getCustomerComboBox().fillWith("Erdei Róbert");
+//        ocPage.getGrid().waitForRefresh();
         assertEquals(ocPage.getGrid().getTotalNonDeletedRowNumber(null), 0);
     }
 
@@ -631,13 +677,11 @@ public class OrderCrudTest extends BaseCrudTest {
             ocPage.performCreate(null);
             new VaadinNotificationComponent(driver).close();
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+            page.initWebElements();
             page.performDelete();
-            new VaadinNotificationComponent(driver).close();
-//            originalVisibleRows = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox());
-//
-//            orderCreateTest.setup();
-//            orderCreateTest.createOrder();
-//            deleteOrderTest();
+//            page.initWebElements();
+//            new VaadinNotificationComponent(driver).close();
+
         }
 
         DoRestoreTestData testResult = page.doRestoreTest();

@@ -1,5 +1,6 @@
 package hu.martin.ems;
 
+import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import hu.martin.ems.base.selenium.ScreenshotMaker;
 import hu.martin.ems.base.selenium.WebDriverProvider;
 import hu.martin.ems.core.config.BeanProvider;
@@ -7,9 +8,11 @@ import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.JPAConfig;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.service.EmailSendingService;
+import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.service.AdminToolsService;
 import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.service.OrderService;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.WebDriver;
 import org.slf4j.Logger;
@@ -23,7 +26,10 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.web.client.RestTemplate;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -72,6 +78,13 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
     @SpyBean
     protected static EmailSendingService spyEmailSendingService;
+
+    @SpyBean
+    public static XDocReportRegistry spyRegistry;
+
+//    @InjectMocks
+    @SpyBean
+    public static SftpSender sftpSender;
 
     protected static String fetchingCurrencyApiUrl;
 
@@ -135,6 +148,12 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     @AfterMethod(alwaysRun = true)
     public void afterMethod(ITestResult result){
         clearEnvironment();
+        resetMock();
+    }
+
+    protected void resetMock(){
+        clearInvocationsInServices();
+        resetServicesMock();
     }
 
     @BeforeMethod(alwaysRun = true)
@@ -142,17 +161,26 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         clearEnvironment();
     }
 
-//    private void resetServicesMock(){
-//        Mockito.reset(spyCurrencyService);
-//        Mockito.reset(spyDataSource);
-//        Mockito.reset(spyRestTemplate);
-//    }
-//
-//    private void clearInvocationsInServices(){
-//        Mockito.clearInvocations(spyCurrencyService);
-//        Mockito.clearInvocations(spyDataSource);
-//        Mockito.clearInvocations(spyRestTemplate);
-//    }
+    private void resetServicesMock(){
+        Mockito.reset(spyCurrencyService);
+        Mockito.reset(spyDataSource);
+        Mockito.reset(spyRestTemplate);
+        Mockito.reset(spyOrderService);
+        Mockito.reset(spyAdminToolsService);
+        Mockito.reset(spyEmailSendingService);
+        System.out.println("Mockito reseting done!");
+    }
+
+    private void clearInvocationsInServices(){
+        Mockito.clearInvocations(spyCurrencyService);
+        Mockito.clearInvocations(spyDataSource);
+        Mockito.clearInvocations(spyRestTemplate);
+        Mockito.clearInvocations(spyOrderService);
+        Mockito.clearInvocations(spyAdminToolsService);
+        Mockito.clearInvocations(spyEmailSendingService);
+        System.out.println("Mockito invocation clearing done!");
+
+    }
 
     public void resetDatabase() throws IOException {
         dp.resetDatabase();
@@ -202,6 +230,18 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'robi', '$2a$12$/LIbE6V8xP/2frZmSbe5.OSMyqiIbwQEau0nNsGk./P2PXP1M8BFi', (SELECT id as role_role_id FROM Role WHERE id = 2 LIMIT 1), true)");
         dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'Erzsi', '$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), false)");
         logger.info("All user recovered");
+        JPAConfig.resetCallIndex();
+    }
+
+    protected void resetCustomers(){
+        //TODO: meg kellene csinálni, hogy a JSON-ből vegye ki az SQL-t, és ne így egyesével kelljen megírni
+
+        dp.executeSQL("BEGIN; SET session_replication_role = 'replica'; DELETE FROM customer; SET session_replication_role = 'origin'; COMMIT;");
+        dp.executeSQL("ALTER SEQUENCE customer_id_seq RESTART WITH 1");
+        dp.executeSQL("INSERT INTO customer (deleted, firstName, lastName, emailAddress, address_address_id) VALUES ('0', 'Erdei', 'Róbert', 'robert.emailcime@gmail.com', '1')");
+        dp.executeSQL("INSERT INTO customer (deleted, firstName, lastName, emailAddress, address_address_id) VALUES ('0', 'Gálber', 'Martin', 'martin.emailcime@gmail.com', '2')");
+//        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'Erzsi', '$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), false)");
+        logger.info("All customer recovered");
         JPAConfig.resetCallIndex();
     }
 

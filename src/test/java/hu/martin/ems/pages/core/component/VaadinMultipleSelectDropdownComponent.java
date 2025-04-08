@@ -13,8 +13,12 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownComponent {
-    public VaadinMultipleSelectDropdownComponent(WebDriver driver, WebElement element) {
-        super(driver, element);
+    public VaadinMultipleSelectDropdownComponent(WebDriver driver, By provider) {
+        super(driver, provider);
+    }
+
+    public VaadinMultipleSelectDropdownComponent(WebDriver driver, WebElement scope, By provider, int index){
+        super(driver, scope, provider, index);
     }
 
     private WebElement clearButton;

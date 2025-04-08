@@ -189,7 +189,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
 
         LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
         withData.put("Deletable", true);
-        DoUpdateFailedTestData testResult = codeStorePage.doDatabaseNotAvailableWhenUpdateTest(withData, null, spyDataSource);
+        DoUpdateFailedTestData testResult = codeStorePage.doDatabaseNotAvailableWhenUpdateTest(withData, null, spyDataSource, 0);
 
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());

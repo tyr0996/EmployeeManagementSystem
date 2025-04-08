@@ -1,6 +1,5 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.vaadin.component.BaseVO;

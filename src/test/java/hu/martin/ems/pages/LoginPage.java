@@ -31,8 +31,8 @@ public class LoginPage extends VaadinPage {
         userNameField = getWait().until(ExpectedConditions.elementToBeClickable(By.xpath(userNameFieldXpath)));
         passwordField = getWait().until(ExpectedConditions.elementToBeClickable(By.xpath(passwordFieldXpath)));
         loginButton = getWait().until(ExpectedConditions.elementToBeClickable(By.xpath(loginButtonXpath)));
-        forgotPasswordButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(forgotPasswordButtonXpath))));
-        registerButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(registerButtonXpath))));
+        forgotPasswordButton = new VaadinButtonComponent(getDriver(), By.xpath(forgotPasswordButtonXpath));
+        registerButton = new VaadinButtonComponent(getDriver(), By.xpath(registerButtonXpath));
     }
 
     public void forgotPassword(String userName, String password, String passwordAgain){

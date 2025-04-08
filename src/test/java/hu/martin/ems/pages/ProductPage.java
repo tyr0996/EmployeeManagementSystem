@@ -5,25 +5,22 @@ import hu.martin.ems.pages.core.SimpleVaadinGridPage;
 import hu.martin.ems.pages.core.component.VaadinButtonComponent;
 import hu.martin.ems.pages.core.component.VaadinCheckboxComponent;
 import hu.martin.ems.pages.core.component.VaadinGridComponent;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.EmployeeSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.component.saveOrUpdateDialog.ProductSaveOrUpdateDialog;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
-public class EmployeePage extends SimpleVaadinGridPage<EmployeePage> implements ISimpleVaadinGridPage<EmployeePage> {
-
-
-    public EmployeePage(WebDriver driver, int port) {
-        super(driver, port, "Employee", null);
+public class ProductPage extends SimpleVaadinGridPage<ProductPage> implements ISimpleVaadinGridPage<ProductPage> {
+    public ProductPage(WebDriver driver, int port){
+        super(driver, port, "Product", null);
         initWebElements();
     }
 
     @Override
-    public EmployeePage initWebElements(){
-
+    public ProductPage initWebElements() {
         this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
         this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));
         this.grid = new VaadinGridComponent(getDriver(), By.xpath(gridXpath));
-        this.saveOrUpdateDialog = new EmployeeSaveOrUpdateDialog(getDriver());
+        this.saveOrUpdateDialog = new ProductSaveOrUpdateDialog(getDriver());
 
         return this;
     }

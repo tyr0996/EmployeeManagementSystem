@@ -31,11 +31,11 @@ public class RegistrationDialog extends VaadinBaseComponent {
 
     public void initWebElements() {
         element = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(dialogXpath)));
-        closeButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(closeButtonXpath))));
-        usernameField = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(usernameFieldXpath))));
-        passwordField = new VaadinPasswordInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(passwordFieldXpath))));
-        passwordAgainField = new VaadinPasswordInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(passwordAgainFieldXpath))));
-        registerButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(reisterButtonXpath))));
+        closeButton = new VaadinButtonComponent(getDriver(), By.xpath(closeButtonXpath));
+        usernameField = new VaadinTextInputComponent(getDriver(), By.xpath(usernameFieldXpath));
+        passwordField = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordFieldXpath));
+        passwordAgainField = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordAgainFieldXpath));
+        registerButton = new VaadinButtonComponent(getDriver(), By.xpath(reisterButtonXpath));
     }
 
     public void close(){

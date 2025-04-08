@@ -109,7 +109,7 @@ public class JPAConfig {
         return new HikariDataSource(hikariConfig) {
             @Override
             public Connection getConnection() throws SQLException {
-                logger.info("{}: Get connection called", callIndex);
+//                logger.info("{}: Get connection called", callIndex);
                 callIndex++;
                 return super.getConnection();
             }

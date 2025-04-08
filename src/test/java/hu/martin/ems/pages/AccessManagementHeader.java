@@ -3,10 +3,9 @@ package hu.martin.ems.pages;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.ILoggedInPage;
 import hu.martin.ems.pages.core.component.VaadinButtonComponent;
+import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import lombok.Getter;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class AccessManagementHeader extends EmptyLoggedInVaadinPage implements ILoggedInPage {
     private static final String roleButtonXpath = contentLayoutXpath + "/vaadin-horizontal-layout/vaadin-button[1]";
@@ -27,9 +26,9 @@ public class AccessManagementHeader extends EmptyLoggedInVaadinPage implements I
 
     @Override
     public AccessManagementHeader initWebElements() {
-        roleButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(roleButtonXpath))));
-        permissionButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(permissionButtonXpath))));
-        roleXPermissionButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(roleXPermissionButtonXpath))));
+        roleButton = new VaadinButtonComponent(getDriver(), By.xpath(roleButtonXpath));
+        permissionButton = new VaadinButtonComponent(getDriver(), By.xpath(permissionButtonXpath));
+        roleXPermissionButton = new VaadinButtonComponent(getDriver(), By.xpath(roleXPermissionButtonXpath));
 
         return this;
     }

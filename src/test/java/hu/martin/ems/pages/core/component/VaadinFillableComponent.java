@@ -7,8 +7,12 @@ import org.openqa.selenium.WebElement;
 
 public abstract class VaadinFillableComponent extends VaadinBaseComponent implements Fillable {
 
-    public VaadinFillableComponent(WebDriver driver, WebElement element) {
-        super(driver, element);
+    public VaadinFillableComponent(WebDriver driver, By provider) {
+        super(driver, provider);
+    }
+
+    public VaadinFillableComponent(WebDriver driver, WebElement scope, By provider, int index) {
+        super(driver, scope, provider, index);
     }
 
     public String getTitle(){

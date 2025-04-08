@@ -11,6 +11,7 @@ import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.pages.core.component.saveOrUpdateDialog.RoleSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -23,6 +24,7 @@ import static org.testng.Assert.*;
 
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 //@Listeners(UniversalVideoListener.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RoleTest extends BaseCrudTest {
 //    private static CrudTestingUtil crudTestingUtil;
 //    private static WebDriverWait notificationDisappearWait;
@@ -209,7 +211,7 @@ public class RoleTest extends BaseCrudTest {
 
         RolePage page = new RolePage(driver, port);
 
-        DoUpdateFailedTestData testResult = page.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource);
+        DoUpdateFailedTestData testResult = page.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource, 0);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -409,7 +411,7 @@ public class RoleTest extends BaseCrudTest {
         header.getRoleButton().click();
 
         RolePage page = new RolePage(driver, port);
-        DoUpdateFailedTestData testResult = page.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource);
+        DoUpdateFailedTestData testResult = page.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource, 0);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());

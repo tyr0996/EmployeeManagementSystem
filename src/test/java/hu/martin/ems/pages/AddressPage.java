@@ -8,7 +8,6 @@ import hu.martin.ems.pages.core.component.VaadinGridComponent;
 import hu.martin.ems.pages.core.component.saveOrUpdateDialog.AddressSaveOrUpdateDialog;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class AddressPage extends SimpleVaadinGridPage<AddressPage> implements ISimpleVaadinGridPage<AddressPage> {
 
@@ -21,9 +20,9 @@ public class AddressPage extends SimpleVaadinGridPage<AddressPage> implements IS
     @Override
     public AddressPage initWebElements(){
 
-        this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(showDeletedCheckBoxXpath))));
-        this.createButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(createButtonXpath))));
-        this.grid = new VaadinGridComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(gridXpath))));
+        this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
+        this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));
+        this.grid = new VaadinGridComponent(getDriver(), By.xpath(gridXpath));
         this.saveOrUpdateDialog = new AddressSaveOrUpdateDialog(getDriver());
 
         return this;

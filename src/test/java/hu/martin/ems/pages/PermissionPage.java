@@ -9,7 +9,6 @@ import hu.martin.ems.pages.core.component.saveOrUpdateDialog.PermissionSaveOrUpd
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class PermissionPage extends SimpleVaadinGridPage<PermissionPage> implements ISimpleVaadinGridPage<PermissionPage> {
     public PermissionPage(WebDriver driver, int port) {
@@ -25,9 +24,9 @@ public class PermissionPage extends SimpleVaadinGridPage<PermissionPage> impleme
 
     @Override
     public PermissionPage initWebElements() {
-        this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(showDeletedCheckBoxXpath))));
-        this.createButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(createButtonXpath))));
-        this.grid = new VaadinGridComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(gridXpath))));
+        this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
+        this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));
+        this.grid = new VaadinGridComponent(getDriver(), By.xpath(gridXpath));
         this.saveOrUpdateDialog = new PermissionSaveOrUpdateDialog(getDriver());
         this.header = new AccessManagementHeader(getDriver(), getPort());
 

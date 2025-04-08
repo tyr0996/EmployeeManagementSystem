@@ -31,8 +31,8 @@ public class SideMenu extends VaadinBaseComponent {
     @Getter protected WebElement ordersMenu;
 
     private WebElement element;
-    public SideMenu(WebDriver driver, WebElement element){
-        super(driver, element);
+    public SideMenu(WebDriver driver, By provider){
+        super(driver, provider);
         this.element = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(SIDE_MENU)));
         this.adminMenu = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(ADMIN_MENU)));
         this.ordersMenu = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(ORDERS_MENU)));

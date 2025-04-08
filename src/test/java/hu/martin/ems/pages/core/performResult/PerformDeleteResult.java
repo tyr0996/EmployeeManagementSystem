@@ -7,4 +7,5 @@ import lombok.Setter;
 @Setter
 public class PerformDeleteResult {
     private String[] originalDeletedData;
+    private String notificationWhenPerform;
 }

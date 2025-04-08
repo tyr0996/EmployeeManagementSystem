@@ -3,7 +3,6 @@ package hu.martin.ems.pages.core.component;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class ForgotPasswordDialog_Password extends VaadinDialogComponent {
     private static final String passwordFieldXpath = dialogXpath + "[2]/vaadin-form-layout/vaadin-password-field[1]";
@@ -22,8 +21,8 @@ public class ForgotPasswordDialog_Password extends VaadinDialogComponent {
     }
 
     private void initWebElements(){
-        passwordField = new VaadinPasswordInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(passwordFieldXpath))));
-        passwordAgainField = new VaadinPasswordInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(passwordAgainFieldXpath))));
-        submitButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(submitButtonXpath))));
+        passwordField = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordFieldXpath));
+        passwordAgainField = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordAgainFieldXpath));
+        submitButton = new VaadinButtonComponent(getDriver(), By.xpath(submitButtonXpath));
     }
 }

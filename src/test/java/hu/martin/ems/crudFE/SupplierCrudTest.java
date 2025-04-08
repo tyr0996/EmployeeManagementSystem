@@ -1,169 +1,245 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.testng.UniversalVideoListener;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.GridTestingUtil;
-import hu.martin.ems.base.NotificationCheck;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.pages.LoginPage;
+import hu.martin.ems.pages.SupplierPage;
+import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
+import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
+import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.component.saveOrUpdateDialog.SupplierSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
-import java.time.Duration;
-import java.util.LinkedHashMap;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//@Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Listeners(UniversalVideoListener.class)
 public class SupplierCrudTest extends BaseCrudTest {
-    private static CrudTestingUtil crudTestingUtil;
-    private static WebDriverWait notificationDisappearWait;
+//    private static CrudTestingUtil crudTestingUtil;
+//    private static WebDriverWait notificationDisappearWait;
+//
+//    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+//    private static final String gridXpath = contentXpath + "/vaadin-grid";
+//    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
+//    
+//    private static final String mainMenu = UIXpaths.ADMIN_MENU;
+//    private static final String subMenu = UIXpaths.SUPPLIER_SUBMENU;
+//
+//    private GridTestingUtil gridTestingUtil;
+//
+//    
+//
+//    @BeforeClass
+//    public void setup() {
+//        gridTestingUtil = new GridTestingUtil(driver);
+//        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "Supplier", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
+//        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
+//    }
 
-    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath = contentXpath + "/vaadin-grid";
-    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
-    
-    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-    private static final String subMenu = UIXpaths.SUPPLIER_SUBMENU;
+    @Test
+    public void supplierCreateTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
-    private GridTestingUtil gridTestingUtil;
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        DoCreateTestData testResult = supplierPage.doCreateTest();
 
-    
-
-    @BeforeClass
-    public void setup() {
-        gridTestingUtil = new GridTestingUtil(driver);
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "Supplier", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("Supplier saved: ");
     }
 
     @Test
-    
-    public void supplierCreateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-         gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest();
+    public void databaseNotAvailableWhileDeleteTest() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
+
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        DoDeleteFailedTestData testResult = supplierPage.doDatabaseNotAvailableWhenDeleteTest(spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
     }
 
     @Test
-    
-    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
+    public void supplierReadTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
+
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        DoReadTestData testResult = supplierPage.doReadTest(null, true);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertNull(testResult.getNotificationWhenPerform());
     }
 
     @Test
-    
-    public void supplierReadTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-         gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.readTest();
+    public void supplierDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
+
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        DoDeleteTestData testResult = supplierPage.doDeleteTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("Supplier deleted: ");
+
+        supplierPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
+        assertEquals(1, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        supplierPage.getGrid().resetFilter();
     }
 
     @Test
-    
-    public void supplierDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-         gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.deleteTest();
+    public void supplierUpdateTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
+
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        DoUpdateTestData testResult = supplierPage.doUpdateTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Supplier updated: ");
+
+        supplierPage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
+        assertEquals(0, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        supplierPage.getGrid().resetFilter();
     }
 
     @Test
-    
-    public void supplierUpdateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-         gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest();
-    }
-
-    @Test
-    
     //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/addresses.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    public void supplierRestoreTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-         gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.restoreTest();
+    public void supplierRestoreTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
+
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        DoRestoreTestData testResult = supplierPage.doRestoreTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("Supplier restored: ");
+
+        supplierPage = new SupplierPage(driver, port);
+        supplierPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
+        supplierPage.getGrid().waitForRefresh();
+        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 1);
+        supplierPage.getGrid().resetFilter();
     }
 
     @Test
-    
-    public void supplierPermanentlyDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-         gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.permanentlyDeleteTest();
-    }
+    public void supplierPermanentlyDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
-    //@Test
-    public void extraFilterInvalidValue() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-         gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        NotificationCheck nc = new NotificationCheck();
-        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        DoPermanentlyDeleteTestData testResult = supplierPage.doPermanentlyDeleteTest();
+        assertThat(testResult.getNotificationWhenPerform()).contains("Supplier permanently deleted: ");
+
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        supplierPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
+        assertEquals(0, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        supplierPage.getGrid().resetFilter();
     }
+//
+//    //@Test
+//    public void extraFilterInvalidValue() {
+//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//         gridTestingUtil.navigateMenu(mainMenu, subMenu);
+//        NotificationCheck nc = new NotificationCheck();
+//        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
+//        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+//    }
     @Test
     
-    public void databaseNotAvailableWhenModify() throws InterruptedException, SQLException {
+    public void databaseNotAvailableWhenModify() throws SQLException {
 //        Mockito.doReturn(null).when(spySupplierService).update(any(Supplier.class));
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest(null, "Internal server error", false);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
+
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        DoUpdateFailedTestData testResult = supplierPage.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource, 0);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getResult().getNotificationText()).contains("Supplier modifying failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
     @Test
     
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException, SQLException {
+    public void nullResponseFromServiceWhenCreate() throws SQLException {
 //        Mockito.doReturn(null).when(spySupplierService).save(any(Supplier.class));
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 7);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest(null, "Supplier saving failed: Internal server error", false);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
+
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        DoCreateFailedTestData testResult = supplierPage.doDatabaseNotAvailableWhenCreateTest(spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Supplier saving failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
     @Test
     
-    public void unexpectedResponseCodeWhenGettingAllSuppliers() throws InterruptedException, SQLException {
-        gridTestingUtil.mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
-//        Mockito.doReturn(null).when(spySupplierService).findAll(any(Boolean.class));
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spySupplierApiClient).findAll();
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spySupplierApiClient).findAllWithDeleted();
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        Thread.sleep(100);
-        gridTestingUtil.checkNotificationText("Error happened while getting suppliers");
-        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXpath));
-        assertEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+    public void unexpectedResponseCodeWhenGettingAllSuppliers() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Error happened while getting suppliers");
+        notification.close();
+
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
     }
 
     @Test
     
-    public void unexpectedResponseCodeWhenGettingAddresses() throws InterruptedException, SQLException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyAddressApiClient).findAll();
-//        Mockito.doReturn(null).when(spyAddressService).findAll(false);
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-        failedFieldData.put("Address", "Error happened while getting addresses");
+    public void unexpectedResponseCodeWhenGettingAddresses() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
-        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
+        supplierPage.getCreateButton().click();
+
+        SupplierSaveOrUpdateDialog dialog = new SupplierSaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
+        assertEquals(failedComponents.size(), 1);
+        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting addresses");
     }
-
-    @Test
-    
-    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
-    }
-
 }

@@ -4,7 +4,6 @@ import hu.martin.ems.pages.core.component.VaadinDropdownComponent;
 import hu.martin.ems.pages.core.component.VaadinTextInputComponent;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class CitySaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     private static final String nameTextFieldXpath = dialogXpath + "/vaadin-form-layout/vaadin-text-field[1]";
@@ -23,9 +22,9 @@ public class CitySaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     public void initWebElements() {
         super.initWebElements();
 
-        nameTextField = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(nameTextFieldXpath))));
-        countryCodeDropdown = new VaadinDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(countryCodeDropdownXpath))));
-        zipCodeTextField = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(zipCodeTextFieldXpath))));
+        nameTextField = new VaadinTextInputComponent(getDriver(), By.xpath(nameTextFieldXpath));
+        countryCodeDropdown = new VaadinDropdownComponent(getDriver(), By.xpath(countryCodeDropdownXpath));
+        zipCodeTextField = new VaadinTextInputComponent(getDriver(), By.xpath(zipCodeTextFieldXpath));
 
         setAllComponents();
     }

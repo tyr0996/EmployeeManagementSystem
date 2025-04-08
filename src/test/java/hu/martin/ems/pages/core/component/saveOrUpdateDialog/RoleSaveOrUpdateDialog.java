@@ -5,7 +5,6 @@ import hu.martin.ems.pages.core.component.VaadinTextInputComponent;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class RoleSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
 
@@ -23,8 +22,8 @@ public class RoleSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     public void initWebElements(){
         super.initWebElements();
 
-        nameField = new VaadinTextInputComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(nameTextFieldXpath))));
-        permissionsComboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(permissionsComboBoxXpath))));
+        nameField = new VaadinTextInputComponent(getDriver(), By.xpath(nameTextFieldXpath));
+        permissionsComboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), By.xpath(permissionsComboBoxXpath));
 
         setAllComponents();
     }

@@ -8,6 +8,7 @@ import hu.martin.ems.pages.RoleXPermissionPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -18,6 +19,7 @@ import java.util.Arrays;
 
 import static org.testng.Assert.*;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RoleXPermissionCreateTest extends BaseCrudTest {
     @BeforeMethod
     public void beforeMethod(){

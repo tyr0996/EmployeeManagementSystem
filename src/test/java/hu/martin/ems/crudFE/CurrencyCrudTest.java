@@ -14,6 +14,7 @@ import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import org.mockito.Mockito;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -28,6 +29,7 @@ import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CurrencyCrudTest extends BaseCrudTest {
     @Test
     public void selectDateRetroactively_NotSavedDate() {

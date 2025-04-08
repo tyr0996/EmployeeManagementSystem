@@ -9,7 +9,6 @@ import hu.martin.ems.pages.core.component.VaadinGridComponent;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class OrderPage extends SimpleVaadinGridPage<OrderPage> implements ISimpleVaadinGridPage<OrderPage> {
     private static final String fromDatePickerXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-horizontal-layout/vaadin-date-picker[1]";
@@ -32,11 +31,11 @@ public class OrderPage extends SimpleVaadinGridPage<OrderPage> implements ISimpl
 
     @Override
     public OrderPage initWebElements() {
-        fromDatePicker = new VaadinDatePickerComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(fromDatePickerXpath))));
-        toDatePicker = new VaadinDatePickerComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(toDatePickerXpath))));
-        sendToAccountantSftpButton = new VaadinButtonComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(sendToAccountantSFTPButtonXpath))));
-        showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(showDeletedCheckBoxXpath))));
-        grid = new VaadinGridComponent(getDriver(), getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(gridXpath))));
+        fromDatePicker = new VaadinDatePickerComponent(getDriver(), By.xpath(fromDatePickerXpath));
+        toDatePicker = new VaadinDatePickerComponent(getDriver(), By.xpath(toDatePickerXpath));
+        sendToAccountantSftpButton = new VaadinButtonComponent(getDriver(), By.xpath(sendToAccountantSFTPButtonXpath));
+        showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
+        grid = new VaadinGridComponent(getDriver(), By.xpath(gridXpath));
         return this;
     }
 }

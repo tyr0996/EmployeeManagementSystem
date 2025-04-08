@@ -10,6 +10,8 @@ import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.pages.core.component.saveOrUpdateDialog.CustomerSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
@@ -19,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws SQLException {
@@ -147,7 +150,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
-        DoUpdateFailedTestData testResult = customerPage.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource);
+        DoUpdateFailedTestData testResult = customerPage.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource, 0);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -201,5 +204,11 @@ public class CustomerCrudTest extends BaseCrudTest {
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting addresses");
+    }
+
+    @AfterMethod
+    public void afterMethod(){
+        resetMock();
+        resetCustomers();
     }
 }
