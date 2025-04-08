@@ -24,10 +24,7 @@ public class CurrencyApiClient extends EmsApiClient<Currency>{
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            if(response != null && !response.equals("null")){
-                return new EmsResponse(200, response, "");
-            }
-            return new EmsResponse(500, "Internal server error");
+            return new EmsResponse(200, response, "");
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
@@ -44,19 +41,6 @@ public class CurrencyApiClient extends EmsApiClient<Currency>{
                     .bodyToMono(String.class)
                     .block();
             return new EmsResponse(200, convertResponseToEntity(response, Currency.class), "");
-            // return new EmsResponse(200, response, "");
-//            if(response instanceof String && !response.equals("null")){
-//                return new EmsResponse(200, gson.fromJson((String) response, Currency.class), "");
-//            }
-//            else{
-//                return new EmsResponse(200, null, "");
-//            }
-            //else if(response.equals("null")){
-            //    return new EmsResponse(200, null,"");
-            //}
-//            else{
-//                return new EmsResponse(500, "Error happened while getting currencies by wdate: Internal server error");
-//            }
         }
         catch (WebClientResponseException ex){
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());

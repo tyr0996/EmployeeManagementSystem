@@ -28,7 +28,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 
     @Test
     public void createRoleXPermissionTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleXPermissionButton().click();
@@ -48,7 +48,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
     public void databaseNotAvailableWhenCreateRoleXPermissionFailedTest() throws SQLException {
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 6);
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 6);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleXPermissionButton().click();
@@ -66,7 +66,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 //    @Test
 //    public void notExpectedStatusCodeWhileGettingPariedPermissionsTo() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleXPermissionApiClient).findAllPairedPermissionsTo(any(Role.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
 //        Thread.sleep(100);
@@ -83,7 +83,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
     public void databaseNotAvailableWhileGettingAllPermissions() throws SQLException {
 //        Mockito.doReturn(null).when(spyPermissionService).findAll(false);
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2);
@@ -99,7 +99,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 //    @Test
 //    public void notExpectedStatusCodeWhileGettingAllPermissions() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionApiClient).findAll();
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
 //        Thread.sleep(100);
@@ -115,7 +115,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 //        Mockito.doReturn(null).when(spyRoleService).findAll(false);
 
 
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 1);
@@ -139,7 +139,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
     public void databaseNotAvailableWhileReturnWhileGettingLoggedInUser() throws SQLException {
 //        Mockito.doReturn(null).when(spyRoleService).findAll(false);
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
@@ -165,7 +165,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhileGettingAllPermissionsAndRoles() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(3, 4));
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleXPermissionButton().click();

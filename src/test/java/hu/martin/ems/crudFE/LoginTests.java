@@ -136,13 +136,13 @@ public class LoginTests extends BaseCrudTest {
 
     @Test
     public void authorizedCredidentalsTest() {
-        LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
     }
 
     @Test
     public void logoutTest() {
-        LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         EmptyLoggedInVaadinPage loggedInPage = new EmptyLoggedInVaadinPage(driver, port);
         loggedInPage.logout();
     }
@@ -151,7 +151,7 @@ public class LoginTests extends BaseCrudTest {
 
     @Test
     public void sideMenuElementsTest() {
-        LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+        LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         EmptyLoggedInVaadinPage loggedInPage = new EmptyLoggedInVaadinPage(driver, port);
 
         assertEquals(false, adminSubMenusVisible());
@@ -199,7 +199,7 @@ public class LoginTests extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenGettingUserByUsernameNewRegistrationExistingUser() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
-        LoginPage failedLogin = (LoginPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", false);
+        LoginPage failedLogin = (LoginPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", false);
         assertEquals("Incorrect username or password", failedLogin.getErrorMessage().getTitle());
         assertEquals("Check that you have entered the correct username and password and try again.", failedLogin.getErrorMessage().getDescription());
     }

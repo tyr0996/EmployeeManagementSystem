@@ -24,7 +24,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void cityCreateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -38,7 +38,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void cityReadTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -52,7 +52,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void cityDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -71,7 +71,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void cityUpdateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -90,7 +90,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void cityRestoreTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -112,7 +112,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void cityPermanentlyDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -131,7 +131,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void gettingCountryCodesFailed() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -148,7 +148,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -162,7 +162,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhilePermanentlyDeleteTest() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -176,7 +176,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenModify() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -191,7 +191,7 @@ public class CityCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenCreate() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);

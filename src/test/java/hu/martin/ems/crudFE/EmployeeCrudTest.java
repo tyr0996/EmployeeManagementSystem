@@ -25,7 +25,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void employeeCreateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
@@ -39,7 +39,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void employeeReadTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
@@ -53,7 +53,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void employeeDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
@@ -72,7 +72,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void employeeUpdateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
@@ -91,7 +91,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void employeeRestoreTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
@@ -113,7 +113,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void employeePermanentlyDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
@@ -132,7 +132,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void gettingUsersFailed() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 1);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
@@ -149,7 +149,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void gettingEmployeesFailed() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
@@ -166,7 +166,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
@@ -180,7 +180,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhilePermanentlyDeleteTest() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
@@ -194,7 +194,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenModify() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
@@ -209,7 +209,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenCreate() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);

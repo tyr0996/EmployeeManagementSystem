@@ -48,7 +48,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     @Test
     public void supplierCreateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
@@ -62,7 +62,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
@@ -76,7 +76,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     @Test
     public void supplierReadTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
@@ -90,7 +90,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     @Test
     public void supplierDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
@@ -109,7 +109,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     @Test
     public void supplierUpdateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
@@ -129,7 +129,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/addresses.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void supplierRestoreTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
@@ -150,7 +150,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     @Test
     public void supplierPermanentlyDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
@@ -168,7 +168,7 @@ public class SupplierCrudTest extends BaseCrudTest {
 //
 //    //@Test
 //    public void extraFilterInvalidValue() {
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //         gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        NotificationCheck nc = new NotificationCheck();
 //        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
@@ -179,7 +179,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     public void databaseNotAvailableWhenModify() throws SQLException {
 //        Mockito.doReturn(null).when(spySupplierService).update(any(Supplier.class));
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
@@ -196,7 +196,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     public void nullResponseFromServiceWhenCreate() throws SQLException {
 //        Mockito.doReturn(null).when(spySupplierService).save(any(Supplier.class));
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
@@ -212,7 +212,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     
     public void unexpectedResponseCodeWhenGettingAllSuppliers() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
@@ -229,7 +229,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     
     public void unexpectedResponseCodeWhenGettingAddresses() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);

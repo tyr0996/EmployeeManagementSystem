@@ -7,6 +7,7 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.JPAConfig;
 import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.controller.EndpointController;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.service.AdminToolsService;
@@ -34,7 +35,33 @@ import org.testng.annotations.BeforeSuite;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ <table border="1">
+     <thead>
+         <tr>
+             <th>Felhasználónév</th>
+             <th>Jelszó</th>
+         </tr>
+     </thead>
+     <tbody>
+         <tr>
+             <td>admin</td>
+             <td>29b{}'f<0V>Z</td>
+         </tr>
+         <tr>
+             <td>robi</td>
+             <td>3W-@s2|0^x&Y</td>
+         </tr>
+         <tr>
+             <td>Erzsi</td>
+             <td>&B0sEh3U5m;L</td>
+         </tr>
+     </tbody>
+ </table>
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BaseCrudTest extends AbstractTestNGSpringContextTests implements ITestListener {
 
@@ -44,10 +71,13 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 //    protected static WebDriver driver;
 
     @Autowired
-    private ServletWebServerApplicationContext webServerAppCtxt;
+    protected ServletWebServerApplicationContext webServerAppCtxt;
 
     @Autowired
     protected DataProvider dataProvider;
+
+    @SpyBean
+    protected static BeanProvider spyBeanProvider;
 
     private Logger logger = LoggerFactory.getLogger(BaseCrudTest.class);
 
@@ -81,6 +111,9 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
     @SpyBean
     public static XDocReportRegistry spyRegistry;
+
+    @SpyBean
+    public static EndpointController spyEndpointController;
 
 //    @InjectMocks
     @SpyBean
@@ -168,6 +201,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.reset(spyOrderService);
         Mockito.reset(spyAdminToolsService);
         Mockito.reset(spyEmailSendingService);
+        Mockito.reset(spyEndpointController);
         System.out.println("Mockito reseting done!");
     }
 
@@ -178,6 +212,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.clearInvocations(spyOrderService);
         Mockito.clearInvocations(spyAdminToolsService);
         Mockito.clearInvocations(spyEmailSendingService);
+        Mockito.clearInvocations(spyEndpointController);
         System.out.println("Mockito invocation clearing done!");
 
     }
@@ -226,9 +261,9 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     protected void resetUsers() {
         dp.executeSQL("BEGIN; SET session_replication_role = 'replica'; DELETE FROM loginuser; SET session_replication_role = 'origin'; COMMIT;");
         dp.executeSQL("ALTER SEQUENCE loginuser_id_seq RESTART WITH 1");
-        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'admin', '$2a$12$Ei2ntwIK/6lePBO2UecedetPpxxDee3kmxnkWTXZI.CiPb86vejHe', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), true)");
-        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'robi', '$2a$12$/LIbE6V8xP/2frZmSbe5.OSMyqiIbwQEau0nNsGk./P2PXP1M8BFi', (SELECT id as role_role_id FROM Role WHERE id = 2 LIMIT 1), true)");
-        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'Erzsi', '$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), false)");
+        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'admin', '$2a$12$21wsdBKKqiHILOElhmEhGe3R11QIlrXmA6xlY.CowoExz8rlxB9Bu', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), true)");
+        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'robi', '$2a$12$ENKhjamGSnSXx81f0IRPQObhyEOccAbutpkjJRai0.dshqFRyFETy', (SELECT id as role_role_id FROM Role WHERE id = 2 LIMIT 1), true)");
+        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'Erzsi', '$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), false)");
         logger.info("All user recovered");
         JPAConfig.resetCallIndex();
     }
@@ -250,5 +285,27 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         if (driver != null) {
             driver.quit();
         }
+    }
+
+    protected boolean waitForDownload(String fileNameRegex, int times, int padding) throws Exception {
+        Pattern pattern = Pattern.compile(fileNameRegex);
+
+        for (int i = 0; i < times; i++) {
+            File dir = new File(StaticDatas.Selenium.downloadPath);
+            File[] files = dir.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+                    Matcher matcher = pattern.matcher(file.getName());
+                    if (matcher.matches()) {
+                        if (file.delete()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            Thread.sleep(padding); // Várakozás 1 másodpercig
+        }
+        return false;
     }
 }

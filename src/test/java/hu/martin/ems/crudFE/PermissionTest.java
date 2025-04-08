@@ -55,7 +55,7 @@ public class PermissionTest extends BaseCrudTest {
 
     @Test
     public void permissionCreateTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -70,7 +70,7 @@ public class PermissionTest extends BaseCrudTest {
 
     @Test
     public void permissionReadTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -85,7 +85,7 @@ public class PermissionTest extends BaseCrudTest {
 
     @Test
     public void permissionDeleteTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -105,7 +105,7 @@ public class PermissionTest extends BaseCrudTest {
 
     @Test
     public void permissionUpdateTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -126,7 +126,7 @@ public class PermissionTest extends BaseCrudTest {
 
     @Test
     public void permissionRestoreTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -149,7 +149,7 @@ public class PermissionTest extends BaseCrudTest {
 
     @Test
     public void permissionPermanentlyDeleteTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -169,7 +169,7 @@ public class PermissionTest extends BaseCrudTest {
 
     //@Test
 //    public void extraFilterInvalidValue() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
 //        NotificationCheck nc = new NotificationCheck();
@@ -180,7 +180,7 @@ public class PermissionTest extends BaseCrudTest {
 //    @Test
 //    public void apiSendInvalidStatusCodeWhenSavePermissionXPermission() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionXPermissionApiClient).save(any(PermissionXPermission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
 //        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
@@ -189,7 +189,7 @@ public class PermissionTest extends BaseCrudTest {
 //    @Test
 //    public void apiSendInvalidStatusCodeWhenUpdatePermissionPermissionXPermission() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyPermissionXPermissionApiClient).save(any(PermissionXPermission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
 //        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
@@ -198,7 +198,7 @@ public class PermissionTest extends BaseCrudTest {
 
     @Test
     public void databaseNotAvailableWhenModify() throws SQLException {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -215,7 +215,7 @@ public class PermissionTest extends BaseCrudTest {
 
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws SQLException {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -232,7 +232,7 @@ public class PermissionTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenCreate() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 14);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -249,7 +249,7 @@ public class PermissionTest extends BaseCrudTest {
 //    @Test
 //    public void undoSaveFailed() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionXPermissionApiClient).save(any(PermissionXPermission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
 //        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
@@ -260,7 +260,7 @@ public class PermissionTest extends BaseCrudTest {
     public void gettingPermissionsFailed() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyPermissionService).findAll(true); //ApiClientben.findAllWithDeleted();
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -286,7 +286,7 @@ public class PermissionTest extends BaseCrudTest {
 //    @Test
 //    public void findAllPairedPermissionToPermissionsFailed() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionXPermissionApiClient).findAllPairedPermissionTo(any(Permission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
 //        Thread.sleep(100);
@@ -300,7 +300,7 @@ public class PermissionTest extends BaseCrudTest {
     
     public void findAllPermissionFailed() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();
@@ -327,7 +327,7 @@ public class PermissionTest extends BaseCrudTest {
 //    @Test
 //    public void findAllPariedPermissionToWhenUpdate() throws InterruptedException {
 //
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
 //        Thread.sleep(100);
@@ -341,7 +341,7 @@ public class PermissionTest extends BaseCrudTest {
     //létrehozás sikertelen, visszaállítás sikertelen permissionXPermissionApi.findAllPairedPermissionTo(permission);
 //    @Test
 //    public void createFailedUndoSaveFailed() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
 //        Thread.sleep(100);
@@ -354,7 +354,7 @@ public class PermissionTest extends BaseCrudTest {
     @Test
     public void databaseUnavailableWhenSaving() throws SQLException {
 //        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 3);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getPermissionButton().click();

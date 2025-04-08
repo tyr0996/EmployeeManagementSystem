@@ -26,7 +26,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
@@ -40,7 +40,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void customerCreateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
@@ -54,7 +54,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void customerReadTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
@@ -68,7 +68,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void customerDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
@@ -87,7 +87,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void customerUpdateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
@@ -106,7 +106,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void customerRestoreTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
@@ -127,7 +127,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void customerPermanentlyDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
@@ -146,7 +146,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void nullResponseFromServiceWhenModify() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
@@ -161,7 +161,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void nullResponseFromServiceWhenCreate() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
@@ -176,7 +176,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void unexpectedResponseCodeWhenFindAllCustomer() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
@@ -192,7 +192,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     @Test
     public void unexpectedResponseCodeWhenFindAllAddress() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);

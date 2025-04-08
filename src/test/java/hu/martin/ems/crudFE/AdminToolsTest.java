@@ -10,7 +10,8 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AdminToolsTest extends BaseCrudTest {
@@ -18,7 +19,7 @@ public class AdminToolsTest extends BaseCrudTest {
     @Test
     public void clearDatabaseTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
 
         AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
@@ -36,7 +37,7 @@ public class AdminToolsTest extends BaseCrudTest {
         .when(spyAdminToolsService).clearAllDatabaseTable();
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
 
         AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
@@ -50,5 +51,32 @@ public class AdminToolsTest extends BaseCrudTest {
         VaadinNotificationComponent notificationComponentSucc = new VaadinNotificationComponent(driver);
         assertEquals(notificationComponentSucc.getText(), "Clearing database was successful");
         notificationComponentSucc.close();
+    }
+
+    @Test
+    public void exportApisTest() throws Exception {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getExportApisButton().click();
+        assertTrue(waitForDownload("ems_apis.json", 200, 10));
+    }
+
+    @Test
+    public void exportApisFailedTestFailedNoBean() throws Exception {
+        when(spyEndpointController.getHandlerMapping()).thenThrow(new RuntimeException());
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getExportApisButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Internal Server Error");
+        assertFalse(waitForDownload("ems_apis[0-9]*.json", 200, 10));
     }
 }

@@ -592,7 +592,7 @@ public class CrudTestingUtil {
         else{
             Mockito.doThrow(JsonProcessingException.class).doCallRealMethod().when(spyApiClient).writeValueAsString(any(BaseEntity.class));
         }
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenuXpath, subMenuXpath);
         Thread.sleep(10);
         gridTestingUtil.findClickableElementWithXpathWithWaiting(subSubButtonXpath).click();
@@ -728,7 +728,7 @@ public class CrudTestingUtil {
 //     * @throws InterruptedException
 //     */
 //    public void databaseUnavailableWhenGetAllEntity(Class<?> testClass, DataSource spyDataSource, int port, String mainMenu, String subMenu, String notificationEntityClassName) throws SQLException, InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        Thread.sleep(100);
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(testClass, spyDataSource, );
 ////        Mockito.doThrow(new SQLException("Connection refused: getsockopt")).when(spyDataSource).getConnection();

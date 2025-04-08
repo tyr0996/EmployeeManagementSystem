@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.io.ByteArrayInputStream;
+
 @Service
 @Slf4j
 public class AdminToolsApiClient {
@@ -38,7 +40,23 @@ public class AdminToolsApiClient {
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString()); //TODO Errorosítás
+        }
+    }
+
+    public EmsResponse exportApis(){
+        WebClient webClient = webClientProvider.initWebClient("eps");
+        try{
+            byte[] response =  webClient.get()
+                    .uri("exportApis")
+                    .retrieve()
+                    .bodyToMono(byte[].class)
+                    .block();
+            return new EmsResponse(200, new ByteArrayInputStream(response), "");
+        }
+        catch (WebClientResponseException ex){
+            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
         }
     }
 }

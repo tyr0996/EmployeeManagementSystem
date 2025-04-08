@@ -1,6 +1,5 @@
 package hu.martin.ems.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.model.CodeStore;
@@ -22,12 +21,12 @@ public class CodeStoreController extends BaseController<CodeStore, CodeStoreServ
     }
 
     @GetMapping(path = "/getChildren")
-    public ResponseEntity<String> getChildren(@RequestParam(value = "parentCodeStoreId") Long parentCodeStoreId) throws JsonProcessingException {
+    public ResponseEntity<String> getChildren(@RequestParam(value = "parentCodeStoreId") Long parentCodeStoreId) {
         return new ResponseEntity<>(gson.toJson(service.getChildren(parentCodeStoreId)), HttpStatus.OK);
     }
 
     @GetMapping(path = "/getByName")
-    public ResponseEntity<String> getByName(@RequestParam(value = "name") String name) throws JsonProcessingException {
+    public ResponseEntity<String> getByName(@RequestParam(value = "name") String name) {
         return new ResponseEntity<>(gson.toJson(service.findByName(name)), HttpStatus.OK);
     }
 }

@@ -36,7 +36,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         clearCurrencyDatabaseTable();
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
         CurrencyPage page = new CurrencyPage(driver, port);
         assertEquals(LocalDate.now(), page.getDatePicker().getDate());
@@ -59,7 +59,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     public void tryToEnterAllPossibleGoodDateFormats() {
         clearCurrencyDatabaseTable();
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
         CurrencyPage page = new CurrencyPage(driver, port);
         assertEquals(LocalDate.now(), page.getDatePicker().getDate());
@@ -83,7 +83,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     @Test
     public void checkEuroExistsInGrid() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
         CurrencyPage page = new CurrencyPage(driver, port);
         page.getGrid().applyFilter("EUR", "");
@@ -96,7 +96,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     public void checkEuroValueExistsInGrid() {
         clearCurrencyDatabaseTable();
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
         CurrencyPage page = new CurrencyPage(driver, port);
         page.getGrid().applyFilter("EUR", "");
@@ -115,7 +115,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).doReturn(originalCurrency).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
         CurrencyPage page = new CurrencyPage(driver, port);
 
@@ -141,7 +141,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         clearCurrencyDatabaseTable();
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
         CurrencyPage page = new CurrencyPage(driver, port);
         assertEquals(LocalDate.now(), page.getDatePicker().getDate());
@@ -168,7 +168,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
 //        Mockito.doReturn(null).when(spyCurrencyService).findByDate(Mockito.any(LocalDate.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
         CurrencyPage page = new CurrencyPage(driver, port);
         assertEquals(LocalDate.now(), page.getDatePicker().getDate());
@@ -191,7 +191,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(4));
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
         CurrencyPage page = new CurrencyPage(driver, port);
 
@@ -209,7 +209,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
         CurrencyPage page = new CurrencyPage(driver, port);
 

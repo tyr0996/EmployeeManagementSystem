@@ -22,10 +22,7 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            if(jsonResponse != null && !jsonResponse.equals("null")){
-                return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-            }
-            return new EmsResponse(500, null, "Internal Server Error");
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         }
         catch (WebClientResponseException ex){
             logger.error("WebClient error - getChildren - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
@@ -41,10 +38,7 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            if(jsonResponse != null && !jsonResponse.equals("null")){
-                return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-            }
-            return new EmsResponse(500, null, null);
+            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         }
         catch(WebClientResponseException ex) {
             logger.error("WebClient error getAllByName - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());

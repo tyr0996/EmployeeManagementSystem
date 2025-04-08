@@ -405,12 +405,18 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
     private void setRoles(){
         List<Role> roles;
         EmsResponse response;
-        if(showDeleted) {
-            response = roleApi.findAllWithGraphWithDeleted();
+        if(showDeleted){
+            response = roleApi.findAllWithDeleted();
         }
         else{
-            response = roleApi.findAllWithGraph();
+            response = roleApi.findAll();
         }
+//        if(showDeleted) {
+//            response = roleApi.findAllWithGraphWithDeleted();
+//        }
+//        else{
+//            response = roleApi.findAllWithGraph();
+//        }
         switch (response.getCode()){
             case 200 : {
                 roles = (List<Role>) response.getResponseData();

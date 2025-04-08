@@ -75,7 +75,7 @@ public class OrderCreateTest extends BaseCrudTest {
     @Test
     public void customerNotSelectedShowPreviouslyGridIsEmptyTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
 
         OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
@@ -99,7 +99,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
     public void createOrder(String notificationText, Boolean requiredSuccess, DataSource spyDataSource, Integer preSuccess) throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage oPage = new OrderPage(driver, port);
@@ -166,7 +166,7 @@ public class OrderCreateTest extends BaseCrudTest {
 //        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 21);
 //         Mockito.doReturn(null).when(spyOrderService).update(any(Order.class));
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
 
         OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
@@ -182,7 +182,7 @@ public class OrderCreateTest extends BaseCrudTest {
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 95);
 //        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 95);
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
 
         OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
@@ -197,7 +197,7 @@ public class OrderCreateTest extends BaseCrudTest {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2);
 //        Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben opcionális paraméterként jön.
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
 
         OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
@@ -213,7 +213,7 @@ public class OrderCreateTest extends BaseCrudTest {
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 5);
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
 
         OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
@@ -234,7 +234,7 @@ public class OrderCreateTest extends BaseCrudTest {
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 93);
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 93);
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
 
         OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
@@ -247,7 +247,7 @@ public class OrderCreateTest extends BaseCrudTest {
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
 
         OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
@@ -263,7 +263,7 @@ public class OrderCreateTest extends BaseCrudTest {
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 4);
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
 
         OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
@@ -281,7 +281,7 @@ public class OrderCreateTest extends BaseCrudTest {
     public void updateOrder(String notificationText, Boolean requiredSuccess, DataSource spyDataSource, Integer preSuccess) throws SQLException {
 //        init();
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage oPage = new OrderPage(driver, port);
@@ -370,7 +370,7 @@ public class OrderCreateTest extends BaseCrudTest {
     @Test
     public void noneSelectedFromTheOrderCreationGrid() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage orderPage = new OrderPage(driver, port);
@@ -457,7 +457,7 @@ public class OrderCreateTest extends BaseCrudTest {
     
     public void databaseUnavailableWhenGettingAllByCustomer() throws SQLException, InterruptedException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage orderPage = new OrderPage(driver, port);
@@ -531,7 +531,7 @@ public class OrderCreateTest extends BaseCrudTest {
 //    @Test
 //    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
 //        EmptyLoggedInVaadinPage loggedInPage =
-//                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+//                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
 //        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 //
 //        OrderPage orderPage = new OrderPage(driver, port);
@@ -622,7 +622,7 @@ public class OrderCreateTest extends BaseCrudTest {
     @Test
     public void moreThanOneOrderExistsForCustomerEditOne() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage opage = new OrderPage(driver, port);
@@ -712,7 +712,7 @@ public class OrderCreateTest extends BaseCrudTest {
     @Test
     public void noCustomerSelectedButShowPreviouslyEnabledThanGridWillBeIsEmpty() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
 
         OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
@@ -727,7 +727,7 @@ public class OrderCreateTest extends BaseCrudTest {
     @Test
     public void deselectShowPreviouslyChangesGridSelectionMode() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
 
         SoftAssert sa = new SoftAssert();

@@ -3,14 +3,14 @@ package hu.martin.ems.core.controller;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.StaticDatas;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,6 +20,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,23 +31,27 @@ import java.util.regex.Pattern;
 @RequestMapping("/api/eps")
 @AnonymousAllowed
 public class EndpointController {
-    @Qualifier("webApplicationContext")
-    @Autowired
-    private ApplicationContext applicationContext;
+//    @Qualifier("webApplicationContext")
+//    @Autowired
+//    private ApplicationContext applicationContext;
 
     @Autowired
     private Gson gson;
 
-    @GetMapping(path = "/eps", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> getAllEndpoints() {
+    @GetMapping(path = "/exportApis", produces = StaticDatas.Produces.JSON)
+    public ResponseEntity<byte[]> getAllEndpoints() {
 //        ApplicationContext ctx = new AnnotationConfigApplicationContext(EmployeeManagementSystemApplication.class);
-        RequestMappingHandlerMapping handlerMapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
-        Map<RequestMappingInfo, HandlerMethod> handlerMethods = handlerMapping.getHandlerMethods();
+//        RequestMappingHandlerMapping handlerMapping = BeanProvider.getBean(RequestMappingHandlerMapping.class);
+        Map<RequestMappingInfo, HandlerMethod> handlerMethods = getHandlerMapping().getHandlerMethods();
         List<RestEndPoint> eps = new ArrayList<>();
         handlerMethods.forEach((key, value) -> {
             eps.add(processKey(key.toString()));
         });
-        return new ResponseEntity<>(gson.toJson(eps), HttpStatus.OK);
+
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.TEXT_PLAIN);
+//        headers.setContentDisposition(ContentDisposition.attachment().filename("martin.txt").build());
+        return new ResponseEntity<>(gson.toJson(eps).getBytes(StandardCharsets.UTF_8), HttpStatus.OK);
     }
 
     private RestEndPoint processKey(String input){
@@ -64,12 +69,15 @@ public class EndpointController {
             }
             else{
                 return null;
-
             }
         } else {
             System.out.println("No match found. Input: " + input);
             return null;
         }
+    }
+
+    public RequestMappingHandlerMapping getHandlerMapping() throws BeansException {
+        return BeanProvider.getBean(RequestMappingHandlerMapping.class);
     }
 
     @AllArgsConstructor

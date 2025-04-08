@@ -47,7 +47,7 @@ public class ProductCrudTest extends BaseCrudTest {
     @Test
     
     public void productCreateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest();
     }
@@ -55,7 +55,7 @@ public class ProductCrudTest extends BaseCrudTest {
     @Test
     
     public void productReadTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.readTest();
     }
@@ -63,7 +63,7 @@ public class ProductCrudTest extends BaseCrudTest {
     @Test
     
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
     }
@@ -71,7 +71,7 @@ public class ProductCrudTest extends BaseCrudTest {
     @Test
     
     public void productDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.deleteTest();
     }
@@ -79,7 +79,7 @@ public class ProductCrudTest extends BaseCrudTest {
     @Test
     
     public void productUpdateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest();
     }
@@ -87,7 +87,7 @@ public class ProductCrudTest extends BaseCrudTest {
     @Test
     
     public void productRestoreTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.restoreTest();
     }
@@ -96,14 +96,14 @@ public class ProductCrudTest extends BaseCrudTest {
     
     public void productPermanentlyDeleteTest() throws InterruptedException {
         //Azért nem lehet törölni, mert vannak olyan megrendelések, amikben benne van.
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.permanentlyDeleteTest();
     }
 
     //@Test
     public void extraFilterInvalidValue() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         NotificationCheck nc = new NotificationCheck();
         nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
@@ -113,7 +113,7 @@ public class ProductCrudTest extends BaseCrudTest {
     @Test
     
     public void sellToCustomerTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         WebElement sellToCustomerButton = gridTestingUtil.getOptionButton(gridXpath, gridTestingUtil.getRandomLocationFromGrid(gridXpath), 3);
         gridTestingUtil.findVisibleElementWithXpath(gridXpath);
@@ -131,7 +131,7 @@ public class ProductCrudTest extends BaseCrudTest {
     @Test
     
     public void orderFromSupplierTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         WebElement orderFromSupplierButton = gridTestingUtil.getOptionButton(gridXpath, gridTestingUtil.getRandomLocationFromGrid(gridXpath), 4);
         gridTestingUtil.findVisibleElementWithXpath(gridXpath);
@@ -149,14 +149,14 @@ public class ProductCrudTest extends BaseCrudTest {
 
 //    @Test(enabled = false)
 //    public void unexpcetedResponseCodeCreate() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        crudTestingUtil.createNotExpectedStatusCodeSave(spyProductApiClient, Product.class);
 //    }
 //
 //    @Test(enabled = false)
 //    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        crudTestingUtil.updateNotExpectedStatusCode(spyProductApiClient, Product.class);
 //    }
@@ -167,7 +167,7 @@ public class ProductCrudTest extends BaseCrudTest {
 //        Mockito.doReturn(null).when(spyProductService).update(any(Product.class));
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 8);
 
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.updateTest(null, "Internal server error", false);
         gridTestingUtil.checkNoMoreNotificationsVisible();
@@ -178,7 +178,7 @@ public class ProductCrudTest extends BaseCrudTest {
     public void nullResponseFromServiceWhenCreate() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyProductService).save(any(Product.class));
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 10);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.createTest(null, "Product saving failed: Internal server error", false);
         gridTestingUtil.checkNoMoreNotificationsVisible();
@@ -192,7 +192,7 @@ public class ProductCrudTest extends BaseCrudTest {
         LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
         failedData.put("Customer", "Error happened while getting customers");
 
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
         WebElement sellToCustomerButton = gridTestingUtil.getOptionButton(gridXpath, gridTestingUtil.getRandomLocationFromGrid(gridXpath), 3);
@@ -215,7 +215,7 @@ public class ProductCrudTest extends BaseCrudTest {
         LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
         failedData.put("Supplier", "Error happened while getting suppliers");
 
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         WebElement orderFromSupplierButton = gridTestingUtil.getOptionButton(gridXpath, gridTestingUtil.getRandomLocationFromGrid(gridXpath), 4);
         gridTestingUtil.findVisibleElementWithXpath(gridXpath);
@@ -235,7 +235,7 @@ public class ProductCrudTest extends BaseCrudTest {
 //        Mockito.doReturn(null).when(spyProductService).findAll(any(Boolean.class));
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyProductApiClient).findAllWithDeleted();
         gridTestingUtil.mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         Thread.sleep(100);
         gridTestingUtil.checkNotificationText("Error happened while getting products");
@@ -248,7 +248,7 @@ public class ProductCrudTest extends BaseCrudTest {
     public void unexpectedResponseCodeWhenGettingCurrenciesNames() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID); //id 1
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
         failedFieldData.put("Buying price currency", "Error happened while getting currencies");
@@ -262,7 +262,7 @@ public class ProductCrudTest extends BaseCrudTest {
     public void unexpectedResponseCodeWhenGettingTaxKeys() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.TAXKEYS_CODESTORE_ID); // id 4
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
         failedFieldData.put("Tax key", "Error happened while getting tax keys");
@@ -275,7 +275,7 @@ public class ProductCrudTest extends BaseCrudTest {
     public void unexpectedResponseCodeWhenGettingAmountUnits() throws InterruptedException, SQLException {
 //        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID); //id 2
         gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
         failedFieldData.put("Amount unit", "Error happened while getting amount units");
@@ -286,7 +286,7 @@ public class ProductCrudTest extends BaseCrudTest {
     @Test
     
     public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
         gridTestingUtil.navigateMenu(mainMenu, subMenu);
         crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
     }

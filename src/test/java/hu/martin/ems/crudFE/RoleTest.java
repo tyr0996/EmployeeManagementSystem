@@ -58,7 +58,7 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void roleCreateTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -73,7 +73,7 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void roleReadTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -88,7 +88,7 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void roleDeleteTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -108,7 +108,7 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void roleUpdateTest() throws InterruptedException {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -129,7 +129,7 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void roleRestoreTest() throws InterruptedException {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -152,7 +152,7 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void rolePermanentlyDeleteTest() {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -172,7 +172,7 @@ public class RoleTest extends BaseCrudTest {
 
     //@Test
 //    public void extraFilterInvalidValue() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        NotificationCheck nc = new NotificationCheck();
@@ -184,7 +184,7 @@ public class RoleTest extends BaseCrudTest {
 //    @Test(enabled = false)
 //    public void apiSendInvalidStatusCodeWhenSave() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).save(any(Role.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
@@ -194,7 +194,7 @@ public class RoleTest extends BaseCrudTest {
 //    @Test(enabled = false)
 //    public void apiSendInvalidStatusCodeWhenModify() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).update(any(Role.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
@@ -204,7 +204,7 @@ public class RoleTest extends BaseCrudTest {
     @Test
     
     public void databaseNotAvailableWhenModify() throws SQLException {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -222,7 +222,7 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws SQLException {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -236,7 +236,7 @@ public class RoleTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
 
 
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
@@ -245,7 +245,7 @@ public class RoleTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhileGettingLoggedInUser() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 5);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -267,7 +267,7 @@ public class RoleTest extends BaseCrudTest {
     
     public void nullResponseFromServiceWhenCreate() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 14);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -283,7 +283,7 @@ public class RoleTest extends BaseCrudTest {
 
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 14);
 ////        Mockito.doReturn(null).when(spyRoleService).save(any(Role.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        crudTestingUtil.createTest(null, "Role saving failed: Internal server error", false);
@@ -293,7 +293,7 @@ public class RoleTest extends BaseCrudTest {
 //    @Test
 //    public void apiSendInvalidStatusCodeWhenSaveRoleXPermission() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).save(any(RoleXPermission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
@@ -303,7 +303,7 @@ public class RoleTest extends BaseCrudTest {
 //    @Test
 //    public void apiSendInvalidStatusCodeWhenUpdateRoleSaveRoleXPermission() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).save(any(RoleXPermission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
@@ -313,7 +313,7 @@ public class RoleTest extends BaseCrudTest {
 //    @Test
 //    public void sendInvalidStatusCodeWhenGettingAllRoleXPermissions() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleXPermissionApiClient).findAllWithUnused();
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        Thread.sleep(100);
@@ -325,7 +325,7 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void nullReturnWhenGettingPermissionsOnCreate() throws SQLException {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -350,7 +350,7 @@ public class RoleTest extends BaseCrudTest {
     @Test
     public void nullResponseWhenGettingAllPermissionForFilterHeaderRow() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -364,7 +364,7 @@ public class RoleTest extends BaseCrudTest {
     @Test
     public void getAllRoleFailed() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 6);
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -384,7 +384,7 @@ public class RoleTest extends BaseCrudTest {
 
 
 //        gridTestingUtil.mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 6);
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 
 //        Mockito.doReturn(null).when(spyRoleService).findAllWithGraph(true); //ApiClient-ben findAllWithGraphWithDeleted()
@@ -405,7 +405,7 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void databaseUnavailableWhenModifying() throws SQLException, InterruptedException {
-        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
@@ -420,7 +420,7 @@ public class RoleTest extends BaseCrudTest {
 
 
 
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        Thread.sleep(500);
@@ -429,7 +429,7 @@ public class RoleTest extends BaseCrudTest {
 
 //    @Test
 //    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
-//        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true));
+//        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
 //        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
 //        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
 //        header.getRoleButton().click();
@@ -438,7 +438,7 @@ public class RoleTest extends BaseCrudTest {
 //
 //
 //
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        Thread.sleep(500);

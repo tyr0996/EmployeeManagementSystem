@@ -21,7 +21,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void codeStoreCreateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -37,7 +37,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void codeStoreReadTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -51,7 +51,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void codeStoreDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -75,7 +75,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void codeStoreUpdateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -96,7 +96,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void codeStoreRestoreTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -118,7 +118,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void codeStorePermanentlyDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -137,7 +137,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
 //    @Test
 //    public void gettingCountryCodesFailed() throws SQLException {
 //        EmptyLoggedInVaadinPage loggedInPage =
-//                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+//                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
 //        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 //
 //        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -154,7 +154,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -168,7 +168,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhilePermanentlyDeleteTest() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -182,7 +182,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenModify() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -200,7 +200,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenCreate() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);

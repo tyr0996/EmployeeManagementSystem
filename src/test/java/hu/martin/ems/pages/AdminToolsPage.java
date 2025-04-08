@@ -2,17 +2,19 @@ package hu.martin.ems.pages;
 
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.ILoggedInPage;
+import hu.martin.ems.pages.core.component.VaadinButtonComponent;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class AdminToolsPage extends EmptyLoggedInVaadinPage implements ILoggedInPage {
 
     private static final String clearDatabaseButtonXpath = contentLayoutXpath + "/vaadin-button";
+    private static final String exportApisButtonXpath = contentLayoutXpath + "/a/vaadin-button";
     @Getter
-    private WebElement clearDatabaseButton;
+    private VaadinButtonComponent clearDatabaseButton;
+    @Getter
+    private VaadinButtonComponent exportApisButton;
 
     public AdminToolsPage(WebDriver driver, int port){
         super(driver, port);
@@ -21,7 +23,8 @@ public class AdminToolsPage extends EmptyLoggedInVaadinPage implements ILoggedIn
 
     @Override
     public AdminToolsPage initWebElements(){
-        clearDatabaseButton = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(clearDatabaseButtonXpath)));
+        clearDatabaseButton = new VaadinButtonComponent(getDriver(), By.xpath(clearDatabaseButtonXpath));
+        exportApisButton = new VaadinButtonComponent(getDriver(), By.xpath(exportApisButtonXpath));
         return this;
     }
 }

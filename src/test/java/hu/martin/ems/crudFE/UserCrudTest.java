@@ -61,7 +61,7 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Password", pass);
         withData.put("Password again", pass);
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -76,7 +76,7 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     public void useReadTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -91,7 +91,7 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     public void userDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -111,7 +111,7 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -130,7 +130,7 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Password again", pass);
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -150,7 +150,7 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenGettingLoggedInUser() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
@@ -167,7 +167,7 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenGettingAllUser() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 1);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
@@ -183,7 +183,7 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     public void userRestoreTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage supplierPage = new UserPage(driver, port);
@@ -204,7 +204,7 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     public void userPermanentlyDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage supplierPage = new UserPage(driver, port);
@@ -227,7 +227,7 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Username", "admin");
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -244,17 +244,17 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Username", "robi");
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
-        userPage.getGrid().applyFilter("Erzsi", "$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG", "false");
+        userPage.getGrid().applyFilter("Erzsi", "$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy", "false");
         DoUpdateTestData testData = userPage.doUpdateTest(withData);
         userPage.getGrid().resetFilter();
         assertEquals(testData.getDeletedRowNumberAfterMethod(), testData.getOriginalDeletedRowNumber());
         assertEquals(testData.getNonDeletedRowNumberAfterMethod(), testData.getOriginalNonDeletedRowNumber());
         assertEquals(testData.getNotificationWhenPerform(), "Username already exists!");
-        userPage.getGrid().applyFilter("Erzsi", "$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG", "false");
+        userPage.getGrid().applyFilter("Erzsi", "$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy", "false");
         assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 1);
         assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
         userPage.getGrid().resetFilter();
@@ -262,7 +262,7 @@ public class UserCrudTest extends BaseCrudTest {
 //        int users = gridTestingUtil.countVisibleGridDataRows(gridXpath);
 //        crudTestingUtil.createTest();
 
-//        gridTestingUtil.applyFilter(gridXpath, "Erzsi", "$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG", "false");
+//        gridTestingUtil.applyFilter(gridXpath, "Erzsi", "$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy", "false");
 //        crudTestingUtil.updateTest(withData, "Username already exists!", false);
     }
 
@@ -270,7 +270,7 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     public void createUserPasswordDoesntMatch() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
         LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
         withData.put("Password", "asdf");
@@ -294,7 +294,7 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Password again", "");
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -302,7 +302,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(testData.getDeletedRowNumberAfterMethod(), testData.getOriginalDeletedRowNumber());
         assertEquals(testData.getNonDeletedRowNumberAfterMethod(), testData.getOriginalNonDeletedRowNumber());
         assertEquals(testData.getNotificationWhenPerform(), "Password is required!");
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        LinkedHashMap<String, String> withData = new LinkedHashMap<>();
 //        withData.put("Password", "");
@@ -318,7 +318,7 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Password again", "asdf");
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -332,7 +332,7 @@ public class UserCrudTest extends BaseCrudTest {
 
     //@Test
 //    public void extraFilterInvalidValue() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        NotificationCheck nc = new NotificationCheck();
 //        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
@@ -345,7 +345,7 @@ public class UserCrudTest extends BaseCrudTest {
     public void gettingUsersFailed() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -361,7 +361,7 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     public void updateUserButUsernameNotChanged() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -400,7 +400,7 @@ public class UserCrudTest extends BaseCrudTest {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 4);
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -413,7 +413,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting roles");
 
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        Thread.sleep(500);
 //        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
@@ -429,7 +429,7 @@ public class UserCrudTest extends BaseCrudTest {
 //        JPAConfig.resetCallIndex();
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
 ////        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.checkNotificationText("Getting users failed");
 ////        crudTestingUtil.databaseUnavailableWhenGetAllEntity(this.getClass(), spyDataSource, port, mainMenu, subMenu, "users");
@@ -443,7 +443,7 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Password again", pass);
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
@@ -463,7 +463,7 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Password again", pass);
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);

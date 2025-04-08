@@ -15,7 +15,7 @@ public class ErrorPageTest extends BaseCrudTest {
     @Test
     public void pageLoadFailedIllegalAccessException()  {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("robi", "robi", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("robi", "3W-@s2|0^x&Y", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
         Page403 page = new Page403(driver, port);
 
@@ -35,9 +35,9 @@ public class ErrorPageTest extends BaseCrudTest {
     }
 
     @Test
-    public void pageLoadFailedNotFoundException() throws InterruptedException {
+    public void pageLoadFailedNotFoundException() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("robi", "robi", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("robi", "3W-@s2|0^x&Y", true);
         driver.get("http://localhost:" + port + "/notExistingPageURL");
         Page404 page = new Page404(driver, port);
 

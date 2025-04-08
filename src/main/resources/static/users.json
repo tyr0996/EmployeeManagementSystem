@@ -7,7 +7,7 @@
     {
       "deleted": 0,
       "username": "admin",
-      "passwordHash": "$2a$12$Ei2ntwIK/6lePBO2UecedetPpxxDee3kmxnkWTXZI.CiPb86vejHe",
+      "passwordHash": "$2a$12$21wsdBKKqiHILOElhmEhGe3R11QIlrXmA6xlY.CowoExz8rlxB9Bu",
       "role_role_id": {
         "refClass": "Role",
         "filter": {
@@ -19,7 +19,7 @@
     {
       "deleted": 0,
       "username": "Erzsi",
-      "passwordHash": "$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG",
+      "passwordHash": "$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy",
       "role_role_id": {
         "refClass": "Role",
         "filter": {
@@ -31,7 +31,7 @@
     {
       "deleted": 0,
       "username": "robi",
-      "passwordHash": "$2a$12$nEBYNfVpfUZ9.qFFUGWs5.5mDLxXAGNlDcqKsxi7eoEFleys7Lvym",
+      "passwordHash": "$2a$12$ENKhjamGSnSXx81f0IRPQObhyEOccAbutpkjJRai0.dshqFRyFETy",
       "role_role_id": {
         "refClass": "Role",
         "filter": {

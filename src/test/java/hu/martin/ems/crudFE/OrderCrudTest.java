@@ -7,7 +7,6 @@ import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.pages.LoginPage;
@@ -34,15 +33,12 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -109,7 +105,7 @@ public class OrderCrudTest extends BaseCrudTest {
     public void generateODTFailedIOException() throws Exception {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage page = new OrderPage(driver, port);
@@ -136,7 +132,7 @@ public class OrderCrudTest extends BaseCrudTest {
     public void generateODTFailedXDocReportException() throws Exception {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
@@ -160,7 +156,7 @@ public class OrderCrudTest extends BaseCrudTest {
     public void generatePDFFailedIOException() throws Exception {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage page = new OrderPage(driver, port);
@@ -187,7 +183,7 @@ public class OrderCrudTest extends BaseCrudTest {
     public void generatePDFFailedXDocReportException() throws Exception {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
@@ -211,7 +207,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void generateODTTest() throws Exception {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
@@ -231,7 +227,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void generatePDFTest() throws Exception {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
@@ -251,7 +247,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void sendSFTPFailedTest() throws InterruptedException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
         page.getSendToAccountantSftpButton().click();
@@ -264,7 +260,7 @@ public class OrderCrudTest extends BaseCrudTest {
         BeanProvider.getBean(OrderService.class).setSender(sftpSender);
         Mockito.doReturn(true).when(sftpSender).send(any(byte[].class), any(String.class));
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
         page.getSendToAccountantSftpButton().click();
@@ -279,7 +275,7 @@ public class OrderCrudTest extends BaseCrudTest {
 //    public void sendEmailSuccessTest() throws InterruptedException {
 //        Mockito.doReturn(new EmsResponse(200, true, "Email sent!")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
 //
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //
 //        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
@@ -304,7 +300,7 @@ public class OrderCrudTest extends BaseCrudTest {
         Mockito.doNothing().when(spyEmailSendingService).transportSend(any(MimeMessage.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
@@ -333,7 +329,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void generateEmailFailedDueToCantGetOrderFromOrderId() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
@@ -361,7 +357,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void sendEmailFailedTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-            (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+            (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
@@ -387,7 +383,7 @@ public class OrderCrudTest extends BaseCrudTest {
 //        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
@@ -408,7 +404,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
 
 //
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //
 //        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
@@ -431,7 +427,7 @@ public class OrderCrudTest extends BaseCrudTest {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
@@ -457,7 +453,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void deleteOrderTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage page = new OrderPage(driver, port);
@@ -480,7 +476,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
     public void modifyOrder(String notificationText, Boolean needSuccess) {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage page = new OrderPage(driver, port);
@@ -551,7 +547,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage page = new OrderPage(driver, port);
@@ -578,7 +574,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Video
     public void deleteOrderElementWhatMemberOfAnOrder() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         //region orders menuben ha nincs elem, akkor létrehozunk egyet.
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
@@ -666,7 +662,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void restoreOrderTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage page = new OrderPage(driver, port);
@@ -699,7 +695,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
 //
 //
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        int originalInvisibleRows = gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedXpath);
 //        if(originalInvisibleRows == 0) {
@@ -708,7 +704,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void permanentlyDeleteOrderTest() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage page = new OrderPage(driver, port);
@@ -735,7 +731,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void fromToDateSelectorFromIsLaterThenTo() {
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
@@ -769,7 +765,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
 //    //@Test
 //    public void extraFilterInvalidValue() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        NotificationCheck nc = new NotificationCheck();
 //        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
@@ -789,7 +785,7 @@ public class OrderCrudTest extends BaseCrudTest {
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
 //        Mockito.doReturn(null).when(spyOrderService).findAll(true); //ApiClintben .findAllWithDeleted();
         EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "admin", true);
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
@@ -800,34 +796,12 @@ public class OrderCrudTest extends BaseCrudTest {
 
 
 //        gridTestingUtil.mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
-//        gridTestingUtil.loginWith(driver, port, "admin", "admin");
+//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.checkNotificationText("Error happened while getting orders");
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
 //        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXpath));
 //        assertEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedXpath));
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
-    }
-
-    private boolean waitForDownload(String fileNameRegex, int times, int padding) throws Exception {
-        Pattern pattern = Pattern.compile(fileNameRegex);
-
-        for (int i = 0; i < times; i++) {
-            File dir = new File(StaticDatas.Selenium.downloadPath);
-            File[] files = dir.listFiles();
-
-            if (files != null) {
-                for (File file : files) {
-                    Matcher matcher = pattern.matcher(file.getName());
-                    if (matcher.matches()) {
-                        if (file.delete()) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            Thread.sleep(padding); // Várakozás 1 másodpercig
-        }
-        return false;
     }
 }

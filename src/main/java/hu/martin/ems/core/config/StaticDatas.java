@@ -2,12 +2,15 @@ package hu.martin.ems.core.config;
 
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.server.StreamResource;
+import hu.martin.ems.annotations.CoverageIgnored;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+@CoverageIgnored
+//TODO meg ki lehetne szervezni application.properties-be
 public final class StaticDatas {
     public static final Long CURRENCIES_CODESTORE_ID = 1L;
     public static final Long AMOUNTUNITS_CODESTORE_ID = 2L;
@@ -17,6 +20,7 @@ public final class StaticDatas {
     public static final Long COUNTRIES_CODESTORE_ID = 6L;
     public static final Long PAYMENT_TYPES_CODESTORE_ID = 7L;
 
+    @CoverageIgnored
     public class FolderPaths{
         public static final String PROJECT_ROOT = System.getProperty("user.dir");
         public static final String GENERATED_SQL_FILES_PATH = PROJECT_ROOT + "\\src\\test\\java\\hu\\martin\\ems\\sql";
@@ -24,7 +28,8 @@ public final class StaticDatas {
     }
 
 
-public class ContentType{
+    @CoverageIgnored
+    public class ContentType{
 //        public static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 //        public static final String CONTENT_TYPE_TEXT_HTML = "text/html";
         //public static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
@@ -40,21 +45,23 @@ public class ContentType{
 //        public static final String CONTENT_TYPE_APPLICATION_EXCEL = "application/excel";
     }
 
-
-public class Produces{
+    @CoverageIgnored
+    public class Produces{
         public static final String JSON = "application/json;charset=UTF-8";
     }
 
-
-public class Consumes{
+    @CoverageIgnored
+    public class Consumes{
         public static final String JSON = "application/json;charset=UTF8";
     }
 
+    @CoverageIgnored
     public class Selenium{
         public static final String downloadPath = "D:\\Fejleszto\\selenium\\_downloadForSelenium";
 
     }
 
+    @CoverageIgnored
     public enum Icons {
         PDF_FILE("pdf-file"),
         ODT_FILE("odt-file"),

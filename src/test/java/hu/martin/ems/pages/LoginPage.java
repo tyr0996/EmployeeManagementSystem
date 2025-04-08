@@ -3,9 +3,7 @@ package hu.martin.ems.pages;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.LoginErrorMessage;
 import hu.martin.ems.pages.core.VaadinPage;
-import hu.martin.ems.pages.core.component.ForgotPasswordDialog_Password;
-import hu.martin.ems.pages.core.component.ForgotPasswordDialog_Username;
-import hu.martin.ems.pages.core.component.VaadinButtonComponent;
+import hu.martin.ems.pages.core.component.*;
 import lombok.Getter;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -18,19 +16,19 @@ public class LoginPage extends VaadinPage {
     private static final String registerButtonXpath = "//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[3]";
     private static final String forgotPasswordButtonXpath = "//*[@id=\"vaadinLoginFormWrapper\"]/vaadin-button[2]";
 
-    //TODO megcsinálni normálisra ezeket
-    private final WebElement userNameField;
-    private final WebElement passwordField;
-    @Getter private final WebElement loginButton;
+    private final VaadinTextInputComponent userNameField;
+    private final VaadinPasswordInputComponent passwordField;
+
+    @Getter private final VaadinButtonComponent loginButton;
     private final VaadinButtonComponent registerButton;
-    @Getter private final VaadinButtonComponent forgotPasswordButton;
+    @Getter private VaadinButtonComponent forgotPasswordButton;
 
     private LoginPage(WebDriver driver, int port){
         super(driver, port);
 
-        userNameField = getWait().until(ExpectedConditions.elementToBeClickable(By.xpath(userNameFieldXpath)));
-        passwordField = getWait().until(ExpectedConditions.elementToBeClickable(By.xpath(passwordFieldXpath)));
-        loginButton = getWait().until(ExpectedConditions.elementToBeClickable(By.xpath(loginButtonXpath)));
+        userNameField = new VaadinTextInputComponent(getDriver(), By.xpath(userNameFieldXpath));
+        passwordField = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordFieldXpath));
+        loginButton = new VaadinButtonComponent(getDriver(), By.xpath(loginButtonXpath));
         forgotPasswordButton = new VaadinButtonComponent(getDriver(), By.xpath(forgotPasswordButtonXpath));
         registerButton = new VaadinButtonComponent(getDriver(), By.xpath(registerButtonXpath));
     }
@@ -58,8 +56,8 @@ public class LoginPage extends VaadinPage {
      * @return ha sikeres a bejelentkezés, akkor egy EmptyLoggedInPage-t ad vissza, ha viszont sikertelen, akkor LoginPage-t.
      */
     public VaadinPage logIntoApplication(String userName, String password, Boolean requiredSuccess){
-        userNameField.sendKeys(userName);
-        passwordField.sendKeys(password);
+        userNameField.getElement().sendKeys(userName);
+        passwordField.getElement().sendKeys(password);
         loginButton.click();
 
 

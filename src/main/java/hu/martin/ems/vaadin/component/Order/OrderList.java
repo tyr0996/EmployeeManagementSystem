@@ -390,6 +390,7 @@ public class OrderList extends VerticalLayout {
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
+    //TODO ez benne van az AdminTools-ban is.
     private Anchor createDownloadAnchor(OrderVO order, SvgIcon icon, Supplier<EmsResponse> apiCall, String extension){
         Button downloadButton = new Button(icon);
         Anchor downloadAnchor = new Anchor();
