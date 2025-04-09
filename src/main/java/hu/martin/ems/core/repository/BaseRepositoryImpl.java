@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Objects;
 
 @NoRepositoryBean
 @NeedCleanCoding
@@ -59,59 +58,7 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         return result;
     }
 
-    @Transactional
-    @Override
-    public List<T> customFindAllWithNegativeID(boolean withDeleted) {
-        boolean includeDeleted = withDeleted;
-        String jpql = "SELECT e FROM " + type.getSimpleName() + " e";
-        if (!includeDeleted) {
-            jpql += " WHERE e.deleted = 0";
-        }
-        else{
-            jpql += " WHERE e.deleted = 1 OR e.deleted = 0";
-        }
-        List<T> result = entityManager.createQuery(jpql, type).getResultList();
-        return result;
-    }
 
-    @Override
-    public List<T> customFindAllWithGraph(Boolean withDeleted){
-        EntityGraph<?> entityGraph = entityManager.getEntityGraph(type.getSimpleName());
-
-        boolean includeDeleted = Objects.requireNonNullElse(withDeleted, true);
-//        boolean includeDeleted = withDeleted != null ? withDeleted : true;
-        String jpql = "SELECT e FROM " + type.getSimpleName() + " e";
-        if (!includeDeleted) {
-            jpql += " WHERE e.deleted = 0";
-        }
-        else{
-            jpql += " WHERE e.deleted = 1 OR e.deleted = 0";
-        }
-        jpql += " AND id > 0";
-        List<T> result = entityManager.createQuery(jpql, type)
-                .setHint("jakarta.persistence.fetchgraph", entityGraph)
-                .getResultList();
-        return result;
-    }
-
-    @Override
-    public List<T> findAllWithGraphWithNegativeID(boolean withDeleted){
-        EntityGraph<?> entityGraph = entityManager.getEntityGraph(type.getSimpleName());
-
-        boolean includeDeleted = Objects.requireNonNullElse(withDeleted, true);
-//        boolean includeDeleted = withDeleted != null ? withDeleted : true;
-        String jpql = "SELECT e FROM " + type.getSimpleName() + " e";
-        if (!includeDeleted) {
-            jpql += " WHERE e.deleted = 0";
-        }
-        else{
-            jpql += " WHERE e.deleted = 1 OR e.deleted = 0";
-        }
-        List<T> result = entityManager.createQuery(jpql, type)
-                .setHint("jakarta.persistence.fetchgraph", entityGraph)
-                .getResultList();
-        return result;
-    }
 
     @Transactional
     @Override
@@ -209,8 +156,6 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
                 tempEm.close();
             }
         }
-
-
     }
 
 

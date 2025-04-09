@@ -6,17 +6,11 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.sftp.SftpSender;
-import lombok.Getter;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.ConnectException;
 
 @Configuration
@@ -63,28 +57,28 @@ public class JschConfig {
         if (channelSftp == null || !channelSftp.isConnected() || !session.getUserName().equals(sftpUser)) {
             JSch jsch = new JSch();
 
-            if (sftpPrivateKey != null && !sftpPrivateKey.equals("")) {
-                try{
-                    Resource keyResource = new PathMatchingResourcePatternResolver().getResources(sftpPrivateKey)[0];
-                    InputStream in = keyResource.getInputStream();
-                    byte[] ba = IOUtils.toByteArray(in);
-
-                    if(sftpPrivateKeyPassphrase != null && sftpPrivateKeyPassphrase.trim().length() > 0){
-                        jsch.addIdentity("private.ppk", ba, null, sftpPrivateKeyPassphrase.getBytes());
-                    }
-                    else{
-                        jsch.addIdentity("private.ppk", ba, null, (byte[]) null);
-                    }
-                }
-                catch (IOException e){
-                    succ = false;
-                    log.error("The specified private key does not exist at the given location! (" + sftpPrivateKey + ")");
-                }
-                catch(JSchException e){
-                    succ = false;
-                    log.error("The private key is invalid, or the password for the private key is incorrect!");
-                }
-            }
+//            if (sftpPrivateKey != null && !sftpPrivateKey.equals("")) {
+//                try{
+//                    Resource keyResource = new PathMatchingResourcePatternResolver().getResources(sftpPrivateKey)[0];
+//                    InputStream in = keyResource.getInputStream();
+//                    byte[] ba = IOUtils.toByteArray(in);
+//
+//                    if(sftpPrivateKeyPassphrase != null && sftpPrivateKeyPassphrase.trim().length() > 0){
+//                        jsch.addIdentity("private.ppk", ba, null, sftpPrivateKeyPassphrase.getBytes());
+//                    }
+//                    else{
+//                        jsch.addIdentity("private.ppk", ba, null, (byte[]) null);
+//                    }
+//                }
+//                catch (IOException e){
+//                    succ = false;
+//                    log.error("The specified private key does not exist at the given location! (" + sftpPrivateKey + ")");
+//                }
+//                catch(JSchException e){
+//                    succ = false;
+//                    log.error("The private key is invalid, or the password for the private key is incorrect!");
+//                }
+//            }
 
             Session jschSession = null;
             try{

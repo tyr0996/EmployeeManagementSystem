@@ -147,8 +147,6 @@ public class LoginTests extends BaseCrudTest {
         loggedInPage.logout();
     }
 
-
-
     @Test
     public void sideMenuElementsTest() {
         LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);

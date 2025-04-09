@@ -13,15 +13,8 @@ import java.util.Set;
 @Getter
 @Setter
 @NeedCleanCoding
-@EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
-@NamedEntityGraph(
-        name = "Role",
-        attributeNodes = {
-                @NamedAttributeNode("permissions")
-        }
-)
 public class Role extends BaseEntity {
 
     @Column(nullable = false)
@@ -42,11 +35,7 @@ public class Role extends BaseEntity {
 
     @PostLoad
     public void initAfterLoad(){
-
-        if(permissions != null){
-            permissions.forEach(v -> v.setRoles(null));
-//            permissionIds = permissions.stream().map(Permission::getId).toList();
-        }
+        permissions.forEach(v -> v.setRoles(null));
     }
 
     @Override

@@ -22,6 +22,7 @@ import hu.martin.ems.model.Order;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.repository.OrderRepository;
 import jakarta.annotation.Nullable;
+import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
     public OrderService(OrderRepository orderRepository){
         super(orderRepository);
         registry = XDocReportRegistry.getRegistry();
+        xlsx = new XLSX();
     }
 
 //    public List<OrderElement> getOrderElements(Long orderId) {
@@ -55,6 +57,10 @@ public class OrderService extends BaseService<Order, OrderRepository> {
 
     @Setter
     public XDocReportRegistry registry;
+
+    @Setter
+    @Getter
+    XLSX xlsx;
 
     public List<Order> getOrdersBetween(LocalDate from, LocalDate to){
         LocalDateTime ldtFrom = LocalDateTime.of(from, LocalTime.of(0, 0, 0, 0));
@@ -87,7 +93,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         return getOrderDocumentExport(o, out, "ODT");
     }
 
-    public boolean sendReportSFTPToAccountant(LocalDate from, LocalDate to){
+    public boolean sendReportSFTPToAccountant(LocalDate from, LocalDate to) throws IOException {
         LocalDate current = from;
         List<String> sheetNames = new ArrayList<>();
         List<String[][]> tableDatas = new ArrayList<>();
@@ -121,7 +127,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
             current = current.plusDays(1);
         }
 
-        byte[] res = XLSX.createExcelFile(sheetNames, tableDatas);
+        byte[] res = xlsx.createExcelFile(sheetNames, tableDatas);
         boolean sent = sender.send(res,  "orders_" + from + "_" + to + ".xlsx");
         return sent;
     }

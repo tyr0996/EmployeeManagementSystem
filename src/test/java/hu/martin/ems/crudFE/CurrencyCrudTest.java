@@ -55,7 +55,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         assertEquals(LocalDate.now(), page.getDatePicker().getDate());
     }
 
-    @Test(enabled = false)
+    @Test
     public void tryToEnterAllPossibleGoodDateFormats() {
         clearCurrencyDatabaseTable();
         EmptyLoggedInVaadinPage loggedInPage =

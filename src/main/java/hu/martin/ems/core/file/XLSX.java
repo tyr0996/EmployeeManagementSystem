@@ -10,18 +10,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @NeedCleanCoding
 public class XLSX {
-    public static byte[] createExcelFile(String sheetname, String[][] sheetData){
-        ArrayList<String[][]> sd = new ArrayList<>();
-        sd.add(sheetData);
-        return createExcelFile(List.of(sheetname), sd);
-    }
-
-    public static byte[] createExcelFile(List<String> sheetNames, List<String[][]> sheetDatas) {
+    public byte[] createExcelFile(List<String> sheetNames, List<String[][]> sheetDatas) throws IOException {
         Workbook workbook = new XSSFWorkbook();
         for (int i = 0; i < sheetNames.size(); i++) {
             Sheet sheet = workbook.createSheet(sheetNames.get(i));
@@ -36,13 +29,8 @@ public class XLSX {
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            workbook.write(baos);
-            workbook.close();
-            return baos.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
+        workbook.write(baos);
+        workbook.close();
+        return baos.toByteArray();
     }
 }

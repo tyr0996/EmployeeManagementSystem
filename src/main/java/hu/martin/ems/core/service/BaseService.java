@@ -40,22 +40,6 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
         return repo.customFindAll(withDeleted);
     }
 
-    public List<T> findAllWithGraphWithNegativeID(boolean withDeleted){
-        return repo.findAllWithGraphWithNegativeID(withDeleted);
-    }
-
-    public List<T> findAllWithNegativeID(boolean withDeleted){
-        return repo.customFindAllWithNegativeID(withDeleted);
-    }
-
-    public List<T> findAllWithGraph(boolean withDeleted) {
-        return repo.customFindAllWithGraph(withDeleted);
-    }
-
-    public List<T> findAll() {
-        return repo.customFindAll(true);
-    }
-
 //    public T findById(Long id){
 //        return repo.customFindById(id);
 //    }

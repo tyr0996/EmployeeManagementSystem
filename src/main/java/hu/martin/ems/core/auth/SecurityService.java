@@ -64,11 +64,9 @@ public class SecurityService {
     public String getXsrfToken() {
         HttpServletRequest request = VaadinServletRequest.getCurrent().getHttpServletRequest();
         Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("XSRF-TOKEN".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
+        for (Cookie cookie : cookies) {
+            if ("XSRF-TOKEN".equals(cookie.getName())) {
+                return cookie.getValue();
             }
         }
         return null;

@@ -87,8 +87,8 @@ public class OrderApiClient extends EmsApiClient<Order> {
             return new EmsResponse(200, response);
         }
         catch (WebClientResponseException ex) {
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), gson.fromJson(ex.getResponseBodyAsString(), Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), gson.fromJson(ex.getResponseBodyAsString(), Error.class).getError());
         }
     }
 }

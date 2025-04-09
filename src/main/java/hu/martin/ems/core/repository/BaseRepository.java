@@ -11,17 +11,11 @@ import java.util.List;
 public interface BaseRepository<T, ID> extends Repository<T, ID> {
     List<T> customFindAll(boolean withDeleted);
 
-    List<T> customFindAllWithNegativeID(boolean withDeleted);
-
-    List<T> customFindAllWithGraph(Boolean withDeleted);
-
     T customDelete(T entity);
 
     T customRestore(T entity);
 
     T customPermanentlyDelete(Long entity);
-
-    List<T> findAllWithGraphWithNegativeID(boolean withDeleted);
 
     @Transactional
     T customSave(T entity);

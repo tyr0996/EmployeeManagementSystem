@@ -7,6 +7,7 @@ import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.file.XLSX;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.pages.LoginPage;
@@ -27,9 +28,9 @@ import jakarta.mail.internet.MimeMessage;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -93,12 +94,12 @@ public class OrderCrudTest extends BaseCrudTest {
         spyOrderService.setRegistry(spyRegistry);
 //        orderCreateTest = new OrderCreateTest();
     }
-
-    @AfterMethod
-    public void afterMethod() {
-        Mockito.reset(spyRegistry);
-        Mockito.clearInvocations(spyRegistry);
-    }
+//
+//    @AfterMethod
+//    public void afterMethod() {
+//        Mockito.reset(spyRegistry);
+//        Mockito.clearInvocations(spyRegistry);
+//    }
 
 
     @Test
@@ -245,7 +246,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void sendSFTPFailedTest() throws InterruptedException {
+    public void sendSFTPFailedTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -253,6 +254,25 @@ public class OrderCrudTest extends BaseCrudTest {
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Error happened when sending with SFTP");
+    }
+
+    @Test
+    public void sendSFTPFailedXLSGenerationTest() throws IOException {
+        XLSX spyXlsx = Mockito.spy(XLSX.class);
+        MockitoAnnotations.openMocks(this);
+
+        Mockito.doThrow(IOException.class).when(spyXlsx).createExcelFile(any(), any());
+//        Mockito.when(spyXlsx.createExcelFile(any(), any())).thenThrow(IOException.class);
+        spyOrderService.setXlsx(spyXlsx);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "XLS generation failed");
+        Mockito.clearInvocations(spyOrderService.getXlsx());
+        Mockito.reset(spyOrderService.getXlsx());
     }
 
     @Test

@@ -37,40 +37,6 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
         }
     }
 
-    @GetMapping(path = "findAllWithNegativeID", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> findAllWithNegativeID(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted){
-        List<T> allElements = service.findAllWithNegativeID(withDeleted);
-        if(allElements != null){
-            return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping(path = "findAllWithGraphWithNegativeID", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> findAllWithGraphWithNegativeID(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted){
-        List<T> allElements = service.findAllWithGraphWithNegativeID(withDeleted);
-        if(allElements != null){
-            return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping(path = "/findAllWithGraph", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> findAllWithGraph(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) {
-        List<T> allElements = service.findAllWithGraph(withDeleted);
-        if(allElements != null){
-            return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-
     @GetMapping(path = "/findAllByIds", produces = StaticDatas.Produces.JSON)
     public ResponseEntity<String> findAllByIds(@RequestParam(required = false, defaultValue = "false") List<Long> ids) {
         List<T> allElements = service.findAllByIds(ids);

@@ -3,10 +3,8 @@ package hu.martin.ems.core.model;
 import com.google.gson.annotations.Expose;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
-@NoArgsConstructor
 @Getter
 public class EmsResponse {
     @Expose

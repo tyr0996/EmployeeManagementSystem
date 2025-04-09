@@ -8,6 +8,7 @@ import hu.martin.ems.model.Order;
 import hu.martin.ems.repository.OrderRepository;
 import hu.martin.ems.service.OrderElementService;
 import hu.martin.ems.service.OrderService;
+import hu.martin.ems.vaadin.api.Error;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 
@@ -67,12 +69,17 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
 
     @PutMapping(path = "/sendReportSFTPToAccountant")
     public ResponseEntity<String> sendReportSFTPToAccountant(@RequestBody LinkedHashMap<String, LocalDate> data) {
-        boolean res = service.sendReportSFTPToAccountant(data.get("from"), data.get("to"));
-        if(res){
-            return new ResponseEntity<>(EmsResponse.Description.SFTP_SENDING_SUCCESS, HttpStatus.OK);
+        try{
+            boolean res = service.sendReportSFTPToAccountant(data.get("from"), data.get("to"));
+            if(res){
+                return new ResponseEntity<>(EmsResponse.Description.SFTP_SENDING_SUCCESS, HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>(gson.toJson(new Error(Instant.now().toEpochMilli(), 500, EmsResponse.Description.SFTP_SENDING_ERROR, "/api/order/sendReportSFTPToAccountant")), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         }
-        else{
-            return new ResponseEntity<>(EmsResponse.Description.SFTP_SENDING_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
+        catch (IOException e){
+            return new ResponseEntity<>(gson.toJson(new Error(Instant.now().toEpochMilli(), 500, "XLS generation failed", "/api/order/sendReportSFTPToAccountant")), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
