@@ -8,7 +8,7 @@ import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.CustomerSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.CustomerSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.AfterMethod;
@@ -204,6 +204,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting addresses");
+        dialog.close();
     }
 
     @AfterMethod

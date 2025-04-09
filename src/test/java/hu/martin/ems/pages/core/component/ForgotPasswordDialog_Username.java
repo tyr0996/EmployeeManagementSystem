@@ -17,8 +17,15 @@ public class ForgotPasswordDialog_Username extends VaadinDialogComponent {
         initWebElements();
     }
 
-    private void initWebElements(){
+    @Override
+    public void initWebElements(){
         usernameField = new VaadinTextInputComponent(getDriver(), By.xpath(usernameFieldXpath));
         nextButton = new VaadinButtonComponent(getDriver(), By.xpath(nextButtonXpath));
+    }
+
+    @Override
+    public void setAllComponents() {
+        allComponent.clear();
+        allComponent.add(usernameField);
     }
 }

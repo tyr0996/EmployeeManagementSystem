@@ -10,7 +10,7 @@ import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.UserSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.UserSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.AfterClass;
@@ -49,6 +49,8 @@ public class UserCrudTest extends BaseCrudTest {
 //        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
 //    }
 
+
+
     @BeforeMethod
     public void beforeMethod(){
         resetUsers();
@@ -74,7 +76,7 @@ public class UserCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void useReadTest() {
+    public void userReadTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
@@ -411,6 +413,7 @@ public class UserCrudTest extends BaseCrudTest {
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting roles");
+        dialog.close();
 
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
 //        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");

@@ -246,6 +246,8 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     }
 
     private boolean filterField(String filterFieldText, String fieldValue){
+        if(taxKeyFilterText.equals(filterFieldText))
+        System.out.println("Itt az első: " + filterFieldText.isEmpty() + "   és a második " + fieldValue.toLowerCase().contains(filterFieldText.toLowerCase()));
         return filterFieldText.isEmpty() || fieldValue.toLowerCase().contains(filterFieldText.toLowerCase());
     }
     

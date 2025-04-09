@@ -7,10 +7,12 @@ import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
 import hu.martin.ems.pages.core.SideMenu;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.AddressSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.AddressSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -143,6 +145,7 @@ public class AddressTest extends BaseCrudTest {
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting countries");
+        dialog.close();
     }
 
     @Test
@@ -160,6 +163,7 @@ public class AddressTest extends BaseCrudTest {
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting cities");
+        dialog.close();
     }
 
     @Test
@@ -235,5 +239,22 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Address saving failed: Internal Server Error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+    }
+
+    @Test
+    public void databaseNotAvailableWhenOpenPage() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADDRESS_SUBMENU);
+
+        SoftAssert sa = new SoftAssert();
+        AddressPage addressPage = new AddressPage(driver, port);
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification.getText(), "Error happened while getting addresses");
+        sa.assertEquals(addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 0);
+
+        sa.assertAll();
     }
 }

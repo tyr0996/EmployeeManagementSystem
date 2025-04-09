@@ -5,7 +5,7 @@ import hu.martin.ems.pages.core.SimpleVaadinGridPage;
 import hu.martin.ems.pages.core.component.VaadinButtonComponent;
 import hu.martin.ems.pages.core.component.VaadinCheckboxComponent;
 import hu.martin.ems.pages.core.component.VaadinGridComponent;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.AddressSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.AddressSaveOrUpdateDialog;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 

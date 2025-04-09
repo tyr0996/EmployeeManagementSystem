@@ -5,7 +5,7 @@ import hu.martin.ems.pages.core.SimpleVaadinGridPage;
 import hu.martin.ems.pages.core.component.VaadinButtonComponent;
 import hu.martin.ems.pages.core.component.VaadinCheckboxComponent;
 import hu.martin.ems.pages.core.component.VaadinGridComponent;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.RoleSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.RoleSaveOrUpdateDialog;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;

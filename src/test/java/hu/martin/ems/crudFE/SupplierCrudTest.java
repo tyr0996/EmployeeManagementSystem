@@ -8,7 +8,7 @@ import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.SupplierSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.SupplierSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
@@ -44,6 +44,19 @@ public class SupplierCrudTest extends BaseCrudTest {
 //        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "Supplier", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
 //        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
 //    }
+
+    @Test
+    public void closeCreateDialogTest(){
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
+
+        SupplierPage supplierPage = new SupplierPage(driver, port);
+        supplierPage.getCreateButton().click();
+        SupplierSaveOrUpdateDialog dialog = new SupplierSaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        dialog.close();
+    }
 
     @Test
     public void supplierCreateTest() {

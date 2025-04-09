@@ -230,7 +230,8 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     }
 
     public Dialog getSellToCustomerDialog(ProductVO productVO){
-        Dialog sellDialog = new Dialog();
+        Dialog sellDialog = new Dialog("Sell to customer");
+        appendCloseButton(sellDialog);
         FormLayout formLayout = new FormLayout();
         Product p = productVO.original;
         Button sellToCustomerButton = new Button("Sell to customer");
@@ -299,10 +300,10 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     }
 
     public Dialog getOrderFromSupplierDialog(ProductVO productVO){
-        Dialog orderDialog = new Dialog();
+        Dialog orderDialog = new Dialog("Order from Supplier");
         appendCloseButton(orderDialog);
         FormLayout formLayout = new FormLayout();
-        Button buyFromSupplierButton = new Button("Order from Supllier");
+        Button buyFromSupplierButton = new Button("Order from Supplier");
         ComboBox<Supplier> suppliers = new ComboBox<>("Supplier");
         NumberField buyingUnitField = new NumberField("Quantity");
         ComboBox.ItemFilter<Supplier> filterSupplier = (supplier, filterString) ->
@@ -494,6 +495,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
 
     public Dialog getSaveOrUpdateDialog(Product entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " product");
+        appendCloseButton(createDialog);
         FormLayout formLayout = new FormLayout();
 
         Button saveButton = new Button("Save");

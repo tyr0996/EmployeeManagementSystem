@@ -1,4 +1,4 @@
-package hu.martin.ems.pages.core.component.saveOrUpdateDialog;
+package hu.martin.ems.pages.core.dialog.saveOrUpdateDialog;
 
 import hu.martin.ems.pages.core.component.VaadinMultipleSelectDropdownComponent;
 import hu.martin.ems.pages.core.component.VaadinTextInputComponent;
@@ -6,16 +6,16 @@ import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
-public class PermissionSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
+public class RoleSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
 
     private static final String nameTextFieldXpath = dialogXpath + "/vaadin-form-layout/vaadin-text-field";
 
-    private static final String rolesComboBoxXpath = dialogXpath + "/vaadin-form-layout/vaadin-multi-select-combo-box";
+    private static final String permissionsComboBoxXpath = dialogXpath + "/vaadin-form-layout/vaadin-multi-select-combo-box";
 
     @Getter private VaadinTextInputComponent nameField;
-    @Getter private VaadinMultipleSelectDropdownComponent rolesComboBox;
+    @Getter private VaadinMultipleSelectDropdownComponent permissionsComboBox;
 
-    public PermissionSaveOrUpdateDialog(WebDriver driver) {
+    public RoleSaveOrUpdateDialog(WebDriver driver) {
         super(driver);
     }
 
@@ -23,7 +23,7 @@ public class PermissionSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
         super.initWebElements();
 
         nameField = new VaadinTextInputComponent(getDriver(), By.xpath(nameTextFieldXpath));
-        rolesComboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), By.xpath(rolesComboBoxXpath));
+        permissionsComboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), By.xpath(permissionsComboBoxXpath));
 
         setAllComponents();
     }
@@ -32,6 +32,6 @@ public class PermissionSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     public void setAllComponents() {
         this.allComponent.clear();
         this.allComponent.add(nameField);
-        this.allComponent.add(rolesComboBox);
+        this.allComponent.add(permissionsComboBox);
     }
 }

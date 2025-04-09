@@ -1,6 +1,6 @@
 package hu.martin.ems.pages.core.component;
 
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.SingleFillable;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.SingleFillable;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;

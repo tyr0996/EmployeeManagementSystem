@@ -11,7 +11,7 @@ import hu.martin.ems.pages.OrderElementPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.OrderElementSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.OrderElementSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;

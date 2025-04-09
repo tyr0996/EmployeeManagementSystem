@@ -371,6 +371,8 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
+            System.out.println("loggedInUserVo null: " + (loggedInUserVO == null) + "   megegyezik: " + loggedInUserVO.equals(entry));
+
             if(loggedInUserVO == null || loggedInUserVO.equals(entry)){
                 editButton.setEnabled(false);
                 deleteButton.setEnabled(false);

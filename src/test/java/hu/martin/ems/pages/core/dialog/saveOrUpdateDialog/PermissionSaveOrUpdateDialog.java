@@ -1,4 +1,4 @@
-package hu.martin.ems.pages.core.component.saveOrUpdateDialog;
+package hu.martin.ems.pages.core.dialog.saveOrUpdateDialog;
 
 import hu.martin.ems.pages.core.component.VaadinMultipleSelectDropdownComponent;
 import hu.martin.ems.pages.core.component.VaadinTextInputComponent;
@@ -6,16 +6,16 @@ import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
-public class RoleSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
+public class PermissionSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
 
     private static final String nameTextFieldXpath = dialogXpath + "/vaadin-form-layout/vaadin-text-field";
 
-    private static final String permissionsComboBoxXpath = dialogXpath + "/vaadin-form-layout/vaadin-multi-select-combo-box";
+    private static final String rolesComboBoxXpath = dialogXpath + "/vaadin-form-layout/vaadin-multi-select-combo-box";
 
     @Getter private VaadinTextInputComponent nameField;
-    @Getter private VaadinMultipleSelectDropdownComponent permissionsComboBox;
+    @Getter private VaadinMultipleSelectDropdownComponent rolesComboBox;
 
-    public RoleSaveOrUpdateDialog(WebDriver driver) {
+    public PermissionSaveOrUpdateDialog(WebDriver driver) {
         super(driver);
     }
 
@@ -23,7 +23,7 @@ public class RoleSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
         super.initWebElements();
 
         nameField = new VaadinTextInputComponent(getDriver(), By.xpath(nameTextFieldXpath));
-        permissionsComboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), By.xpath(permissionsComboBoxXpath));
+        rolesComboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), By.xpath(rolesComboBoxXpath));
 
         setAllComponents();
     }
@@ -32,6 +32,6 @@ public class RoleSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     public void setAllComponents() {
         this.allComponent.clear();
         this.allComponent.add(nameField);
-        this.allComponent.add(permissionsComboBox);
+        this.allComponent.add(rolesComboBox);
     }
 }

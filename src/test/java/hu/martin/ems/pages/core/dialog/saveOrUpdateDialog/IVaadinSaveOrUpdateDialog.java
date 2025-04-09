@@ -1,4 +1,4 @@
-package hu.martin.ems.pages.core.component.saveOrUpdateDialog;
+package hu.martin.ems.pages.core.dialog.saveOrUpdateDialog;
 
 import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
 

@@ -8,7 +8,7 @@ import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.EmployeeSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.EmployeeSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
@@ -219,5 +219,19 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Employee saving failed: Internal Server Error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+    }
+
+    @Test
+    public void dialogClosingTest(){
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
+
+        EmployeePage employeePage = new EmployeePage(driver, port);
+
+        employeePage.getCreateButton().click();
+        EmployeeSaveOrUpdateDialog dialog = new EmployeeSaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        dialog.close();
     }
 }

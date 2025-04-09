@@ -6,7 +6,7 @@ import hu.martin.ems.pages.core.component.VaadinButtonComponent;
 import hu.martin.ems.pages.core.component.VaadinCheckboxComponent;
 import hu.martin.ems.pages.core.component.VaadinGridComponent;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.VaadinSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.VaadinSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import hu.martin.ems.pages.core.performResult.*;
 import jakarta.annotation.Nullable;

@@ -7,10 +7,12 @@ import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
 import hu.martin.ems.pages.core.SideMenu;
-import hu.martin.ems.pages.core.component.saveOrUpdateDialog.CitySaveOrUpdateDialog;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.CitySaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -201,5 +203,23 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("City saving failed: Internal Server Error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+    }
+
+    @Test
+    public void databaseNotAvailableWhenSetupCities() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
+
+        CityPage cityPage = new CityPage(driver, port);
+
+        SoftAssert sa = new SoftAssert();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification.getText(), "Getting cities failed");
+        sa.assertEquals(cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 0);
+
+        sa.assertAll();
     }
 }

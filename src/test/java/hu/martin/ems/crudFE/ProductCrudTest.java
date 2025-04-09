@@ -1,293 +1,395 @@
 package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.GridTestingUtil;
-import hu.martin.ems.base.NotificationCheck;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.pages.LoginPage;
+import hu.martin.ems.pages.ProductPage;
+import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
+import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.component.VaadinButtonComponent;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.dialog.Product_OrderingDialog;
+import hu.martin.ems.pages.core.dialog.Product_SellingDialog;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.ProductSaveOrUpdateDialog;
+import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
-import java.time.Duration;
-import java.util.LinkedHashMap;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ProductCrudTest extends BaseCrudTest {
-    private static CrudTestingUtil crudTestingUtil;
-    private static WebDriverWait notificationDisappearWait;
 
-    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
-    private static final String gridXpath = contentXpath + "/vaadin-grid";
-    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
+    @Test
+    public void productCreateTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
 
-    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-    private static final String subMenu = UIXpaths.PRODUCT_SUBMENU;
+        ProductPage productPage = new ProductPage(driver, port);
+        DoCreateTestData testResult = productPage.doCreateTest();
 
-    private GridTestingUtil gridTestingUtil;
-
-    
-
-    @BeforeClass
-    public void setup() {
-        gridTestingUtil = new GridTestingUtil(driver);
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "Product", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("Product saved: ");
     }
 
     @Test
-    
-    public void productCreateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest();
+    public void productReadTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+
+        ProductPage productPage = new ProductPage(driver, port);
+        DoReadTestData testResult = productPage.doReadTest(null, true);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertNull(testResult.getNotificationWhenPerform());
     }
 
     @Test
-    
-    public void productReadTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.readTest();
+    public void databaseNotAvailableWhileDeleteTest() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+
+        ProductPage productPage = new ProductPage(driver, port);
+        DoDeleteFailedTestData testResult = productPage.doDatabaseNotAvailableWhenDeleteTest(spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
     }
 
     @Test
-    
-    public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
+    public void productDeleteTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+
+        ProductPage productPage = new ProductPage(driver, port);
+        DoDeleteTestData testResult = productPage.doDeleteTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("Product deleted: ");
+
+        productPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
+        assertEquals(1, productPage.getGrid().getTotalDeletedRowNumber(productPage.getShowDeletedCheckBox()));
+        assertEquals(0, productPage.getGrid().getTotalNonDeletedRowNumber(productPage.getShowDeletedCheckBox()));
+        productPage.getGrid().resetFilter();
     }
 
     @Test
-    
-    public void productDeleteTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.deleteTest();
+    public void productUpdateTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+
+        ProductPage productPage = new ProductPage(driver, port);
+        DoUpdateTestData testResult = productPage.doUpdateTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Product updated: ");
+
+        productPage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
+        assertEquals(0, productPage.getGrid().getTotalDeletedRowNumber(productPage.getShowDeletedCheckBox()));
+        assertEquals(0, productPage.getGrid().getTotalNonDeletedRowNumber(productPage.getShowDeletedCheckBox()));
+        productPage.getGrid().resetFilter();
     }
 
     @Test
-    
-    public void productUpdateTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest();
+    public void productRestoreTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+
+        ProductPage productPage = new ProductPage(driver, port);
+        DoRestoreTestData testResult = productPage.doRestoreTest();
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("Product restored: ");
+
+        productPage = new ProductPage(driver, port);
+        productPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
+        productPage.getGrid().waitForRefresh();
+        assertEquals(productPage.getGrid().getTotalDeletedRowNumber(productPage.getShowDeletedCheckBox()), 0);
+        assertEquals(productPage.getGrid().getTotalNonDeletedRowNumber(productPage.getShowDeletedCheckBox()), 1);
+        productPage.getGrid().resetFilter();
     }
 
     @Test
-    
-    public void productRestoreTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.restoreTest();
-    }
-
-    @Test
-    
-    public void productPermanentlyDeleteTest() throws InterruptedException {
+    public void productPermanentlyDeleteTest() {
         //Azért nem lehet törölni, mert vannak olyan megrendelések, amikben benne van.
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.permanentlyDeleteTest();
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+
+        ProductPage productPage = new ProductPage(driver, port);
+        DoPermanentlyDeleteTestData testResult = productPage.doPermanentlyDeleteTest();
+        assertThat(testResult.getNotificationWhenPerform()).contains("Product permanently deleted: ");
+
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        productPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
+        assertEquals(0, productPage.getGrid().getTotalDeletedRowNumber(productPage.getShowDeletedCheckBox()));
+        assertEquals(0, productPage.getGrid().getTotalNonDeletedRowNumber(productPage.getShowDeletedCheckBox()));
+        productPage.getGrid().resetFilter();
     }
 
-    //@Test
-    public void extraFilterInvalidValue() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        NotificationCheck nc = new NotificationCheck();
-        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
+
+    @Test
+    public void sellToCustomerTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+        ProductPage page = new ProductPage(driver, port);
+
+        VaadinButtonComponent orderFromSupplierButton = page.getGrid().getOptionColumnButton(page.getGrid().getRandomLocation(), 3);
+        orderFromSupplierButton.click();
+        Product_OrderingDialog dialog = new Product_OrderingDialog(driver);
+        dialog.initWebElements();
+
+        dialog.fill(null);
+        dialog.getOrderButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Order element successfully paired to customer!");
+        notification.close();
     }
 
     @Test
-    
-    public void sellToCustomerTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        WebElement sellToCustomerButton = gridTestingUtil.getOptionButton(gridXpath, gridTestingUtil.getRandomLocationFromGrid(gridXpath), 3);
-        gridTestingUtil.findVisibleElementWithXpath(gridXpath);
-        WebElement sellButtonContainer = sellToCustomerButton.getShadowRoot().findElement(By.className("vaadin-button-container"));
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        js.executeScript("arguments[0].click()", sellButtonContainer);
+    public void orderFromSupplierTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+        ProductPage page = new ProductPage(driver, port);
 
-        WebElement dialog = gridTestingUtil.findVisibleElementWithXpath("//*[@id=\"overlay\"]");
-        WebElement orderButton = gridTestingUtil.findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
-        crudTestingUtil.fillCreateOrUpdateForm(null);
-        orderButton.click();
-        gridTestingUtil.checkNotificationText("Order element successfully paired to customer!");
+        VaadinButtonComponent orderFromSupplierButton = page.getGrid().getOptionColumnButton(page.getGrid().getRandomLocation(), 4);
+        orderFromSupplierButton.click();
+        Product_OrderingDialog dialog = new Product_OrderingDialog(driver);
+        dialog.initWebElements();
+
+        dialog.fill(null);
+        dialog.getOrderButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Order element successfully paired to supplier!");
+        notification.close();
     }
 
     @Test
-    
-    public void orderFromSupplierTest() throws InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        WebElement orderFromSupplierButton = gridTestingUtil.getOptionButton(gridXpath, gridTestingUtil.getRandomLocationFromGrid(gridXpath), 4);
-        gridTestingUtil.findVisibleElementWithXpath(gridXpath);
-        WebElement orderButtonContainer = orderFromSupplierButton.getShadowRoot().findElement(By.className("vaadin-button-container"));
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        js.executeScript("arguments[0].click()", orderButtonContainer);
+    public void databaseNotAvailableWhenModify() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
 
-        WebElement dialog = gridTestingUtil.findVisibleElementWithXpath("//*[@id=\"overlay\"]");
-        WebElement orderButton = gridTestingUtil.findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
-        crudTestingUtil.fillCreateOrUpdateForm(null);
-        orderButton.click();
-        gridTestingUtil.checkNotificationText("Order element successfully paired to supplier!");
-    }
+        ProductPage productPage = new ProductPage(driver, port);
+        DoUpdateFailedTestData testResult = productPage.doDatabaseNotAvailableWhenUpdateTest(null, null, spyDataSource, 0);
 
-
-//    @Test(enabled = false)
-//    public void unexpcetedResponseCodeCreate() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        crudTestingUtil.createNotExpectedStatusCodeSave(spyProductApiClient, Product.class);
-//    }
-//
-//    @Test(enabled = false)
-//    public void unexpcetedResponseCodeUpdate() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        crudTestingUtil.updateNotExpectedStatusCode(spyProductApiClient, Product.class);
-//    }
-
-    @Test
-    
-    public void databaseNotAvailableWhenModify() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyProductService).update(any(Product.class));
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 8);
-
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.updateTest(null, "Internal server error", false);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getResult().getNotificationText()).contains("Product modifying failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
     @Test
-    
-    public void nullResponseFromServiceWhenCreate() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyProductService).save(any(Product.class));
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 10);
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.createTest(null, "Product saving failed: Internal server error", false);
-        gridTestingUtil.checkNoMoreNotificationsVisible();
+    public void nullResponseFromServiceWhenCreate() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+
+        ProductPage productPage = new ProductPage(driver, port);
+        DoCreateFailedTestData testResult = productPage.doDatabaseNotAvailableWhenCreateTest(spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Product saving failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
     @Test
-    
-    public void nullReturnWhenGettingAllCustomers() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyCustomerService).findAll(false);
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-        LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
-        failedData.put("Customer", "Error happened while getting customers");
+    public void nullReturnWhenGettingAllCustomers() throws SQLException {
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
 
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+        ProductPage page = new ProductPage(driver, port);
 
-        WebElement sellToCustomerButton = gridTestingUtil.getOptionButton(gridXpath, gridTestingUtil.getRandomLocationFromGrid(gridXpath), 3);
-        gridTestingUtil.findVisibleElementWithXpath(gridXpath);
-        WebElement sellButtonContainer = sellToCustomerButton.getShadowRoot().findElement(By.className("vaadin-button-container"));
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        js.executeScript("arguments[0].click()", sellButtonContainer);
+        VaadinButtonComponent sellToCustomerButton = page.getGrid().getOptionColumnButton(page.getGrid().getRandomLocation(), 3);
+        sellToCustomerButton.click();
+        Product_SellingDialog dialog = new Product_SellingDialog(driver);
+        dialog.initWebElements();
 
-        WebElement dialog = gridTestingUtil.findVisibleElementWithXpath("//*[@id=\"overlay\"]");
-        WebElement orderButton = gridTestingUtil.findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
-        crudTestingUtil.fillCreateOrUpdateForm(null, failedData);
-        assertEquals(false, gridTestingUtil.isEnabled(orderButton));
+        assertEquals(dialog.getFailedComponents().size(), 1);
+        assertEquals(dialog.getCustomerComboBox().getErrorMessage(), "Error happened while getting customers");
+        assertFalse(dialog.getSellButton().isEnabled());
+        assertFalse(dialog.getCustomerComboBox().isEnabled());
     }
 
     @Test
-    
-    public void nullResponseWhenGettingAllSuppliers() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spySupplierService).findAll(false);
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-        LinkedHashMap<String, String> failedData = new LinkedHashMap<>();
-        failedData.put("Supplier", "Error happened while getting suppliers");
+    public void nullResponseWhenGettingAllSuppliers() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+        ProductPage page = new ProductPage(driver, port);
 
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        WebElement orderFromSupplierButton = gridTestingUtil.getOptionButton(gridXpath, gridTestingUtil.getRandomLocationFromGrid(gridXpath), 4);
-        gridTestingUtil.findVisibleElementWithXpath(gridXpath);
-        WebElement supplierButtonContainer = orderFromSupplierButton.getShadowRoot().findElement(By.className("vaadin-button-container"));
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        js.executeScript("arguments[0].click()", supplierButtonContainer);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
+        VaadinButtonComponent orderFromSupplierButton = page.getGrid().getOptionColumnButton(page.getGrid().getRandomLocation(), 4);
+        orderFromSupplierButton.click();
+        Product_OrderingDialog dialog = new Product_OrderingDialog(driver);
+        dialog.initWebElements();
 
-        WebElement dialog = gridTestingUtil.findVisibleElementWithXpath("//*[@id=\"overlay\"]");
-        WebElement orderButton = gridTestingUtil.findClickableElementWithXpathWithWaiting("/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-button");
-        crudTestingUtil.fillCreateOrUpdateForm(null, failedData);
-        assertEquals(false, gridTestingUtil.isEnabled(orderButton));
+        assertEquals(dialog.getFailedComponents().size(), 1);
+        assertEquals(dialog.getSupplierComboBox().getErrorMessage(), "Error happened while getting suppliers");
+        assertFalse(dialog.getOrderButton().isEnabled());
+        assertFalse(dialog.getSupplierComboBox().isEnabled());
     }
 
     @Test
-    
-    public void unexpectedResponseCodeWhenGettingAllProducts() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyProductService).findAll(any(Boolean.class));
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyProductApiClient).findAllWithDeleted();
-        gridTestingUtil.mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        Thread.sleep(100);
-        gridTestingUtil.checkNotificationText("Error happened while getting products");
-        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXpath));
-        assertEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
+    public void unexpectedResponseCodeWhenGettingAllProducts() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+
+        ProductPage productPage = new ProductPage(driver, port);
+        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponent.getText(), "Error happened while getting products");
+        notificationComponent.close();
+
+        assertEquals(productPage.getGrid().getTotalDeletedRowNumber(productPage.getShowDeletedCheckBox()), 0);
+        assertEquals(productPage.getGrid().getTotalNonDeletedRowNumber(productPage.getShowDeletedCheckBox()), 0);
     }
 
     @Test
-    
-    public void unexpectedResponseCodeWhenGettingCurrenciesNames() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.CURRENCIES_CODESTORE_ID); //id 1
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-        failedFieldData.put("Buying price currency", "Error happened while getting currencies");
-        failedFieldData.put("Selling price currency", "Error happened while getting currencies");
+    public void unexpectedResponseCodeWhenGettingCurrenciesNames() throws SQLException {
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
 
-        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+        ProductPage productPage = new ProductPage(driver, port);
+        productPage.getCreateButton().click();
+
+        ProductSaveOrUpdateDialog dialog = new ProductSaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        assertEquals(dialog.getFailedComponents().size(), 2);
+        SoftAssert sa = new SoftAssert();
+        sa.assertFalse(dialog.getSellingPriceCurrencyComponent().isEnabled());
+        sa.assertFalse(dialog.getBuyingPriceCurrencyComponent().isEnabled());
+        sa.assertEquals(dialog.getSellingPriceCurrencyComponent().getErrorMessage(), "Error happened while getting currencies");
+        sa.assertEquals(dialog.getBuyingPriceCurrencyComponent().getErrorMessage(), "Error happened while getting currencies");
+        sa.assertFalse(dialog.getSaveButton().isEnabled());
+
+        sa.assertAll();
     }
 
     @Test
-    
-    public void unexpectedResponseCodeWhenGettingTaxKeys() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.TAXKEYS_CODESTORE_ID); // id 4
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-        failedFieldData.put("Tax key", "Error happened while getting tax keys");
+    public void unexpectedResponseCodeWhenGettingTaxKeys() throws SQLException {
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 4);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
 
-        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+        ProductPage productPage = new ProductPage(driver, port);
+        productPage.getCreateButton().click();
+
+        ProductSaveOrUpdateDialog dialog = new ProductSaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        assertEquals(dialog.getFailedComponents().size(), 1);
+        SoftAssert sa = new SoftAssert();
+        sa.assertFalse(dialog.getTaxKeyComponent().isEnabled());
+        sa.assertEquals(dialog.getTaxKeyComponent().getErrorMessage(), "Error happened while getting tax keys");
+        sa.assertFalse(dialog.getSaveButton().isEnabled());
+
+        sa.assertAll();
     }
 
     @Test
-    
-    public void unexpectedResponseCodeWhenGettingAmountUnits() throws InterruptedException, SQLException {
-//        Mockito.doReturn(null).when(spyCodeStoreService).getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID); //id 2
-        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-        failedFieldData.put("Amount unit", "Error happened while getting amount units");
+    public void unexpectedResponseCodeWhenGettingAmountUnits() throws SQLException {
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 5);
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
 
-        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
+        ProductPage productPage = new ProductPage(driver, port);
+        productPage.getCreateButton().click();
+
+        ProductSaveOrUpdateDialog dialog = new ProductSaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        assertEquals(dialog.getFailedComponents().size(), 1);
+        SoftAssert sa = new SoftAssert();
+        sa.assertFalse(dialog.getAmountUnitComponent().isEnabled());
+        sa.assertEquals(dialog.getAmountUnitComponent().getErrorMessage(), "Error happened while getting amount units");
+        sa.assertFalse(dialog.getSaveButton().isEnabled());
+
+        sa.assertAll();
     }
 
     @Test
-    
-    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
-        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
+    public void databaseUnavailableWhenSaving() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+
+        ProductPage productPage = new ProductPage(driver, port);
+        DoCreateFailedTestData testResult = productPage.doDatabaseNotAvailableWhenCreateTest(spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Product saving failed: Internal Server Error");
+        assertEquals(0, testResult.getResult().getFailedFields().size());
+    }
+
+
+    @Test
+    public void closeCreateDialogTest(){
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+
+        ProductPage productPage = new ProductPage(driver, port);
+        productPage.getCreateButton().click();
+        ProductSaveOrUpdateDialog dialog = new ProductSaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        dialog.close();
+    }
+
+    @Test
+    public void closeSellingDialogTest(){
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+        ProductPage page = new ProductPage(driver, port);
+
+        VaadinButtonComponent sellToCustomer = page.getGrid().getOptionColumnButton(page.getGrid().getRandomLocation(), 3);
+        sellToCustomer.click();
+        Product_SellingDialog dialog = new Product_SellingDialog(driver);
+        dialog.initWebElements();
+        dialog.close();
+    }
+
+    @Test
+    public void closeOrderingDialogTest(){
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
+        ProductPage page = new ProductPage(driver, port);
+
+        VaadinButtonComponent orderFromSupplierButton = page.getGrid().getOptionColumnButton(page.getGrid().getRandomLocation(), 4);
+        orderFromSupplierButton.click();
+        Product_OrderingDialog dialog = new Product_OrderingDialog(driver);
+        dialog.initWebElements();
+        dialog.close();
     }
 }

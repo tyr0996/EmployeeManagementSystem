@@ -20,9 +20,18 @@ public class ForgotPasswordDialog_Password extends VaadinDialogComponent {
         initWebElements();
     }
 
-    private void initWebElements(){
+    @Override
+    public void initWebElements(){
         passwordField = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordFieldXpath));
         passwordAgainField = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordAgainFieldXpath));
         submitButton = new VaadinButtonComponent(getDriver(), By.xpath(submitButtonXpath));
+        setAllComponents();
+    }
+
+    @Override
+    public void setAllComponents() {
+        allComponent.clear();
+        allComponent.add(passwordField);
+        allComponent.add(passwordAgainField);
     }
 }

@@ -8,46 +8,21 @@ import hu.martin.ems.pages.PermissionPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.PermissionSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.*;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PermissionTest extends BaseCrudTest {
-//    private static CrudTestingUtil crudTestingUtil;
-//    private static WebDriverWait notificationDisappearWait;
-//
-//    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout[2]/vaadin-checkbox";
-//    private static final String gridXpath = contentXpath + "/vaadin-grid";
-//    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout[2]/vaadin-button";
-//    private static final String permissionsButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[1]";
-//    private static final String permissionsButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[2]";
-//    private static final String permissionXPermisisonPairingButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[3]";
-//
-//    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-//    private static final String subMenu = UIXpaths.ACESS_MANAGEMENT_SUBMENU;
-//
-//
-//    private GridTestingUtil gridTestingUtil;
-//
-//
-//
-//    @BeforeClass
-//    public void setup() {
-//        gridTestingUtil = new GridTestingUtil(driver);
-//        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "Permission", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-//        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
-//    }
-
     @BeforeMethod
     public void beforeMethod(){
         resetRolesAndPermissions();
@@ -167,35 +142,6 @@ public class PermissionTest extends BaseCrudTest {
         page.getGrid().resetFilter();
     }
 
-    //@Test
-//    public void extraFilterInvalidValue() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
-//        NotificationCheck nc = new NotificationCheck();
-//        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-//        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
-//    }
-
-//    @Test
-//    public void apiSendInvalidStatusCodeWhenSavePermissionXPermission() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionXPermissionApiClient).save(any(PermissionXPermission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
-//        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
-//    }
-//
-//    @Test
-//    public void apiSendInvalidStatusCodeWhenUpdatePermissionPermissionXPermission() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyPermissionXPermissionApiClient).save(any(PermissionXPermission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
-//        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
-//    }
-
-
     @Test
     public void databaseNotAvailableWhenModify() throws SQLException {
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
@@ -246,18 +192,8 @@ public class PermissionTest extends BaseCrudTest {
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
-//    @Test
-//    public void undoSaveFailed() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionXPermissionApiClient).save(any(PermissionXPermission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
-//        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-
     @Test
-    public void gettingPermissionsFailed() throws InterruptedException, SQLException {
+    public void gettingPermissionsFailed() throws SQLException {
 //        Mockito.doReturn(null).when(spyPermissionService).findAll(true); //ApiClientben.findAllWithDeleted();
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
@@ -283,21 +219,8 @@ public class PermissionTest extends BaseCrudTest {
         assertEquals(page.getGrid().getPaginationData().getTotalElements(), countElements);
     }
 
-//    @Test
-//    public void findAllPairedPermissionToPermissionsFailed() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionXPermissionApiClient).findAllPairedPermissionTo(any(Permission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
-//        Thread.sleep(100);
-//        LinkedHashMap<String, String> failed = new LinkedHashMap<>();
-//        failed.put("Permissions", "Error happened while getting paired permissions");
-//        crudTestingUtil.updateUnexpectedResponseCodeWhileGettingData(null, failed);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
 
     @Test
-    
     public void findAllPermissionFailed() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
@@ -324,32 +247,6 @@ public class PermissionTest extends BaseCrudTest {
         assertEquals(page.getGrid().getPaginationData().getTotalElements(), countElements);
     }
 
-//    @Test
-//    public void findAllPariedPermissionToWhenUpdate() throws InterruptedException {
-//
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
-//        Thread.sleep(100);
-//        LinkedHashMap<String, String> failed = new LinkedHashMap<>();
-//        failed.put("Permissions", "Error happened while getting permissions");
-//        Mockito.doCallRealMethod().doReturn(new EmsResponse(522, "")).when(spyPermissionXPermissionApiClient).findAllPairedPermissionTo(any(Permission.class));
-//        crudTestingUtil.updateTest(null, "Error happened while getting paired permissions", false);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-
-    //létrehozás sikertelen, visszaállítás sikertelen permissionXPermissionApi.findAllPairedPermissionTo(permission);
-//    @Test
-//    public void createFailedUndoSaveFailed() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(permissionsButtonXPath).click();
-//        Thread.sleep(100);
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionXPermissionApiClient).save(any(PermissionXPermission.class));
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionXPermissionApiClient).findAllPairedPermissionTo(any(Permission.class));
-//        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
 
     @Test
     public void databaseUnavailableWhenSaving() throws SQLException {
@@ -366,6 +263,25 @@ public class PermissionTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Permission saving failed: Internal Server Error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+    }
+
+    @Test
+    public void databaseUnavailableWhenGettingRolesForCreateDialog() throws SQLException {
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
+        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
+        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
+        header.getPermissionButton().click();
+        PermissionPage page = new PermissionPage(driver, port);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
+        page.getCreateButton().click();
+        PermissionSaveOrUpdateDialog dialog = new PermissionSaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        SoftAssert sa = new SoftAssert();
+        sa.assertFalse(dialog.getRolesComboBox().isEnabled());
+        sa.assertEquals(dialog.getRolesComboBox().getErrorMessage(), "Error happened while getting roles");
+        sa.assertFalse(dialog.getSaveButton().isEnabled());
+        dialog.close();
+        sa.assertAll();
     }
 
     @AfterClass

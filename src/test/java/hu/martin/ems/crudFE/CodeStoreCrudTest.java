@@ -1,14 +1,18 @@
 package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
+import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.pages.CodeStorePage;
 import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.CodeStoreSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
@@ -210,5 +214,36 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore saving failed: Internal Server Error");
         Assert.assertEquals(0, testResult.getResult().getFailedFields().size());
+    }
+
+    @Test
+    public void dialogClosingTest(){
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
+
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+        codeStorePage.getCreateButton().click();
+        CodeStoreSaveOrUpdateDialog dialog = new CodeStoreSaveOrUpdateDialog(driver);
+        dialog.initWebElements();
+        dialog.close();
+    }
+
+    @Test
+    public void datahbaseNotAvailableWhenGettingAllCodeStore() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
+
+        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
+
+        SoftAssert sa = new SoftAssert();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification.getText(), "Error happened while getting codestores");
+        sa.assertEquals(codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
+
+        sa.assertAll();
     }
 }

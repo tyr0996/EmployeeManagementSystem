@@ -1,4 +1,4 @@
-package hu.martin.ems.pages.core.component.saveOrUpdateDialog;
+package hu.martin.ems.pages.core.dialog.saveOrUpdateDialog;
 
 import hu.martin.ems.pages.core.component.VaadinDropdownComponent;
 import hu.martin.ems.pages.core.component.VaadinPasswordInputComponent;
@@ -25,6 +25,7 @@ public class UserSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     @Override
     public void initWebElements(){
         super.initWebElements();
+
         usernameComponent = new VaadinTextInputComponent(getDriver(), By.xpath(usernameXpath));
         passwordComponent = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordXpath));
         passwordAgainComponent = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordAgainXpath));
