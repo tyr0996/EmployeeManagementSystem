@@ -148,6 +148,14 @@ public class LoginTests extends BaseCrudTest {
     }
 
     @Test
+    public void loggedOutUserTryReachPage(){
+        LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        EmptyLoggedInVaadinPage loggedIn = new EmptyLoggedInVaadinPage(driver, port);
+        loggedIn.logout();
+
+    }
+
+    @Test
     public void sideMenuElementsTest() {
         LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         EmptyLoggedInVaadinPage loggedInPage = new EmptyLoggedInVaadinPage(driver, port);

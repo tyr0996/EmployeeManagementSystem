@@ -8,6 +8,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -18,7 +19,9 @@ import static org.testng.Assert.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 //@SpringBootTest
-public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
+public class
+EmployeeManagementSystemApplicationTests extends BaseCrudTest {
+
 
     @Test
     
@@ -49,8 +52,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
     @Test
-    
-    public void testSqlGenerationFromJson(){
+    public void testSqlGenerationFromJson() throws IOException {
         String generatedSql = dp.generateSqlFromJson(new File(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
         assertEquals(generatedSql,
                 "INSERT INTO Role (name, deleted, id) VALUES\n\t('Martin', '0', '1'),\n\t('Robi', '0', '2'),\n\t('NO_ROLE', '0', '-1')",

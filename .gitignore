@@ -35,11 +35,12 @@ target
 
 node_modules
 /htmlReport
-/src/test/java/hu/martin/ems/sql
-/src/test/java/hu/martin/ems/sql
+/htmlReport*
+/src/test/resources/sql
 /src/main/java/hu/martin/ems/core/helper/
 
 **/hibernate.log.*.gz
+**/hibernate.log.*.tmp
 hibernate.log
 
 /video

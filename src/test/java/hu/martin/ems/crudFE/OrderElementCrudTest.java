@@ -22,6 +22,7 @@ import org.testng.asserts.SoftAssert;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,6 +54,29 @@ public class OrderElementCrudTest extends BaseCrudTest {
         crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "OrderElement", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
         orderCreateTest = new OrderCreateTest();
+    }
+
+    @Test
+    public void createOrderElementForBothCustomerAndSupplier(){
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Customer", "Erdei Róbert");
+        withData.put("Supplier", "Szállító1");
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+        DoCreateTestData testResult = page.doCreateTest(withData);
+        String[] filter = new String[]{"", "", "", "", "", "", "", "(S) Szállító1, (C) Erdei Róbert"};
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saved: ");
+        page.getGrid().applyFilter(filter);
+        page.getGrid().waitForRefresh();
+        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+
     }
 
     @Test

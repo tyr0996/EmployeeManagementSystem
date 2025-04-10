@@ -19,7 +19,7 @@ public class OrderElement extends BaseEntity {
     @Expose
     private Product product;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinTable(name = "orders_orderelement",
         joinColumns = @JoinColumn(name = "orderelements_id"),
         inverseJoinColumns = @JoinColumn(name = "order_id")

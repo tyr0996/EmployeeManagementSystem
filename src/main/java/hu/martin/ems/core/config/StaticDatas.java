@@ -23,7 +23,7 @@ public final class StaticDatas {
     @CoverageIgnored
     public class FolderPaths{
         public static final String PROJECT_ROOT = System.getProperty("user.dir");
-        public static final String GENERATED_SQL_FILES_PATH = PROJECT_ROOT + "\\src\\test\\java\\hu\\martin\\ems\\sql";
+        public static final String GENERATED_SQL_FILES_PATH = PROJECT_ROOT + "\\src\\test\\resources\\sql";
         public static final String STATIC_JSON_FOLDER_PATH = PROJECT_ROOT + "\\src\\main\\resources\\static";
     }
 

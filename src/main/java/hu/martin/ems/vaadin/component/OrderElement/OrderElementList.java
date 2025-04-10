@@ -246,8 +246,8 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     }
 
     private boolean filterField(String filterFieldText, String fieldValue){
-        if(taxKeyFilterText.equals(filterFieldText))
-        System.out.println("Itt az első: " + filterFieldText.isEmpty() + "   és a második " + fieldValue.toLowerCase().contains(filterFieldText.toLowerCase()));
+//        if(taxKeyFilterText.equals(filterFieldText))
+//        System.out.println("Itt az első: " + filterFieldText.isEmpty() + "   és a második " + fieldValue.toLowerCase().contains(filterFieldText.toLowerCase()));
         return filterFieldText.isEmpty() || fieldValue.toLowerCase().contains(filterFieldText.toLowerCase());
     }
     
@@ -555,7 +555,19 @@ public class OrderElementVO extends BaseVO {
             this.taxKey = original.getTaxKey().getName() + "%";
             this.netPrice = original.getNetPrice();
             this.grossPrice = original.getGrossPrice();
-            this.customerOrSupplierName = orderElement.getCustomer() == null ? "(S) " + orderElement.getSupplier().getName() : "(C) " + orderElement.getCustomer().getName();
+            this.customerOrSupplierName = generateCustomerOrSupplierName(orderElement);
+        }
+
+        private String generateCustomerOrSupplierName(OrderElement orderElement){
+            if(orderElement.getCustomer() == null && orderElement.getSupplier() != null){
+                return "(S) " + orderElement.getSupplier().getName();
+            }
+            else if(orderElement.getCustomer() != null && orderElement.getSupplier() != null){
+                return "(S) " + orderElement.getSupplier().getName() + ", (C) " + orderElement.getCustomer().getName();
+            }
+            else{
+                return "(C) " + orderElement.getCustomer().getName();
+            }
         }
     }
 }

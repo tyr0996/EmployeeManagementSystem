@@ -16,6 +16,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
+import java.io.IOException;
 import java.sql.SQLException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +25,7 @@ import static org.testng.Assert.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PermissionTest extends BaseCrudTest {
     @BeforeMethod
-    public void beforeMethod(){
+    public void beforeMethod() throws IOException {
         resetRolesAndPermissions();
     }
 
@@ -285,7 +286,7 @@ public class PermissionTest extends BaseCrudTest {
     }
 
     @AfterClass
-    public void afterClass(){
+    public void afterClass() throws IOException {
         resetRolesAndPermissions();
     }
 }

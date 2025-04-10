@@ -14,6 +14,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
 
@@ -22,7 +23,7 @@ import static org.testng.Assert.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RoleXPermissionCreateTest extends BaseCrudTest {
     @BeforeMethod
-    public void beforeMethod(){
+    public void beforeMethod() throws IOException {
         resetRolesAndPermissions();
     }
 
@@ -185,7 +186,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
     }
 
     @AfterClass
-    public void afterClass(){
+    public void afterClass() throws IOException {
         resetRolesAndPermissions();
     }
 }

@@ -3,6 +3,7 @@ package hu.martin.ems.core.sftp;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.JschConfig;
 import lombok.AllArgsConstructor;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -15,13 +16,8 @@ import java.io.ByteArrayOutputStream;
 @NeedCleanCoding
 public class SftpSender {
 
-    private final JschConfig jschConfig;
+    @Setter private JschConfig jschConfig;
     private final Logger logger = LoggerFactory.getLogger(SftpSender.class);
-
-    public JschConfig getConfig(){
-        return this.jschConfig;
-    }
-
 
     public boolean send(byte[] data, String destination){
         try {

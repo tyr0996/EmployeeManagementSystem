@@ -16,6 +16,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -52,7 +53,7 @@ public class RoleTest extends BaseCrudTest {
 //    }
 
     @BeforeMethod
-    public void beforeMethod(){
+    public void beforeMethod() throws IOException {
         resetRolesAndPermissions();
     }
 
@@ -447,7 +448,7 @@ public class RoleTest extends BaseCrudTest {
 //    }
 
     @AfterClass
-    public void afterClass(){
+    public void afterClass() throws IOException {
         resetRolesAndPermissions();
     }
 

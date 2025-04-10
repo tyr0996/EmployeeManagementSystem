@@ -25,31 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserCrudTest extends BaseCrudTest {
-//    private static CrudTestingUtil crudTestingUtil;
-//    private static WebDriverWait notificationDisappearWait;
-//    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
-//    private static final String gridXpath = contentXpath + "/vaadin-grid";
-//    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
-//
-//    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-//    private static final String subMenu = UIXpaths.USER_SUB_MENU;
-//
-//    private GridTestingUtil gridTestingUtil;
-//
-//
-//
-//    @BeforeClass
-//    public void setup() {
-//        gridTestingUtil = new GridTestingUtil(driver);
-//        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "User", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-//        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
-//    }
-
-
 
     @BeforeMethod
     public void beforeMethod(){
@@ -160,9 +137,9 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(notification.getText(), "Error happened while getting the logged in user. Deletion and modification is disabled");
         notification.close();
 
-        UserPage supplierPage = new UserPage(driver, port);
-        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
-        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        UserPage userPage = new UserPage(driver, port);
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
 //        gridTestingUtil.checkNotificationText("Error happened while getting the logged in user. Deletion and modification is disabled");
     }
 
@@ -170,16 +147,16 @@ public class UserCrudTest extends BaseCrudTest {
     public void databaseNotAvailableWhenGettingAllUser() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 1);
+        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Getting users failed");
         notification.close();
 
-        UserPage supplierPage = new UserPage(driver, port);
-        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
-        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        UserPage userPage = new UserPage(driver, port);
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
     }
 
     @Test
@@ -188,19 +165,19 @@ public class UserCrudTest extends BaseCrudTest {
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
-        UserPage supplierPage = new UserPage(driver, port);
-        DoRestoreTestData testResult = supplierPage.doRestoreTest();
+        UserPage userPage = new UserPage(driver, port);
+        DoRestoreTestData testResult = userPage.doRestoreTest();
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("User restored: ");
 
-        supplierPage = new UserPage(driver, port);
-        supplierPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
-        supplierPage.getGrid().waitForRefresh();
-        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
-        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 1);
-        supplierPage.getGrid().resetFilter();
+        userPage = new UserPage(driver, port);
+        userPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
+        userPage.getGrid().waitForRefresh();
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 1);
+        userPage.getGrid().resetFilter();
     }
 
     @Test
@@ -209,17 +186,17 @@ public class UserCrudTest extends BaseCrudTest {
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
-        UserPage supplierPage = new UserPage(driver, port);
-        DoPermanentlyDeleteTestData testResult = supplierPage.doPermanentlyDeleteTest();
+        UserPage userPage = new UserPage(driver, port);
+        DoPermanentlyDeleteTestData testResult = userPage.doPermanentlyDeleteTest();
         assertThat(testResult.getNotificationWhenPerform()).contains("User permanently deleted: ");
 
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        supplierPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
-        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
-        supplierPage.getGrid().resetFilter();
+        userPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()));
+        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()));
+        userPage.getGrid().resetFilter();
         
     }
 
@@ -345,7 +322,7 @@ public class UserCrudTest extends BaseCrudTest {
 
     @Test
     public void gettingUsersFailed() throws SQLException {
-        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 4);
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
@@ -374,12 +351,12 @@ public class UserCrudTest extends BaseCrudTest {
         withData.put("Password", pass);
         withData.put("Password again", pass);
 
-        userPage.getGrid().applyFilter("robi", "", "", "");
+        userPage.getGrid().applyFilter("robi", "", "", "", "");
         String[] original = userPage.getGrid().getDataFromRowLocation(new ElementLocation(1, 0), true);
         DoUpdateTestData testData = userPage.doUpdateTest(withData);
 
         userPage.getGrid().resetFilter();
-        userPage.getGrid().applyFilter("robi", "", "", "");
+        userPage.getGrid().applyFilter("robi", "", "", "", "");
         assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 1);
         assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
         userPage.getGrid().resetFilter();
@@ -399,7 +376,7 @@ public class UserCrudTest extends BaseCrudTest {
     @Test
     public void databaseNotAvailableWhenFindAllRole() throws SQLException {
 //        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 4);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 5);
 
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);

@@ -13,7 +13,6 @@ import java.util.Set;
 @Getter
 @Setter
 @NeedCleanCoding
-@AllArgsConstructor
 @NoArgsConstructor
 public class Role extends BaseEntity {
 
@@ -45,9 +44,9 @@ public class Role extends BaseEntity {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Role role = (Role) o;
-        return Objects.equals(name, role.name) && Objects.equals(id, role.id);
+        if(o != null){
+            return hashCode() == o.hashCode();
+        }
+        return false;
     }
 }

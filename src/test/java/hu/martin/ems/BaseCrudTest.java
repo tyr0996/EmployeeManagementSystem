@@ -3,10 +3,7 @@ package hu.martin.ems;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import hu.martin.ems.base.selenium.ScreenshotMaker;
 import hu.martin.ems.base.selenium.WebDriverProvider;
-import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.DataProvider;
-import hu.martin.ems.core.config.JPAConfig;
-import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.config.*;
 import hu.martin.ems.core.controller.EndpointController;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
@@ -115,6 +112,9 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     @SpyBean
     public static EndpointController spyEndpointController;
 
+    @SpyBean
+    public static JschConfig spyJschConfig;
+
 //    @InjectMocks
     @SpyBean
     public static SftpSender sftpSender;
@@ -126,13 +126,12 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
     protected static DataSource originalDataSource;
 
-
     @BeforeSuite(alwaysRun = true)
     @Override
     protected void springTestContextPrepareTestInstance() throws Exception {
         super.springTestContextPrepareTestInstance();
 
-        DataProvider.saveAllSqlsFromJsons();
+        dataProvider.saveAllSqlsFromJsons();
 
         MockitoAnnotations.openMocks(this);
         originalDataSource = BeanProvider.getBean(DataSource.class);
@@ -190,7 +189,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     }
 
     @BeforeMethod(alwaysRun = true)
-    public void beforeMethod(){
+    public void beforeMethod() throws IOException {
         clearEnvironment();
     }
 
@@ -202,6 +201,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.reset(spyAdminToolsService);
         Mockito.reset(spyEmailSendingService);
         Mockito.reset(spyEndpointController);
+        Mockito.reset(spyJschConfig);
         System.out.println("Mockito reseting done!");
     }
 
@@ -213,6 +213,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.clearInvocations(spyAdminToolsService);
         Mockito.clearInvocations(spyEmailSendingService);
         Mockito.clearInvocations(spyEndpointController);
+        Mockito.clearInvocations(spyJschConfig);
         System.out.println("Mockito invocation clearing done!");
 
     }
@@ -229,7 +230,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         }
     }
 
-    protected void resetRolesAndPermissions(){
+    protected void resetRolesAndPermissions() throws IOException {
         dp.executeSQL("DELETE FROM roles_permissions CASCADE");
         dp.executeSQL("ALTER SEQUENCE roles_permissions_permission_id_seq RESTART WITH 1");
         dp.executeSQL("ALTER SEQUENCE roles_permissions_role_id_seq RESTART WITH 1");
@@ -245,6 +246,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         dp.executeSQLFile(new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH + "\\rolexpermissions.sql"));
 
         JPAConfig.resetCallIndex();
+        System.out.println("resetelődött");
     }
 
     @Override
@@ -281,7 +283,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     }
 
     @AfterSuite(alwaysRun = true)
-    public void afterClass() {
+    public void afterClass() throws IOException {
         if (driver != null) {
             driver.quit();
         }

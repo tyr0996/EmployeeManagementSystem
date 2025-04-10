@@ -3,10 +3,8 @@ package hu.martin.ems.pages.core.component;
 import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.SingleFillable;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -18,8 +16,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class VaadinDropdownComponent extends VaadinFillableComponent implements SingleFillable<VaadinDropdownComponent, String> {
 
     @Getter protected WebElement toggleButton;
+    @Getter private Boolean isHeaderField;
+
     public VaadinDropdownComponent(WebDriver driver, By provider) {
+        this(driver, provider, false);
+    }
+
+    public VaadinDropdownComponent(WebDriver driver, By provider, boolean isHeaderField){
         super(driver, provider);
+        this.isHeaderField = isHeaderField;
         initWebElements();
     }
 
@@ -35,9 +40,12 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
 
     public void initWebElements(){
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
-//        toggleButton = (WebElement) js.executeScript("return arguments[0].querySelectorAll('*')[6].querySelectorAll('*')[5];", element.getShadowRoot());
+        if(!element.getTagName().equals("vaadin-combo-box")){
+            printToConsole();
+            throw new IllegalArgumentException("Can't create ComboBox from an " + element.getTagName() + "!");
+        }
         toggleButton = (WebElement) js.executeScript("return arguments[0].querySelector('div').querySelector('vaadin-input-container').querySelectorAll('div')[1]", element.getShadowRoot());
-//        printToConsole(toggleButton);
+//
         assert toggleButton != null;
     }
 
@@ -121,9 +129,36 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
     }
 
     @Override
+    public void clear(){
+
+        System.out.println(provider);
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].selectedItem=''", element);
+        element.sendKeys(Keys.ENTER);
+        waitForRefresh();
+//        String selected = getSelectedElement();
+//
+//        assertTrue(this.isEnabled(), "The combo box is not enabled: " + element.getText());
+//        element.click();
+//        try {
+//            Thread.sleep(50);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
+//        List<WebElement> filtered = comboBoxOptions.stream().filter(v -> v.getText().equals(selected)).toList();
+//        if(filtered.size() == 0){
+//            String elements = String.join(", ", comboBoxOptions.stream().map(v -> v.getText()).toString());
+//            throw new NoSuchElementException("Element " + selected + " not found in " + element.getText() + ". Elements: " + elements);
+//        }
+//        filtered.get(0).click();
+//        waitForRefresh();
+    }
+
+    @Override
     public VaadinDropdownComponent fillWith(@Nullable String value) {
         assertTrue(this.isEnabled(), "The combo box is not enabled: " + element.getText());
-        if(value == null){
+        if(value == null || value.equals("")){
             return this;
         }
         element.click();
@@ -133,8 +168,6 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
             throw new RuntimeException(e);
         }
         List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
-//        comboBoxOptions.forEach(v -> printToConsole(v));
-//        System.out.println("VALUE: " + value);
         List<WebElement> filtered = comboBoxOptions.stream().filter(v -> v.getText().equals(value)).toList();
         if(filtered.size() == 0){
             String elements = String.join(", ", comboBoxOptions.stream().map(v -> v.getText()).toString());
@@ -142,23 +175,15 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
         }
         filtered.get(0).click();
         return this;
-//        int i = 0;
-//        while(comboBoxOptions.size() == 0){
-//            System.err.println("Nincs elem a combo boxban! ");
-////            printToConsole(comboBox);
-//        }
-//        if(comboBoxOptions.size() == 1){
-//            comboBoxOptions.get(0).click();
-//            return this;
-////            return comboBoxOptions.get(0).getText();
-//        }
-//        else {
-//            Random rnd = new Random();
-//            Integer selectedIndex = rnd.nextInt(0, comboBoxOptions.size() - 1);
-//            JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
-//            jsExecutor.executeScript("arguments[0].click();", comboBoxOptions.get(selectedIndex));
-////            return comboBoxOptions.get(selectedIndex).getText();
-//            return this;
-//        }
-//    }
-} }
+    }
+
+    @Override
+    public String getTitle() {
+        if(isHeaderField){
+            return getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(getParentWebElement(element), By.xpath("./label"))).get(0).getText();
+        }
+        else {
+            return super.getTitle();
+        }
+    }
+}

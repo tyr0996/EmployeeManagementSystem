@@ -53,14 +53,21 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         int max = Math.min(filterInputs.size(), attributes.length);
         for(int i = 0; i < max; i++){
             String role = filterInputs.get(i).getDomAttribute("role");
+            String id = filterInputs.get(i).getDomAttribute("id"); //.contains("multi-select-combo-box")
             if(role == null){
                 filterInputs.get(i).sendKeys(attributes[i]);
                 filterInputs.get(i).sendKeys(Keys.ENTER);
             }
             else if(role.equals("combobox")){
-                VaadinMultipleSelectDropdownComponent comboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), filterInputs.get(i), By.xpath("./.."), 0);
-                String[] data = attributes[i].split(", ");
-                comboBox.selectElements(data);
+                if(id.contains("multi-select-combo-box")){
+                    VaadinMultipleSelectDropdownComponent comboBox = new VaadinMultipleSelectDropdownComponent(getDriver(), filterInputs.get(i), By.xpath("./.."), 0);
+                    String[] data = attributes[i].split(", ");
+                    comboBox.selectElements(data);
+                }
+                else {
+                    VaadinDropdownComponent comboBox = new VaadinDropdownComponent(getDriver(), getParentWebElement(filterInputs.get(i)), By.xpath("."), 0);
+                    comboBox.fillWith(attributes[i]);
+                }
             }
         }
         this.waitForRefresh();
@@ -384,13 +391,22 @@ public class VaadinGridComponent extends VaadinBaseComponent {
 
     public void resetFilter(){
         getHeaderFilterInputFields().forEach(v -> {
-            if(v.getDomAttribute("role") == null){
-                v.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
-                v.sendKeys(Keys.ENTER);
-            }
-            else {
-                VaadinMultipleSelectDropdownComponent multiSelectDropboxFilter = new VaadinMultipleSelectDropdownComponent(getDriver(), v, By.xpath("."), 0);
-                multiSelectDropboxFilter.deselectAll();
+            String type = getParentWebElement(v).getTagName();
+            switch (type){
+                case "vaadin-combo-box" : {
+                    VaadinDropdownComponent dropdownFilter = new VaadinDropdownComponent(getDriver(), v, By.xpath("./.."), 0);
+                    dropdownFilter.clear();
+                    break;
+                }
+                case "vaadin-multi-select-combo-box": {
+                    VaadinMultipleSelectDropdownComponent multiSelectDropboxFilter = new VaadinMultipleSelectDropdownComponent(getDriver(), v, By.xpath("."), 0);
+                    multiSelectDropboxFilter.deselectAll();
+                    break;
+                }
+                default: {
+                    v.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
+                    v.sendKeys(Keys.ENTER);
+                }
             }
         });
         this.waitForRefresh();

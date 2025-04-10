@@ -21,9 +21,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     public static String getLoggedInUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+//        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) { //TODO mikor lesz null az authetication?
+        if(authentication.getPrincipal() instanceof UserDetails) {
             System.out.println("authentication != null " + (authentication != null) +
-                    " authentication.getPrincipal() instanceof UserDetails" + (authentication.getPrincipal() instanceof UserDetails));
+                    " authentication.getPrincipal() instanceof UserDetails   " + (authentication.getPrincipal() instanceof UserDetails ? "true" : "false"));
             return ((UserDetails) authentication.getPrincipal()).getUsername();
         }
         return null;
@@ -32,11 +33,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        hu.martin.ems.core.model.User user = userService.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found: " + username);
-        }
-        return convert(user);
+        return convert(userService.findByUsername(username));
     }
 
     public UserDetails convert(hu.martin.ems.core.model.User user){

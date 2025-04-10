@@ -5,7 +5,6 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.AssertTrue;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +16,6 @@ import java.util.List;
 @Setter
 @Table(name = "orders")
 @NeedCleanCoding
-@EqualsAndHashCode
 public class Order extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "state_codestore_id")
@@ -63,6 +61,7 @@ public class Order extends BaseEntity {
 
     @AssertTrue(message = "At least one of the fields (field1 or field2) must have a value.")
     public boolean isValid() {
+        System.out.println("Order is valid: " + (customer != null) + "    " + (supplier != null));
         return customer != null || supplier != null;
     }
 }

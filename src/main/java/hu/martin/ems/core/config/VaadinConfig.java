@@ -20,10 +20,6 @@ public class VaadinConfig {
 
     @Bean
     public PaginationSetting paginationSetting(){
-        switch (paginationPosition.toUpperCase()){
-            case "BOTTOM": return new PaginationSetting(PaginationLocation.BOTTOM, pageSize);
-            case "TOP": return new PaginationSetting(PaginationLocation.TOP, pageSize);
-            default: return null;
-        }
+        return new PaginationSetting(PaginationLocation.valueOf(paginationPosition), pageSize);
     }
 }

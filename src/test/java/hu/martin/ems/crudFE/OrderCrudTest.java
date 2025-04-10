@@ -1,12 +1,15 @@
 package hu.martin.ems.crudFE;
 
 import com.automation.remarks.video.annotations.Video;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.base.mockito.MockingUtil;
-import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.file.XLSX;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
@@ -22,7 +25,6 @@ import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.pages.core.doTestData.DoDeleteFailedTestData;
 import hu.martin.ems.pages.core.doTestData.DoDeleteTestData;
 import hu.martin.ems.pages.core.doTestData.DoRestoreTestData;
-import hu.martin.ems.service.OrderService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.mockito.ArgumentCaptor;
@@ -30,12 +32,14 @@ import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -43,6 +47,7 @@ import java.util.LinkedHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -101,6 +106,163 @@ public class OrderCrudTest extends BaseCrudTest {
 //        Mockito.clearInvocations(spyRegistry);
 //    }
 
+    @Test
+    public void sendSFTPFailed_HostIsNull(){
+        String originalHost = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
+        ReflectionTestUtils.setField(spyJschConfig, "sftpHost", null);
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        notification.close();
+
+        ReflectionTestUtils.setField(spyJschConfig, "sftpHost", originalHost);
+    }
+
+    @Test
+    public void sendSFTPFailed_NoPasswordProvided() {
+        String sftpPassword = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpPassword");
+        ReflectionTestUtils.setField(spyJschConfig, "sftpPassword", null);
+
+//        JSch jsch = mock(JSch.class);
+//        Session mockSession = mock(Session.class);
+//        ChannelSftp mockChannelSftp = mock(ChannelSftp.class);
+
+//        when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+//        doThrow(new JSchException("Unknown error")).when(mockSession).connect();
+//        when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
+//        when(mockSession.getUserName()).thenReturn(sftpUserName);
+
+//        spyJschConfig.jsch = jsch;
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        notification.close();
+        ReflectionTestUtils.setField(spyJschConfig, "sftpPassword", sftpPassword);
+    }
+
+    @Test
+    public void sendSFTPFailed_UnknownError() throws JSchException {
+        String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
+        String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
+        int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
+
+        JSch jsch = mock(JSch.class);
+        Session mockSession = mock(Session.class);
+        ChannelSftp mockChannelSftp = mock(ChannelSftp.class);
+
+        when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+        doThrow(new JSchException("Unknown error")).when(mockSession).connect();
+        when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
+        when(mockSession.getUserName()).thenReturn(sftpUserName);
+
+        spyJschConfig.jsch = jsch;
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        notification.close();
+    }
+
+    @Test
+    public void sendSFTPFailed_ChannelOpeningError() throws JSchException {
+        String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
+        String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
+        int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
+
+        JSch jsch = mock(JSch.class);
+        Session mockSession = mock(Session.class);
+//        ChannelSftp mockChannelSftp = mock(ChannelSftp.class);
+
+        when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+        doNothing().when(mockSession).connect();
+        doThrow(JSchException.class).when(mockSession).openChannel("sftp");
+//        when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
+        when(mockSession.getUserName()).thenReturn(sftpUserName);
+
+        spyJschConfig.jsch = jsch;
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        notification.close();
+
+
+    }
+
+
+    @Test
+    public void sendSFTPFailed_AuthFail() throws JSchException {
+        String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
+        String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
+        int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
+
+        JSch jsch = mock(JSch.class);
+        Session mockSession = mock(Session.class);
+        ChannelSftp mockChannelSftp = mock(ChannelSftp.class);
+
+        when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+        doThrow(new JSchException("Auth fail")).when(mockSession).connect();
+        when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
+        when(mockSession.getUserName()).thenReturn(sftpUserName);
+
+        spyJschConfig.jsch = jsch;
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        notification.close();
+    }
+
+
+
+    @Test
+    public void sendSFTPFailed_ConnectionRefused() throws JSchException {
+        String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
+        String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
+        int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
+
+        JSch jsch = mock(JSch.class);
+        Session mockSession = mock(Session.class);
+        ChannelSftp mockChannelSftp = mock(ChannelSftp.class);
+
+        when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+        doThrow(new JSchException("connect error", new ConnectException("Connection refused"))).when(mockSession).connect();
+        when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
+        when(mockSession.getUserName()).thenReturn(sftpUserName);
+
+        spyJschConfig.jsch = jsch;
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        notification.close();
+    }
 
     @Test
     public void generateODTFailedIOException() throws Exception {
@@ -245,20 +407,21 @@ public class OrderCrudTest extends BaseCrudTest {
         assertTrue(waitForDownload("order_[0-9]{1,}.pdf", 200, 10), "Download not happened!");
     }
 
-    @Test
-    public void sendSFTPFailedTest() {
-        EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
-        OrderPage page = new OrderPage(driver, port);
-        page.getSendToAccountantSftpButton().click();
-        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened when sending with SFTP");
-    }
+//    @Test
+//    public void sendSFTPFailedTest() {
+//        EmptyLoggedInVaadinPage loggedInPage =
+//                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+//        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+//        OrderPage page = new OrderPage(driver, port);
+//        page.getSendToAccountantSftpButton().click();
+//        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+//        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+//        notification.close();
+//    }
 
     @Test
     public void sendSFTPFailedXLSGenerationTest() throws IOException {
-        XLSX spyXlsx = Mockito.spy(XLSX.class);
+        XLSX spyXlsx = spy(XLSX.class);
         MockitoAnnotations.openMocks(this);
 
         Mockito.doThrow(IOException.class).when(spyXlsx).createExcelFile(any(), any());
@@ -271,14 +434,28 @@ public class OrderCrudTest extends BaseCrudTest {
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "XLS generation failed");
+        notification.close();
         Mockito.clearInvocations(spyOrderService.getXlsx());
         Mockito.reset(spyOrderService.getXlsx());
     }
 
     @Test
-    public void sendSFTPSuccessTest() {
-        BeanProvider.getBean(OrderService.class).setSender(sftpSender);
-        Mockito.doReturn(true).when(sftpSender).send(any(byte[].class), any(String.class));
+    public void sendSFTPSuccessTest() throws JSchException {
+        String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
+        String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
+        int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
+
+        JSch jsch = mock(JSch.class);
+        Session mockSession = mock(Session.class);
+        ChannelSftp mockChannelSftp = mock(ChannelSftp.class);
+
+        when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+        doNothing().when(mockSession).connect();
+        when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
+        when(mockSession.getUserName()).thenReturn(sftpUserName);
+
+        spyJschConfig.jsch = jsch;
+
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -286,6 +463,7 @@ public class OrderCrudTest extends BaseCrudTest {
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "SFTP sending is done");
+        notification.close();
     }
 
 

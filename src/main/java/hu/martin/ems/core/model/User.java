@@ -46,6 +46,4 @@ public class User extends BaseEntity{
 
     @Expose
     private boolean enabled;
-
-
 }

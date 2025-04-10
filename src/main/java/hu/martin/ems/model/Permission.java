@@ -13,7 +13,6 @@ import java.util.*;
 @Getter
 @Setter
 @NeedCleanCoding
-@AllArgsConstructor
 @NoArgsConstructor
 public class Permission extends BaseEntity {
     @Column(nullable = false)
@@ -44,9 +43,6 @@ public class Permission extends BaseEntity {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Permission that = (Permission) o;
-        return Objects.equals(name, that.name) && Objects.equals(id, that.id);
+        return hashCode() == o.hashCode();
     }
 }

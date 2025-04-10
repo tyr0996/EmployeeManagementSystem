@@ -1,6 +1,5 @@
 package hu.martin.ems.core.config;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.annotations.NeedCleanCoding;
@@ -20,10 +19,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,61 +48,50 @@ public class DataProvider {
         loaded = new ArrayList<>();
     }
 
-    private static LinkedHashMap<String, String> generateAllSqlsFromJsons() {
+    private LinkedHashMap<String, String> generateAllSqlsFromJsons() throws IOException {
         LinkedHashMap<String, String> result = new LinkedHashMap<>();
-        try{
+//        try{
             List<File> files = Files.walk(jsonsDirectory)
                     .filter(Files::isRegularFile)
                     .filter(path -> path.toString().toLowerCase().endsWith(".json"))
                     .map(Path::toFile).toList();
-            files.forEach(v -> {
-                result.put(v.getName().substring(0, v.getName().length()-5) + ".sql", generateSqlFromJson(v));
-            });
-        }
-        catch (IOException e){
-            log.error("IOException happened while creating sqls from the json files for database");
-            e.printStackTrace();
-        }
+            for(int i = 0; i < files.size(); i++){
+                result.put(files.get(i).getName().substring(0, files.get(i).getName().length() - 5) + ".sql", generateSqlFromJson(files.get(i)));
+            }
+//        }
+//        catch (IOException e){
+//            log.error("IOException happened while creating sqls from the json files for database");
+//            e.printStackTrace();
+//        }
         return result;
     }
 
-    public static void saveAllSqlsFromJsons(){
+    public void saveAllSqlsFromJsons() throws IOException {
         LinkedHashMap<String, String> fileNameAndFileContent = generateAllSqlsFromJsons();
-        File directory = new File(System.getProperty("user.dir") + "\\src\\test\\java\\hu\\martin\\ems\\sql");
+        File directory = new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH);
         deleteFilesInDirectory(directory);
-        fileNameAndFileContent.forEach(DataProvider::writeFile);
-    }
-
-    public static void deleteFilesInDirectory(File directory) {
-        if (directory.isDirectory()) {
-            for (File file : directory.listFiles()) {
-                if (file.isFile() && !file.delete()) {
-                    log.warn("Failed to delete file: " + file.getAbsolutePath());
-                }
-            }
-        } else {
-            log.warn("Provided path is not a directory: " + directory.getAbsolutePath());
+        for (Map.Entry<String, String> entry : fileNameAndFileContent.entrySet()) {
+            writeFile(entry.getKey(), entry.getValue());
         }
     }
 
-    public static void writeFile(String fileName, String fileContent) {
-        String projectRoot = System.getProperty("user.dir");
+    public void deleteFilesInDirectory(File directory) {
+        for (File file : directory.listFiles()) {
+            file.delete();
+        }
+    }
 
-        File file = new File(projectRoot + "/src/test/java/hu/martin/ems/sql/" + fileName);
+    public void writeFile(String fileName, String fileContent) throws IOException {
+        File file = new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH + "\\" + fileName);
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(fileContent);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
-    public static String generateSqlFromJson(File jsonFile) {
+    public String generateSqlFromJson(File jsonFile) throws IOException {
         try (FileReader reader = new FileReader(jsonFile)){
             JsonFile json = gson.fromJson(reader, JsonFile.class);
             return json.toSQL();
-        } catch (IOException e) {
-            log.warn("Error occured while reading json file: " + jsonFile.getName());
-            return "";
         }
     }
 
@@ -117,37 +102,31 @@ public class DataProvider {
                 .filter(Files::isRegularFile)
                 .filter(path -> path.toString().toLowerCase().endsWith(".json"))
                 .map(Path::toFile).collect(Collectors.toList());
-        files.stream().filter(v -> !loaded.contains(v)).forEach(v -> loadRequiredJsonAndSave(files, v));
-    }
-
-    private void loadRequiredJsonAndSave(List<File> allFiles, File jsonFile) {
-        if (loaded.contains(jsonFile)) {
-            return;
-        } else {
-            try (FileReader reader = new FileReader(jsonFile)) {
-                JsonFile json = gson.fromJson(reader, JsonFile.class);
-                List<String> required;
-                if(json.required == null) {
-                    required = new ArrayList<>();
-                    logger.warn("The \"required\" field is misisng from json " + jsonFile.getName());
-                }
-                else{
-                    required = json.required;
-                }
-
-                List<File> requiredFiles = allFiles.stream()
-                        .filter(file -> required.contains(file.getName())).toList();
-                requiredFiles.forEach(v -> loadRequiredJsonAndSave(allFiles, v));
-                saveJsonToDatabase(jsonFile);
-            } catch (JsonMappingException e) {
-                logger.error("Hiba a json fájlban! " + jsonFile.getName());
-            } catch (IOException e) {
-                logger.error("HIBA: " + jsonFile.getName());
+        for (File v : files) {
+            if (!loaded.contains(v)) {
+                loadRequiredJsonAndSave(files, v);
             }
         }
     }
 
-    private void saveJsonToDatabase(File jsonFile) {
+    private void loadRequiredJsonAndSave(List<File> allFiles, File jsonFile) throws IOException {
+        if (loaded.contains(jsonFile)) {
+            return;
+        } else {
+            FileReader reader = new FileReader(jsonFile);
+            JsonFile json = gson.fromJson(reader, JsonFile.class);
+            List<String> required = json.required;
+
+            List<File> requiredFiles = allFiles.stream()
+                    .filter(file -> required.contains(file.getName())).toList();
+            for(int i = 0; i < requiredFiles.size(); i++){
+                loadRequiredJsonAndSave(allFiles, requiredFiles.get(i));
+            }
+            saveJsonToDatabase(jsonFile);
+        }
+    }
+
+    private void saveJsonToDatabase(File jsonFile) throws IOException {
         EntityManagerFactory factory = em.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
         EntityTransaction entityTransaction = tempEm.getTransaction();
@@ -162,10 +141,6 @@ public class DataProvider {
             json.setPrimaryKeyStartIfRequired(tempEm);
             logger.info("Data loaded successfully from JSON! " + jsonFile.getName());
             loaded.add(jsonFile);
-        } catch (JsonMappingException e) {
-            logger.error("Hiba a json fájlban! " + jsonFile.getName());
-        } catch (IOException e){
-            logger.error("HIBA: " + jsonFile.getName());
         } finally {
             tempEm.close();
         }
@@ -203,26 +178,25 @@ public class DataProvider {
         EntityTransaction emt = tempEm.getTransaction();
         emt.begin();
         List<String> allSeq = tempEm.createNativeQuery("SELECT relname sequence_name FROM pg_class WHERE relkind = 'S'").getResultList();
-        int reseted = 0;
+//        int reseted = 0;
         for(String seq : allSeq) {
             if(seq.split("_").length == 3){
-                String sql = "ALTER SEQUENCE " + seq + " RESTART WITH 1";
-                tempEm.createNativeQuery(sql).executeUpdate();
-                reseted++;
+                tempEm.createNativeQuery("ALTER SEQUENCE " + seq + " RESTART WITH 1").executeUpdate();
+//                reseted++;
             }
         }
-        int required = getAllManagedEntities().size();
-        if(required != reseted){
-            logger.error("There was a problem in resetting id sequences. Managed entities: " + required + ", reseted sequences: " + reseted + ". These two numbers must be equal. The transaction will be rollbacked.");
-            emt.rollback();
-        }
+//        int required = getAllManagedEntities().size();
+//        if(required != reseted){
+//            logger.error("There was a problem in resetting id sequences. Managed entities: " + required + ", reseted sequences: " + reseted + ". These two numbers must be equal. The transaction will be rollbacked.");
+//            emt.rollback();
+//        }
         emt.commit();
         tempEm.close();
     }
 
-    private List<EntityType<?>> getAllManagedEntities() {
-        return em.getMetamodel().getEntities().stream().toList();
-    }
+//    private List<EntityType<?>> getAllManagedEntities() {
+//        return em.getMetamodel().getEntities().stream().toList();
+//    }
 
     public void resetDatabase() throws IOException {
         deleteAllRecordsFromAllTable();
@@ -261,15 +235,8 @@ public class DataProvider {
         tempEm.close();
     }
 
-    public void executeSQLFile(File sql){
-        if (sql == null || !sql.exists() || !sql.isFile()) {
-            throw new IllegalArgumentException("Invalid SQL file");
-        }
-        try {
-            executeSQL(Files.readString(sql.toPath()));
-        } catch (IOException e) {
-            throw new RuntimeException("Error reading SQL file", e);
-        }
+    public void executeSQLFile(File sql) throws IOException {
+        executeSQL(Files.readString(sql.toPath()));
     }
 
     @NoArgsConstructor
@@ -320,7 +287,11 @@ public class DataProvider {
 
         private String formatValue(Object value, String key) {
             if (value instanceof LinkedTreeMap && ((LinkedTreeMap<?, ?>) value).containsKey("refClass")) {
+                System.out.println("EZ TRUE");
                 return generateSelectSQLQuery((LinkedTreeMap<String, Object>) value, key);
+            }
+            else{
+                System.out.println("EZ FALSE");
             }
             return value == null ? "NULL" : "'" + value.toString().replace("'", "\\u0027") + "'";
         }

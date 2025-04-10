@@ -34,12 +34,12 @@ import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import jakarta.annotation.security.RolesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -71,6 +71,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     Grid.Column<UserVO> userNameColumn;
     Grid.Column<UserVO> passwordHashColumn;
     Grid.Column<UserVO> enabledColumn;
+    Grid.Column<UserVO> roleColumn;
 
     private Grid.Column<UserVO> extraData;
 
@@ -84,9 +85,11 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private final SecurityService securityService = BeanProvider.getBean(SecurityService.class);
-    private static String usernameFilterText = "";
-    private static String passwordHashFilterText = "";
-    private static String enabledFilterText = "";
+
+    private String usernameFilterText = "";
+    private String passwordHashFilterText = "";
+    private String enabledFilterText = "";
+    private String roleFilter = "";
 
     private Logger logger = LoggerFactory.getLogger(UserList.class);
     private MainView mainView;
@@ -141,6 +144,28 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             updateGridItems();
         });
 
+        ComboBox<Role> rolesFilter = new ComboBox();
+        ComboBox.ItemFilter<Role> filterPermission = (permission, filterString) ->
+                permission.getName().toLowerCase().contains(filterString.toLowerCase());
+        setupRoles();
+        if(roleList == null){
+            rolesFilter.setInvalid(true);
+            rolesFilter.setErrorMessage("Error happened while getting permissions");
+            rolesFilter.setEnabled(false);
+        }
+        else{
+            rolesFilter.setInvalid(false);
+            rolesFilter.setEnabled(true);
+            rolesFilter.setItems(filterPermission, roleList);
+            rolesFilter.setItemLabelGenerator(Role::getName);
+        }
+
+        rolesFilter.addValueChangeListener(v -> {
+            roleFilter = v.getValue() == null ? "" : v.getValue().getName();
+            grid.getDataProvider().refreshAll();
+            updateGridItems();
+        });
+
         TextField extraDataFilter = new TextField();
 
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -160,10 +185,11 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
         filterRow.getCell(userNameColumn).setComponent(filterField(usernameFilter, "Username"));
         filterRow.getCell(passwordHashColumn).setComponent(filterField(passwordHashFilter, "Password hash"));
+        filterRow.getCell(roleColumn).setComponent(filterField(rolesFilter, "Role"));
         filterRow.getCell(enabledColumn).setComponent(filterField(enabledFilter, "Enabled"));
     }
 
-    private Component filterField(TextField filterField, String title){
+    private Component filterField(Component filterField, String title){
         VerticalLayout res = new VerticalLayout();
         res.getStyle().set("padding", "0px")
                 .set("display", "flex")
@@ -343,6 +369,8 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         userNameColumn = this.grid.addColumn(v -> v.username);
         passwordHashColumn = this.grid.addColumn(v -> v.passwordHash);
         enabledColumn = this.grid.addColumn(v -> v.enabled);
+        roleColumn = this.grid.addColumn(v -> v.role);
+
         addOptionsColumn();
     }
 
@@ -371,7 +399,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
-            System.out.println("loggedInUserVo null: " + (loggedInUserVO == null) + "   megegyezik: " + loggedInUserVO.equals(entry));
+//            System.out.println("loggedInUserVo null: " + (loggedInUserVO == null) + "   megegyezik: " + loggedInUserVO.equals(entry));
 
             if(loggedInUserVO == null || loggedInUserVO.equals(entry)){
                 editButton.setEnabled(false);
@@ -454,6 +482,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
                 (usernameFilterText.isEmpty() || userVO.username.toLowerCase().contains(usernameFilterText.toLowerCase())) &&
                 (passwordHashFilterText.isEmpty() || userVO.passwordHash.toLowerCase().contains(passwordHashFilterText.toLowerCase())) &&
                 (enabledFilterText.isEmpty() || userVO.enabled.toLowerCase().equals(enabledFilterText.toLowerCase())) &&
+                (roleFilter.isEmpty() || userVO.role.toLowerCase().equals(roleFilter.toLowerCase())) &&
                 userVO.filterExtraData()
 //                        (showDeleted ? (userVO.deleted == 0 || userVO.deleted == 1) : userVO.deleted == 0)
         );
@@ -464,6 +493,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         private String username;
         private String passwordHash;
         private String enabled;
+        private String role;
 
         public UserVO(User user){
             super(user.id, user.getDeleted());
@@ -472,6 +502,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             this.deleted = user.getDeleted();
             this.username = user.getUsername();
             this.passwordHash = user.getPasswordHash();
+            this.role = user.getRoleRole().getName();
             this.enabled = user.isEnabled() ? "true" : "false"; //TODO berakni a táblázatba, hogy benne legyen, hogy engedélyezve van-e, vagy sem.
         }
     }
