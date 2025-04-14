@@ -27,6 +27,4 @@ public interface BaseRepository<T, ID> extends Repository<T, ID> {
     void customClearDatabaseTable();
 
     void customForcePermanentlyDelete(Long entityId);
-
-    List<T> customFindAllById(List<Long> ids);
 }

@@ -65,6 +65,37 @@
       },
       "amount": 1.0,
       "deleted": 0
+    },
+    {
+      "taxKey_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "18"
+        }
+      },
+      "name": "Product3",
+      "buyingPriceNet": 30.0,
+      "buyingPriceCurrency_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "RUB"
+        }
+      },
+      "sellingPriceNet": 30.0,
+      "sellingPriceCurrency_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "RUB"
+        }
+      },
+      "amountUnit_codestore_id": {
+        "refClass": "CodeStore",
+        "filter": {
+          "name": "Meter"
+        }
+      },
+      "amount": 1.0,
+      "deleted": 0
     }
   ]
 }

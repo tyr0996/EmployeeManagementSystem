@@ -6,6 +6,8 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.sftp.SftpSender;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,19 +41,16 @@ public class JschConfig {
 
     public Boolean successfullyStarted = false;
 
+    @Getter
+    @Setter
     private ChannelSftp channelSftp;
 
-    private static Session session;
+    @Setter
+    @Getter
+    private Session session;
 
     public static JSch jsch = new JSch();
 
-    public Session getSession(){
-        return session;
-    }
-
-    public ChannelSftp getChannelSftp(){
-        return channelSftp;
-    }
 
     public void init() throws JSchException {
         boolean succ = true;
@@ -63,7 +62,6 @@ public class JschConfig {
             }
             catch(JSchException e){
                 log.error("An unknown error occurred while opening the session!");
-                succ = false;
                 throw new JSchException("An unknown error occurred while opening the session!");
             }
             String password = jschSession != null && sftpPassword != null && !sftpPassword.equals("") ? sftpPassword : null;
@@ -73,7 +71,6 @@ public class JschConfig {
                 jschSession.connect();
             }
             catch(JSchException e){
-                succ = false;
                 if(e.getCause() instanceof ConnectException){
                     log.error("Failed to connect to the host! It may not be running or it could be outside the domain. ("+sftpHost+")");
                     throw new JSchException("Failed to connect to the host! It may not be running or it could be outside the domain. ("+sftpHost+")");
@@ -98,6 +95,7 @@ public class JschConfig {
         else{
             succ = false;
         }
+
         if(succ){
             successfullyStarted = true;
             log.info("The SFTP connection to the host has been successfully established ("+sftpHost+")");
@@ -108,9 +106,7 @@ public class JschConfig {
     }
 
     public void connect() throws JSchException {
-        if(!successfullyStarted){
-            init();
-        }
+        init();
         if(channelSftp == null || !channelSftp.isConnected()){
             channelSftp = (ChannelSftp) session.openChannel("sftp");
             channelSftp.connect();

@@ -1,8 +1,7 @@
 {
   "objectName": "Currency",
   "required": [
-    "codestores.json",
-    "localdates.json"
+    "codestores.json"
   ],
   "data": [
   ]

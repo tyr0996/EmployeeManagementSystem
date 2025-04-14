@@ -7,10 +7,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.metamodel.EntityType;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +16,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,7 +68,7 @@ public class DataProvider {
 
     public void saveAllSqlsFromJsons() throws IOException {
         LinkedHashMap<String, String> fileNameAndFileContent = generateAllSqlsFromJsons();
-        File directory = new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH);
+        File directory = new File(FolderPaths.GENERATED_SQL_FILES_PATH);
         deleteFilesInDirectory(directory);
         for (Map.Entry<String, String> entry : fileNameAndFileContent.entrySet()) {
             writeFile(entry.getKey(), entry.getValue());
@@ -82,7 +82,7 @@ public class DataProvider {
     }
 
     public void writeFile(String fileName, String fileContent) throws IOException {
-        File file = new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH + "\\" + fileName);
+        File file = new File(FolderPaths.GENERATED_SQL_FILES_PATH + "\\" + fileName);
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(fileContent);
         }
@@ -208,11 +208,11 @@ public class DataProvider {
     }
 
     private void deleteAllRecordsFromAllTable(){
-        getTableNames().forEach(v -> deleteAllRecordsFromTable(v));
-    }
-
-    private void deleteAllRecordsFromTable(String tableName){
-        executeSQL("TRUNCATE \"" + tableName + "\" CASCADE");
+        StringBuilder sql = new StringBuilder();
+        for(int i = 0; i < getTableNames().size(); i++){
+            sql.append("TRUNCATE \"").append(getTableNames().get(i)).append("\" CASCADE; ");
+        }
+        executeSQL(sql.toString());
     }
 
     private List<String> getTableNames(){
@@ -240,9 +240,7 @@ public class DataProvider {
     }
 
     @NoArgsConstructor
-    @AllArgsConstructor
-    @Getter
-    @Setter
+//    @Getter
     static class JsonFile {
         List<Map<String, Object>> data;
         String objectName;
@@ -287,13 +285,11 @@ public class DataProvider {
 
         private String formatValue(Object value, String key) {
             if (value instanceof LinkedTreeMap && ((LinkedTreeMap<?, ?>) value).containsKey("refClass")) {
-                System.out.println("EZ TRUE");
                 return generateSelectSQLQuery((LinkedTreeMap<String, Object>) value, key);
             }
             else{
-                System.out.println("EZ FALSE");
+                return value == null ? "NULL" : "'" + value.toString().replace("'", "\\u0027") + "'";
             }
-            return value == null ? "NULL" : "'" + value.toString().replace("'", "\\u0027") + "'";
         }
 
         private static String generateSelectSQLQuery(LinkedTreeMap<String, Object> reference, String columnName) {

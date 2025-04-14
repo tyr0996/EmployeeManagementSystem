@@ -2,6 +2,7 @@ package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.CodeStorePage;
 import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
@@ -18,6 +19,7 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -136,6 +138,15 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(0, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
         Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
         codeStorePage.getGrid().resetFilter();
+
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponent.getText(), "Clearing database was successful");
+        notificationComponent.close();
     }
 
 //    @Test

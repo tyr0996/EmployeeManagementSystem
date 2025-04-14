@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="Frontend test suite">
+    <test name="Scheduled tests">
+        <classes>
+            <class name="hu.martin.ems.ScheduledTests"/>
+        </classes>
+    </test>
     <test name="Function test">
         <classes>
             <class name="hu.martin.ems.crudFE.EmployeeManagementSystemApplicationTests"/>
@@ -25,7 +30,8 @@
             <class name="hu.martin.ems.crudFE.UserCrudTest"/>
             <class name="hu.martin.ems.crudFE.ProductCrudTest"/>
             <class name="hu.martin.ems.crudFE.RoleXPermissionCreateTest"/>
-            <class name="hu.martin.ems.crudFE.OrderCreateTest"/>
+            <class name="hu.martin.ems.crudFE.OrderCreateToCustomerTest"/>
+            <class name="hu.martin.ems.crudFE.OrderFromSupplierTest"/>
         </classes>
     </test>
 </suite>

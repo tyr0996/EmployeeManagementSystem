@@ -2,7 +2,10 @@ package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.core.config.Icons;
 import hu.martin.ems.pages.AddressPage;
+import hu.martin.ems.pages.AdminToolsPage;
+import hu.martin.ems.pages.InternalErrorNotification;
 import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
@@ -10,6 +13,8 @@ import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.AddressSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
@@ -23,6 +28,7 @@ import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AddressTest extends BaseCrudTest {
+
     @Test
     public void addressCreateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
@@ -128,6 +134,44 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(0, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
         assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
         addressPage.getGrid().resetFilter();
+
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponent.getText(), "Clearing database was successful");
+        notificationComponent.close();
+    }
+
+    @Test
+    public void addressPermanentlyDeleteClearTableFailedTest() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADDRESS_SUBMENU);
+
+        AddressPage addressPage = new AddressPage(driver, port);
+        DoPermanentlyDeleteTestData testResult = addressPage.doPermanentlyDeleteTest();
+        assertThat(testResult.getNotificationWhenPerform()).contains("Address permanently deleted: ");
+
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        addressPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
+        assertEquals(0, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
+        assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
+        addressPage.getGrid().resetFilter();
+
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponent.getText(), "Internal Server Error");
+        notificationComponent.close();
     }
 
     @Test
@@ -256,5 +300,29 @@ public class AddressTest extends BaseCrudTest {
         sa.assertEquals(addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 0);
 
         sa.assertAll();
+    }
+
+    @Test
+    public void oneOfTheIconsIOExceptionTest() {
+        try (MockedStatic<Icons> iconMock = Mockito.mockStatic(Icons.class)) {
+            Icons edit = Mockito.mock(Icons.class);
+            Mockito.doReturn(10).when(edit).ordinal();
+            iconMock.when(Icons::values).thenReturn(new Icons[] {Icons.XLSX_FILE, Icons.ODT_FILE, Icons.PDF_FILE, Icons.PERMANENTLY_DELETE, edit});
+
+
+
+            for (int i = 0; i < Icons.values().length; i++) {
+                System.out.println(Icons.values()[i]);
+            }
+
+            EmptyLoggedInVaadinPage loggedInPage = (EmptyLoggedInVaadinPage)
+                    LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+            loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADDRESS_SUBMENU);
+            InternalErrorNotification notification = new InternalErrorNotification(driver);
+            SoftAssert sa = new SoftAssert();
+            sa.assertEquals(notification.getCaption().getText(), "Internal error");
+            sa.assertEquals(notification.getMessage().getText(), "Please notify the administrator. Take note of any unsaved data, and click here or press ESC to continue.");
+            sa.assertAll();
+        }
     }
 }

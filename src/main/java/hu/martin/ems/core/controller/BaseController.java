@@ -1,20 +1,17 @@
 package hu.martin.ems.core.controller;
 
 import com.google.gson.Gson;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.BaseEntity;
 import hu.martin.ems.core.repository.BaseRepository;
 import hu.martin.ems.core.service.BaseService;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @PermitAll
-//@AnonymousAllowed
 public abstract class BaseController<T extends BaseEntity, S extends BaseService<T, R>, R extends BaseRepository<T, Long>> {
     protected S service;
 
@@ -25,103 +22,38 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
         this.service = service;
     }
 
-    @GetMapping(path = "/findAll", produces = StaticDatas.Produces.JSON)
-//    @RequestMapping(path = "/findAll", method = RequestMethod.GET)
+    @GetMapping(path = "/findAll", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> findAll(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) {
-        List<T> allElements = service.findAll(withDeleted);
-        if(allElements != null){
-            return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(gson.toJson(service.findAll(withDeleted)), HttpStatus.OK);
     }
 
-    @GetMapping(path = "/findAllByIds", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> findAllByIds(@RequestParam(required = false, defaultValue = "false") List<Long> ids) {
-        List<T> allElements = service.findAllByIds(ids);
-        if(allElements != null){
-            return new ResponseEntity<>(gson.toJson(allElements), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping(path = "/findById", produces = StaticDatas.Produces.JSON)
+    @GetMapping(path = "/findById", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> findById(@RequestParam(required = true) Long id){
-        T element = service.findById(id);
-        if(element != null){
-            return new ResponseEntity<>(gson.toJson(element), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(gson.toJson(service.findById(id)), HttpStatus.OK);
     }
 
-    @PutMapping(path = "/restore", produces = StaticDatas.Produces.JSON)
+    @PutMapping(path = "/restore", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> restore(@RequestBody T entity) {
-        T restoredEntity = service.restore(entity);
-        if(restoredEntity != null){
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(gson.toJson(service.restore(entity)), HttpStatus.OK);
     }
 
-    @PutMapping(path = "/delete", produces = StaticDatas.Produces.JSON)
+    @PutMapping(path = "/delete", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> delete(@RequestBody T entity) {
-        T deleted = service.delete(entity);
-        if(deleted != null){
-            return new ResponseEntity<>(gson.toJson(deleted), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(gson.toJson(service.delete(entity)), HttpStatus.OK);
     }
 
-    @DeleteMapping(path = "/permanentlyDelete", produces = StaticDatas.Produces.JSON)
+    @DeleteMapping(path = "/permanentlyDelete", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> permanentlyDelete(@RequestParam(value = "id") Long entityId) {
-        T permanentlyDeleted = service.permanentlyDelete(entityId);
-        if(permanentlyDeleted != null){
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(gson.toJson(service.permanentlyDelete(entityId)), HttpStatus.OK);
     }
 
-    @PostMapping(path = "/save", produces = StaticDatas.Produces.JSON)
+    @PostMapping(path = "/save", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> save(@RequestBody T entity) {
-        T saved = service.save(entity);
-        if(entity != null){
-            return new ResponseEntity<>(gson.toJson(saved), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(gson.toJson(service.save(entity)), HttpStatus.OK);
     }
 
-    @PutMapping(path = "/update", produces = StaticDatas.Produces.JSON)
+    @PutMapping(path = "/update", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> update(@RequestBody T entity) {
-        T e = service.update(entity);
-        if(e != null){
-            return new ResponseEntity<>(gson.toJson(e), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @DeleteMapping(path = "/clearDatabaseTable", produces = StaticDatas.Produces.JSON)
-    public ResponseEntity<String> clearDatabaseTable() {
-        service.clearDatabaseTable();
-        return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
-    }
-
-    @DeleteMapping(path = "/forcePermanentlyDelete")
-    public void forcePermanentlyDelete(@RequestParam(value = "id") Long entityId){
-        service.forcePermanentlyDelete(entityId);
+        return new ResponseEntity<>(gson.toJson(service.update(entity)), HttpStatus.OK);
     }
 }

@@ -3,6 +3,7 @@ package hu.martin.ems.crudFE;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.pages.AccessManagementHeader;
+import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.pages.PermissionPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
@@ -141,6 +142,15 @@ public class PermissionTest extends BaseCrudTest {
         assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
         assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
         page.getGrid().resetFilter();
+
+        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponent.getText(), "Clearing database was successful");
+        notificationComponent.close();
     }
 
     @Test

@@ -1,22 +1,28 @@
 package hu.martin.ems.base.selenium;
 
-import hu.martin.ems.core.config.StaticDatas;
+import lombok.Getter;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 
+@Component
 public class WebDriverProvider {
-    private static WebDriver driver;
+    @Getter
+    @Value("${selenium.download.folder}")
+    private String downloadFolder;
+    private WebDriver driver;
 
-    public static WebDriver get(){
+    public WebDriver get(){
         if(driver == null){
             ChromeOptions options = new ChromeOptions();
             HashMap<String, Object> chromePref = new HashMap<>();
 
-            chromePref.put("download.default_directory", StaticDatas.Selenium.downloadPath);
+            chromePref.put("download.default_directory", downloadFolder);
             chromePref.put("download.prompt_for_download", false);
             chromePref.put("directory_upgrade", true);
             options.setExperimentalOption("prefs", chromePref);

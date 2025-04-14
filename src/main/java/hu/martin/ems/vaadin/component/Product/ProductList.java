@@ -24,7 +24,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.*;
@@ -32,18 +32,19 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import jakarta.annotation.security.RolesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
-import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
+
+import static hu.martin.ems.core.config.Icons.EDIT;
+import static hu.martin.ems.core.config.Icons.PERMANENTLY_DELETE;
 
 @Route(value = "product/list", layout = MainView.class)
 @CssImport("./styles/ButtonVariant.css")
@@ -639,7 +640,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     }
 
     private void setupAmountUnits() {
-        EmsResponse response = codeStoreApi.getChildren(StaticDatas.AMOUNTUNITS_CODESTORE_ID);
+        EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.AMOUNTUNITS_CODESTORE_ID);
         switch (response.getCode()){
             case 200:
                 amountUnitList = (List<CodeStore>) response.getResponseData();
@@ -652,7 +653,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     }
 
     private void setupTaxKeys() {
-        EmsResponse response = codeStoreApi.getChildren(StaticDatas.TAXKEYS_CODESTORE_ID);
+        EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.TAXKEYS_CODESTORE_ID);
         switch (response.getCode()){
             case 200:
                 taxKeyList = (List<CodeStore>) response.getResponseData();
@@ -665,7 +666,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
     }
 
     private void setupCurrencies() {
-        EmsResponse response = codeStoreApi.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
+        EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.CURRENCIES_CODESTORE_ID);
         switch (response.getCode()){
             case 200:
                 currencyList = (List<CodeStore>) response.getResponseData();

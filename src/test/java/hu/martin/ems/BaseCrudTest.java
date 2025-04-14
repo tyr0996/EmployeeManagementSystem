@@ -3,13 +3,19 @@ package hu.martin.ems;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
 import hu.martin.ems.base.selenium.ScreenshotMaker;
 import hu.martin.ems.base.selenium.WebDriverProvider;
+import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.*;
 import hu.martin.ems.core.controller.EndpointController;
+import hu.martin.ems.core.schedule.CurrencyScheduler;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
+import hu.martin.ems.model.Currency;
 import hu.martin.ems.service.AdminToolsService;
 import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.service.OrderService;
+import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.WebDriver;
@@ -24,14 +30,14 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.web.client.RestTemplate;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.*;
 
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,8 +65,23 @@ import java.util.regex.Pattern;
      </tbody>
  </table>
  */
+@Listeners(BaseCrudTest.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BaseCrudTest extends AbstractTestNGSpringContextTests implements ITestListener {
+    private static AtomicInteger passedCount = new AtomicInteger(0);
+    private static AtomicInteger failedCount = new AtomicInteger(0);
+    private static AtomicInteger skippedCount = new AtomicInteger(0);
+
+    @Override
+    public void onTestSuccess(ITestResult result) {
+        passedCount.set(passedCount.incrementAndGet());
+    }
+
+    @Override
+    public void onTestSkipped(ITestResult result) {
+        skippedCount.incrementAndGet();
+    }
+
 
     //TODO megcsinálni, hogy ha módosítottunk egy elemet vagy valamit, akkor ellenőrizzük a létrehozás gombot! fontos, hogy üres legyen a form és létrehozás legyen a címben!
 
@@ -107,6 +128,10 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     protected static EmailSendingService spyEmailSendingService;
 
     @SpyBean
+    protected static  CurrencyScheduler spyCurrencyScheduler;
+
+
+    @SpyBean
     public static XDocReportRegistry spyRegistry;
 
     @SpyBean
@@ -118,6 +143,9 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 //    @InjectMocks
     @SpyBean
     public static SftpSender sftpSender;
+
+    @Autowired
+    public WebDriverProvider driverProvider;
 
     protected static String fetchingCurrencyApiUrl;
 
@@ -146,7 +174,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         port = webServerAppCtxt.getWebServer().getPort();
         dp = dataProvider;
         
-        driver = WebDriverProvider.get();
+        driver = BeanProvider.getBean(WebDriverProvider.class).get();
     }
 
     private void clearFolder(String folderPath){
@@ -163,7 +191,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     }
 
     private void clearDownloadFolder(){
-        clearFolder(StaticDatas.Selenium.downloadPath);
+        clearFolder(BeanProvider.getBean(WebDriverProvider.class).getDownloadFolder());
     }
 
     private void clearScreenshotFolder(){
@@ -241,17 +269,16 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         dp.executeSQL("DELETE FROM permission CASCADE");
         dp.executeSQL("ALTER SEQUENCE permission_id_seq RESTART WITH 1");
 
-        dp.executeSQLFile(new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH + "\\roles.sql"));
-        dp.executeSQLFile(new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH + "\\permissions.sql"));
-        dp.executeSQLFile(new File(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH + "\\rolexpermissions.sql"));
+        dp.executeSQLFile(new File(FolderPaths.GENERATED_SQL_FILES_PATH + "\\roles.sql"));
+        dp.executeSQLFile(new File(FolderPaths.GENERATED_SQL_FILES_PATH + "\\permissions.sql"));
+        dp.executeSQLFile(new File(FolderPaths.GENERATED_SQL_FILES_PATH + "\\rolexpermissions.sql"));
 
         JPAConfig.resetCallIndex();
-        System.out.println("resetelődött");
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
-        //TODO megcsinálni a fényképezést
+        failedCount.incrementAndGet();
         Object instance = result.getInstance();
         WebDriver instanceDriver = ((BaseCrudTest) instance).driver;
 
@@ -287,13 +314,21 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         if (driver != null) {
             driver.quit();
         }
+        sendEmail();
+    }
+
+    protected void clearCurrencyDatabaseTable(){
+        List<Currency> currentCurrencies = spyCurrencyService.findAll(false);
+        currentCurrencies.forEach(v -> {
+            spyCurrencyService.forcePermanentlyDelete(v.getId());
+        });
     }
 
     protected boolean waitForDownload(String fileNameRegex, int times, int padding) throws Exception {
         Pattern pattern = Pattern.compile(fileNameRegex);
 
         for (int i = 0; i < times; i++) {
-            File dir = new File(StaticDatas.Selenium.downloadPath);
+            File dir = new File(BeanProvider.getBean(WebDriverProvider.class).getDownloadFolder());
             File[] files = dir.listFiles();
 
             if (files != null) {
@@ -309,5 +344,45 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
             Thread.sleep(padding); // Várakozás 1 másodpercig
         }
         return false;
+    }
+
+    private void sendEmail() {
+        final String fromEmail = "emstestreporter@gmail.com";
+        final String password = "hdmt jmer cpce wutv";
+
+        String toEmail = "galmar05aszi@gmail.com";
+
+        String subject = "Tesztek futása";
+        int success = passedCount.get();
+        int failed = failedCount.get();
+        int skipped = skippedCount.get();
+        int all = success + failed + skipped;
+        String body = "A tesztek futása befejeződött. Ez egy automatikus üzenet, amit a BaseCrudTest generált.\n\nÖsszes: " + all + "\nSikeres: " + success + "\nSikertelen: " + failed + "\nKihagyott: " + skipped;
+
+        Properties properties = new Properties();
+        properties.put("mail.smtp.host", "smtp.gmail.com");
+        properties.put("mail.smtp.port", "587");
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.starttls.enable", "true");
+        Session session = Session.getInstance(properties, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(fromEmail, password);
+            }
+        });
+
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(fromEmail));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            message.setSubject(subject);
+            message.setText(body);
+
+            Transport.send(message);
+
+            System.out.println("E-mail sikeresen elküldve.");
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
     }
 }

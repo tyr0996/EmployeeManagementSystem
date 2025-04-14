@@ -1,30 +1,33 @@
 package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.config.FolderPaths;
+import hu.martin.ems.core.model.EntityUtil;
 import hu.martin.ems.vaadin.component.BaseVO;
+import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.spy;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@SpringBootTest
-public class
-EmployeeManagementSystemApplicationTests extends BaseCrudTest {
+public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
 
 
     @Test
-    
     public void getIDSeqNameTest(){
         assertEquals("role_id_seq", dp.getIDSequenceName("role"));
         assertEquals("permission_id_seq", dp.getIDSequenceName("permission"));
@@ -33,10 +36,9 @@ EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
     @Test
-    
     public void testSqlFileCount() {
-        Integer sqlFileCount = fileCountInFolder(StaticDatas.FolderPaths.GENERATED_SQL_FILES_PATH, ".sql");
-        Integer jsonFileCount = fileCountInFolder(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH, ".json");
+        Integer sqlFileCount = fileCountInFolder(FolderPaths.GENERATED_SQL_FILES_PATH, ".sql");
+        Integer jsonFileCount = fileCountInFolder(FolderPaths.STATIC_JSON_FOLDER_PATH, ".json");
 
         assertEquals(jsonFileCount, sqlFileCount, "The number of the sql files not equals with the number of json files.");
     }
@@ -53,14 +55,13 @@ EmployeeManagementSystemApplicationTests extends BaseCrudTest {
 
     @Test
     public void testSqlGenerationFromJson() throws IOException {
-        String generatedSql = dp.generateSqlFromJson(new File(StaticDatas.FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
+        String generatedSql = dp.generateSqlFromJson(new File(FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
         assertEquals(generatedSql,
                 "INSERT INTO Role (name, deleted, id) VALUES\n\t('Martin', '0', '1'),\n\t('Robi', '0', '2'),\n\t('NO_ROLE', '0', '-1')",
                 "The generated sql not equals with the excepted");
     }
 
     @Test
-    
     public void mergeMapsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         LinkedHashMap<String, List<String>> a = new LinkedHashMap<>();
         a.put("deleted", Arrays.asList("0", "1"));
@@ -78,7 +79,6 @@ EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
     @Test
-    
     public void equalsTest(){
         TestVO a = new TestVO(2, 0);
         TestVO b = new TestVO(2, 1);
@@ -98,6 +98,41 @@ EmployeeManagementSystemApplicationTests extends BaseCrudTest {
         assertEquals(true, b.equals(b));
         assertEquals(true, a.equals(a));
     }
+
+    @Test
+    public void copyEntityFailedTest() throws IllegalAccessException {
+//        EntityUtil<TestVO> entityUtil = spy(EntityUtil.class);
+        EntityUtil<TestVO> realUtil = new EntityUtil<>();
+        EntityUtil<TestVO> entityUtil = spy(realUtil);
+
+        TestVO t1 = new TestVO(1, 0);
+        TestVO t2 = new TestVO(2, 0);
+
+        Mockito.doThrow(IllegalAccessException.class).when(entityUtil).copyField(any(), any(), any(Field.class));
+        assertThrows(RuntimeException.class, () -> {
+            entityUtil.copyEntity(t1, t2, TestVO.class);
+        });
+    }
+
+//    @Test
+//    public void oneOfTheIconsIOExceptionTest() throws Exception {
+//        Icons icon = Icons.EDIT;
+//
+//        Field field = Icons.class.getDeclaredField("svgPath");
+//        field.setAccessible(true);
+//        field.set(icon, "definitely-nonexistent-icon");
+//
+//        EmptyLoggedInVaadinPage loggedInPage = (EmptyLoggedInVaadinPage)
+//                LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+//        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADDRESS_SUBMENU);
+//        InternalErrorNotification notification = new InternalErrorNotification(driver);
+//        SoftAssert sa = new SoftAssert();
+//        sa.assertEquals(notification.getCaption().getText(), "asdf");
+//        sa.assertEquals(notification.getMessage().getText(), "asdfadsf");
+//        sa.assertAll();
+//
+//        field.set(icon, "pdf-file");
+//    }
 
     protected class TestVO extends BaseVO{
         public TestVO(){

@@ -5,7 +5,7 @@ import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.pages.LoginPage;
-import hu.martin.ems.pages.OrderCreatePage;
+import hu.martin.ems.pages.OrderCreateToCustomerPage;
 import hu.martin.ems.pages.OrderElementPage;
 import hu.martin.ems.pages.OrderPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
@@ -26,7 +26,7 @@ import static org.testng.Assert.assertFalse;
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 //@Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class OrderCreateTest extends BaseCrudTest {
+public class OrderCreateToCustomerTest extends BaseCrudTest {
 //    public static final String customerComboBoxXpath = contentXpath + "/vaadin-form-layout[1]/vaadin-combo-box";
 //    public static final String currencyComboBoxXpath = contentXpath + "/vaadin-form-layout[2]/vaadin-combo-box[1]";
 //    public static final String paymentMethodComboBoxXpath = contentXpath + "/vaadin-form-layout[2]/vaadin-combo-box[2]";
@@ -49,7 +49,7 @@ public class OrderCreateTest extends BaseCrudTest {
 //
 //
 //    private static final String mainMenu = UIXpaths.ORDERS_MENU;
-//    private static final String subMenu = UIXpaths.ORDER_CREATE_SUBMENU;
+//    private static final String subMenu = UIXpaths.ORDER_CREATE_TO_CUSTOMER_SUBMENU;
 //
 //
 //    private GridTestingUtil gridTestingUtil;
@@ -76,14 +76,14 @@ public class OrderCreateTest extends BaseCrudTest {
     public void customerNotSelectedShowPreviouslyGridIsEmptyTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
-        OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
-        assertEquals(orderCreatePage.getGrid().countVisibleDataRows(), 0);
-        orderCreatePage.getShowPreviouslyOrderedElementsCheckBox().setStatus(true);
-        assertEquals(orderCreatePage.getGrid().getTotalRowNumber(), 0);
-        orderCreatePage.getShowPreviouslyOrderedElementsCheckBox().setStatus(false);
-        assertEquals(orderCreatePage.getGrid().countVisibleDataRows(), 0);
+        OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
+        assertEquals(orderCreateToCustomerPage.getGrid().countVisibleDataRows(), 0);
+        orderCreateToCustomerPage.getShowPreviouslyOrderedElementsCheckBox().setStatus(true);
+        assertEquals(orderCreateToCustomerPage.getGrid().getTotalRowNumber(), 0);
+        orderCreateToCustomerPage.getShowPreviouslyOrderedElementsCheckBox().setStatus(false);
+        assertEquals(orderCreateToCustomerPage.getGrid().countVisibleDataRows(), 0);
 
 //        int originalRows = gridTestingUtil.countVisibleGridDataRows(createOrderGridXpath);
 //        WebElement previously = gridTestingUtil.findVisibleElementWithXpath(previouslyOrderedCheckboxXpath);
@@ -105,9 +105,9 @@ public class OrderCreateTest extends BaseCrudTest {
         OrderPage oPage = new OrderPage(driver, port);
 
         int originalOrderNumber = oPage.getGrid().getTotalRowNumber();
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
-        OrderCreatePage page = new OrderCreatePage(driver, port);
+        OrderCreateToCustomerPage page = new OrderCreateToCustomerPage(driver, port);
         page.getCustomerComboBox().fillWithRandom();
         String customerName = page.getCustomerComboBox().getSelectedElement();
         int originalOrderElements = page.getGrid().getTotalRowNumber();
@@ -128,8 +128,8 @@ public class OrderCreateTest extends BaseCrudTest {
         oePage.performDelete();
         oePage.performDelete();
         oePage.getGrid().resetFilter();
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU); //TODO megoldani, hogy ezt az oePage-ből tudjam meghívni a getSideMenu()-t
-        OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU); //TODO megoldani, hogy ezt az oePage-ből tudjam meghívni a getSideMenu()-t
+        OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
         ocPage.getCustomerComboBox().fillWith(customerName);
         ocPage.getGrid().waitForRefresh();
 //        page.initWebElements();
@@ -167,9 +167,9 @@ public class OrderCreateTest extends BaseCrudTest {
 //         Mockito.doReturn(null).when(spyOrderService).update(any(Order.class));
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
-        OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
+        OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
         updateOrder("Order modifying failed: Internal Server Error", false, spyDataSource, 1);
 //        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
 
@@ -183,9 +183,9 @@ public class OrderCreateTest extends BaseCrudTest {
 //        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 95);
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
-        OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
+        OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
         createOrder("Order saving failed: Internal Server Error", false, spyDataSource, 1);
         assertFalse(VaadinNotificationComponent.hasNotification(driver));
 //        assertFalse(VaadinNotificationComponent.hasNotification(driver));
@@ -198,11 +198,11 @@ public class OrderCreateTest extends BaseCrudTest {
 //        Mockito.doReturn(null).when(spyCustomerService).findAll(false); //Controllerben opcionális paraméterként jön.
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
-        OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
-        assertFalse(orderCreatePage.getCustomerComboBox().isEnabled());
-        assertEquals(orderCreatePage.getCustomerComboBox().getErrorMessage(), "Error happened while getting customers");
+        OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
+        assertFalse(orderCreateToCustomerPage.getCustomerComboBox().isEnabled());
+        assertEquals(orderCreateToCustomerPage.getCustomerComboBox().getErrorMessage(), "Error happened while getting customers");
 //        checkField(customerComboBoxXpath, "Error happened while getting customers");
         assertFalse(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -214,14 +214,14 @@ public class OrderCreateTest extends BaseCrudTest {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 5);
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
-        OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
-        orderCreatePage.getCustomerComboBox().fillWithRandom();
+        OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
+        orderCreateToCustomerPage.getCustomerComboBox().fillWithRandom();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Error happened while getting order elements to the customer");
         notification.close();
-        assertEquals(orderCreatePage.getGrid().getTotalRowNumber(), 0);
+        assertEquals(orderCreateToCustomerPage.getGrid().getTotalRowNumber(), 0);
 //        gridTestingUtil.selectRandomFromComboBox(gridTestingUtil.findVisibleElementWithXpath(customerComboBoxXpath));
 //        Thread.sleep(100);
 //        gridTestingUtil.checkNotificationText("Error happened while getting order elements to the customer");
@@ -235,9 +235,9 @@ public class OrderCreateTest extends BaseCrudTest {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 93);
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
-        OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
+        OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
         createOrder("Error happened while getting \"Pending\" status", false, spyDataSource, 0);
     }
 
@@ -248,11 +248,11 @@ public class OrderCreateTest extends BaseCrudTest {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
-        OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
-        assertFalse(orderCreatePage.getPaymentTypeComboBox().isEnabled());
-        assertEquals(orderCreatePage.getPaymentTypeComboBox().getErrorMessage(), "Error happened while getting payment methods");
+        OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
+        assertFalse(orderCreateToCustomerPage.getPaymentTypeComboBox().isEnabled());
+        assertEquals(orderCreateToCustomerPage.getPaymentTypeComboBox().getErrorMessage(), "Error happened while getting payment methods");
 //        checkField(paymentMethodComboBoxXpath, "Error happened while getting payment methods");
         assertFalse(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -264,11 +264,11 @@ public class OrderCreateTest extends BaseCrudTest {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 4);
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
-        OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
-        assertFalse(orderCreatePage.getCurrencyComboBox().isEnabled());
-        assertEquals(orderCreatePage.getCurrencyComboBox().getErrorMessage(), "Error happened while getting currencies");
+        OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
+        assertFalse(orderCreateToCustomerPage.getCurrencyComboBox().isEnabled());
+        assertEquals(orderCreateToCustomerPage.getCurrencyComboBox().getErrorMessage(), "Error happened while getting currencies");
 //        checkField(currencyComboBoxXpath, "Error happened while getting currencies");
         assertFalse(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -294,8 +294,10 @@ public class OrderCreateTest extends BaseCrudTest {
 
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage orderPage = new OrderPage(driver, port);
+        String[] customerOrderFilter = new String[]{"", "(C) ", "", "", ""};
 //        gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
 //        Thread.sleep(100);
+        orderPage.getGrid().applyFilter(customerOrderFilter);
         ElementLocation randomLocation = orderPage.getGrid().getRandomLocation();
 //        ElementLocation randomLocation = gridTestingUtil.getRandomLocationFromGrid(createOrderGridXpath);
         orderPage.getGrid().goToPage(randomLocation.getPageNumber());
@@ -303,6 +305,7 @@ public class OrderCreateTest extends BaseCrudTest {
         String[] originalData = orderPage.getGrid().getDataFromRowLocation(randomLocation, true);
 //        String[] originalData = gridTestingUtil.getDataFromRowLocation(createOrderGridXpath, randomLocation);
 //        Thread.sleep(200);
+        orderPage.getGrid().resetFilter();
         orderPage.getGrid().applyFilter(originalData);
 //        gridTestingUtil.applyFilter(createOrderGridXpath, originalData);
         assertEquals(orderPage.getGrid().getTotalRowNumber(), 1);
@@ -311,7 +314,7 @@ public class OrderCreateTest extends BaseCrudTest {
 //        gridTestingUtil.resetFilter(createOrderGridXpath);
         orderPage.getGrid().getModifyButton(randomLocation.getRowIndex()).click();
 //        gridTestingUtil.getModifyButton(createOrderGridXpath, randomLocation.getRowIndex()).click();
-        OrderCreatePage page = new OrderCreatePage(driver, port);
+        OrderCreateToCustomerPage page = new OrderCreateToCustomerPage(driver, port);
 //        Thread.sleep(200);
 //        gridTestingUtil.findVisibleElementWithXpath(createOrderGridXpath, 5000);
 
@@ -342,7 +345,6 @@ public class OrderCreateTest extends BaseCrudTest {
         oPage.initWebElements();
 //        gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
 //        Thread.sleep(100);
-
         if(requiredSuccess){
             assertEquals(oPage.getGrid().getTotalRowNumber(), originalOrderNumber);
             oPage.getGrid().applyFilter(originalData);
@@ -378,8 +380,8 @@ public class OrderCreateTest extends BaseCrudTest {
         int originalOrderNumber = orderPage.getGrid().getTotalRowNumber();
 //        int originalOrderNumber = gridTestingUtil.countVisibleGridDataRows(createOrderGridXpath);
 
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-        OrderCreatePage page = new OrderCreatePage(driver, port);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+        OrderCreateToCustomerPage page = new OrderCreateToCustomerPage(driver, port);
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        Thread.sleep(100);
         page.getCustomerComboBox().fillWithRandom();
@@ -416,7 +418,7 @@ public class OrderCreateTest extends BaseCrudTest {
 
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        Thread.sleep(100);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
         page.initWebElements();
 //        customerComboBox = gridTestingUtil.findVisibleElementWithXpath(customerComboBoxXpath);
 
@@ -465,8 +467,8 @@ public class OrderCreateTest extends BaseCrudTest {
 
         int originalOrderNumber = orderPage.getGrid().getTotalRowNumber();
 
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-        OrderCreatePage page = new OrderCreatePage(driver, port);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+        OrderCreateToCustomerPage page = new OrderCreateToCustomerPage(driver, port);
 
 //        WebElement customerComboBox = gridTestingUtil.findVisibleElementWithXpath(customerComboBoxXpath);
         page.getCustomerComboBox().fillWithRandom();
@@ -494,7 +496,7 @@ public class OrderCreateTest extends BaseCrudTest {
         oePage.performDelete();
         oePage.getGrid().resetFilter();
 
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
         page.initWebElements();
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        Thread.sleep(100);
@@ -538,8 +540,8 @@ public class OrderCreateTest extends BaseCrudTest {
 ////        Thread.sleep(100);
 //
 //        int originalOrderNumber = orderPage.getGrid().getTotalRowNumber();
-//        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-//        OrderCreatePage page = new OrderCreatePage(driver, port);
+//        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+//        OrderCreateToCustomerPage page = new OrderCreateToCustomerPage(driver, port);
 //
 ////        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 ////        Thread.sleep(100);
@@ -580,7 +582,7 @@ public class OrderCreateTest extends BaseCrudTest {
 //        //orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
 //        //orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
 //        //gridTestingUtil.resetFilter(orderElementGridXpath);
-//        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+//        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 //        //gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        //Thread.sleep(100);
 //        page.initWebElements();
@@ -629,9 +631,9 @@ public class OrderCreateTest extends BaseCrudTest {
         int originalOrderNumber = opage.getGrid().getTotalRowNumber();
 
         for(int i = 0; i < 2; i++){
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 //            page.initWebElements();
-            OrderCreatePage page = new OrderCreatePage(driver, port);
+            OrderCreateToCustomerPage page = new OrderCreateToCustomerPage(driver, port);
             //gridTestingUtil.navigateMenu(mainMenu, subMenu);
             //Thread.sleep(100);
 
@@ -674,8 +676,8 @@ public class OrderCreateTest extends BaseCrudTest {
             //orderElementCrudTestingUtil.deleteTest(null, true, orderElementGridCustomerFilter);
             //gridTestingUtil.resetFilter(orderElementGridXpath);
 
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage page_2 = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage page_2 = new OrderCreateToCustomerPage(driver, port);
             page_2.initWebElements();
             page_2.getCustomerComboBox().fillWith(customerName);
             page_2.getGrid().waitForRefresh();
@@ -713,12 +715,12 @@ public class OrderCreateTest extends BaseCrudTest {
     public void noCustomerSelectedButShowPreviouslyEnabledThanGridWillBeIsEmpty() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
-        OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
-        assertEquals(orderCreatePage.getGrid().getTotalRowNumber(), 0);
-        orderCreatePage.getShowPreviouslyOrderedElementsCheckBox().setStatus(true);
-        assertEquals(orderCreatePage.getGrid().getTotalRowNumber(), 0);
+        OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
+        assertEquals(orderCreateToCustomerPage.getGrid().getTotalRowNumber(), 0);
+        orderCreateToCustomerPage.getShowPreviouslyOrderedElementsCheckBox().setStatus(true);
+        assertEquals(orderCreateToCustomerPage.getGrid().getTotalRowNumber(), 0);
         //assertEquals(gridTestingUtil.countVisibleGridDataRows(orderElementGridXpath), 0);
         //gridTestingUtil.setCheckboxStatus(previouslyOrderedCheckboxXpath, true);
         //assertEquals(gridTestingUtil.countVisibleGridDataRows(orderElementGridXpath), 0);
@@ -728,21 +730,21 @@ public class OrderCreateTest extends BaseCrudTest {
     public void deselectShowPreviouslyChangesGridSelectionMode() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
 
         SoftAssert sa = new SoftAssert();
-        OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
-        sa.assertEquals(orderCreatePage.getGrid().getTotalRowNumber(), 0);
+        OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
+        sa.assertEquals(orderCreateToCustomerPage.getGrid().getTotalRowNumber(), 0);
         //assertEquals(gridTestingUtil.countVisibleGridDataRows(orderElementGridXpath), 0);
 
-        int originalOrderElements = orderCreatePage.getGrid().getTotalRowNumber();
-        orderCreatePage.getCustomerComboBox().fillWithRandom();
-        orderCreatePage.getShowPreviouslyOrderedElementsCheckBox().setStatus(true);
-        orderCreatePage.getGrid().waitForRefresh();
-        sa.assertFalse(orderCreatePage.getGrid().isMultiSelectEnabled());
-        orderCreatePage.getShowPreviouslyOrderedElementsCheckBox().setStatus(false);
-        orderCreatePage.getGrid().waitForRefresh();
-        sa.assertTrue(orderCreatePage.getGrid().isMultiSelectEnabled());
+        int originalOrderElements = orderCreateToCustomerPage.getGrid().getTotalRowNumber();
+        orderCreateToCustomerPage.getCustomerComboBox().fillWithRandom();
+        orderCreateToCustomerPage.getShowPreviouslyOrderedElementsCheckBox().setStatus(true);
+        orderCreateToCustomerPage.getGrid().waitForRefresh();
+        sa.assertFalse(orderCreateToCustomerPage.getGrid().isMultiSelectEnabled());
+        orderCreateToCustomerPage.getShowPreviouslyOrderedElementsCheckBox().setStatus(false);
+        orderCreateToCustomerPage.getGrid().waitForRefresh();
+        sa.assertTrue(orderCreateToCustomerPage.getGrid().isMultiSelectEnabled());
 
         sa.assertAll();
 

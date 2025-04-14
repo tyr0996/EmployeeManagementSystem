@@ -4,14 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.StaticDatas;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,7 +35,7 @@ public class EndpointController {
     @Autowired
     private Gson gson;
 
-    @GetMapping(path = "/exportApis", produces = StaticDatas.Produces.JSON)
+    @GetMapping(path = "/exportApis", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<byte[]> getAllEndpoints() {
 //        ApplicationContext ctx = new AnnotationConfigApplicationContext(EmployeeManagementSystemApplication.class);
 //        RequestMappingHandlerMapping handlerMapping = BeanProvider.getBean(RequestMappingHandlerMapping.class);
@@ -48,9 +45,6 @@ public class EndpointController {
             eps.add(processKey(key.toString()));
         });
 
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.TEXT_PLAIN);
-//        headers.setContentDisposition(ContentDisposition.attachment().filename("martin.txt").build());
         return new ResponseEntity<>(gson.toJson(eps).getBytes(StandardCharsets.UTF_8), HttpStatus.OK);
     }
 
@@ -64,7 +58,7 @@ public class EndpointController {
         if (matcher.find()) {
             String method = matcher.group(1);
             String url = matcher.group(2);
-            if(!url.equals("/api/eps/eps")){
+            if(!url.equals("/api/eps/exportApis")){
                 return new RestEndPoint(method, url);
             }
             else{
@@ -81,19 +75,11 @@ public class EndpointController {
     }
 
     @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    @Setter
     public class RestEndPoint{
 
         @Expose
         public String method;
         @Expose
         public String URL;
-
-        @Override
-        public String toString(){
-            return gson.toJson(this);
-        }
     }
 }

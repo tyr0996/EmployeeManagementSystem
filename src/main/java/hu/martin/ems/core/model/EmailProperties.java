@@ -2,6 +2,7 @@ package hu.martin.ems.core.model;
 
 import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -21,5 +22,6 @@ public class EmailProperties {
     private String htmlText;
 
     @Expose
+    @NotNull
     private List<EmailAttachment> attachments;
 }

@@ -4,7 +4,7 @@ import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +12,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @NeedCleanCoding
-@EqualsAndHashCode
 public class OrderElement extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "product_product_id")
@@ -86,6 +85,12 @@ public class OrderElement extends BaseEntity {
     @Override
     public String toString(){
         return this.getName() + " (" + this.unit + " " + this.product.getAmountUnit().getName() + ")";
+    }
+
+    @AssertTrue(message = "At least one of the fields (field1 or field2) must have a value.")
+    public boolean isValid() {
+        System.out.println("OrderElement is valid: " + (customer != null) + "    " + (supplier != null));
+        return customer != null || supplier != null;
     }
 
 }

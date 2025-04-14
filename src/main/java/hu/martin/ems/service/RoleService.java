@@ -6,6 +6,8 @@ import hu.martin.ems.model.Role;
 import hu.martin.ems.repository.RoleRepository;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
+
 @Service
 @NeedCleanCoding
 public class RoleService extends BaseService<Role, RoleRepository> {
@@ -13,15 +15,5 @@ public class RoleService extends BaseService<Role, RoleRepository> {
         super(roleRepository);
     }
 
-    public Role findByName(String name) {
-        return this.repo.findByName(name);
-    }
-
-    public Role findByNameWithNegativeId(String name) {
-        return this.repo.findByNameWithNegativeId(name);
-    }
-
-    public Role getNoRole() { return this.repo.getNoRole(); }
-
-
+    public Role getNoRole() { return this.repo.getNoRole().orElseThrow(() -> new EntityNotFoundException("Cann't find NO_ROLE"));}
 }

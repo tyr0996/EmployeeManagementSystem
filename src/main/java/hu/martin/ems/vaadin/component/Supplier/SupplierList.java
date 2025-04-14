@@ -42,8 +42,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
-import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
+import static hu.martin.ems.core.config.Icons.EDIT;
+import static hu.martin.ems.core.config.Icons.PERMANENTLY_DELETE;
 
 @Route(value = "supplier/list", layout = MainView.class)
 @CssImport("./styles/grid.css")

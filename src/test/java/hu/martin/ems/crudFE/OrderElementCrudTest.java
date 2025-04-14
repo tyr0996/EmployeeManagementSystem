@@ -1,12 +1,15 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.UIXpaths;
 import hu.martin.ems.base.CrudTestingUtil;
 import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.LoginPage;
-import hu.martin.ems.pages.OrderCreatePage;
+import hu.martin.ems.pages.OrderCreateToCustomerPage;
 import hu.martin.ems.pages.OrderElementPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
@@ -16,6 +19,7 @@ import hu.martin.ems.pages.core.doTestData.*;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
@@ -29,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@Listeners(UniversalVideoListener.class)
+@Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderElementCrudTest extends BaseCrudTest {
     private static CrudTestingUtil crudTestingUtil;
@@ -44,16 +48,14 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
     private GridTestingUtil gridTestingUtil;
 
-    
-
-    private OrderCreateTest orderCreateTest;
+    private OrderCreateToCustomerTest orderCreateTest;
 
     @BeforeClass
     public void setup() {
         gridTestingUtil = new GridTestingUtil(driver);
         crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "OrderElement", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
         notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
-        orderCreateTest = new OrderCreateTest();
+        orderCreateTest = new OrderCreateToCustomerTest();
     }
 
     @Test
@@ -80,13 +82,15 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void orderElementCreateTest() {
+    public void orderElementCreateTestForCustomer() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
 
         OrderElementPage page = new OrderElementPage(driver, port);
-        DoCreateTestData testResult = page.doCreateTest();
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Customer", "Erdei Róbert");
+        DoCreateTestData testResult = page.doCreateTest(withData);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
@@ -94,6 +98,23 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    public void orderElementCreateTestForSupplier() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+
+        OrderElementPage page = new OrderElementPage(driver, port);
+        LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+        withData.put("Supplier", "Szállító1");
+        DoCreateTestData testResult = page.doCreateTest(withData);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saved: ");
+    }
+
+    @Test
+    @Video
     public void orderElementReadTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -110,9 +131,9 @@ public class OrderElementCrudTest extends BaseCrudTest {
         List<String[]> allFullLines = page.getGrid().getAllFullLines(true);
         List<String[]> allNonOrderedLines = page.getGrid().getAllLackingLines(true);
         while(allFullLines.size() == 0){
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage orderCreatePage = new OrderCreatePage(driver, port);
-            orderCreatePage.performCreate(null);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
+            orderCreateToCustomerPage.performCreate(null);
             loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
             allFullLines = page.getGrid().getAllFullLines(true);
 
@@ -262,6 +283,15 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
         assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
         page.getGrid().resetFilter();
+
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponent.getText(), "Clearing database was successful");
+        notificationComponent.close();
     }
 
 //    //@Test
@@ -296,7 +326,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void findAllOrderElementWithAndWithoutFailed() throws SQLException, InterruptedException {
+    public void findAllOrderElementWithAndWithoutFailed() throws SQLException {
         SoftAssert sa = new SoftAssert();
         MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
         EmptyLoggedInVaadinPage loggedInPage =
@@ -330,6 +360,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         dialog.initWebElements();assertEquals(dialog.getFailedComponents().size(), 1);
         assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "Error happened while getting suppliers");
         assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Supplier");
+        dialog.close();
 
 ////        Mockito.doReturn(null).when(spySupplierService).findAll(false);//Controllerben alapértelmezett
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
@@ -350,9 +381,11 @@ public class OrderElementCrudTest extends BaseCrudTest {
         OrderElementPage page = new OrderElementPage(driver, port);
         page.getCreateButton().click();
         OrderElementSaveOrUpdateDialog dialog = new OrderElementSaveOrUpdateDialog(driver);
-        dialog.initWebElements();assertEquals(dialog.getFailedComponents().size(), 1);
+        dialog.initWebElements();
+        assertEquals(dialog.getFailedComponents().size(), 1);
         assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "Error happened while getting customers");
         assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Customer");
+        dialog.close();
     }
 
     @Test
@@ -368,6 +401,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         dialog.initWebElements();assertEquals(dialog.getFailedComponents().size(), 1);
         assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "Error happened while getting products");
         assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Product");
+        dialog.close();
     }
 
     @Test

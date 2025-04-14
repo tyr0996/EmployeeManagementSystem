@@ -22,4 +22,6 @@ public class OrderElementService extends BaseService<OrderElement, OrderElementR
     public void permanentlyDeleteByOrder(Long orderId){
         this.repo.customPermanentlyDeleteByOrder(orderId);
     }
+
+    public List<OrderElement> getBySupplier(Long supplierId) { return this.repo.getBySupplier(supplierId); }
 }

@@ -24,7 +24,6 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
@@ -38,6 +37,7 @@ import jakarta.annotation.security.RolesAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.io.ByteArrayInputStream;
@@ -48,7 +48,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static hu.martin.ems.core.config.StaticDatas.Icons.*;
+import static hu.martin.ems.core.config.Icons.*;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
@@ -67,23 +67,22 @@ public class OrderList extends VerticalLayout {
     List<OrderVO> orderVOS;
     List<Order> orderList;
 
-    Grid.Column<OrderVO> customerColumn;
+    Grid.Column<OrderVO> customerOrSupplierColumn;
     Grid.Column<OrderVO> paymentTypeColumn;
     Grid.Column<OrderVO> stateColumn;
     Grid.Column<OrderVO> timeOfOrderColumn;
     Grid.Column<OrderVO> idColumn;
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<OrderVO> extraData;
-    private static String idFilterText = "";
-    private static String customerFilterText = "";
-    private static String paymentTypeColumnFilterText = "";
-    private static String stateFilterText = "";
-    private static String timeOfOrderFilterText = "";
+    private String idFilterText = "";
+    private String customerOrSupplierFilterText = "";
+    private String paymentTypeColumnFilterText = "";
+    private String stateFilterText = "";
+    private String timeOfOrderFilterText = "";
 
     private final PaginationSetting paginationSetting;
     Logger logger = LoggerFactory.getLogger(Order.class);
 
-    private MainView mainView;
 
     @Autowired
     public OrderList(PaginationSetting paginationSetting) {
@@ -135,7 +134,7 @@ public class OrderList extends VerticalLayout {
         updateGridItems();
 
         idColumn = grid.addColumn(v -> v.id);
-        customerColumn = grid.addColumn(v -> v.customer);
+        customerOrSupplierColumn = grid.addColumn(v -> v.customerOrSupplier);
         paymentTypeColumn = grid.addColumn(v -> v.paymentType);
         stateColumn = grid.addColumn(v -> v.state);
         timeOfOrderColumn = grid.addColumn(v -> v.timeOfOrder);
@@ -182,7 +181,7 @@ public class OrderList extends VerticalLayout {
                                 "Megrendelés visszaigazolás",
                                 email,
                                 List.of(new EmailAttachment(
-                                        StaticDatas.ContentType.CONTENT_TYPE_APPLICATION_PDF,
+                                        MediaType.APPLICATION_PDF_VALUE,
                                         ((ByteArrayInputStream) pdfDocumentResponse.getResponseData()).readAllBytes(),
                                         "order_" + order.id + ".pdf")
                                 )
@@ -195,7 +194,7 @@ public class OrderList extends VerticalLayout {
             editButton.addClickListener(event -> {
                 Map<String, List<String>> params = new HashMap<>();
                 params.put("orderId", List.of(String.valueOf(order.id)));
-                getUI().ifPresent(v -> v.navigate(OrderCreate.class, new QueryParameters(params)));
+                getUI().ifPresent(v -> v.navigate(order.customerOrSupplier.contains("(C) ") ? OrderCreateToCustomer.class : OrderFromSupplier.class, new QueryParameters(params)));
 //                mainView.getContentLayout().removeAll();
 //                mainView.getContentLayout().add(oc);
 //                MainView.contentLayout.removeAll();
@@ -288,7 +287,7 @@ public class OrderList extends VerticalLayout {
     private Stream<OrderVO> getFilteredStream() {
         return orderVOS.stream().filter(orderVO ->
                 (idFilterText.isEmpty() || orderVO.id.toString().equals(idFilterText)) &&
-                (customerFilterText.isEmpty() || orderVO.customer.toLowerCase().contains(customerFilterText.toLowerCase())) &&
+                (customerOrSupplierFilterText.isEmpty() || orderVO.customerOrSupplier.toLowerCase().contains(customerOrSupplierFilterText.toLowerCase())) &&
                 (paymentTypeColumnFilterText.isEmpty() || orderVO.paymentType.toLowerCase().contains(paymentTypeColumnFilterText.toLowerCase())) &&
                 (stateFilterText.isEmpty() || orderVO.state.toLowerCase().contains(stateFilterText.toLowerCase())) &&
                 (timeOfOrderFilterText.isEmpty() || orderVO.timeOfOrder.toLowerCase().contains(timeOfOrderFilterText.toLowerCase())) &&
@@ -320,11 +319,11 @@ public class OrderList extends VerticalLayout {
             updateGridItems();
         });
 
-        TextField customerFilter = new TextField();
-        customerFilter.setPlaceholder("Search customer...");
-        customerFilter.setClearButtonVisible(true);
-        customerFilter.addValueChangeListener(event -> {
-            customerFilterText = event.getValue().trim();
+        TextField customerOrSupplierFilter = new TextField();
+        customerOrSupplierFilter.setPlaceholder("Search customerOrSupplier...");
+        customerOrSupplierFilter.setClearButtonVisible(true);
+        customerOrSupplierFilter.addValueChangeListener(event -> {
+            customerOrSupplierFilterText = event.getValue().trim();
             grid.getDataProvider().refreshAll();
             updateGridItems();
         });
@@ -372,7 +371,7 @@ public class OrderList extends VerticalLayout {
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(idColumn).setComponent(filterField(idFilter, "ID"));
-        filterRow.getCell(customerColumn).setComponent(filterField(customerFilter, "Customer"));
+        filterRow.getCell(customerOrSupplierColumn).setComponent(filterField(customerOrSupplierFilter, "Customer"));
         filterRow.getCell(paymentTypeColumn).setComponent(filterField(paymentTypeFilter, "Payment type"));
         filterRow.getCell(stateColumn).setComponent(filterField(stateFilter, "State"));
         filterRow.getCell(timeOfOrderColumn).setComponent(filterField(timeOfOrderFilter, "Time of order"));
@@ -416,7 +415,7 @@ public class OrderList extends VerticalLayout {
 public class OrderVO extends BaseVO {
         private Order original;
         private String state;
-        private String customer;
+        private String customerOrSupplier;
         private String paymentType;
         private String timeOfOrder;
         private String name;
@@ -428,7 +427,7 @@ public class OrderVO extends BaseVO {
             this.deleted = order.getDeleted();
             this.state = original.getState().getName();
             this.timeOfOrder = original.getTimeOfOrder().format(DateTimeFormatter.ofPattern("yyyy. MM. dd. HH:mm:ss"));
-            this.customer = original.getCustomer().getName();
+            this.customerOrSupplier = original.getCustomer() == null ? "(S) " + original.getSupplier().getName() : "(C) " + original.getCustomer().getName();
             this.paymentType = original.getPaymentType().getName();
             this.name = original.getName();
         }

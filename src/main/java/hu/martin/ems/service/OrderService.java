@@ -12,7 +12,6 @@ import fr.opensagres.xdocreport.template.formatter.FieldsMetadata;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.file.XLSX;
 import hu.martin.ems.core.service.BaseService;
-import hu.martin.ems.core.service.DataConverter;
 import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.documentmodel.CustomerDM;
 import hu.martin.ems.documentmodel.OrderDM;
@@ -51,7 +50,6 @@ public class OrderService extends BaseService<Order, OrderRepository> {
     @Autowired
     private CurrencyService currencyService;
 
-    @Setter
     @Autowired
     private SftpSender sender;
 
@@ -85,11 +83,11 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         return Order.class.getResourceAsStream("Empty.odt");
     }
 
-    public byte[] createDocumentAsPDF(Order o, OutputStream out) throws IOException, XDocReportException {
+    public byte[] createDocumentAsPDF(Order o, OutputStream out) throws IOException, XDocReportException, CurrencyException {
         return getOrderDocumentExport(o, out, "PDF");
     }
 
-    public byte[] createDocumentAsODT(Order o, OutputStream out) throws IOException, XDocReportException {
+    public byte[] createDocumentAsODT(Order o, OutputStream out) throws IOException, XDocReportException, CurrencyException {
         return getOrderDocumentExport(o, out, "ODT");
     }
 
@@ -97,7 +95,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         LocalDate current = from;
         List<String> sheetNames = new ArrayList<>();
         List<String[][]> tableDatas = new ArrayList<>();
-        while(current.isBefore(to) || current.isEqual(to)){
+        while(!current.isAfter(to)){
             List<Order> orders = getOrdersAt(current);
             String[] colNames = new String[] {"Order name", "Product", "Gross buying price", "Gross selling price", "Sold amount", "Profit"};
             List<List<String>> lines = new ArrayList<>();
@@ -120,7 +118,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
                 }
                 lines.addAll(linesOfOrder);
             }
-            String[][] table = DataConverter.convertListToArray2(lines);
+            String[][] table = convertListToArray2(lines);
 
             sheetNames.add(current.toString());
             tableDatas.add(table);
@@ -132,9 +130,20 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         return sent;
     }
 
+    private String[][] convertListToArray2(List<List<String>> data) {
+        String[][] array = new String[data.size()][];
+
+        for (int i = 0; i < data.size(); i++) {
+            List<String> row = data.get(i);
+            array[i] = row.toArray(new String[0]);
+        }
+
+        return array;
+    }
 
 
-    public byte[] getOrderDocumentExport(Order o, OutputStream out, String fileType) throws IOException, XDocReportException { //TODO FileType can be enum
+
+    public byte[] getOrderDocumentExport(Order o, OutputStream out, String fileType) throws IOException, XDocReportException, CurrencyException { //TODO FileType can be enum
         InputStream in = getTemplate(new OrderDM(o));
         IXDocReport report = registry.loadReport(in, TemplateEngineKind.Freemarker);
 
@@ -143,22 +152,20 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         IContext ctx = report.createContext();
         OrderDM order = new OrderDM(o);
         String currency = o.getCurrency().getName();
-        ctx.put("r", o.getOrderElements().stream().map(v -> {
-            Double unitNetPrice = null;
-            Double netPrice = null;
-            Double tax = null;
-            Double grossPrice = null;
-            try {
-                netPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getNetPrice().doubleValue());
-                tax = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getTaxPrice().doubleValue());
-                grossPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getGrossPrice().doubleValue());
-                unitNetPrice = currencyService.convert(v.getProduct().getSellingPriceCurrency().getName(), currency, v.getUnitNetPrice().doubleValue());
-            } catch (CurrencyException e) {
-                throw new RuntimeException(e);
-            }
+
+        List<OrderElementDM> orderElementDMs = new ArrayList<>();
+        for (OrderElement v : o.getOrderElements()) {
+            String fromCurrency = v.getProduct().getSellingPriceCurrency().getName();
+            Double unitNetPrice = currencyService.convert(fromCurrency, currency, v.getUnitNetPrice().doubleValue());
+            Double netPrice = currencyService.convert(fromCurrency, currency, v.getNetPrice().doubleValue());
+            Double tax = currencyService.convert(fromCurrency, currency, v.getTaxPrice().doubleValue());
+            Double grossPrice = currencyService.convert(fromCurrency, currency, v.getGrossPrice().doubleValue());
+
             order.addToTotalGross(grossPrice);
-            return new OrderElementDM(v).extend(unitNetPrice, netPrice, tax, grossPrice, currency);
-        }).toList());
+            orderElementDMs.add(new OrderElementDM(v).extend(unitNetPrice, netPrice, tax, grossPrice, currency));
+        }
+        ctx.put("r", orderElementDMs);
+
         ctx.put("order", order);
         ctx.put("to", new CustomerDM(o.getCustomer()));
         if(fileType.equals("PDF")){

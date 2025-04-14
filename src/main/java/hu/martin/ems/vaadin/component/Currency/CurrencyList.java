@@ -15,7 +15,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.date.Date;
+import hu.martin.ems.core.date.DateUtil;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Currency;
@@ -74,13 +74,13 @@ public class CurrencyList extends VerticalLayout {
             updateGrid(true);
         });
 
-        datePicker = new DatePicker("Date");
+        datePicker = new DatePicker("DateUtil");
         datePicker.setMax(LocalDate.now());
         datePicker.setValue(LocalDate.now());
         datePicker.addValueChangeListener(event -> updateGrid());
         datePicker.setI18n(new DatePicker.DatePickerI18n().setDateFormats(
                 "yyyy. MM. dd",
-                Date.generateAllFormats().toArray(new String[0])
+                DateUtil.generateAllFormats().toArray(new String[0])
         ));
 
 

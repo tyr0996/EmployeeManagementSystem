@@ -1,9 +1,9 @@
 package hu.martin.ems.controller;
 
 import fr.opensagres.xdocreport.core.XDocReportException;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.exception.CurrencyException;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.repository.OrderRepository;
 import hu.martin.ems.service.OrderElementService;
@@ -11,6 +11,7 @@ import hu.martin.ems.service.OrderService;
 import hu.martin.ems.vaadin.api.Error;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +42,9 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
         catch (XDocReportException e){
             return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        catch (CurrencyException e){
+            return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED.getBytes(), HttpStatus.BAD_GATEWAY);
+        }
     }
 
     @PostMapping(path = "/createDocumentAsPDF")
@@ -54,6 +58,9 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
         }
         catch (XDocReportException e){
             return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        catch (CurrencyException e){
+            return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED.getBytes(), HttpStatus.BAD_GATEWAY);
         }
     }
 
@@ -84,14 +91,14 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
     }
 
     @Override
-    @DeleteMapping(path = "/permanentlyDelete", produces = StaticDatas.Produces.JSON)
+    @DeleteMapping(path = "/permanentlyDelete", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> permanentlyDelete(@RequestParam(value = "id") Long entityId) {
         orderElementService.permanentlyDeleteByOrder(entityId);
         service.permanentlyDelete(entityId);
         return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
     }
 
-//    @GetMapping(path = "getOrderElements", produces = StaticDatas.Produces.JSON)
+//    @GetMapping(path = "getOrderElements", produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ResponseEntity<String> getOrderElements(@RequestParam(value = "orderId") Long orderId) throws JsonProcessingException {
 //        return new ResponseEntity<>(gson.toJson(service.getOrderElements(orderId)), HttpStatus.OK);
 //    }

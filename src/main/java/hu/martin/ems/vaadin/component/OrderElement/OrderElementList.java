@@ -45,9 +45,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
-import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
 
+import static hu.martin.ems.core.config.Icons.EDIT;
+import static hu.martin.ems.core.config.Icons.PERMANENTLY_DELETE;
 @Route(value = "orderElement/list", layout = MainView.class)
 @CssImport("./styles/ButtonVariant.css")
 @RolesAllowed("ROLE_OrderElementMenuOpenPermission")
@@ -79,14 +79,14 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<OrderElementVO> extraData;
 
-    private static String grossPriceFilterText = "";
-    private static String netPriceFilterText = "";
-    private static String orderFilterText = "";
-    private static String productFilterText = "";
-    private static String taxKeyFilterText = "";
-    private static String unitFilterText = "";
-    private static String unitNetPriceFilterText = "";
-    private static String customerOrSupplierNameFilterText = "";
+    private String grossPriceFilterText = "";
+    private String netPriceFilterText = "";
+    private String orderFilterText = "";
+    private String productFilterText = "";
+    private String taxKeyFilterText = "";
+    private String unitFilterText = "";
+    private String unitNetPriceFilterText = "";
+    private String customerOrSupplierNameFilterText = "";
     List<OrderElement> orderElementList;
     List<Product> productList;
     List<Customer> customerList;

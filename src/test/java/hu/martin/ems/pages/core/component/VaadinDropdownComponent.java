@@ -41,7 +41,7 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
     public void initWebElements(){
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
         if(!element.getTagName().equals("vaadin-combo-box")){
-            printToConsole();
+//            printToConsole();
             throw new IllegalArgumentException("Can't create ComboBox from an " + element.getTagName() + "!");
         }
         toggleButton = (WebElement) js.executeScript("return arguments[0].querySelector('div').querySelector('vaadin-input-container').querySelectorAll('div')[1]", element.getShadowRoot());
@@ -52,7 +52,7 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
     public int getElementNumber(){
         JavascriptExecutor js = (JavascriptExecutor) driver;
         var a = js.executeScript("return Array.from(arguments)[0].__data.filteredItems.length", element);
-        System.out.println("sanyi");
+//        System.out.println("sanyi");
         return Integer.parseInt(a.toString());
 //        assertEquals(true, this.isEnabled(), "The combo box is not enabled: " + element.getText());
 //        element.click();
@@ -97,7 +97,7 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
     @Override
     public VaadinDropdownComponent fillWithRandom() {
         assertEquals(true, this.isEnabled(), "The combo box is not enabled: " + element.getText());
-        toggleButton.click();
+        element.click();
         try {
             Thread.sleep(50);
         } catch (InterruptedException e) {
@@ -108,7 +108,6 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
         if(comboBoxOptions.size() == 0){
             System.err.println("Nincs elem a combo boxban! " + getTitle());
             element.click();
-            fillWithRandom();
 //            printToConsole(comboBox);
         }
         if(comboBoxOptions.size() == 1){
@@ -131,7 +130,7 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
     @Override
     public void clear(){
 
-        System.out.println(provider);
+//        System.out.println(provider);
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].selectedItem=''", element);
         element.sendKeys(Keys.ENTER);

@@ -55,15 +55,14 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
             String fixedRates = response.get("rates").toString().replaceAll("\\b[A-Z]+\\b", "\"$0\"") //Belerakja idézőjelbe
                     .replaceAll("=", ":");
             Currency currency = new Currency();
+
             currency.setBaseCurrency(codeStoreRepository.findByName(response.get("base").toString()));
             //CurrencyResponse cr = om.readValue(fixedRates, CurrencyResponse.class);
             currency.setRateJson(fixedRates);
-
             currency.setValidDate(getValidDate(response.get("date").toString()));
             currency.setDeleted(0L);
             Currency saved = this.repo.customSave(currency);
             return saved;
-//            return new EmsResponse(200, saved, "");
         } catch (ClassCastException e){
             throw new ParsingCurrenciesException();
         } catch (RestClientException e){

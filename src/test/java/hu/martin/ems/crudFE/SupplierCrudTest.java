@@ -2,6 +2,7 @@ package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.pages.SupplierPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
@@ -177,6 +178,16 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertEquals(0, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
         assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
         supplierPage.getGrid().resetFilter();
+
+
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponent.getText(), "Clearing database was successful");
+        notificationComponent.close();
     }
 //
 //    //@Test
