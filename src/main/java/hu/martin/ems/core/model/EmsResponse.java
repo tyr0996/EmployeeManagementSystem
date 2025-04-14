@@ -30,5 +30,6 @@ public class EmsResponse {
         String CURRENCIES_ALREADY_FETCHED = "Currencies already fetched";
         String DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE = "Document generation failed. Missing template file.";
         String DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE = "Document generation failed. Not supported file type";
+        String DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED = "Document generation failed. Error happened while getting currency for exchanging";
     }
 }

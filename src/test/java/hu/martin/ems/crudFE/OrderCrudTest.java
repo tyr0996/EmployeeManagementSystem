@@ -1,22 +1,19 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
 import com.automation.remarks.video.annotations.Video;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
+import com.jcraft.jsch.*;
 import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.core.config.JschConfig;
 import hu.martin.ems.core.file.XLSX;
+import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.pages.LoginPage;
-import hu.martin.ems.pages.OrderCreatePage;
-import hu.martin.ems.pages.OrderElementPage;
-import hu.martin.ems.pages.OrderPage;
+import hu.martin.ems.pages.*;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinButtonComponent;
@@ -32,9 +29,12 @@ import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.HttpServerErrorException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -53,7 +53,7 @@ import static org.testng.Assert.*;
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 //@PrepareForTest(jakarta.mail.Transport.class)
 //@RunWith(PowerMockRunner.class)
-//@Listeners(UniversalVideoListener.class)
+@Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderCrudTest extends BaseCrudTest {
 
@@ -70,9 +70,9 @@ public class OrderCrudTest extends BaseCrudTest {
 //    private static final String sendReportViaSFTPButtonXpath = contentXpath + "/vaadin-button";
 //    private static final String fromDatePickerXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-date-picker[1]/input";
 //    private static final String toDatePickerXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-date-picker[2]/input";
-//    private static final String createOrderPaymentComboBox = OrderCreateTest.paymentMethodComboBoxXpath;
-//    private static final String createOrderCurrencyComboBox = OrderCreateTest.currencyComboBoxXpath;
-//    private static final String createOrderSaveOrderButton = OrderCreateTest.orderCreateOrderButtonXpath;
+//    private static final String createOrderPaymentComboBox = OrderCreateToCustomerTest.paymentMethodComboBoxXpath;
+//    private static final String createOrderCurrencyComboBox = OrderCreateToCustomerTest.currencyComboBoxXpath;
+//    private static final String createOrderSaveOrderButton = OrderCreateToCustomerTest.orderCreateOrderButtonXpath;
 //    private static CrudTestingUtil crudTestingUtil;
 
 //    private static final String createButtonXpath = null;
@@ -83,7 +83,7 @@ public class OrderCrudTest extends BaseCrudTest {
 //    private GridTestingUtil gridTestingUtil;
 //
 //
-//    private OrderCreateTest orderCreateTest;
+//    private OrderCreateToCustomerTest orderCreateTest;
 //
 //
 //
@@ -97,7 +97,7 @@ public class OrderCrudTest extends BaseCrudTest {
 //        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
 //        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "Order", showDeletedXpath, gridXpath, createButtonXpath);
         spyOrderService.setRegistry(spyRegistry);
-//        orderCreateTest = new OrderCreateTest();
+//        orderCreateTest = new OrderCreateToCustomerTest();
     }
 //
 //    @AfterMethod
@@ -107,7 +107,7 @@ public class OrderCrudTest extends BaseCrudTest {
 //    }
 
     @Test
-    public void sendSFTPFailed_HostIsNull(){
+    public void sendSFTPFailed_HostIsNull() {
         String originalHost = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
         ReflectionTestUtils.setField(spyJschConfig, "sftpHost", null);
 
@@ -265,6 +265,33 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    public void generateODTFailedCurrencyException() throws Exception {
+        clearCurrencyDatabaseTable();
+        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+
+        OrderPage page = new OrderPage(driver, port);
+
+        ElementLocation rowLocation = page.getGrid().getRandomLocation();
+        if(rowLocation == null) {
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
+            ocPage.performCreate(null);
+            rowLocation = new ElementLocation(1, 0);
+            ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        }
+        VaadinButtonComponent odtButton = page.getGrid().getOptionAnchorButton(rowLocation, 1);
+        odtButton.click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), EmsResponse.Description.DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED);
+        notification.close();
+        assertFalse(waitForDownload("order_[0-9]{1,}.odt", 200, 10));
+        Mockito.reset(spyRegistry);
+    }
+
+    @Test
     public void generateODTFailedIOException() throws Exception {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
         EmptyLoggedInVaadinPage loggedInPage =
@@ -275,8 +302,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -301,8 +328,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -316,6 +343,35 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    public void generatePDFFailedCurrencyException() throws Exception {
+//        Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
+        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+        clearCurrencyDatabaseTable();
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+
+        OrderPage page = new OrderPage(driver, port);
+
+        ElementLocation rowLocation = page.getGrid().getRandomLocation();
+        if(rowLocation == null) {
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
+            ocPage.performCreate(null);
+            rowLocation = new ElementLocation(1, 0);
+            ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        }
+        VaadinButtonComponent pdfButton = page.getGrid().getOptionAnchorButton(rowLocation, 2);
+        pdfButton.click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED, notification.getText());
+        notification.close();
+        assertFalse(waitForDownload("order_[0-9]{1,}.pdf", 200, 10));
+
+        Mockito.reset(spyRegistry);
+    }
+
+    @Test
     public void generatePDFFailedIOException() throws Exception {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
         EmptyLoggedInVaadinPage loggedInPage =
@@ -326,8 +382,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -352,8 +408,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -376,8 +432,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -396,8 +452,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -440,7 +496,10 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void sendSFTPSuccessTest() throws JSchException {
+    public void sendSFTPFailed_uploadFailed() throws JSchException, SftpException {
+        JSch originalJsch = JschConfig.jsch;
+        ChannelSftp originalChannelSftp = spyJschConfig.getChannelSftp();
+        Session originalSession = spyJschConfig.getSession();
         String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
         String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
         int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
@@ -451,8 +510,13 @@ public class OrderCrudTest extends BaseCrudTest {
 
         when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
         doNothing().when(mockSession).connect();
-        when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
+        doThrow(SftpException.class).when(mockChannelSftp).put(any(InputStream.class), anyString());
+//        when(mockChannelSftp.put(any(InputStream.class), anyString())).thenThrow(SftpException.class);
+//        when(mockSession.openChannel("sftp")).thenThrow(SftpException.class);
         when(mockSession.getUserName()).thenReturn(sftpUserName);
+        when(spyJschConfig.getChannelSftp()).thenReturn(mockChannelSftp);
+        when(spyJschConfig.getChannelSftp().isConnected()).thenReturn(true);
+        doNothing().when(mockChannelSftp).put(any(InputStream.class), anyString());
 
         spyJschConfig.jsch = jsch;
 
@@ -462,8 +526,60 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderPage page = new OrderPage(driver, port);
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        notification.close();
+
+
+
+        Mockito.reset(mockSession);
+        Mockito.reset(jsch);
+        Mockito.reset(mockChannelSftp);
+        Mockito.clearInvocations(mockSession);
+        Mockito.clearInvocations(jsch);
+        Mockito.clearInvocations(mockChannelSftp);
+        JschConfig.jsch = originalJsch;
+        spyJschConfig.setSession(originalSession);
+        spyJschConfig.setChannelSftp(originalChannelSftp);
+    }
+
+    @Test
+    public void sendSFTPSuccessTest() throws JSchException, SftpException {
+        String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
+        String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
+        int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
+
+        JSch originalJsch = JschConfig.jsch;
+
+        JSch jsch = mock(JSch.class);
+        Session mockSession = mock(Session.class);
+        ChannelSftp mockChannelSftp = mock(ChannelSftp.class);
+
+        when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+        doNothing().when(mockSession).connect();
+        when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
+        when(mockSession.getUserName()).thenReturn(sftpUserName);
+        when(spyJschConfig.getChannelSftp()).thenReturn(mockChannelSftp);
+        when(spyJschConfig.getChannelSftp().isConnected()).thenReturn(true);
+        doNothing().when(mockChannelSftp).put(any(InputStream.class), anyString());
+
+        JschConfig.jsch = jsch;
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "SFTP sending is done");
         notification.close();
+        JschConfig.jsch = originalJsch;
+
+        Mockito.reset(mockSession);
+        Mockito.reset(jsch);
+        Mockito.reset(mockChannelSftp);
+        Mockito.clearInvocations(mockSession);
+        Mockito.clearInvocations(jsch);
+        Mockito.clearInvocations(mockChannelSftp);
     }
 
 
@@ -494,7 +610,7 @@ public class OrderCrudTest extends BaseCrudTest {
     ArgumentCaptor<EmailProperties> orderArgumentCaptor;
 
     @Test
-    public void sendEmailSuccessTest() throws MessagingException, IOException, XDocReportException {
+    public void sendEmailSuccessTest() throws MessagingException {
         Mockito.doNothing().when(spyEmailSendingService).transportSend(any(MimeMessage.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
@@ -504,8 +620,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -534,8 +650,8 @@ public class OrderCrudTest extends BaseCrudTest {
 //        ElementLocation rowLocation = page.getGrid().getRandomLocation(); //TODO visszarakni
         ElementLocation rowLocation = null; //TODO kitörölni
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             new VaadinNotificationComponent(driver).close();
             rowLocation = new ElementLocation(1, 0);
@@ -553,6 +669,54 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    public void sendEmailCreateAttachmentBodyPartFailedTest() throws MessagingException {
+        Mockito.doThrow(MessagingException.class).when(spyEmailSendingService).createAttachmentBodyPart(any(EmailAttachment.class));
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+
+        ElementLocation rowLocation = page.getGrid().getRandomLocation();
+        if(rowLocation == null) {
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
+            ocPage.performCreate(null);
+            rowLocation = new ElementLocation(1, 0);
+            ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        }
+
+        VaadinButtonComponent sendEmailButton = page.getGrid().getOptionColumnButton(rowLocation, 3);
+        sendEmailButton.click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Email sending failed");
+        notification.close();
+    }
+
+    @Test
+    public void sendEmailCreateMimeMessageFailedTest() throws MessagingException {
+        Mockito.doThrow(MessagingException.class).when(spyEmailSendingService).createMimeMessage(any(jakarta.mail.Session.class), any(EmailProperties.class));
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+
+        ElementLocation rowLocation = page.getGrid().getRandomLocation();
+        if(rowLocation == null) {
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
+            ocPage.performCreate(null);
+            rowLocation = new ElementLocation(1, 0);
+            ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        }
+
+        VaadinButtonComponent sendEmailButton = page.getGrid().getOptionColumnButton(rowLocation, 3);
+        sendEmailButton.click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Email sending failed");
+        notification.close();
+    }
+
+    @Test
     public void sendEmailFailedTest() {
         EmptyLoggedInVaadinPage loggedInPage =
             (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -561,8 +725,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -587,8 +751,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -599,24 +763,34 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE);
         notification.close();
+        Mockito.reset(spyRegistry);
+    }
 
+    @Test
+    public void sendEmailPDFGenerationFailedCurrencyException() {
+        clearCurrencyDatabaseTable();
+        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+//        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
 
-//
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//
-//        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
-//        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
-//        if(rowLocation == null) {
-//            orderCreateTest.setup();
-//            orderCreateTest.createOrder();
-//            rowLocation = new ElementLocation(1, 0);
-//        }
-//
-//        WebElement sendEmailButton = gridTestingUtil.getOptionColumnButton(gridXpath, rowLocation, 3);
-//        sendEmailButton.click();
-//        Thread.sleep(100);
-//        gridTestingUtil.checkNotificationText();
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+
+        ElementLocation rowLocation = page.getGrid().getRandomLocation();
+        if(rowLocation == null) {
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
+            ocPage.performCreate(null);
+            rowLocation = new ElementLocation(1, 0);
+            ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        }
+
+        VaadinButtonComponent sendEmailButton = page.getGrid().getOptionColumnButton(rowLocation, 3);
+        sendEmailButton.click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED);
+        notification.close();
         Mockito.reset(spyRegistry);
     }
 
@@ -631,8 +805,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -681,8 +855,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             rowLocation = new ElementLocation(1, 0);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -700,10 +874,8 @@ public class OrderCrudTest extends BaseCrudTest {
 //        WebElement modifyButton = gridTestingUtil.getModifyButton(gridXpath, rowLocation.getRowIndex());
 //        Thread.sleep(200);
 //        modifyButton.click();
-        OrderCreatePage createPage = new OrderCreatePage(driver, port);
-        if(createPage.getGrid().getTotalRowNumber() == 0){
-            System.out.println("Itt ugyebár nem volt elem ebben az esetben a gridben");
-        }
+        OrderCreateToCustomerPage createPage = new OrderCreateToCustomerPage(driver, port);
+//
         createPage.getGrid().selectElements(3);
         createPage.getShowPreviouslyOrderedElementsCheckBox().setStatus(true);
         createPage.getCurrencyComboBox().fillWithRandom();
@@ -778,8 +950,8 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderPage page = new OrderPage(driver, port);
         int originalVisibleRows = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox());
         if(originalVisibleRows == 0) {
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
             originalVisibleRows = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox());
@@ -827,8 +999,8 @@ public class OrderCrudTest extends BaseCrudTest {
         oePage.performCreate(withData);
         oePage.performCreate(withData);
         //endregion
-        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-        OrderCreatePage createPage = new OrderCreatePage(driver, port);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+        OrderCreateToCustomerPage createPage = new OrderCreateToCustomerPage(driver, port);
         createPage.performCreate("Erdei Róbert");
 
         createPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
@@ -851,7 +1023,7 @@ public class OrderCrudTest extends BaseCrudTest {
         page.getGrid().getModifyButton(0).click(); //TODO megcsinálni, hogy előtte nézze meg a szerkesztésben, hogy látja-e őket.
 //        gridTestingUtil.getModifyButton(gridXpath, 0).click();
 //        Thread.sleep(1000);
-        OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+        OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
 //        ocPage.getCustomerComboBox().fillWith("Erdei Róbert");
 //        ocPage.getGrid().waitForRefresh();
         assertEquals(ocPage.getGrid().getTotalNonDeletedRowNumber(null), 0);
@@ -866,8 +1038,8 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderPage page = new OrderPage(driver, port);
         int originalDeleted = page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox());
         if(originalDeleted == 0){
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             new VaadinNotificationComponent(driver).close();
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -909,10 +1081,11 @@ public class OrderCrudTest extends BaseCrudTest {
 
         int originalDeleted = page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox());
         if(originalDeleted == 0){
-            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
-            OrderCreatePage ocPage = new OrderCreatePage(driver, port);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
+            OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+            page.initWebElements();
             page.performDelete();
             new VaadinNotificationComponent(driver).close();
 //            originalVisibleRows = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox());
@@ -922,7 +1095,19 @@ public class OrderCrudTest extends BaseCrudTest {
 //            deleteOrderTest();
         }
         page.performPermanentlyDelete();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertThat(notification.getText()).contains("Order permanently deleted: ");
+        notification.close();
         //TODO ellenőrzést megcsinálni
+
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponent.getText(), "Clearing database was successful");
+        notificationComponent.close();
 //        crudTestingUtil.permanentlyDeleteTest();
     }
 

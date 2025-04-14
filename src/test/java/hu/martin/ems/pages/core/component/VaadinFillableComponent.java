@@ -21,7 +21,7 @@ public abstract class VaadinFillableComponent extends VaadinBaseComponent implem
 
 
     public String getErrorMessage(){
-        printToConsole(element.findElement(By.tagName("div")));
+//        printToConsole(element.findElement(By.tagName("div")));
         return element.findElement(By.tagName("div")).getText();
     }
 

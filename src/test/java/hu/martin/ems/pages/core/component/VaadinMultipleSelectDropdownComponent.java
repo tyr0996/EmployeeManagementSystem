@@ -27,8 +27,8 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
     public void initWebElements(){
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
 
-        printToConsole(element);
-        System.out.println(element.getTagName());
+//        printToConsole(element);
+//        System.out.println(element.getTagName());
         if(!element.getTagName().equals("input")){
             this.toggleButton = (WebElement) js.executeScript("return arguments[0].querySelector('div').querySelector('vaadin-multi-select-combo-box-internal').querySelector('vaadin-multi-select-combo-box-container').querySelectorAll('div')[2]", element.getShadowRoot());
             this.clearButton = (WebElement) js.executeScript("return arguments[0].querySelector('div').querySelector('vaadin-multi-select-combo-box-internal').querySelector('vaadin-multi-select-combo-box-container').querySelectorAll('div')[1]", element.getShadowRoot());

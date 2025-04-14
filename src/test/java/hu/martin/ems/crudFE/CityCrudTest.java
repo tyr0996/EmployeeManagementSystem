@@ -2,6 +2,7 @@ package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.CityPage;
 import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
@@ -122,12 +123,22 @@ public class CityCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("City permanently deleted: ");
 
 
+
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         cityPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
         assertEquals(0, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
         assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
         cityPage.getGrid().resetFilter();
+
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+
+        adminToolsPage.getClearDatabaseButton().click();
+        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
+        assertEquals(notificationComponent.getText(), "Clearing database was successful");
+        notificationComponent.close();
     }
 
     @Test

@@ -3,7 +3,6 @@ package hu.martin.ems.core.auth;
 import hu.martin.ems.core.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Primary;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,14 +19,13 @@ public class CustomUserDetailsService implements UserDetailsService {
 //    private final RoleXPermissionService roleXPermissionService;
 
     public static String getLoggedInUsername() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) { //TODO mikor lesz null az authetication?
-        if(authentication.getPrincipal() instanceof UserDetails) {
-            System.out.println("authentication != null " + (authentication != null) +
-                    " authentication.getPrincipal() instanceof UserDetails   " + (authentication.getPrincipal() instanceof UserDetails ? "true" : "false"));
-            return ((UserDetails) authentication.getPrincipal()).getUsername();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(principal instanceof UserDetails){
+            return ((UserDetails) principal).getUsername();
         }
-        return null;
+        else{
+            return null;
+        }
     }
 
 

@@ -25,7 +25,8 @@ public class SideMenu extends VaadinBaseComponent {
     public static final String ADMINTOOLS_SUB_MENU = SIDE_MENU + "/vaadin-horizontal-layout[11]/span";
     public static final String ORDER_ELEMENT_SUBMENU = SIDE_MENU + "/vaadin-horizontal-layout[12]/span";
     public static final String ORDER_SUBMENU = SIDE_MENU + "/vaadin-horizontal-layout[13]/span";
-    public static final String ORDER_CREATE_SUBMENU = SIDE_MENU + "/vaadin-horizontal-layout[14]/span";
+    public static final String ORDER_CREATE_TO_CUSTOMER_SUBMENU = SIDE_MENU + "/vaadin-horizontal-layout[14]/span";
+    public static final String ORDER_FROM_SUPPLIER_SUBMENU = SIDE_MENU + "/vaadin-horizontal-layout[15]/span";
 
     @Getter protected WebElement adminMenu;
     @Getter protected WebElement ordersMenu;

@@ -7,6 +7,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 
 @Repository
 @Transactional
@@ -22,7 +24,7 @@ public interface RoleRepository extends BaseRepository<Role, Long> {
 
     @Query("SELECT r FROM Role r " +
            "WHERE r.id = -1")
-    Role getNoRole();
+    Optional<Role> getNoRole();
 
 
 }

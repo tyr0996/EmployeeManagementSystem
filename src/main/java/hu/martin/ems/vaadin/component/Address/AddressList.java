@@ -23,7 +23,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
@@ -45,8 +45,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static hu.martin.ems.core.config.StaticDatas.Icons.EDIT;
-import static hu.martin.ems.core.config.StaticDatas.Icons.PERMANENTLY_DELETE;
+
+import static hu.martin.ems.core.config.Icons.EDIT;
+import static hu.martin.ems.core.config.Icons.PERMANENTLY_DELETE;
 
 @Route(value = "address/list", layout = MainView.class)
 @CssImport("./styles/ButtonVariant.css")
@@ -474,7 +475,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     }
 
     private void setupCountries() {
-        EmsResponse response = codeStoreApi.getChildren(StaticDatas.COUNTRIES_CODESTORE_ID);
+        EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.COUNTRIES_CODESTORE_ID);
         switch (response.getCode()){
             case 200:
                 countryList = (List<CodeStore>) response.getResponseData();
@@ -487,7 +488,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     }
 
     private void setupStreetTypes() {
-        EmsResponse response = codeStoreApi.getChildren(StaticDatas.STREET_TYPES_CODESTORE_ID);
+        EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.STREET_TYPES_CODESTORE_ID);
         switch (response.getCode()){
             case 200:
                 streetTypeList = (List<CodeStore>) response.getResponseData();

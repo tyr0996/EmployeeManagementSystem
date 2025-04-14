@@ -15,7 +15,7 @@ import org.openqa.selenium.WebDriver;
 import java.util.LinkedHashMap;
 import java.util.NoSuchElementException;
 
-public class OrderCreatePage extends EmptyLoggedInVaadinPage implements ILoggedInPage {
+public class OrderCreateToCustomerPage extends EmptyLoggedInVaadinPage implements ILoggedInPage {
     private static final String multipleSelectGridXpath = contentLayoutXpath + "/vaadin-grid";
     private static final String customerComboBoxXpath = contentLayoutXpath + "/vaadin-form-layout[1]/vaadin-combo-box";
     private static final String showPreviouslyOrderedElementsCheckboxXpath = contentLayoutXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
@@ -30,7 +30,7 @@ public class OrderCreatePage extends EmptyLoggedInVaadinPage implements ILoggedI
     @Getter private VaadinDropdownComponent paymentTypeComboBox;
     @Getter private VaadinButtonComponent createOrderButton;
 
-    public OrderCreatePage(WebDriver driver, int port) {
+    public OrderCreateToCustomerPage(WebDriver driver, int port) {
         super(driver, port);
 
         initWebElements();
@@ -54,7 +54,7 @@ public class OrderCreatePage extends EmptyLoggedInVaadinPage implements ILoggedI
                 OrderElementPage oePage = new OrderElementPage(getDriver(), getPort());
                 oePage.performCreate(withData);
 //                new VaadinNotificationComponent(getDriver()).close();
-                getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_SUBMENU);
+                getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
                 this.initWebElements();
                 return performCreate(withData.get("Customer").toString());
             }
@@ -70,7 +70,7 @@ public class OrderCreatePage extends EmptyLoggedInVaadinPage implements ILoggedI
     }
 
     @Override
-    public OrderCreatePage initWebElements() {
+    public OrderCreateToCustomerPage initWebElements() {
         grid = new VaadinMultipleSelectGridComponent(getDriver(), By.xpath(multipleSelectGridXpath));
         customerComboBox = new VaadinDropdownComponent(getDriver(), By.xpath(customerComboBoxXpath));
         showPreviouslyOrderedElementsCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showPreviouslyOrderedElementsCheckboxXpath));

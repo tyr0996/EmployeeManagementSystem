@@ -47,7 +47,7 @@ public class VaadinMultipleSelectGridComponent extends VaadinGridComponent {
 //        WebElement selectAllCheckBoxWebElement = getSelectAllCheckbox().element;
         WebElement parent = getSelectAllCheckbox().element;
 //        WebElement parent = getParentWebElement(selectAllCheckBoxWebElement);
-        printToConsole(parent);
+//        printToConsole(parent);
         if(parent.getDomAttribute("checked") != null){
             if(parent.getDomAttribute("indeterminate") != null){
                 getSelectAllCheckbox().element.click();

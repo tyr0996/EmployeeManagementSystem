@@ -24,4 +24,8 @@ public interface OrderElementRepository extends BaseRepository<OrderElement, Lon
            "SET oe.deleted = 2 " +
            "WHERE oe.orderObject.id = :orderId")
     void customPermanentlyDeleteByOrder(@Param("orderId") Long orderId);
+
+    @Query("SELECT oe FROM OrderElement oe " +
+            "WHERE oe.supplier.id = :supplierId")
+    List<OrderElement> getBySupplier(Long supplierId);
 }

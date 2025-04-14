@@ -5,13 +5,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Date {
 
-    private static final String[] yearsFormat = new String[]{"yyyy"};
-    private static final String[] monthsFormat = new String[]{"MM", "M"};
-    private static final String[] daysFormat = new String[]{"dd", "d"};
-    private static final String[] separators = new String[]{"/", "-", "."};
+public class DateUtil {
+    private DateUtil() {}
 
+    private static String[] monthsFormat = new String[]{"MM", "M"};
+    private static String[]  daysFormat = new String[]{"dd", "d"};
+    private static String[]  separators = new String[]{"/", "-", "."};
 
     public static List<String> generateAllFormatDate(LocalDate date){
         List<String> generated = new ArrayList<>();
@@ -24,27 +24,27 @@ public class Date {
 
     public static List<String> generateAllFormats() {
         List<String> allFormat = new ArrayList<>();
-        for (String year : yearsFormat) {
-            for (String month : monthsFormat) {
-                for (String day : daysFormat) {
-                    List<String> middleCombinations = generateMiddleCombinations();
-                    for (String middle1 : middleCombinations) {
-                        for (String middle2 : middleCombinations) {
-                            String format = year + middle1 + month + middle2 + day;
-                            allFormat.add(format);
-                            allFormat.add(format + ".");
-                        }
+        for (String month : monthsFormat) {
+            for (String day : daysFormat) {
+                List<String> middleCombinations = generateMiddleCombinations();
+                for (String middle1 : middleCombinations) {
+                    for (String middle2 : middleCombinations) {
+                        String format = "yyyy" + middle1 + month + middle2 + day;
+                        allFormat.add(format);
+                        allFormat.add(format + ".");
                     }
                 }
             }
         }
+//        System.out.println("allFormat szűrés nélkül: " + allFormat.size());
+//        System.out.println("allFormat szűréssel: " + (allFormat.stream().filter(v -> !v.contains("MMdd") && !v.contains("yyyyMM")).toList()).size());
         return allFormat.stream().filter(v -> !v.contains("MMdd") && !v.contains("yyyyMM")).toList();
     }
 
     private static List<String> generateMiddleCombinations() {
         List<String> combinations = new ArrayList<>();
         combinations.add(" ");
-        combinations.add("");
+        combinations.add(""); //TODO ezt majd ki kell venni. Ekkor nem fog kelleni a generateAllFormats-nál a szűrés. Addig viszont marad
 
         for (String sep : separators) {
             combinations.add(sep);

@@ -5,7 +5,6 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.JsonConfig;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -24,7 +23,6 @@ import java.util.List;
 public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements BaseRepository<T, ID> {
 
     @PersistenceContext
-    @Setter
     protected EntityManager entityManager;
 
     private final Logger logger;
@@ -116,14 +114,14 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
             logger.info("Entity " + entity.getClass().getSimpleName() + " saved successfully: " + gson.toJson(entity));
             return entity;
         } catch (Exception e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+//            if (transaction.isActive()) {
+//                transaction.rollback();
+//            }
             throw e;
         } finally {
-            if (tempEm.isOpen()) {
+//            if (tempEm.isOpen()) {
                 tempEm.close();
-            }
+//            }
         }
 
     }
@@ -147,14 +145,14 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
             logger.info(entity.getClass().getSimpleName() + " updated successfully: {}", entity);
             return entity;
         } catch (Exception e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
+//            if (transaction.isActive()) {
+//                transaction.rollback();
+//            }
             throw e;
         } finally {
-            if (tempEm.isOpen()) {
+//            if (tempEm.isOpen()) {
                 tempEm.close();
-            }
+//            }
         }
     }
 
@@ -218,39 +216,24 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
             logger.info("Entity with ID " + entityId + " forced to permanently delete");
         }
         catch (Exception e){
-            if (e.getCause().getMessage().contains("violates foreign key constraint")) {
-                logger.info("Entity with ID " + entityId + " is not deletable due to it has reference(s) in other table(s)");
-                tempEm.close();
-            }
-            else{
+            if (e.getCause() == null) {
                 logger.error("Entity with ID " + entityId + " is not deletable due to a fatal error. It needs to be debugged.");
-                e.getCause().printStackTrace();
                 if(transaction.isActive()){
                     transaction.rollback();
-                    tempEm.close();
                 }
+            }
+            else /*(e.getCause().getMessage().contains("violates foreign key constraint"))*/{
+                logger.info("Entity with ID " + entityId + " is not deletable due to it has reference(s) in other table(s)");
             }
         }
         finally {
-            if(tempEm.isOpen()){
+//            if(tempEm.isOpen()){
                 tempEm.clear();
                 tempEm.close();
-            }
+//            }
         }
     }
 
-    @Override
-    @Transactional
-    public List<T> customFindAllById(List<Long> ids) {
-        EntityManagerFactory factory = entityManager.getEntityManagerFactory();
-        EntityManager tempEm = factory.createEntityManager();
-
-        String idsAsString = String.join(", ", ids.stream().map(v -> v.toString()).toList());
-        String jpql = "SELECT e FROM " + type.getSimpleName() + " e WHERE e.id in (" + idsAsString + ")";
-        List<T> result = tempEm.createQuery(jpql, type).getResultList();
-        tempEm.close();
-        return result;
-    }
 
     public int deleteEntity(EntityManager tempEm, T entity) {
         int affected = 0;
@@ -263,22 +246,21 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
             affected = 1;
         }
         catch (Exception e){
-            if (e.getCause().getMessage().contains("violates foreign key constraint")) {
-                logger.info("Entity with ID " + entity.getId() + " is not deletable due to it has reference(s) in other table(s)");
-            }
-            else{
+            if (e.getCause() == null) {
                 logger.error("Entity with ID " + entity.getId() + " is not deletable due to a fatal error. It needs to be debugged.");
-                e.getCause().printStackTrace();
-                if(transaction.isActive()){
-                    transaction.rollback();
-                }
+//                if(transaction.isActive()){
+//                    transaction.rollback();
+//                }
+            }
+            else /*(e.getCause().getMessage().contains("violates foreign key constraint"))*/{
+                logger.info("Entity with ID " + entity.getId() + " is not deletable due to it has reference(s) in other table(s)");
             }
         }
         finally{
-            if(tempEm.isOpen()){
-                tempEm.clear();
+//            if(tempEm.isOpen()){
+//                tempEm.clear();
                 tempEm.close();
-            }
+//            }
         }
         return affected;
     }

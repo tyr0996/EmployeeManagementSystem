@@ -15,7 +15,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.StaticDatas;
+import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Customer;
@@ -42,10 +42,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Route(value = "order/create", layout = MainView.class)
+@Route(value = "order/create/customer", layout = MainView.class)
 @RolesAllowed("ROLE_OrderCreateMenuOpenPermission")
 @NeedCleanCoding
-public class OrderCreate extends VerticalLayout implements BeforeEnterObserver {
+public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnterObserver {
 
     public Order editObject;
     private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
@@ -70,7 +70,7 @@ public class OrderCreate extends VerticalLayout implements BeforeEnterObserver {
     ComboBox<Customer> customers;
     Checkbox showPreviouslyOrderedElements;
 
-    public OrderCreate(){
+    public OrderCreateToCustomer(){
         init();
     }
 
@@ -315,7 +315,7 @@ public class OrderCreate extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void setupPaymentTypes() {
-        EmsResponse response = codeStoreApi.getChildren(StaticDatas.PAYMENT_TYPES_CODESTORE_ID);
+        EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.PAYMENT_TYPES_CODESTORE_ID);
         switch (response.getCode()){
             case 200:
                 paymentTypeList = (List<CodeStore>) response.getResponseData();
@@ -328,7 +328,7 @@ public class OrderCreate extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private void setupCurrencies() {
-        EmsResponse response = codeStoreApi.getChildren(StaticDatas.CURRENCIES_CODESTORE_ID);
+        EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.CURRENCIES_CODESTORE_ID);
         switch (response.getCode()){
             case 200:
                 currencyList = (List<CodeStore>) response.getResponseData();
@@ -349,7 +349,7 @@ public class OrderCreate extends VerticalLayout implements BeforeEnterObserver {
 //                orderElements = (List<OrderElement>) response.getResponseData();
 //                break;
 //            default:
-//                logger.error("UndoUpdate failed in OrderCreate [Getting orderElements]. OrderId: " + originalOrder.getId());
+//                logger.error("UndoUpdate failed in OrderCreateToCustomer [Getting orderElements]. OrderId: " + originalOrder.getId());
 //                return;
 //        }
 //
@@ -373,7 +373,7 @@ public class OrderCreate extends VerticalLayout implements BeforeEnterObserver {
 //                orderElements = (List<OrderElement>) response.getResponseData();
 //                break;
 //            default:
-//                logger.error("UndoSave failed in OrderCreate. OrderId: " + order.getId());
+//                logger.error("UndoSave failed in OrderCreateToCustomer. OrderId: " + order.getId());
 //                return;
 //        }
 //        orderElements.forEach(v -> {

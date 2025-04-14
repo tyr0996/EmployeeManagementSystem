@@ -21,14 +21,14 @@ public class PermissionController extends BaseController<Permission, PermissionS
     private RoleService roleService;
 
 //    @Override
-//    @PostMapping(path = "/save", produces = StaticDatas.Produces.JSON)
+//    @PostMapping(path = "/save", produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ResponseEntity<String> save(@RequestBody Permission entity) {
 //        entity.setRoles(new HashSet<>(roleService.findAllByIds(entity.getRoleIds())));
 //        return new ResponseEntity<>(gson.toJson(service.save(entity)), HttpStatus.OK);
 //    }
 //
 //    @Override
-//    @PutMapping(path = "/update", produces = StaticDatas.Produces.JSON)
+//    @PutMapping(path = "/update", produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ResponseEntity<String> update(@RequestBody Permission entity) {
 //        entity.setRoles(new HashSet<>(roleService.findAllByIds(entity.getRoleIds())));
 //        return new ResponseEntity<>(gson.toJson(service.update(entity)), HttpStatus.OK);

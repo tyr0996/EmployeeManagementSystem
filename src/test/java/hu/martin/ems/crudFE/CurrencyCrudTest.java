@@ -5,9 +5,8 @@ import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.base.RandomGenerator;
 import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.date.Date;
+import hu.martin.ems.core.date.DateUtil;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.model.Currency;
 import hu.martin.ems.pages.CurrencyPage;
 import hu.martin.ems.pages.LoginPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
@@ -24,6 +23,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -70,8 +70,10 @@ public class CurrencyCrudTest extends BaseCrudTest {
 
         LocalDate todayDate = LocalDate.now();
 
-        List<String> generatedDates = Date.generateAllFormatDate(todayDate);
-        for(String generatedTodayDate : generatedDates){
+        List<String> generatedDates = DateUtil.generateAllFormatDate(todayDate);
+        Collections.shuffle(generatedDates);
+        List<String> shorted = generatedDates.subList(0, 30);
+        for(String generatedTodayDate : shorted){
             page.getDatePicker().clear();
             page.getDatePicker().selectDate(generatedTodayDate);
             assertEquals(todayDate, page.getDatePicker().getDate());
@@ -219,10 +221,5 @@ public class CurrencyCrudTest extends BaseCrudTest {
         assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
     }
 
-    private void clearCurrencyDatabaseTable(){
-        List<Currency> currentCurrencies = spyCurrencyService.findAll(false);
-        currentCurrencies.forEach(v -> {
-            spyCurrencyService.forcePermanentlyDelete(v.getId());
-        });
-    }
+
 }

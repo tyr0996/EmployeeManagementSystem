@@ -2,7 +2,6 @@ package hu.martin.ems.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.controller.BaseController;
 import hu.martin.ems.exception.FetchingCurrenciesException;
 import hu.martin.ems.exception.ParsingCurrenciesException;
@@ -12,6 +11,7 @@ import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.vaadin.api.Error;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,7 +28,7 @@ public class CurrencyController extends BaseController<Currency, CurrencyService
         super(service);
     }
 
-    @GetMapping(path = "fetchAndSaveRates", produces = StaticDatas.Produces.JSON)
+    @GetMapping(path = "fetchAndSaveRates", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> fetchAndSaveRates() throws FetchingCurrenciesException, ParsingCurrenciesException {
         Currency c = service.fetchAndSaveRates();
         return new ResponseEntity<>(gson.toJson(c), HttpStatus.OK);

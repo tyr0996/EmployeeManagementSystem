@@ -59,9 +59,9 @@ public class Order extends BaseEntity {
         return this.getId() + " (" + this.state.getName() + ")";
     }
 
-    @AssertTrue(message = "At least one of the fields (field1 or field2) must have a value.")
+    @AssertTrue(message = "Either customer or supplier must be set, but not both")
     public boolean isValid() {
-        System.out.println("Order is valid: " + (customer != null) + "    " + (supplier != null));
-        return customer != null || supplier != null;
+        System.out.println("OrderElement is valid: " + (customer != null) + "    " + (supplier != null));
+        return customer != null ^ supplier != null;
     }
 }

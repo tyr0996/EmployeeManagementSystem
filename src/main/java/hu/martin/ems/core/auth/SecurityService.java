@@ -3,7 +3,6 @@ package hu.martin.ems.core.auth;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.VaadinSession;
-import com.vaadin.flow.server.WrappedSession;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +15,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Component
 @NeedCleanCoding
 public class SecurityService {
@@ -25,11 +27,7 @@ public class SecurityService {
 
     public UserDetails getAuthenticatedUser() {
         SecurityContext context = SecurityContextHolder.getContext();
-        Object principal = context.getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            return (UserDetails) context.getAuthentication().getPrincipal();
-        }
-        return null;
+        return (UserDetails) context.getAuthentication().getPrincipal();
     }
 
     public void logout() {
@@ -46,14 +44,14 @@ public class SecurityService {
                 .bodyToMono(String.class)
                 .block();
 
-        WrappedSession session = VaadinSession.getCurrent().getSession();
-        if(session != null){
-            session.invalidate();
-        }
+//        WrappedSession session = VaadinSession.getCurrent().getSession().invalidate();
+//        VaadinSession.getCurrent().getSession().invalidate();
+//        if(session != null){
+//            session.invalidate();
+//        }
         VaadinSession.getCurrent().close();
 
         VaadinService.reinitializeSession(VaadinService.getCurrentRequest());
-
     }
 
     public String getSessionId() {
@@ -63,12 +61,7 @@ public class SecurityService {
 
     public String getXsrfToken() {
         HttpServletRequest request = VaadinServletRequest.getCurrent().getHttpServletRequest();
-        Cookie[] cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-            if ("XSRF-TOKEN".equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        return null;
+        List<Cookie> cookies = Arrays.asList(request.getCookies());
+        return cookies.stream().filter(v -> v.getName().equals("XSRF-TOKEN")).toList().get(0).getValue();
     }
 }

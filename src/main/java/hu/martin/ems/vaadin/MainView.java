@@ -23,11 +23,11 @@ import hu.martin.ems.vaadin.component.Address.AddressList;
 import hu.martin.ems.vaadin.component.AdminTools.AdminTools;
 import hu.martin.ems.vaadin.component.City.CityList;
 import hu.martin.ems.vaadin.component.CodeStore.CodeStoreList;
-//import hu.martin.ems.vaadin.component.ComponentManager;
 import hu.martin.ems.vaadin.component.Currency.CurrencyList;
 import hu.martin.ems.vaadin.component.Customer.CustomerList;
 import hu.martin.ems.vaadin.component.Employee.EmployeeList;
-import hu.martin.ems.vaadin.component.Order.OrderCreate;
+import hu.martin.ems.vaadin.component.Order.OrderCreateToCustomer;
+import hu.martin.ems.vaadin.component.Order.OrderFromSupplier;
 import hu.martin.ems.vaadin.component.Order.OrderList;
 import hu.martin.ems.vaadin.component.OrderElement.OrderElementList;
 import hu.martin.ems.vaadin.component.Product.ProductList;
@@ -37,8 +37,6 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,8 +58,6 @@ public class MainView extends HorizontalLayout implements RouterLayout {
 //    @Autowired
 //    private ComponentManager componentManager;
 
-    @Getter
-    @Setter
     private Div contentLayout;
 
     @Autowired
@@ -87,7 +83,8 @@ public class MainView extends HorizontalLayout implements RouterLayout {
         addMenu(menuLayout, "Admin", "Admin tools", AdminTools.class);
         addMenu(menuLayout, "Orders", "OrderElement", OrderElementList.class);
         addMenu(menuLayout, "Orders", "Order", OrderList.class);
-        addMenu(menuLayout, "Orders", "Order create", OrderCreate.class);
+        addMenu(menuLayout, "Orders", "Order create for customer", OrderCreateToCustomer.class);
+        addMenu(menuLayout, "Orders", "Order from supplier", OrderFromSupplier.class);
 
         addLogoutButton();
 

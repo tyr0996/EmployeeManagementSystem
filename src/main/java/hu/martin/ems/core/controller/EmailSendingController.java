@@ -5,11 +5,10 @@ import com.google.gson.Gson;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.StaticDatas;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.service.EmailSendingService;
-import lombok.Setter;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 @AnonymousAllowed
 @NeedCleanCoding
 public class EmailSendingController {
-    @Setter
     private EmailSendingService service;
 
     public EmailSendingController(EmailSendingService service){
@@ -31,7 +29,7 @@ public class EmailSendingController {
     private final Gson gson = BeanProvider.getBean(Gson.class);
 
 
-    @PostMapping(path = "/sendEmail", consumes = StaticDatas.Consumes.JSON, produces = StaticDatas.Produces.JSON)
+    @PostMapping(path = "/sendEmail", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE) //TODO ezt lehet, hogy ki lehet venni a mediatype-okat
     public ResponseEntity<String> send(@RequestBody EmailProperties properties) throws JsonProcessingException {
         boolean success = service.send(properties);
         return new ResponseEntity<>(gson.toJson(success), HttpStatus.OK);

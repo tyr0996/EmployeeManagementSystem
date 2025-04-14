@@ -43,18 +43,9 @@ public class EmailSendingService {
         String sendingAddress = emailData.getSendingAddress();
         String sendingPassword = emailData.getSendingPassword();
 
-        Session session = Session.getDefaultInstance(props,
-                new jakarta.mail.Authenticator() {
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(sendingAddress, sendingPassword);
-                    }
-                });
-
+        Session session = Session.getDefaultInstance(props, new EmsEmailAuthenticator(sendingAddress,  sendingPassword));
         try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(sendingAddress));
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailProperties.getTo()));
-            message.setSubject(emailProperties.getSubject());
+            MimeMessage message = createMimeMessage(session, emailProperties);
 
             MimeMultipart multipart = new MimeMultipart();
 
@@ -63,14 +54,8 @@ public class EmailSendingService {
             multipart.addBodyPart(mainMessage);
 
             try {
-                if(emailProperties.getAttachments() != null){
-                     for(EmailAttachment emailAttachment : emailProperties.getAttachments()){
-                        MimeBodyPart attachment = new MimeBodyPart();
-                        ByteArrayDataSource ds = new ByteArrayDataSource(emailAttachment.getData(), emailAttachment.getContentType());
-                        attachment.setDataHandler(new DataHandler(ds));
-                        attachment.setFileName(emailAttachment.getFileName());
-                        multipart.addBodyPart(attachment);
-                    };
+                for(EmailAttachment emailAttachment : emailProperties.getAttachments()){
+                    multipart.addBodyPart(createAttachmentBodyPart(emailAttachment));
                 }
             } catch (MessagingException e) {
                 logger.error("Error occured while sending email. " + e);
@@ -91,6 +76,22 @@ public class EmailSendingService {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public BodyPart createAttachmentBodyPart(EmailAttachment emailAttachment) throws MessagingException {
+        MimeBodyPart attachment = new MimeBodyPart();
+        ByteArrayDataSource ds = new ByteArrayDataSource(emailAttachment.getData(), emailAttachment.getContentType());
+        attachment.setDataHandler(new DataHandler(ds));
+        attachment.setFileName(emailAttachment.getFileName());
+        return attachment;
+    }
+
+    public MimeMessage createMimeMessage(Session session, EmailProperties emailProperties) throws MessagingException {
+        MimeMessage message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(emailData.getSendingAddress()));
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailProperties.getTo()));
+        message.setSubject(emailProperties.getSubject());
+        return message;
     }
 
     public void transportSend(MimeMessage message) throws MessagingException {
