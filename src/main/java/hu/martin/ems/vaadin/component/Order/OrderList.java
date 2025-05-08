@@ -24,6 +24,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
@@ -47,8 +48,6 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static hu.martin.ems.core.config.Icons.*;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
@@ -144,16 +143,16 @@ public class OrderList extends VerticalLayout {
 
         //region Options column
         extraData = this.grid.addComponentColumn(order -> {
-            Button editButton = new Button(EDIT.create());
+            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
             Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
             restoreButton.addClassNames("info_button_variant");
-            Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
+            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
-            Anchor odtDownload = createDownloadAnchor(order, ODT_FILE.create(), () -> orderApi.createDocumentAsODT(order.original), "odt");
-            Anchor pdfDownload = createDownloadAnchor(order, PDF_FILE.create(), () -> orderApi.createDocumentAsPDF(order.original), "pdf");
+            Anchor odtDownload = createDownloadAnchor(order, BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).ODT_FILE_ICON), () -> orderApi.createDocumentAsODT(order.original), "odt");
+            Anchor pdfDownload = createDownloadAnchor(order, BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PDF_FILE_ICON_ICON), () -> orderApi.createDocumentAsPDF(order.original), "pdf");
 
             Button sendEmail = new Button("Send email");
             sendEmail.addClickListener(event -> {

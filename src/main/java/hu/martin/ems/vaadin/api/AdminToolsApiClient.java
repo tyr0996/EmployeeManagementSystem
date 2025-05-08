@@ -28,6 +28,22 @@ public class AdminToolsApiClient {
 
     private static final String entityName = "adminTools";
 
+    public EmsResponse healthStatus(){
+        WebClient webClient = webClientProvider.initBaseUrlWebClient("");
+        try{
+            String repsonse = webClient.get()
+                    .uri("actuator/health")
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            return new EmsResponse(200, repsonse, "");
+        }
+        catch(WebClientResponseException ex){
+            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+        }
+    }
+
     public EmsResponse clearDatabase(){
         WebClient csrfWebClient = webClientProvider.initCsrfWebClient(entityName);
         try{

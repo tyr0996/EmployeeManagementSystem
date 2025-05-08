@@ -8,6 +8,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 
 @Component
@@ -17,6 +18,12 @@ public class WebDriverProvider {
     private String downloadFolder;
     private WebDriver driver;
 
+    @PostConstruct
+    private void init(){
+        String temp = downloadFolder.replaceAll("/", "\\\\");
+        downloadFolder = temp;
+    }
+
     public WebDriver get(){
         if(driver == null){
             ChromeOptions options = new ChromeOptions();
@@ -25,8 +32,9 @@ public class WebDriverProvider {
             chromePref.put("download.default_directory", downloadFolder);
             chromePref.put("download.prompt_for_download", false);
             chromePref.put("directory_upgrade", true);
-            options.setExperimentalOption("prefs", chromePref);
+
             chromePref.put("plugins.always_open_pdf_externally", true);
+            options.setExperimentalOption("prefs", chromePref);
 
             WebDriver d = new ChromeDriver(options);
             d.manage().window().setPosition(new Point(1280, -760));

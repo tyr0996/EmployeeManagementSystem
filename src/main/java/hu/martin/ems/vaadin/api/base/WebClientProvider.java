@@ -35,6 +35,19 @@ public class WebClientProvider {
                 .build();
     }
 
+    public WebClient initBaseUrlWebClient(String baseUrl){
+        String url = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/";
+        return WebClient.builder()
+                .baseUrl(url)
+                .exchangeStrategies(ExchangeStrategies.builder()
+                        .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(10 * 1024 * 1024)) // 10MB buffer
+                        .build())
+
+                .defaultCookie("JSESSIONID", securityService.getSessionId())
+//                    .filter(logRequest())
+                .build();
+    }
+
     public WebClient initWebClient(String entityName){
         String baseUrl = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/api/" + entityName + "/";
         return WebClient.builder()
