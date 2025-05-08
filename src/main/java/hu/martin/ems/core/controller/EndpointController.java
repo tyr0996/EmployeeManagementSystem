@@ -5,8 +5,10 @@ import com.google.gson.annotations.Expose;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import hu.martin.ems.core.config.BeanProvider;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,11 @@ public class EndpointController {
 //    @Qualifier("webApplicationContext")
 //    @Autowired
 //    private ApplicationContext applicationContext;
+
+    @Autowired
+    @Qualifier("requestMappingHandlerMapping")
+    @Getter
+    private RequestMappingHandlerMapping handlerMapping;
 
     @Autowired
     private Gson gson;
@@ -68,10 +75,6 @@ public class EndpointController {
             System.out.println("No match found. Input: " + input);
             return null;
         }
-    }
-
-    public RequestMappingHandlerMapping getHandlerMapping() throws BeansException {
-        return BeanProvider.getBean(RequestMappingHandlerMapping.class);
     }
 
     @AllArgsConstructor

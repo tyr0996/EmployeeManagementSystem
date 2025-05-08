@@ -1,7 +1,6 @@
 package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.core.config.FolderPaths;
 import hu.martin.ems.core.model.EntityUtil;
 import hu.martin.ems.vaadin.component.BaseVO;
 import org.mockito.Mockito;
@@ -37,8 +36,8 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
 
     @Test
     public void testSqlFileCount() {
-        Integer sqlFileCount = fileCountInFolder(FolderPaths.GENERATED_SQL_FILES_PATH, ".sql");
-        Integer jsonFileCount = fileCountInFolder(FolderPaths.STATIC_JSON_FOLDER_PATH, ".json");
+        Integer sqlFileCount = fileCountInFolder(dp.getGENERATED_SQL_FILES_PATH(), ".sql");
+        Integer jsonFileCount = fileCountInFolder(dp.getSTATIC_JSON_FOLDER_PATH(), ".json");
 
         assertEquals(jsonFileCount, sqlFileCount, "The number of the sql files not equals with the number of json files.");
     }
@@ -55,7 +54,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
 
     @Test
     public void testSqlGenerationFromJson() throws IOException {
-        String generatedSql = dp.generateSqlFromJson(new File(FolderPaths.STATIC_JSON_FOLDER_PATH + "\\roles.json"));
+        String generatedSql = dp.generateSqlFromJson(new File(dp.getSTATIC_JSON_FOLDER_PATH() + "\\roles.json"));
         assertEquals(generatedSql,
                 "INSERT INTO Role (name, deleted, id) VALUES\n\t('Martin', '0', '1'),\n\t('Robi', '0', '2'),\n\t('NO_ROLE', '0', '-1')",
                 "The generated sql not equals with the excepted");

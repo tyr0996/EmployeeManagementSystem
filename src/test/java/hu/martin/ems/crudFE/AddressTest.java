@@ -2,7 +2,7 @@ package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
-import hu.martin.ems.core.config.Icons;
+import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.pages.AddressPage;
 import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.InternalErrorNotification;
@@ -19,10 +19,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
@@ -303,26 +309,15 @@ public class AddressTest extends BaseCrudTest {
     }
 
     @Test
-    public void oneOfTheIconsIOExceptionTest() {
-        try (MockedStatic<Icons> iconMock = Mockito.mockStatic(Icons.class)) {
-            Icons edit = Mockito.mock(Icons.class);
-            Mockito.doReturn(10).when(edit).ordinal();
-            iconMock.when(Icons::values).thenReturn(new Icons[] {Icons.XLSX_FILE, Icons.ODT_FILE, Icons.PDF_FILE, Icons.PERMANENTLY_DELETE, edit});
-
-
-
-            for (int i = 0; i < Icons.values().length; i++) {
-                System.out.println(Icons.values()[i]);
-            }
-
-            EmptyLoggedInVaadinPage loggedInPage = (EmptyLoggedInVaadinPage)
-                    LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-            loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADDRESS_SUBMENU);
-            InternalErrorNotification notification = new InternalErrorNotification(driver);
-            SoftAssert sa = new SoftAssert();
-            sa.assertEquals(notification.getCaption().getText(), "Internal error");
-            sa.assertEquals(notification.getMessage().getText(), "Please notify the administrator. Take note of any unsaved data, and click here or press ESC to continue.");
-            sa.assertAll();
-        }
+    public void oneOfTheIconsIOExceptionTest() throws IOException{
+        doThrow(IOException.class).when(spyIconProvider).readAllBytes(any(Path.class));
+        EmptyLoggedInVaadinPage loggedInPage = (EmptyLoggedInVaadinPage)
+                LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADDRESS_SUBMENU);
+        InternalErrorNotification notification = new InternalErrorNotification(driver);
+        SoftAssert sa = new SoftAssert();
+        sa.assertEquals(notification.getCaption().getText(), "Internal error");
+        sa.assertEquals(notification.getMessage().getText(), "Please notify the administrator. Take note of any unsaved data, and click here or press ESC to continue.");
+        sa.assertAll();
     }
 }

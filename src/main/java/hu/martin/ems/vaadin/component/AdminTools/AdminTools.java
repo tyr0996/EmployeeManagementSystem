@@ -1,14 +1,19 @@
 package hu.martin.ems.vaadin.component.AdminTools;
 
+import com.google.gson.Gson;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.core.actuator.HealthStatusResponse;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
@@ -29,6 +34,7 @@ import java.util.function.Supplier;
 //@PostAuthorize("hasAuthority('ROLE_AdminToolsMenuOpenPermission')")
 public class AdminTools extends VerticalLayout {
     private final AdminToolsApiClient adminToolsApiClient = BeanProvider.getBean(AdminToolsApiClient.class);
+    private final Gson gson = BeanProvider.getBean(Gson.class);
 
     public AdminTools(PaginationSetting paginationSetting) {
         Button clearDatabaseButton = new Button("Clear database");
@@ -40,6 +46,17 @@ public class AdminTools extends VerticalLayout {
             Notification.show(response.getDescription()).addThemeVariants(
                     response.getCode() == 200 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);
         });
+        EmsResponse status = adminToolsApiClient.healthStatus();
+        Div actuator = new Div();
+        HorizontalLayout health = new HorizontalLayout();
+        health.add(new Paragraph("Health status"));
+        String healthStatus = gson.fromJson(status.getResponseData().toString(), HealthStatusResponse.class).getStatus();
+        Paragraph healthStatusParagraph = new Paragraph(healthStatus);
+        healthStatusParagraph.getStyle().set("color", healthStatus.equals("UP") ? "green" : "red");
+        health.add(healthStatusParagraph);
+//        actuator.add(new Div(.toString()));
+        actuator.add(health);
+        add(actuator);
     }
 
     private Anchor createDownloadAnchor(String buttonText, Supplier<EmsResponse> apiCall){

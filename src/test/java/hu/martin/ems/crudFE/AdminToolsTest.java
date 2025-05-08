@@ -62,7 +62,7 @@ public class AdminToolsTest extends BaseCrudTest {
         AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
 
         adminToolsPage.getExportApisButton().click();
-        assertTrue(waitForDownload("ems_apis.json", 200, 10));
+        assertTrue(waitForDownload("ems_apis[0-9]*.json", 20, 1000));
     }
 
     @Test

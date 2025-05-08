@@ -24,6 +24,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
+import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.Address;
@@ -42,9 +43,6 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static hu.martin.ems.core.config.Icons.EDIT;
-import static hu.martin.ems.core.config.Icons.PERMANENTLY_DELETE;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
@@ -103,12 +101,12 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
 
         //region Options column
         extraData = this.grid.addComponentColumn(customerVO -> {
-            Button editButton = new Button(EDIT.create());
+            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
             Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
             restoreButton.addClassNames("info_button_variant");
-            Button permanentDeleteButton = new Button(PERMANENTLY_DELETE.create());
+            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
             editButton.addClickListener(event -> {

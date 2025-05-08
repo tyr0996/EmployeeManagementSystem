@@ -7,11 +7,13 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.metamodel.EntityType;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,14 @@ public class DataProvider {
     private static final Path jsonsDirectory = Paths.get("src/main/resources/static");
     private static Gson gson = new Gson();
 
+    @Value("${generated.sql.files.path}")
+    @Getter
+    private String GENERATED_SQL_FILES_PATH;
+
+    @Value("${static.json.folder.path}")
+    @Getter
+    private String STATIC_JSON_FOLDER_PATH;
+
     @Autowired
     public DataProvider(EntityManager em) throws IOException {
         this.em = em;
@@ -68,7 +78,7 @@ public class DataProvider {
 
     public void saveAllSqlsFromJsons() throws IOException {
         LinkedHashMap<String, String> fileNameAndFileContent = generateAllSqlsFromJsons();
-        File directory = new File(FolderPaths.GENERATED_SQL_FILES_PATH);
+        File directory = new File(GENERATED_SQL_FILES_PATH);
         deleteFilesInDirectory(directory);
         for (Map.Entry<String, String> entry : fileNameAndFileContent.entrySet()) {
             writeFile(entry.getKey(), entry.getValue());
@@ -76,13 +86,13 @@ public class DataProvider {
     }
 
     public void deleteFilesInDirectory(File directory) {
-        for (File file : directory.listFiles()) {
+        for (File file : Objects.requireNonNull(directory.listFiles())) {
             file.delete();
         }
     }
 
     public void writeFile(String fileName, String fileContent) throws IOException {
-        File file = new File(FolderPaths.GENERATED_SQL_FILES_PATH + "\\" + fileName);
+        File file = new File(GENERATED_SQL_FILES_PATH + "\\" + fileName);
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(fileContent);
         }

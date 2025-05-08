@@ -96,7 +96,6 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
     @SpyBean
     protected static BeanProvider spyBeanProvider;
-
     private Logger logger = LoggerFactory.getLogger(BaseCrudTest.class);
 
     @Autowired
@@ -123,6 +122,9 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
     @SpyBean
     public static AdminToolsService spyAdminToolsService;
+
+    @SpyBean
+    public static IconProvider spyIconProvider;
 
     @SpyBean
     protected static EmailSendingService spyEmailSendingService;
@@ -230,6 +232,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.reset(spyEmailSendingService);
         Mockito.reset(spyEndpointController);
         Mockito.reset(spyJschConfig);
+        Mockito.reset(spyIconProvider);
         System.out.println("Mockito reseting done!");
     }
 
@@ -242,6 +245,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.clearInvocations(spyEmailSendingService);
         Mockito.clearInvocations(spyEndpointController);
         Mockito.clearInvocations(spyJschConfig);
+        Mockito.clearInvocations(spyIconProvider);
         System.out.println("Mockito invocation clearing done!");
 
     }
@@ -269,9 +273,9 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         dp.executeSQL("DELETE FROM permission CASCADE");
         dp.executeSQL("ALTER SEQUENCE permission_id_seq RESTART WITH 1");
 
-        dp.executeSQLFile(new File(FolderPaths.GENERATED_SQL_FILES_PATH + "\\roles.sql"));
-        dp.executeSQLFile(new File(FolderPaths.GENERATED_SQL_FILES_PATH + "\\permissions.sql"));
-        dp.executeSQLFile(new File(FolderPaths.GENERATED_SQL_FILES_PATH + "\\rolexpermissions.sql"));
+        dp.executeSQLFile(new File(dp.getGENERATED_SQL_FILES_PATH() + "\\roles.sql"));
+        dp.executeSQLFile(new File(dp.getGENERATED_SQL_FILES_PATH() + "\\permissions.sql"));
+        dp.executeSQLFile(new File(dp.getGENERATED_SQL_FILES_PATH() + "\\rolexpermissions.sql"));
 
         JPAConfig.resetCallIndex();
     }
@@ -279,11 +283,8 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     @Override
     public void onTestFailure(ITestResult result) {
         failedCount.incrementAndGet();
-        Object instance = result.getInstance();
-        WebDriver instanceDriver = ((BaseCrudTest) instance).driver;
-
-        if (instanceDriver != null) {
-            ScreenshotMaker.takeScreenshot(instanceDriver);
+        if (driver != null) {
+            new ScreenshotMaker().takeScreenshot(driver);
         }
     }
 
@@ -330,7 +331,6 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         for (int i = 0; i < times; i++) {
             File dir = new File(BeanProvider.getBean(WebDriverProvider.class).getDownloadFolder());
             File[] files = dir.listFiles();
-
             if (files != null) {
                 for (File file : files) {
                     Matcher matcher = pattern.matcher(file.getName());

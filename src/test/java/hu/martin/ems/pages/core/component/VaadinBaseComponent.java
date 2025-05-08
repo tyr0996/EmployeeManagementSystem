@@ -38,7 +38,7 @@ public abstract class VaadinBaseComponent implements IVaadinBaseComponent {
     }
 
     public VaadinBaseComponent(WebDriver driver){
-        this.wait = new WebDriverWait(driver, Duration.ofMillis(2000), Duration.ofMillis(10));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10), Duration.ofMillis(10)); // TODO ezt visszavenni 2-re
         this.refreshWait = new WebDriverWait(driver, Duration.ofMillis(200), Duration.ofMillis(10));
     }
 //

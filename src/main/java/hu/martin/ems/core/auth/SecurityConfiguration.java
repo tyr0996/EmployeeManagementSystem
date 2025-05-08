@@ -80,6 +80,8 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                         .requestMatchers("/api/**").permitAll()//TODO: only for testing!
                         .requestMatchers("/login**").permitAll()
                         .requestMatchers("/access-denied").permitAll()
+                        .requestMatchers("/actuator").permitAll() //TODO only for testing
+                        .requestMatchers("/actuator/*").permitAll() //TODO only for testing
                         .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()
                 )

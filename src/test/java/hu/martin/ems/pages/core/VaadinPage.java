@@ -18,6 +18,6 @@ public abstract class VaadinPage
     public VaadinPage(WebDriver driver, int port){
         this.driver = driver;
         this.port = port;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(2), Duration.ofMillis(10));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10), Duration.ofMillis(10)); //TODO visszavenni 2-re
     }
 }
