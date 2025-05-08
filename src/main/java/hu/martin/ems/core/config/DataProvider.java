@@ -294,7 +294,8 @@ public class DataProvider {
         }
 
         private String formatValue(Object value, String key) {
-            if (value instanceof LinkedTreeMap && ((LinkedTreeMap<?, ?>) value).containsKey("refClass")) {
+//            if (value instanceof LinkedTreeMap && ((LinkedTreeMap<?, ?>) value).containsKey("refClass")) {
+            if(value instanceof LinkedTreeMap) { //Az EMS-es JSON kötöttebb formátuma miatt mindig van benne refClass, hogyha LinkedTreeMap
                 return generateSelectSQLQuery((LinkedTreeMap<String, Object>) value, key);
             }
             else{

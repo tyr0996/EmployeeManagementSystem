@@ -1,20 +1,26 @@
 package hu.martin.ems.documentmodel;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.NoArgsConstructor;
 import oshi.util.FileUtil;
 
-@Getter
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+@NoArgsConstructor
 public abstract class AbstractDM {
     public static final String TEMPLATE_DIRECTORY = "src/main/resources/templates/";
 
-    private byte[] template;
+    private Path templatePath;
+    public ByteArrayInputStream getTemplate() throws IOException {
+        return new ByteArrayInputStream(Files.readAllBytes(templatePath));
+    }
 
-    public AbstractDM(String template) {
-        if (template != null) {
-            this.template = FileUtil.readAllBytes(TEMPLATE_DIRECTORY + template);
-        }
+    public AbstractDM(@NotNull String template) {
+        templatePath = Paths.get(TEMPLATE_DIRECTORY + template);
     }
 }

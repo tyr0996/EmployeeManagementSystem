@@ -72,8 +72,8 @@ public class OrderElement extends BaseEntity {
 
     @PostLoad
     public void initAfterLoad(){
-        if(orderObject != null){
-            orderId = orderObject.getId();
+        if(getOrderObject() != null){
+            this.orderId = getOrderObject().getId();
         }
     }
 

@@ -91,31 +91,31 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
         }
     }
 
-    @Deprecated
-    public Double convert(LocalDate date, String from, String to, Double amount) throws CurrencyException {
-        Currency c = this.repo.findByDate(date);
-        if (c != null) {
-            LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
-            Double f = map.get(from.toUpperCase());
-            Double t = map.get(to.toUpperCase());
-            return (f * amount) / t;
-        } else if (date.equals(LocalDate.now())) {
-            fetchAndSaveRates();
-            return convert(date, from, to, amount);
-        } else {
-            throw new NullPointerException("Nincs árfolyam az adott dátumhoz elmentve, és annak lekérdezése csak a mai napra lehetséges!");
-        }
-    }
-
-    public Double get(LocalDate date, String currency) {
-        Currency c = this.repo.findByDate(date);
-        if (c != null) {
-            LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
-            return map.get(currency);
-        } else {
-            throw new NullPointerException("Nincs árfolyam az adott dátumhoz elmentve!");
-        }
-    }
+//    @Deprecated
+//    public Double convert(LocalDate date, String from, String to, Double amount) throws CurrencyException {
+//        Currency c = this.repo.findByDate(date);
+//        if (c != null) {
+//            LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
+//            Double f = map.get(from.toUpperCase());
+//            Double t = map.get(to.toUpperCase());
+//            return (f * amount) / t;
+//        } else if (date.equals(LocalDate.now())) {
+//            fetchAndSaveRates();
+//            return convert(date, from, to, amount);
+//        } else {
+//            throw new NullPointerException("Nincs árfolyam az adott dátumhoz elmentve, és annak lekérdezése csak a mai napra lehetséges!");
+//        }
+//    }
+//
+//    public Double get(LocalDate date, String currency) {
+//        Currency c = this.repo.findByDate(date);
+//        if (c != null) {
+//            LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
+//            return map.get(currency);
+//        } else {
+//            throw new NullPointerException("Nincs árfolyam az adott dátumhoz elmentve!");
+//        }
+//    }
 
     public Currency findByDate(LocalDate date) {
         return this.repo.findByDate(date);

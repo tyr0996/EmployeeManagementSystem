@@ -113,7 +113,6 @@ public class CurrencyList extends VerticalLayout {
                         currency = gson.fromJson((String) response.getResponseData(), Currency.class);
                         break;
                     default: {
-//                        Notification.show("Error happened while fetching exchange rates: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                     }
@@ -125,9 +124,6 @@ public class CurrencyList extends VerticalLayout {
                 updateGrid();
                 return;
             }
-//        }
-//        else if (fetchButtonClicked){
-//
         }
 
         currencyVOS = new ArrayList<>();

@@ -11,8 +11,7 @@ public abstract class CurrencyException extends Exception {
 
     public enum CurrencyExceptionType {
         FETCHING_EXCEPTION(EmsResponse.Description.FETCHING_CURRENCIES_FAILED),
-        PARSING_EXCEPTION(EmsResponse.Description.PARSING_CURRENCIES_FAILED),
-        ALREADY_FETCHED(EmsResponse.Description.CURRENCIES_ALREADY_FETCHED);
+        PARSING_EXCEPTION(EmsResponse.Description.PARSING_CURRENCIES_FAILED);
 
         @Getter
         private String text;
@@ -26,7 +25,6 @@ public abstract class CurrencyException extends Exception {
         super(switch (type) {
             case FETCHING_EXCEPTION -> EmsResponse.Description.FETCHING_CURRENCIES_FAILED;
             case PARSING_EXCEPTION -> EmsResponse.Description.PARSING_CURRENCIES_FAILED;
-            case ALREADY_FETCHED -> EmsResponse.Description.CURRENCIES_ALREADY_FETCHED;
         });
         this.type = type;
     }
