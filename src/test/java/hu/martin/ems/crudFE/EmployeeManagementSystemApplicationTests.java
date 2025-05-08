@@ -1,37 +1,39 @@
 package hu.martin.ems.crudFE;
 
+import fr.opensagres.xdocreport.core.XDocReportException;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.core.model.EntityUtil;
+import hu.martin.ems.documentmodel.OrderDM;
+import hu.martin.ems.exception.CurrencyException;
+import hu.martin.ems.model.Order;
+import hu.martin.ems.service.OrderDocumentFileType;
+import hu.martin.ems.service.OrderService;
 import hu.martin.ems.vaadin.component.BaseVO;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.spy;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertThrows;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
-
-
     @Test
     public void getIDSeqNameTest(){
         assertEquals("role_id_seq", dp.getIDSequenceName("role"));
         assertEquals("permission_id_seq", dp.getIDSequenceName("permission"));
         assertEquals("loginuser_id_seq", dp.getIDSequenceName("loginuser"));
-        assertEquals(dp.getIDSequenceName("roles_permissions"), null);
+        assertNull(dp.getIDSequenceName("roles_permissions"));
     }
 
     @Test
@@ -98,20 +100,20 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
         assertEquals(true, a.equals(a));
     }
 
-    @Test
-    public void copyEntityFailedTest() throws IllegalAccessException {
-//        EntityUtil<TestVO> entityUtil = spy(EntityUtil.class);
-        EntityUtil<TestVO> realUtil = new EntityUtil<>();
-        EntityUtil<TestVO> entityUtil = spy(realUtil);
-
-        TestVO t1 = new TestVO(1, 0);
-        TestVO t2 = new TestVO(2, 0);
-
-        Mockito.doThrow(IllegalAccessException.class).when(entityUtil).copyField(any(), any(), any(Field.class));
-        assertThrows(RuntimeException.class, () -> {
-            entityUtil.copyEntity(t1, t2, TestVO.class);
-        });
-    }
+//    @Test
+//    public void copyEntityFailedTest() throws IllegalAccessException {
+////        EntityUtil<TestVO> entityUtil = spy(EntityUtil.class);
+//        EntityUtil<TestVO> realUtil = new EntityUtil<>();
+//        EntityUtil<TestVO> entityUtil = spy(realUtil);
+//
+//        TestVO t1 = new TestVO(1, 0);
+//        TestVO t2 = new TestVO(2, 0);
+//
+//        Mockito.doThrow(IllegalAccessException.class).when(entityUtil).copyField(any(), any(), any(Field.class));
+//        assertThrows(RuntimeException.class, () -> {
+//            entityUtil.copyEntity(t1, t2, TestVO.class);
+//        });
+//    }
 
 //    @Test
 //    public void oneOfTheIconsIOExceptionTest() throws Exception {

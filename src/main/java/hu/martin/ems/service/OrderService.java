@@ -1,8 +1,5 @@
 package hu.martin.ems.service;
 
-import fr.opensagres.xdocreport.converter.ConverterTypeTo;
-import fr.opensagres.xdocreport.converter.ConverterTypeVia;
-import fr.opensagres.xdocreport.converter.Options;
 import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.document.IXDocReport;
 import fr.opensagres.xdocreport.document.registry.XDocReportRegistry;
@@ -20,9 +17,9 @@ import hu.martin.ems.exception.CurrencyException;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.repository.OrderRepository;
-import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +33,7 @@ import java.util.List;
 
 @Service
 @NeedCleanCoding
+@Slf4j
 public class OrderService extends BaseService<Order, OrderRepository> {
     public OrderService(OrderRepository orderRepository){
         super(orderRepository);
@@ -69,26 +67,13 @@ public class OrderService extends BaseService<Order, OrderRepository> {
 
     public List<Order> getOrdersAt(LocalDate date){ return getOrdersBetween(date, date); }
 
-    public InputStream getTemplate(OrderDM order) {
-        if (order.getTemplate() == null) {
-            return getDefaultTemplate();
-//            return null;
-        } else {
-            return new ByteArrayInputStream(order.getTemplate());
-        }
-    }
-
-    @Nullable
-    public static InputStream getDefaultTemplate() {
-        return Order.class.getResourceAsStream("Empty.odt");
-    }
 
     public byte[] createDocumentAsPDF(Order o, OutputStream out) throws IOException, XDocReportException, CurrencyException {
-        return getOrderDocumentExport(o, out, "PDF");
+        return getOrderDocumentExport(o, out, OrderDocumentFileType.PDF);
     }
 
     public byte[] createDocumentAsODT(Order o, OutputStream out) throws IOException, XDocReportException, CurrencyException {
-        return getOrderDocumentExport(o, out, "ODT");
+        return getOrderDocumentExport(o, out, OrderDocumentFileType.ODT);
     }
 
     public boolean sendReportSFTPToAccountant(LocalDate from, LocalDate to) throws IOException {
@@ -126,8 +111,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         }
 
         byte[] res = xlsx.createExcelFile(sheetNames, tableDatas);
-        boolean sent = sender.send(res,  "orders_" + from + "_" + to + ".xlsx");
-        return sent;
+        return sender.send(res,  "orders_" + from + "_" + to + ".xlsx");
     }
 
     private String[][] convertListToArray2(List<List<String>> data) {
@@ -143,8 +127,8 @@ public class OrderService extends BaseService<Order, OrderRepository> {
 
 
 
-    public byte[] getOrderDocumentExport(Order o, OutputStream out, String fileType) throws IOException, XDocReportException, CurrencyException { //TODO FileType can be enum
-        InputStream in = getTemplate(new OrderDM(o));
+    public byte[] getOrderDocumentExport(Order o, OutputStream out, OrderDocumentFileType fileType) throws IOException, XDocReportException, CurrencyException { //TODO FileType can be enum
+        InputStream in = new OrderDM(o).getTemplate();
         IXDocReport report = registry.loadReport(in, TemplateEngineKind.Freemarker);
 
         FieldsMetadata metadata = report.createFieldsMetadata();
@@ -168,18 +152,20 @@ public class OrderService extends BaseService<Order, OrderRepository> {
 
         ctx.put("order", order);
         ctx.put("to", new CustomerDM(o.getCustomer()));
-        if(fileType.equals("PDF")){
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            report.convert(ctx, Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.ODFDOM), baos);
-            out.write(baos.toByteArray());
-            return baos.toByteArray();
-        }
-        else if(fileType.equals("ODT")){
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            report.process(ctx, baos);
-            out.write(baos.toByteArray());
-            return baos.toByteArray();
-        }
+
+        fileType.generate(report, ctx, out);
+//        if(fileType.equals("PDF")){
+//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//            report.convert(ctx, Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.ODFDOM), baos);
+//            out.write(baos.toByteArray());
+//            return baos.toByteArray();
+//        }
+//        else if(fileType.equals("ODT")){
+//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//            report.process(ctx, baos);
+//            out.write(baos.toByteArray());
+//            return baos.toByteArray();
+//        }
         return null;
     }
 
@@ -189,57 +175,58 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         String orderNumber = o.getId().toString();
         String orderDate = o.getTimeOfOrder().toString();
 
-        String htmlContent =
-            "<!DOCTYPE html>\n"
-            + "<html lang=\"hu\">\n"
-            + "<head>\n"
-            + "    <meta charset=\"UTF-8\">\n"
-            + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-            + "    <title>Megrendelési értesítés</title>\n"
-            + "    <style>\n"
-            + "        body {\n"
-            + "            font-family: Arial, sans-serif;\n"
-            + "            line-height: 1.6;\n"
-            + "            background-color: #f4f4f4;\n"
-            + "            padding: 20px;\n"
-            + "        }\n"
-            + "        .container {\n"
-            + "            max-width: 600px;\n"
-            + "            margin: 0 auto;\n"
-            + "            background-color: #ffffff;\n"
-            + "            padding: 30px;\n"
-            + "            border-radius: 8px;\n"
-            + "            box-shadow: 0 0 10px rgba(0,0,0,0.1);\n"
-            + "        }\n"
-            + "        h2 {\n"
-            + "            color: #333333;\n"
-            + "        }\n"
-            + "        p {\n"
-            + "            color: #666666;\n"
-            + "        }\n"
-            + "        .footer {\n"
-            + "            margin-top: 20px;\n"
-            + "            text-align: center;\n"
-            + "            color: #999999;\n"
-            + "        }\n"
-            + "    </style>\n"
-            + "</head>\n"
-            + "<body>\n"
-            + "    <div class=\"container\">\n"
-            + "        <h2>Megrendelési értesítés</h2>\n"
-            + "        <p>Kedves " + customerName + "!</p>\n"
-            + "        <p>Ezúton értesítjük, hogy sikeresen fogadtuk megrendelését az alábbi részletekkel:</p>\n"
-            + "            <strong>Megrendelés száma:</strong> " + orderNumber + "\n"
-            + "            <strong>Dátum:</strong> " + orderDate + "\n"
-            + "        <p>A rendelésének részletes leírását a mellékelt PDF fájl tartalmazza.</p>"
-            + "        <p>Köszönjük, hogy minket választott! Kérdése esetén forduljon hozzánk bizalommal.</p>\n"
-            + "        <div class=\"footer\">\n"
-            + "            <p>Ez egy automatikus értesítés, kérjük ne válaszoljon erre az e-mailre.</p>\n"
-            + "        </div>\n"
-            + "    </div>\n"
-            + "</body>\n"
-            + "</html>";
-        return htmlContent;
+        String htmlContent = """
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Megrendelési értesítés</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333333;
+        }
+        p {
+            color: #666666;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #999999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Megrendelési értesítés</h2>
+        <p>Kedves %s!</p>
+        <p>Ezúton értesítjük, hogy sikeresen fogadtuk megrendelését az alábbi részletekkel:</p>
+            <strong>Megrendelés száma:</strong> %s
+            <strong>Dátum:</strong> %s
+        <p>A rendelésének részletes leírását a mellékelt PDF fájl tartalmazza.</p>"
+            + "        <p>Köszönjük, hogy minket választott! Kérdése esetén forduljon hozzánk bizalommal.</p>
+        <div class="footer">
+            <p>Ez egy automatikus értesítés, kérjük ne válaszoljon erre az e-mailre.</p>
+        </div>
+    </div>
+</body>
+</html>
+""";
+        return String.format(htmlContent, customerName, orderNumber, orderDate);
     }
 }
 

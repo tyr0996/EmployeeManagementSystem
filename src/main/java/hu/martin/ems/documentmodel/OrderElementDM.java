@@ -4,6 +4,8 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.model.OrderElement;
 import lombok.Getter;
 
+import java.io.IOException;
+
 @Getter
 @NeedCleanCoding
 public class OrderElementDM extends AbstractDM {
@@ -17,7 +19,7 @@ public class OrderElementDM extends AbstractDM {
     private String grossPrice;
 
     public OrderElementDM(OrderElement oe) {
-        super(null);
+        super();
         this.product = oe.getProduct().getName();
         this.amount = oe.getUnit().toString();
         this.amountUnit = oe.getProduct().getAmountUnit().getName();

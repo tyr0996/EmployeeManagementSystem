@@ -4,13 +4,15 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.model.Customer;
 import lombok.Getter;
 
+import java.io.IOException;
+
 @Getter
 @NeedCleanCoding
 public class CustomerDM extends AbstractDM {
     private String name;
 
     public CustomerDM(Customer c) {
-        super(null);
+        super();
         this.name = c.getName() + " (" + c.getAddress().getName() + ")";
     }
 }

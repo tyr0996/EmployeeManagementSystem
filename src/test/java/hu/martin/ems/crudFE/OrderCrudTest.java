@@ -13,6 +13,8 @@ import hu.martin.ems.core.file.XLSX;
 import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.documentmodel.OrderDM;
+import hu.martin.ems.model.Order;
 import hu.martin.ems.pages.*;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
@@ -22,12 +24,10 @@ import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.pages.core.doTestData.DoDeleteFailedTestData;
 import hu.martin.ems.pages.core.doTestData.DoDeleteTestData;
 import hu.martin.ems.pages.core.doTestData.DoRestoreTestData;
+import hu.martin.ems.service.OrderDocumentFileType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -37,6 +37,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
@@ -342,6 +343,8 @@ public class OrderCrudTest extends BaseCrudTest {
         assertFalse(waitForDownload("order_[0-9]{1,}.odt", 200, 10));
     }
 
+
+
     @Test
     public void generatePDFFailedCurrencyException() throws Exception {
 //        Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
@@ -510,15 +513,21 @@ public class OrderCrudTest extends BaseCrudTest {
 
         when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
         doNothing().when(mockSession).connect();
+        doNothing().when(mockChannelSftp).connect();
         doThrow(SftpException.class).when(mockChannelSftp).put(any(InputStream.class), anyString());
 //        when(mockChannelSftp.put(any(InputStream.class), anyString())).thenThrow(SftpException.class);
 //        when(mockSession.openChannel("sftp")).thenThrow(SftpException.class);
         when(mockSession.getUserName()).thenReturn(sftpUserName);
-        when(spyJschConfig.getChannelSftp()).thenReturn(mockChannelSftp);
+
+        spyJschConfig.setChannelSftp(mockChannelSftp);
+        spyJschConfig.setSession(mockSession);
+//        when(spyJschConfig.getChannelSftp()).thenReturn(mockChannelSftp);
         when(spyJschConfig.getChannelSftp().isConnected()).thenReturn(true);
-        doNothing().when(mockChannelSftp).put(any(InputStream.class), anyString());
+//        doNothing().when(mockChannelSftp).put(any(InputStream.class), anyString());
 
         spyJschConfig.jsch = jsch;
+
+
 
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -541,6 +550,8 @@ public class OrderCrudTest extends BaseCrudTest {
         spyJschConfig.setSession(originalSession);
         spyJschConfig.setChannelSftp(originalChannelSftp);
     }
+
+
 
     @Test
     public void sendSFTPSuccessTest() throws JSchException, SftpException {
@@ -610,6 +621,7 @@ public class OrderCrudTest extends BaseCrudTest {
     ArgumentCaptor<EmailProperties> orderArgumentCaptor;
 
     @Test
+    @Video
     public void sendEmailSuccessTest() throws MessagingException {
         Mockito.doNothing().when(spyEmailSendingService).transportSend(any(MimeMessage.class));
 
@@ -641,6 +653,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
 
     @Test
+    @Video
     public void generateEmailFailedDueToCantGetOrderFromOrderId() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -669,6 +682,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sendEmailCreateAttachmentBodyPartFailedTest() throws MessagingException {
         Mockito.doThrow(MessagingException.class).when(spyEmailSendingService).createAttachmentBodyPart(any(EmailAttachment.class));
         EmptyLoggedInVaadinPage loggedInPage =
@@ -693,6 +707,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sendEmailCreateMimeMessageFailedTest() throws MessagingException {
         Mockito.doThrow(MessagingException.class).when(spyEmailSendingService).createMimeMessage(any(jakarta.mail.Session.class), any(EmailProperties.class));
         EmptyLoggedInVaadinPage loggedInPage =
@@ -717,6 +732,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sendEmailFailedTest() {
         EmptyLoggedInVaadinPage loggedInPage =
             (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -740,6 +756,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sendEmailPDFGenerationFailedIOException() throws IOException, XDocReportException {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 //        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
@@ -767,6 +784,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sendEmailPDFGenerationFailedCurrencyException() {
         clearCurrencyDatabaseTable();
         Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
@@ -795,6 +813,7 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void sendEmailPDFGenerationFailedXDocReportException() throws IOException, XDocReportException {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
