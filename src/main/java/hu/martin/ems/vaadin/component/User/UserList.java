@@ -147,7 +147,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         setupRoles();
         if(roleList == null){
             rolesFilter.setInvalid(true);
-            rolesFilter.setErrorMessage("Error happened while getting permissions");
+            rolesFilter.setErrorMessage("EmsError happened while getting permissions");
             rolesFilter.setEnabled(false);
         }
         else{
@@ -280,7 +280,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             roles.setEnabled(false);
             roles.setInvalid(true);
             saveButton.setEnabled(false);
-            roles.setErrorMessage("Error happened while getting roles");
+            roles.setErrorMessage("EmsError happened while getting roles");
         }
 
         if (editableUser != null) {
@@ -381,7 +381,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             }
             default: {
                 loggedInUserVO = null;
-                Notification.show("Error happened while getting the logged in user. Deletion and modification is disabled");
+                Notification.show("EmsError happened while getting the logged in user. Deletion and modification is disabled");
                 break;
             }
         }

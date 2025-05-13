@@ -184,7 +184,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             default:
                 supplierList = new ArrayList<>();
                 logger.error("Supplier findAllByIds [currency]. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("Error happened while getting suppliers")
+                Notification.show("EmsError happened while getting suppliers")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }
@@ -289,7 +289,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
         setupAddresses();
         if(addressList == null){
             addresses.setInvalid(true);
-            addresses.setErrorMessage("Error happened while getting addresses");
+            addresses.setErrorMessage("EmsError happened while getting addresses");
             addresses.setEnabled(false);
             saveButton.setEnabled(false);
         }

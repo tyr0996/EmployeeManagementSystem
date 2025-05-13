@@ -26,6 +26,7 @@ import static org.testng.Assert.*;
 
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 //@Listeners(UniversalVideoListener.class)
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RoleTest extends BaseCrudTest {
 //    private static CrudTestingUtil crudTestingUtil;
@@ -226,7 +227,7 @@ public class RoleTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("Role modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("Role modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
 
     }
@@ -244,13 +245,13 @@ public class RoleTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
 
 
 //        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Internal Server Error");
+//        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Database error");
     }
 
     @Test
@@ -288,7 +289,7 @@ public class RoleTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Role saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Role saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
 
 
@@ -328,7 +329,7 @@ public class RoleTest extends BaseCrudTest {
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
 //        Thread.sleep(100);
-//        gridTestingUtil.checkNotificationText("Error happened while getting role-permission pairs");
+//        gridTestingUtil.checkNotificationText("EmsError happened while getting role-permission pairs");
 //        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXpath));
 //        assertEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
@@ -349,11 +350,11 @@ public class RoleTest extends BaseCrudTest {
         dialog.initWebElements();
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
-        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting permissions");
+        assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting permissions");
         dialog.close();
 
 //        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-//        failedFieldData.put("Permission", "Error happened while getting permissions");
+//        failedFieldData.put("Permission", "EmsError happened while getting permissions");
 //
 //        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
@@ -370,7 +371,7 @@ public class RoleTest extends BaseCrudTest {
         RolePage page = new RolePage(driver, port);
 
         assertFalse(page.getGrid().getHeaderFilterInputFields().get(1).isEnabled());
-        assertEquals(page.getGrid().getHeaderFilterInputFieldErrorMessage(1), "Error happened while getting permissions");
+        assertEquals(page.getGrid().getHeaderFilterInputFieldErrorMessage(1), "EmsError happened while getting permissions");
     }
 
     @Test
@@ -388,7 +389,7 @@ public class RoleTest extends BaseCrudTest {
         page.getGrid().waitForRefresh();
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened while getting roles");
+        assertEquals(notification.getText(), "EmsError happened while getting roles");
         notification.close();
 
         assertEquals(page.getGrid().getPaginationData().getTotalElements(), countElements);
@@ -409,7 +410,7 @@ public class RoleTest extends BaseCrudTest {
 //        gridTestingUtil.findClickableElementWithXpathWithWaiting(showDeletedCheckBoxXpath).click();
 //        Thread.sleep(100);
 //
-//        gridTestingUtil.checkNotificationText("Error happened while getting roles");
+//        gridTestingUtil.checkNotificationText("EmsError happened while getting roles");
 //        assertEquals(gridTestingUtil.countVisibleGridDataRows(gridXpath), roleNumber);
 //
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
@@ -427,7 +428,7 @@ public class RoleTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("Role modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("Role modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
 
 

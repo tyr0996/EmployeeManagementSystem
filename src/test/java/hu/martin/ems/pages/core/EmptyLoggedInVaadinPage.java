@@ -1,5 +1,6 @@
 package hu.martin.ems.pages.core;
 
+import hu.martin.ems.pages.core.component.IVaadinBaseComponent;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -25,13 +26,7 @@ public class EmptyLoggedInVaadinPage extends VaadinPage implements ILoggedInPage
     public void logout() {
         if(!getDriver().getCurrentUrl().contains("http://localhost:" + getPort() + "/login") &&
                 !getDriver().getCurrentUrl().contains("data:,")){
-            WebElement logoutButton = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout/vaadin-button")));
-
-            JavascriptExecutor js = (JavascriptExecutor) getDriver();
-            js.executeScript("arguments[0].click()", logoutButton);
-            getWait().until(ExpectedConditions.urlContains("http://localhost:" + getPort() + "/login"));
-            getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"input-vaadin-text-field-6\"]")));
+            getSideMenu().logout();
         }
     }
-
 }

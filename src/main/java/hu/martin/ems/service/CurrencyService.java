@@ -59,7 +59,6 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
             currency.setBaseCurrency(codeStoreRepository.findByName(response.get("base").toString()));
             //CurrencyResponse cr = om.readValue(fixedRates, CurrencyResponse.class);
             currency.setRateJson(fixedRates);
-            currency.setValidDate(getValidDate(response.get("date").toString()));
             currency.setDeleted(0L);
             Currency saved = this.repo.customSave(currency);
             return saved;
@@ -68,14 +67,6 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
         } catch (RestClientException e){
             throw new FetchingCurrenciesException();
         }
-    }
-
-    public LocalDate getValidDate(String lastUpdated) {
-        String[] date = lastUpdated.split("-");
-        LocalDate ld = LocalDate.of(Integer.parseInt(date[0]),
-                Integer.parseInt(date[1]),
-                Integer.parseInt(date[2]));
-        return ld;
     }
 
     public Double convert(String from, String to, Double amount) throws CurrencyException {

@@ -291,7 +291,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
         }
         else{
-            Notification.show("Error happened while getting customers").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            Notification.show("EmsError happened while getting customers").addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
 
@@ -325,7 +325,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
         else{
             addresses.setEnabled(false);
             addresses.setInvalid(true);
-            addresses.setErrorMessage("Error happened while getting addresses");
+            addresses.setErrorMessage("EmsError happened while getting addresses");
             saveButton.setEnabled(false);
         }
 

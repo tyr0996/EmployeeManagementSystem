@@ -18,7 +18,7 @@ import java.util.NoSuchElementException;
 public class OrderCreateToCustomerPage extends EmptyLoggedInVaadinPage implements ILoggedInPage {
     private static final String multipleSelectGridXpath = contentLayoutXpath + "/vaadin-grid";
     private static final String customerComboBoxXpath = contentLayoutXpath + "/vaadin-form-layout[1]/vaadin-combo-box";
-    private static final String showPreviouslyOrderedElementsCheckboxXpath = contentLayoutXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    private static final String showPreviouslyOrderedElementsCheckboxXpath = contentLayoutXpath + "/vaadin-form-layout[1]/vaadin-checkbox";
     private static final String currencyComboBoxXpath = contentLayoutXpath + "/vaadin-form-layout[2]/vaadin-combo-box[1]";
     private static final String paymentTypeComboBoxXpath = contentLayoutXpath + "/vaadin-form-layout[2]/vaadin-combo-box[2]";
     private static final String createOrderButtonXpath = contentLayoutXpath + "/vaadin-form-layout[2]/vaadin-button";

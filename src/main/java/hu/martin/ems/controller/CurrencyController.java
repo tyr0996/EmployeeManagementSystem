@@ -8,7 +8,7 @@ import hu.martin.ems.exception.ParsingCurrenciesException;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.repository.CurrencyRepository;
 import hu.martin.ems.service.CurrencyService;
-import hu.martin.ems.vaadin.api.Error;
+import hu.martin.ems.vaadin.core.EmsError;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -43,13 +43,13 @@ public class CurrencyController extends BaseController<Currency, CurrencyService
 
     @ExceptionHandler(FetchingCurrenciesException.class)
     public ResponseEntity<String> handleFetchingCurrenciesException(FetchingCurrenciesException ex, HttpServletRequest request) {
-        Error errorResponse = new Error(System.currentTimeMillis(), 502, ex.getType().getText(), request.getRequestURI());
-        return new ResponseEntity<>(gson.toJson(errorResponse), HttpStatus.BAD_GATEWAY);
+        EmsError emsErrorResponse = new EmsError(System.currentTimeMillis(), 502, ex.getType().getText(), request.getRequestURI());
+        return new ResponseEntity<>(gson.toJson(emsErrorResponse), HttpStatus.BAD_GATEWAY);
     }
 
     @ExceptionHandler(ParsingCurrenciesException.class)
     public ResponseEntity<String> handleParsingCurrenciesException(ParsingCurrenciesException ex, HttpServletRequest request) {
-        Error errorResponse = new Error(System.currentTimeMillis(), 500, ex.getType().getText(), request.getRequestURI());
-        return new ResponseEntity<>(gson.toJson(errorResponse), HttpStatus.INTERNAL_SERVER_ERROR);
+        EmsError emsErrorResponse = new EmsError(System.currentTimeMillis(), 500, ex.getType().getText(), request.getRequestURI());
+        return new ResponseEntity<>(gson.toJson(emsErrorResponse), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

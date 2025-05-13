@@ -284,7 +284,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
 
     private void updateGridItems() {
         if(employees == null){
-            Notification.show("Error happened while getting employees")
+            Notification.show("EmsError happened while getting employees")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             employees = new ArrayList<>();
         }
@@ -316,7 +316,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
                 user.getUsername().toLowerCase().contains(filterString.toLowerCase());
         if(userList == null){
             users.setEnabled(false);
-            users.setErrorMessage("Error happened while getting users");
+            users.setErrorMessage("EmsError happened while getting users");
             users.setInvalid(true);
             saveButton.setEnabled(false);
         }

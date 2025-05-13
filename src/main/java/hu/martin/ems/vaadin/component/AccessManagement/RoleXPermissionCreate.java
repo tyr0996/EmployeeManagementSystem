@@ -81,7 +81,7 @@ public class RoleXPermissionCreate extends AccessManagement {
             roleComboBox.setItemLabelGenerator(Role::getName);
         }
         else{
-            roleComboBox.setErrorMessage("Error happened while getting roles");
+            roleComboBox.setErrorMessage("EmsError happened while getting roles");
             roleComboBox.setEnabled(false);
             roleComboBox.setInvalid(true);
         }
@@ -132,7 +132,7 @@ public class RoleXPermissionCreate extends AccessManagement {
         else{
             permissionComboBox.setInvalid(true);
             permissionComboBox.setEnabled(false);
-            permissionComboBox.setErrorMessage("Error happened while getting permissions");
+            permissionComboBox.setErrorMessage("EmsError happened while getting permissions");
         }
 
         return permissionComboBox;

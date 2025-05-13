@@ -99,11 +99,12 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
         assertEquals(true, this.isEnabled(), "The combo box is not enabled: " + element.getText());
         element.click();
         try {
-            Thread.sleep(50);
+            Thread.sleep(1000); //Az eredeti az 50 volt
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
+        List<WebElement> comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(getScope(), By.cssSelector("vaadin-combo-box-item")));
+//        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
         int i = 0;
         if(comboBoxOptions.size() == 0){
             System.err.println("Nincs elem a combo boxban! " + getTitle());

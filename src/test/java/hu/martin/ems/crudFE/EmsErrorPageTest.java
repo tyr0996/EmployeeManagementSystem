@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ErrorPageTest extends BaseCrudTest {
+public class EmsErrorPageTest extends BaseCrudTest {
     @Test
     public void pageLoadFailedIllegalAccessException()  {
         EmptyLoggedInVaadinPage loggedInPage =

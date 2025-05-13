@@ -84,7 +84,7 @@ public class SupplierCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 
     @Test
@@ -211,7 +211,7 @@ public class SupplierCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("Supplier modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("Supplier modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -228,7 +228,7 @@ public class SupplierCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Supplier saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Supplier saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -241,7 +241,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened while getting suppliers");
+        assertEquals(notification.getText(), "EmsError happened while getting suppliers");
         notification.close();
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
@@ -264,6 +264,6 @@ public class SupplierCrudTest extends BaseCrudTest {
         dialog.initWebElements();
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
-        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting addresses");
+        assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting addresses");
     }
 }

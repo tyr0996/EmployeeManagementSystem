@@ -211,7 +211,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
             default:
                 addresses = new ArrayList<>();
                 logger.error("Address findAllError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
-                Notification.show("Error happened while getting addresses")
+                Notification.show("EmsError happened while getting addresses")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }
@@ -404,7 +404,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         if(streetTypeList == null){
             streetTypes.setInvalid(true);
-            streetTypes.setErrorMessage("Error happened while getting street types");
+            streetTypes.setErrorMessage("EmsError happened while getting street types");
             streetTypes.setEnabled(false);
             saveButton.setEnabled(false);
         }
@@ -425,7 +425,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         if(cityList == null){
             cities.setInvalid(true);
-            cities.setErrorMessage("Error happened while getting cities");
+            cities.setErrorMessage("EmsError happened while getting cities");
             cities.setEnabled(false);
             saveButton.setEnabled(false);
         }
@@ -445,7 +445,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         if(countryList == null){
             countryCodes.setInvalid(true);
-            countryCodes.setErrorMessage("Error happened while getting countries");
+            countryCodes.setErrorMessage("EmsError happened while getting countries");
             countryCodes.setEnabled(false);
             saveButton.setEnabled(false);
         }

@@ -3,6 +3,7 @@ package hu.martin.ems.vaadin.api;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Order;
+import hu.martin.ems.vaadin.core.EmsError;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -87,8 +88,8 @@ public class OrderApiClient extends EmsApiClient<Order> {
             return new EmsResponse(200, response);
         }
         catch (WebClientResponseException ex) {
-            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), gson.fromJson(ex.getResponseBodyAsString(), Error.class).getError());
-            return new EmsResponse(ex.getStatusCode().value(), gson.fromJson(ex.getResponseBodyAsString(), Error.class).getError());
+            logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), gson.fromJson(ex.getResponseBodyAsString(), EmsError.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), gson.fromJson(ex.getResponseBodyAsString(), EmsError.class).getError());
         }
     }
 }

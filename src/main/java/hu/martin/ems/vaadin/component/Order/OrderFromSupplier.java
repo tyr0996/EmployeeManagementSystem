@@ -6,6 +6,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -17,6 +18,7 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.model.EmsResponse;
+import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.model.OrderElement;
@@ -32,6 +34,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.time.LocalDateTime;
@@ -70,8 +73,9 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
     ComboBox<Supplier> suppliers;
     Checkbox showPreviouslyOrderedElements;
 
-    public OrderFromSupplier(){
-        init();
+    @Autowired
+    public OrderFromSupplier(PaginationSetting paginationSetting){
+        init(paginationSetting);
     }
 
     @Override
@@ -97,7 +101,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
     }
 
-    private void init(){
+    private void init(PaginationSetting paginationSetting){
         FormLayout formLayout = new FormLayout();
 
         Button saveButton = new Button("Create order");
@@ -107,6 +111,11 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         grid.removeColumnByKey("original");
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.asMultiSelect();
+        grid.setPageSize(paginationSetting.getPageSize());
+        grid.setPaginationLocation(paginationSetting.getPaginationLocation());
+
+        grid.addThemeVariants(GridVariant.LUMO_COMPACT);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         suppliers = new ComboBox<>("Supplier");
         ComboBox.ItemFilter<Supplier> supplierFilter = (element, filterString) ->
@@ -115,7 +124,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         if(supplierList == null){
             suppliers.setEnabled(false);
             suppliers.setInvalid(true);
-            suppliers.setErrorMessage("Error happened while getting suppliers");
+            suppliers.setErrorMessage("EmsError happened while getting suppliers");
             saveButton.setEnabled(false);
         }
         else{
@@ -127,7 +136,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
             if (event.getValue() != null) {
                 orderElementVOS = getOrderElementsBySupplier(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList());
 //                if(orderElementVOS == null){
-//                    Notification.show("Error happened while getting order elements to the supplier").addThemeVariants(NotificationVariant.LUMO_ERROR);
+//                    Notification.show("EmsError happened while getting order elements to the supplier").addThemeVariants(NotificationVariant.LUMO_ERROR);
 //                    orderElementVOS = new ArrayList<>();
 //                }
             } else {
@@ -164,16 +173,16 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
             }
 //            updateGridItems();
         });
-        HorizontalLayout hl = new HorizontalLayout();
-        hl.add(showPreviouslyOrderedElements);
-        hl.setAlignSelf(Alignment.CENTER, showPreviouslyOrderedElements);
+//        HorizontalLayout hl = new HorizontalLayout();
+//        hl.add(showPreviouslyOrderedElements);
+//        hl.setAlignSelf(Alignment.CENTER, showPreviouslyOrderedElements);
 
         setupPaymentTypes();
         paymentTypes = new ComboBox<>("Payment type");
         ComboBox.ItemFilter<CodeStore> paymentTypeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         if(paymentTypeList == null){
-            paymentTypes.setErrorMessage("Error happened while getting payment methods");
+            paymentTypes.setErrorMessage("EmsError happened while getting payment methods");
             paymentTypes.setEnabled(false);
             paymentTypes.setInvalid(true);
             saveButton.setEnabled(false);
@@ -190,7 +199,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         if(currencyList == null){
             currencies.setEnabled(false);
             currencies.setInvalid(true);
-            currencies.setErrorMessage("Error happened while getting currencies");
+            currencies.setErrorMessage("EmsError happened while getting currencies");
             saveButton.setEnabled(false);
         }
         else{
@@ -201,7 +210,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         saveButton.addClickListener(event -> {
             CodeStore pending = getPendingCodeStore();
             if(pending == null){
-                Notification.show("Error happened while getting \"Pending\" status").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                Notification.show("EmsError happened while getting \"Pending\" status").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
             }
 
@@ -267,11 +276,11 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
             }
         });
 
-        formLayout.add(suppliers);
+        formLayout.add(suppliers, showPreviouslyOrderedElements);
         FormLayout formLayout1 = new FormLayout();
         formLayout1.add(currencies, paymentTypes);
         formLayout1.add(saveButton);
-        add(formLayout, hl, grid, formLayout1);
+        add(formLayout, grid, formLayout1);
     }
 
     //region setup methods
@@ -307,7 +316,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
                 return (List<OrderElement>) response.getResponseData();
             default:
                 logger.error("OrderElement getOrderElementsBySupplierError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("Error happened while getting order elements to the supplier")
+                Notification.show("EmsError happened while getting order elements to the supplier")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return null;
         }

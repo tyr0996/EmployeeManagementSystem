@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -74,7 +75,7 @@ public class CurrencyList extends VerticalLayout {
             updateGrid(true);
         });
 
-        datePicker = new DatePicker("DateUtil");
+        datePicker = new DatePicker("Date");
         datePicker.setMax(LocalDate.now());
         datePicker.setValue(LocalDate.now());
         datePicker.addValueChangeListener(event -> updateGrid());
@@ -83,14 +84,15 @@ public class CurrencyList extends VerticalLayout {
                 DateUtil.generateAllFormats().toArray(new String[0])
         ));
 
-
         nameColumn = this.grid.addColumn(v -> v.name);
         valColumn = this.grid.addColumn(v -> v.val);
 
         setFilteringHeaderRow();
 
         updateGrid();
-        add(fetch, datePicker, grid);
+
+        Anchor currencyApiAnchor = new Anchor("https://www.exchangerate-api.com", "Rates By Exchange Rate API");
+        add(fetch, datePicker, grid, currencyApiAnchor);
     }
 
     public void updateGrid(){
@@ -146,7 +148,7 @@ public class CurrencyList extends VerticalLayout {
                 return (Currency) response.getResponseData();
             default:
                 logger.error("Currency findByDateError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("Error happened while getting currencies by date")
+                Notification.show("EmsError happened while getting currencies by date")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return null;
         }

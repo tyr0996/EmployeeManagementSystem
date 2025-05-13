@@ -1,5 +1,7 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.base.RandomGenerator;
@@ -17,8 +19,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -27,11 +32,13 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Listeners(UniversalVideoListener.class)
 public class CurrencyCrudTest extends BaseCrudTest {
     @Test
+    @Video
     public void selectDateRetroactively_NotSavedDate() {
         clearCurrencyDatabaseTable();
 
@@ -56,6 +63,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void tryToEnterAllPossibleGoodDateFormats() {
         clearCurrencyDatabaseTable();
         EmptyLoggedInVaadinPage loggedInPage =
@@ -110,11 +118,12 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void fetchingCurrenciesFailedThenSuccessTest() {
         clearCurrencyDatabaseTable();
         Object originalCurrency = BeanProvider.getBean(RestTemplate.class).getForObject(fetchingCurrencyApiUrl + baseCurrency, Object.class);
 
-        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).doReturn(originalCurrency).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error")).doReturn(originalCurrency).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -139,6 +148,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void fetchingCurrenciesSuccessTest() {
         clearCurrencyDatabaseTable();
 
@@ -155,6 +165,41 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
+    public void checkRetroCurrenciesTest() throws IOException {
+        clearCurrencyDatabaseTable();
+        dp.executeSQLFile(new File(dp.getGENERATED_SQL_FILES_PATH() + "\\currencies.sql"));
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+        CurrencyPage page = new CurrencyPage(driver, port);
+        assertEquals(LocalDate.now(), page.getDatePicker().getDate());
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals("Fetching exchange rates was successful!", notification.getText());
+        notification.close();
+        assertEquals(163, page.getGrid().getPaginationData().getTotalElements().intValue());
+        page.getGrid().applyFilter("EUR", "");
+        page.getGrid().waitForRefresh();
+        String[] todayEurExchangeRate = page.getGrid().getDataFromRowLocation(new ElementLocation(1, 0), false);
+        page.getGrid().resetFilter();
+
+        page.getDatePicker().selectDate(LocalDate.of(2025, 5, 11));
+        page.getGrid().waitForRefresh();
+        page.getGrid().applyFilter("EUR", "");
+        page.getGrid().waitForRefresh();
+        assertEquals(LocalDate.of(2025, 5, 11), page.getDatePicker().getDate());
+        String[] oldEurExchangeRate = page.getGrid().getDataFromRowLocation(new ElementLocation(1, 0), false);
+        page.getGrid().resetFilter();
+
+        assertEquals("EUR", todayEurExchangeRate[0]);
+        assertEquals("EUR", oldEurExchangeRate[0]);
+        assertFalse(oldEurExchangeRate[1].equals(todayEurExchangeRate[1]));
+    }
+
+    @Test
+    @Video
     public void fetchingCurrenciesNotCorrectResponseTest() {
         clearCurrencyDatabaseTable();
         LinkedHashMap<String, Object> badResponse = new LinkedHashMap<>();
@@ -188,6 +233,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void nullResponseWhenFetchAndSaveRates() throws SQLException {
         clearCurrencyDatabaseTable();
         MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(4));
@@ -198,7 +244,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         CurrencyPage page = new CurrencyPage(driver, port);
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals("Internal Server Error", notification.getText());
+        assertEquals("Database error", notification.getText());
         notification.close();
         assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
     }
@@ -208,7 +254,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
     public void databaseNotAvailableWhileFindCurrencyByDate() throws SQLException {
         clearCurrencyDatabaseTable();
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2);
-        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -216,7 +262,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         CurrencyPage page = new CurrencyPage(driver, port);
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals("Error happened while getting currencies by date", notification.getText());
+        assertEquals("EmsError happened while getting currencies by date", notification.getText());
         notification.close();
         assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
     }

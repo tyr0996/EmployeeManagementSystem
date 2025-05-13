@@ -1,4 +1,4 @@
-package hu.martin.ems.vaadin.api;
+package hu.martin.ems.vaadin.core;
 
 import com.google.gson.annotations.Expose;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Error {
+public class EmsError {
 
     @Expose
     private long timestamp;

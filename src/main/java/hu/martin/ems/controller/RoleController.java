@@ -27,7 +27,7 @@ public class RoleController extends BaseController<Role, RoleService, RoleReposi
             return new ResponseEntity<>(gson.toJson(noRole), HttpStatus.OK);
         }
         else{
-            return new ResponseEntity<>("Cann't find NO_ROLE role.", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Can't find NO_ROLE role.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -1,5 +1,7 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.testng.UniversalVideoListener;
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.pages.AdminToolsPage;
@@ -14,6 +16,7 @@ import hu.martin.ems.pages.core.dialog.Product_SellingDialog;
 import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.ProductSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
@@ -25,6 +28,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Listeners(UniversalVideoListener.class)
 public class ProductCrudTest extends BaseCrudTest {
 
     @Test
@@ -66,7 +70,7 @@ public class ProductCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 
     @Test
@@ -207,7 +211,7 @@ public class ProductCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("Product modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("Product modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -222,7 +226,7 @@ public class ProductCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Product saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Product saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -241,7 +245,7 @@ public class ProductCrudTest extends BaseCrudTest {
         dialog.initWebElements();
 
         assertEquals(dialog.getFailedComponents().size(), 1);
-        assertEquals(dialog.getCustomerComboBox().getErrorMessage(), "Error happened while getting customers");
+        assertEquals(dialog.getCustomerComboBox().getErrorMessage(), "EmsError happened while getting customers");
         assertFalse(dialog.getSellButton().isEnabled());
         assertFalse(dialog.getCustomerComboBox().isEnabled());
     }
@@ -260,7 +264,7 @@ public class ProductCrudTest extends BaseCrudTest {
         dialog.initWebElements();
 
         assertEquals(dialog.getFailedComponents().size(), 1);
-        assertEquals(dialog.getSupplierComboBox().getErrorMessage(), "Error happened while getting suppliers");
+        assertEquals(dialog.getSupplierComboBox().getErrorMessage(), "EmsError happened while getting suppliers");
         assertFalse(dialog.getOrderButton().isEnabled());
         assertFalse(dialog.getSupplierComboBox().isEnabled());
     }
@@ -274,7 +278,7 @@ public class ProductCrudTest extends BaseCrudTest {
 
         ProductPage productPage = new ProductPage(driver, port);
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
-        assertEquals(notificationComponent.getText(), "Error happened while getting products");
+        assertEquals(notificationComponent.getText(), "EmsError happened while getting products");
         notificationComponent.close();
 
         assertEquals(productPage.getGrid().getTotalDeletedRowNumber(productPage.getShowDeletedCheckBox()), 0);
@@ -297,8 +301,8 @@ public class ProductCrudTest extends BaseCrudTest {
         SoftAssert sa = new SoftAssert();
         sa.assertFalse(dialog.getSellingPriceCurrencyComponent().isEnabled());
         sa.assertFalse(dialog.getBuyingPriceCurrencyComponent().isEnabled());
-        sa.assertEquals(dialog.getSellingPriceCurrencyComponent().getErrorMessage(), "Error happened while getting currencies");
-        sa.assertEquals(dialog.getBuyingPriceCurrencyComponent().getErrorMessage(), "Error happened while getting currencies");
+        sa.assertEquals(dialog.getSellingPriceCurrencyComponent().getErrorMessage(), "EmsError happened while getting currencies");
+        sa.assertEquals(dialog.getBuyingPriceCurrencyComponent().getErrorMessage(), "EmsError happened while getting currencies");
         sa.assertFalse(dialog.getSaveButton().isEnabled());
 
         sa.assertAll();
@@ -319,7 +323,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(dialog.getFailedComponents().size(), 1);
         SoftAssert sa = new SoftAssert();
         sa.assertFalse(dialog.getTaxKeyComponent().isEnabled());
-        sa.assertEquals(dialog.getTaxKeyComponent().getErrorMessage(), "Error happened while getting tax keys");
+        sa.assertEquals(dialog.getTaxKeyComponent().getErrorMessage(), "EmsError happened while getting tax keys");
         sa.assertFalse(dialog.getSaveButton().isEnabled());
 
         sa.assertAll();
@@ -340,7 +344,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(dialog.getFailedComponents().size(), 1);
         SoftAssert sa = new SoftAssert();
         sa.assertFalse(dialog.getAmountUnitComponent().isEnabled());
-        sa.assertEquals(dialog.getAmountUnitComponent().getErrorMessage(), "Error happened while getting amount units");
+        sa.assertEquals(dialog.getAmountUnitComponent().getErrorMessage(), "EmsError happened while getting amount units");
         sa.assertFalse(dialog.getSaveButton().isEnabled());
 
         sa.assertAll();
@@ -357,7 +361,7 @@ public class ProductCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Product saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Product saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 

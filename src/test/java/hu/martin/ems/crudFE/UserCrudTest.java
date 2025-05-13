@@ -99,7 +99,7 @@ public class UserCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 
     @Test
@@ -135,13 +135,13 @@ public class UserCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened while getting the logged in user. Deletion and modification is disabled");
+        assertEquals(notification.getText(), "EmsError happened while getting the logged in user. Deletion and modification is disabled");
         notification.close();
 
         UserPage userPage = new UserPage(driver, port);
         assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
         assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
-//        gridTestingUtil.checkNotificationText("Error happened while getting the logged in user. Deletion and modification is disabled");
+//        gridTestingUtil.checkNotificationText("EmsError happened while getting the logged in user. Deletion and modification is disabled");
     }
 
     @Test
@@ -399,7 +399,7 @@ public class UserCrudTest extends BaseCrudTest {
         dialog.initWebElements();
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
-        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting roles");
+        assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting roles");
         dialog.close();
 
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
@@ -407,7 +407,7 @@ public class UserCrudTest extends BaseCrudTest {
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
 //        Thread.sleep(500);
 //        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-//        failedFieldData.put("Role", "Error happened while getting roles");
+//        failedFieldData.put("Role", "EmsError happened while getting roles");
 //
 //        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
@@ -441,7 +441,7 @@ public class UserCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("User saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("User saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -461,7 +461,7 @@ public class UserCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("User modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("User modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 

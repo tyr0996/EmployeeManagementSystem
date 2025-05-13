@@ -10,6 +10,7 @@ import hu.martin.ems.pages.core.LoginErrorMessage;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -160,6 +161,9 @@ public class LoginTests extends BaseCrudTest {
         LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         EmptyLoggedInVaadinPage loggedInPage = new EmptyLoggedInVaadinPage(driver, port);
 
+        Actions a = new Actions(driver);
+        a.moveToElement(loggedInPage.getSideMenu().getElement()).perform();
+
         assertEquals(false, adminSubMenusVisible());
         assertEquals(false, ordersSubMenusVisible());
 
@@ -194,7 +198,7 @@ public class LoginTests extends BaseCrudTest {
         LoginPage loginPage = LoginPage.goToLoginPage(driver, port);
         loginPage.register(username, password, password, false, false);
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals("Error happened while getting NO_ROLE", notification.getText());
+        assertEquals("EmsError happened while getting NO_ROLE", notification.getText());
 
         loginPage.logIntoApplication(username, password, false);
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");

@@ -58,7 +58,7 @@ public class EmailSendingService {
                     multipart.addBodyPart(createAttachmentBodyPart(emailAttachment));
                 }
             } catch (MessagingException e) {
-                logger.error("Error occured while sending email. " + e);
+                logger.error("EmsError occured while sending email. " + e);
                 return false;
             }
 

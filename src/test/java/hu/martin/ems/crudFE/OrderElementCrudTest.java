@@ -114,7 +114,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void orderElementReadTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -214,7 +213,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 
     @Test
@@ -336,7 +335,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         OrderElementPage page = new OrderElementPage(driver, port);
         sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
         VaadinNotificationComponent notification_1 = new VaadinNotificationComponent(driver);
-        sa.assertEquals(notification_1.getText(), "Error happened while getting order elements");
+        sa.assertEquals(notification_1.getText(), "EmsError happened while getting order elements");
         notification_1.close();
 
         sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
@@ -358,7 +357,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         page.getCreateButton().click();
         OrderElementSaveOrUpdateDialog dialog = new OrderElementSaveOrUpdateDialog(driver);
         dialog.initWebElements();assertEquals(dialog.getFailedComponents().size(), 1);
-        assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "Error happened while getting suppliers");
+        assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "EmsError happened while getting suppliers");
         assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Supplier");
         dialog.close();
 
@@ -383,7 +382,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         OrderElementSaveOrUpdateDialog dialog = new OrderElementSaveOrUpdateDialog(driver);
         dialog.initWebElements();
         assertEquals(dialog.getFailedComponents().size(), 1);
-        assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "Error happened while getting customers");
+        assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "EmsError happened while getting customers");
         assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Customer");
         dialog.close();
     }
@@ -399,7 +398,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         page.getCreateButton().click();
         OrderElementSaveOrUpdateDialog dialog = new OrderElementSaveOrUpdateDialog(driver);
         dialog.initWebElements();assertEquals(dialog.getFailedComponents().size(), 1);
-        assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "Error happened while getting products");
+        assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "EmsError happened while getting products");
         assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Product");
         dialog.close();
     }
@@ -415,7 +414,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
 
 
@@ -436,7 +435,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("OrderElement modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("OrderElement modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 }

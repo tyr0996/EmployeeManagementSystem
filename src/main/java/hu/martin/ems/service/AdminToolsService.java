@@ -30,18 +30,18 @@ public class AdminToolsService {
         this.applicationContext = applicationContext;
     }
 
-    public void clearAllDatabaseTable() throws ClassNotFoundException {
+    public void clearAllDatabaseTable(boolean onlyPermanentlyDelete) throws ClassNotFoundException {
         ClassPathScanningCandidateComponentProvider serviceProvider = new ClassPathScanningCandidateComponentProvider(false);
         serviceProvider.addIncludeFilter(new AssignableTypeFilter(BaseService.class));
         Set<BeanDefinition> services = serviceProvider.findCandidateComponents("hu/martin/ems/service");
-        clearDatabaseTables(services.stream().toList());
+        clearDatabaseTables(services.stream().toList(), onlyPermanentlyDelete);
     }
 
-    private void clearDatabaseTables(List<BeanDefinition> services) throws ClassNotFoundException {
+    private void clearDatabaseTables(List<BeanDefinition> services, boolean onlyPermanentlyDelete) throws ClassNotFoundException {
         for(int i = 0; i < services.size(); i++){
             BaseService service = (BaseService) BeanProvider.getBean(Class.forName(services.get(i).getBeanClassName()));
 //            System.out.println("Kiskutya");
-            service.clearDatabaseTable();
+            service.clearDatabaseTable(onlyPermanentlyDelete);
         }
     }
 }

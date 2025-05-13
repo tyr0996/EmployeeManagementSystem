@@ -6,6 +6,7 @@ import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.core.auth.CustomUserDetailsService;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.vaadin.api.base.WebClientProvider;
+import hu.martin.ems.vaadin.core.EmsError;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +64,8 @@ public abstract class EmsApiClient<T> {
             return new EmsResponse(200, convertResponseToEntity(response), "");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - save - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            logger.error("WebClient error - save - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
@@ -84,7 +85,7 @@ public abstract class EmsApiClient<T> {
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - update - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
 
         }
     }
@@ -102,8 +103,8 @@ public abstract class EmsApiClient<T> {
             return gson.fromJson(response, entityType);
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - restore - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            logger.error("WebClient error - restore - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
             //TODO
             return null;
         }
@@ -122,8 +123,8 @@ public abstract class EmsApiClient<T> {
             return new EmsResponse(200, gson.fromJson(json, entityType), "");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            logger.error("WebClient error - delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
@@ -147,9 +148,9 @@ public abstract class EmsApiClient<T> {
             return new EmsResponse(200, "");
         }
         catch(WebClientResponseException ex){
-            logger.error("WebClient error - permanently delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            logger.error("WebClient error - permanently delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
 //            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
             //TODO
         }
     }
@@ -187,8 +188,8 @@ public abstract class EmsApiClient<T> {
 //            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
 //        }
 //        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+//            logger.error("WebClient error - findAllWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
+//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
 //        }
 //    }
 
@@ -207,8 +208,8 @@ public abstract class EmsApiClient<T> {
 //            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
 //        }
 //        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllWithGraph - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+//            logger.error("WebClient error - findAllWithGraph - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
+//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
 //        }
 //    }
 
@@ -228,8 +229,8 @@ public abstract class EmsApiClient<T> {
 //            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
 //        }
 //        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllWithGraphWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+//            logger.error("WebClient error - findAllWithGraphWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
+//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
 //        }
 //    }
 
@@ -267,8 +268,8 @@ public abstract class EmsApiClient<T> {
 //            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
 //        }
 //        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllWithGraphWithDeletedWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+//            logger.error("WebClient error - findAllWithGraphWithDeletedWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
+//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
 //        }
 //    }
 
@@ -313,8 +314,8 @@ public abstract class EmsApiClient<T> {
 //            return new EmsResponse(200, gson.fromJson(response, entityType), "");
 //        }
 //        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllByIds - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+//            logger.error("WebClient error - findAllByIds - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
+//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
 //        }
 //    }
 //    public void forcePermanentlyDelete(Long id){

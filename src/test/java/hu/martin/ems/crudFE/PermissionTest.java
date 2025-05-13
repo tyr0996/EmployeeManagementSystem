@@ -166,7 +166,7 @@ public class PermissionTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("Permission modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("Permission modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -183,7 +183,7 @@ public class PermissionTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 
     @Test
@@ -199,7 +199,7 @@ public class PermissionTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Permission saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Permission saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -216,7 +216,7 @@ public class PermissionTest extends BaseCrudTest {
         int countElements = page.getGrid().getPaginationData().getTotalElements();
         assertEquals(countElements, 0);
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened while getting permissions");
+        assertEquals(notification.getText(), "EmsError happened while getting permissions");
         notification.close();
 
         page.getShowDeletedCheckBox().setStatus(true);
@@ -224,7 +224,7 @@ public class PermissionTest extends BaseCrudTest {
         assertEquals(page.getGrid().getPaginationData().getTotalElements(), 0);
 
         VaadinNotificationComponent notification_2 = new VaadinNotificationComponent(driver);
-        assertEquals(notification_2.getText(), "Error happened while getting permissions");
+        assertEquals(notification_2.getText(), "EmsError happened while getting permissions");
         notification_2.close();
 
         assertEquals(page.getGrid().getPaginationData().getTotalElements(), countElements);
@@ -244,7 +244,7 @@ public class PermissionTest extends BaseCrudTest {
         assertEquals(countElements, 0);
 
         VaadinNotificationComponent notificationBeforeShowDeleted = new VaadinNotificationComponent(driver);
-        assertEquals(notificationBeforeShowDeleted.getText(), "Error happened while getting permissions");
+        assertEquals(notificationBeforeShowDeleted.getText(), "EmsError happened while getting permissions");
         notificationBeforeShowDeleted.close();
 
         page.getShowDeletedCheckBox().setStatus(true);
@@ -252,7 +252,7 @@ public class PermissionTest extends BaseCrudTest {
         assertEquals(countElements, 0);
 
         VaadinNotificationComponent notificationAfterShowDeleted = new VaadinNotificationComponent(driver);
-        assertEquals(notificationAfterShowDeleted.getText(), "Error happened while getting permissions");
+        assertEquals(notificationAfterShowDeleted.getText(), "EmsError happened while getting permissions");
         notificationAfterShowDeleted.close();
 
         assertEquals(page.getGrid().getPaginationData().getTotalElements(), countElements);
@@ -272,7 +272,7 @@ public class PermissionTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Permission saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Permission saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -289,7 +289,7 @@ public class PermissionTest extends BaseCrudTest {
         dialog.initWebElements();
         SoftAssert sa = new SoftAssert();
         sa.assertFalse(dialog.getRolesComboBox().isEnabled());
-        sa.assertEquals(dialog.getRolesComboBox().getErrorMessage(), "Error happened while getting roles");
+        sa.assertEquals(dialog.getRolesComboBox().getErrorMessage(), "EmsError happened while getting roles");
         sa.assertFalse(dialog.getSaveButton().isEnabled());
         dialog.close();
         sa.assertAll();

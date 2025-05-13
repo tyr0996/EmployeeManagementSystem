@@ -1,12 +1,16 @@
 package hu.martin.ems.pages.core.component;
 
+import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.PaginationData;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class VaadinMultipleSelectGridComponent extends VaadinGridComponent {
@@ -16,13 +20,38 @@ public class VaadinMultipleSelectGridComponent extends VaadinGridComponent {
 
     public VaadinGridComponent selectElements(int selectElementNumber){
 //        int gridRows = countVisibleDataRows();
+//        System.out.println("Elemek, amiket kiválasztok: " + selectElementNumber);
         deselectAll();
         List<Integer> randomIndexes = getRandomIndexes(selectElementNumber);
-        selectElements(randomIndexes);
+        List<ElementLocation> locations = randomIndexes.stream().map(this::convertIndexToElementLocation).toList();
+        System.out.println("Locations: ");
+        locations.forEach(System.out::println);
+//        System.out.println("Kiválasztott index-ek: ");
+//        randomIndexes.forEach(System.out::println);
+        selectElements(locations);
         return this;
     }
 
-    private VaadinGridComponent selectElements(List<Integer> indexesToBeSelected){
+    private VaadinGridComponent selectElements(List<ElementLocation> locations){
+//        locations.sort(Comparator.comparing(ElementLocation::getPageNumber));
+
+//        List<ElementLocation> list = ... // a bemeneti lista
+
+        Map<Integer, List<ElementLocation>> grouped = locations.stream()
+                .collect(Collectors.groupingBy(ElementLocation::getPageNumber));
+        List<List<ElementLocation>> result = new ArrayList<>(grouped.values());
+        result.forEach(v -> {
+            goToPage(v.get(0).getPageNumber());
+            List<Integer> tempI = new ArrayList<>();
+            v.forEach(l -> {
+                tempI.add(l.getRowIndex());
+            });
+            selectIndexes(tempI);
+        });
+        return this;
+    }
+
+    private VaadinGridComponent selectIndexes(List<Integer> indexesToBeSelected){
         int rows = countVisibleDataRows();
         if(rows == 0){
             //TODO kivételt dobni!

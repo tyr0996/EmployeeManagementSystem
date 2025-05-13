@@ -153,7 +153,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         dialog.initWebElements();
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
-        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting users");
+        assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting users");
     }
 
     @Test
@@ -165,7 +165,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
 
         EmployeePage employeePage = new EmployeePage(driver, port);
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
-        assertEquals(notificationComponent.getText(), "Error happened while getting employees");
+        assertEquals(notificationComponent.getText(), "EmsError happened while getting employees");
         notificationComponent.close();
 
         assertEquals(employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 0);
@@ -184,7 +184,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 
     @Test
@@ -198,7 +198,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Employee permanently deletion failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Employee permanently deletion failed: Database error");
     }
 
     @Test
@@ -212,7 +212,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("Employee modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("Employee modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -227,7 +227,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Employee saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Employee saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 

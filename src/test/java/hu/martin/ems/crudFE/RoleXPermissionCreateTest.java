@@ -76,7 +76,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 //        gridTestingUtil.fillElementWith(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath), false, "");
 //        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), false);
 //        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(saveButtonXpath)), false);
-//        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "Error happened while getting paired permissions");
+//        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "EmsError happened while getting paired permissions");
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
 //    }
 
@@ -94,7 +94,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         assertFalse(page.getPermissionsComboBox().isEnabled());
         assertFalse(page.getSaveButton().isEnabled());
         assertTrue(page.getRoleComboBox().isEnabled());
-        assertEquals(page.getPermissionsComboBox().getErrorMessage(), "Error happened while getting permissions");
+        assertEquals(page.getPermissionsComboBox().getErrorMessage(), "EmsError happened while getting permissions");
     }
 
 //    @Test
@@ -106,7 +106,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 //        Thread.sleep(100);
 //        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), false);
 //        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(saveButtonXpath)), false);
-//        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "Error happened while getting permissions");
+//        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "EmsError happened while getting permissions");
 //        gridTestingUtil.fillElementWith(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath), false, "");
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
 //    }
@@ -127,7 +127,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         SoftAssert sa = new SoftAssert();
 
         sa.assertFalse(page.getRoleComboBox().isEnabled(), "Role combo box is not disabled");
-        sa.assertEquals(page.getRoleComboBox().getErrorMessage(), "Error happened while getting roles", "Role combo box's error message doesn't match");
+        sa.assertEquals(page.getRoleComboBox().getErrorMessage(), "EmsError happened while getting roles", "Role combo box's error message doesn't match");
 
         sa.assertFalse(page.getSaveButton().isEnabled(), "Save button is not disabled");
         sa.assertTrue(page.getPermissionsComboBox().isEnabled(), "Permission combo box disabled");
@@ -178,8 +178,8 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 
         sa.assertFalse(page.getRoleComboBox().isEnabled());
         sa.assertFalse(page.getPermissionsComboBox().isEnabled());
-        sa.assertEquals(page.getRoleComboBox().getErrorMessage(), "Error happened while getting roles");
-        sa.assertEquals(page.getPermissionsComboBox().getErrorMessage(), "Error happened while getting permissions");
+        sa.assertEquals(page.getRoleComboBox().getErrorMessage(), "EmsError happened while getting roles");
+        sa.assertEquals(page.getPermissionsComboBox().getErrorMessage(), "EmsError happened while getting permissions");
         sa.assertFalse(page.getSaveButton().isEnabled());
 
         sa.assertAll();

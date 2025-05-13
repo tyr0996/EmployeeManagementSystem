@@ -153,7 +153,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         ctx.put("order", order);
         ctx.put("to", new CustomerDM(o.getCustomer()));
 
-        fileType.generate(report, ctx, out);
+        return fileType.generate(report, ctx, out);
 //        if(fileType.equals("PDF")){
 //            ByteArrayOutputStream baos = new ByteArrayOutputStream();
 //            report.convert(ctx, Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.ODFDOM), baos);
@@ -166,7 +166,6 @@ public class OrderService extends BaseService<Order, OrderRepository> {
 //            out.write(baos.toByteArray());
 //            return baos.toByteArray();
 //        }
-        return null;
     }
 
     public String generateHTMLEmail(Long orderId){
@@ -176,56 +175,56 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         String orderDate = o.getTimeOfOrder().toString();
 
         String htmlContent = """
-<!DOCTYPE html>
-<html lang="hu">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Megrendelési értesítés</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f4f4f4;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h2 {
-            color: #333333;
-        }
-        p {
-            color: #666666;
-        }
-        .footer {
-            margin-top: 20px;
-            text-align: center;
-            color: #999999;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Megrendelési értesítés</h2>
-        <p>Kedves %s!</p>
-        <p>Ezúton értesítjük, hogy sikeresen fogadtuk megrendelését az alábbi részletekkel:</p>
-            <strong>Megrendelés száma:</strong> %s
-            <strong>Dátum:</strong> %s
-        <p>A rendelésének részletes leírását a mellékelt PDF fájl tartalmazza.</p>"
-            + "        <p>Köszönjük, hogy minket választott! Kérdése esetén forduljon hozzánk bizalommal.</p>
-        <div class="footer">
-            <p>Ez egy automatikus értesítés, kérjük ne válaszoljon erre az e-mailre.</p>
-        </div>
-    </div>
-</body>
-</html>
-""";
+                <!DOCTYPE html>
+                <html lang="hu">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Megrendelési értesítés</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            line-height: 1.6;
+                            background-color: #f4f4f4;
+                            padding: 20px;
+                        }
+                        .container {
+                            max-width: 600px;
+                            margin: 0 auto;
+                            background-color: #ffffff;
+                            padding: 30px;
+                            border-radius: 8px;
+                            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                        }
+                        h2 {
+                            color: #333333;
+                        }
+                        p {
+                            color: #666666;
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            text-align: center;
+                            color: #999999;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>Megrendelési értesítés</h2>
+                        <p>Kedves %s!</p>
+                        <p>Ezúton értesítjük, hogy sikeresen fogadtuk megrendelését az alábbi részletekkel:</p>
+                            <strong>Megrendelés száma:</strong> %s
+                            <strong>Dátum:</strong> %s
+                        <p>A rendelésének részletes leírását a mellékelt PDF fájl tartalmazza.</p>"
+                            + "        <p>Köszönjük, hogy minket választott! Kérdése esetén forduljon hozzánk bizalommal.</p>
+                        <div class="footer">
+                            <p>Ez egy automatikus értesítés, kérjük ne válaszoljon erre az e-mailre.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+        """;
         return String.format(htmlContent, customerName, orderNumber, orderDate);
     }
 }
