@@ -12,16 +12,43 @@
     padding: 20px;
     flex-grow: 1;
     overflow: auto;
-    margin-left: var(--side-menu-width);
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
 }
 
 .side-menu {
     position: fixed;
     top: 0;
-    left: 0;
-    width: 250px!important;
+    left: -250px !important;
+    width: 250px !important;
     height: 100%;
     background-color: #f8f9fa;
+    transition: left 0.3s ease;
+    z-index: 1000;
+}
+
+/* Amikor megjelenik a menü, a content layout is eltolódik */
+.side-menu.show {
+    left: 0 !important;
+}
+
+.content-layout.shifted {
+    margin-left: var(--side-menu-width);
+}
+
+.side-menu.show {
+    left: 0px!important; /* Menü megjelenése */
+}
+
+/* Menü megjelenítése, amikor az egér az oldalra kerül */
+.side-menu:hover {
+    left: 0px!important; /* Megjelenik */
+}
+
+
+/* Menüelem háttérszín változása hover esetén */
+.side-menu > *:hover {
+    background-color: #555;
 }
 
 .logout-button {

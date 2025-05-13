@@ -11,9 +11,9 @@ public class EmsEmailAuthenticator extends Authenticator {
         this.sendingAddress = sendingAddress;
         this.sendingPassword = sendingPassword;
     }
-
-    @Override
-    protected PasswordAuthentication getPasswordAuthentication() {
-        return new PasswordAuthentication(sendingAddress, sendingPassword);
-    }
+//
+//    @Override
+//    protected PasswordAuthentication getPasswordAuthentication() {
+//        return new PasswordAuthentication(sendingAddress, sendingPassword);
+//    }
 }

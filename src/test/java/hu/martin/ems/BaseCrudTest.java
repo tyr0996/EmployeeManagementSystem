@@ -10,6 +10,7 @@ import hu.martin.ems.core.schedule.CurrencyScheduler;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.model.Currency;
+import hu.martin.ems.repository.CurrencyRepository;
 import hu.martin.ems.service.AdminToolsService;
 import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.service.OrderService;
@@ -25,7 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.web.client.RestTemplate;
 import org.testng.ITestListener;
@@ -89,17 +93,29 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 //    protected static WebDriver driver;
 
     @Autowired
-    protected ServletWebServerApplicationContext webServerAppCtxt;
+    private ServletWebServerApplicationContext webServerAppCtxt;
+
+    protected static ServletWebServerApplicationContext context;
 
     @Autowired
     protected DataProvider dataProvider;
+
+    @Autowired
+    private ScreenshotMaker screenshotMakerP;
+    protected static ScreenshotMaker screenshotMaker;
 
     @SpyBean
     protected static BeanProvider spyBeanProvider;
     private Logger logger = LoggerFactory.getLogger(BaseCrudTest.class);
 
     @Autowired
-    private Environment env;
+    private ConfigurableEnvironment env;
+    @Autowired
+    private CurrencyRepository currencyRepositoryP;
+
+    protected static CurrencyRepository currencyRepository;
+
+    protected static ConfigurableEnvironment environment;
 
     protected static Integer port;
     protected static DataProvider dp;
@@ -175,6 +191,10 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         
         port = webServerAppCtxt.getWebServer().getPort();
         dp = dataProvider;
+        screenshotMaker = screenshotMakerP;
+        environment = env;
+        currencyRepository = currencyRepositoryP;
+        context = webServerAppCtxt;
         
         driver = BeanProvider.getBean(WebDriverProvider.class).get();
     }
@@ -233,6 +253,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.reset(spyEndpointController);
         Mockito.reset(spyJschConfig);
         Mockito.reset(spyIconProvider);
+        Mockito.reset(spyCurrencyScheduler);
         System.out.println("Mockito reseting done!");
     }
 
@@ -246,6 +267,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.clearInvocations(spyEndpointController);
         Mockito.clearInvocations(spyJschConfig);
         Mockito.clearInvocations(spyIconProvider);
+        Mockito.clearInvocations(spyCurrencyScheduler);
         System.out.println("Mockito invocation clearing done!");
 
     }
@@ -284,7 +306,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     public void onTestFailure(ITestResult result) {
         failedCount.incrementAndGet();
         if (driver != null) {
-            new ScreenshotMaker().takeScreenshot(driver);
+            screenshotMaker.takeScreenshot(driver);
         }
     }
 
@@ -319,10 +341,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     }
 
     protected void clearCurrencyDatabaseTable(){
-        List<Currency> currentCurrencies = spyCurrencyService.findAll(false);
-        currentCurrencies.forEach(v -> {
-            spyCurrencyService.forcePermanentlyDelete(v.getId());
-        });
+        spyCurrencyService.clearDatabaseTable(false);
     }
 
     protected boolean waitForDownload(String fileNameRegex, int times, int padding) throws Exception {
@@ -384,5 +403,14 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         } catch (MessagingException e) {
             e.printStackTrace();
         }
+    }
+
+    public String updateProperty(String key, String value) {
+        MutablePropertySources propertySources = environment.getPropertySources();
+        Properties props = new Properties();
+        props.put(key, value);
+        PropertiesPropertySource propertySource = new PropertiesPropertySource("dynamicProps", props);
+        propertySources.addFirst(propertySource);
+        return "Property updated: " + key + " = " + value;
     }
 }

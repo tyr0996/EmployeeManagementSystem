@@ -1,15 +1,23 @@
 package hu.martin.ems;
 
+import hu.martin.ems.core.config.DataProvider;
+import hu.martin.ems.core.schedule.CurrencyScheduler;
 import hu.martin.ems.repository.CurrencyRepository;
+import hu.martin.ems.service.CurrencyService;
+import lombok.AllArgsConstructor;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.testng.annotations.Test;
 
 import java.time.LocalDate;
 import java.util.concurrent.TimeUnit;
@@ -20,46 +28,42 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {
-        "schedule.fetch.currencies.cron=*/1 * * * * *"
-})
 public class ScheduledTests extends BaseCrudTest {
-
-
-    @Autowired
-    protected CurrencyRepository currencyRepo;
-
-    @Autowired
-    private Environment env;
 
     @Test
     void scheduledCurrencyFetchingTest() {
-        dataProvider.executeSQL("DELETE FROM Currency");
-        assertNull(currencyRepo.findByDate(LocalDate.now()));
+        dp.executeSQL("DELETE FROM Currency");
+        assertNull(currencyRepository.findByDate(LocalDate.now()));
+        context.getBean(CurrencyScheduler.class).fetchRates();
+//        updateProperty("schedule.fetch.currencies.cron", "*/5 * * * * *");
+
         Awaitility.await()
-                .atMost(5, TimeUnit.SECONDS)
+                .atMost(1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     verify(spyCurrencyScheduler, times(1)).fetchRates();
                     verify(spyCurrencyService, times(1)).fetchAndSaveRates();
-                    assertNotNull(currencyRepo.findByDate(LocalDate.now()));
+                    assertNotNull(currencyRepository.findByDate(LocalDate.now()));
                 });
     }
 
     @Test
     void scheduledCurrencyFetchingFailedTest() {
-        fetchingCurrencyApiUrl = env.getProperty("api.currency.url");
-        baseCurrency = env.getProperty("api.currency.baseCurrency");
+        String fetchingCurrencyApiUrl = environment.getProperty("api.currency.url");
+        String baseCurrency = environment.getProperty("api.currency.baseCurrency");
 
-        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
-        dataProvider.executeSQL("DELETE FROM Currency");
-        assertNull(currencyRepo.findByDate(LocalDate.now()));
+        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+        dp.executeSQL("DELETE FROM Currency");
+        assertNull(currencyRepository.findByDate(LocalDate.now()));
+        Mockito.clearInvocations(spyCurrencyScheduler);
+        Mockito.clearInvocations(spyCurrencyService);
+        context.getBean(CurrencyScheduler.class).fetchRates();
         Awaitility.await()
                 .atMost(1, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     verify(spyCurrencyScheduler, times(1)).fetchRates();
                     verify(spyCurrencyService, times(1)).fetchAndSaveRates();
                     verify(spyRestTemplate, times(1)).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
-                    assertNull(currencyRepo.findByDate(LocalDate.now()));
                 });
+        assertNull(currencyRepository.findByDate(LocalDate.now()));
     }
 }

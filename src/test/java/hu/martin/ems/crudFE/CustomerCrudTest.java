@@ -35,7 +35,7 @@ public class CustomerCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 
     @Test
@@ -164,7 +164,7 @@ public class CustomerCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("Customer modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("Customer modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -179,7 +179,7 @@ public class CustomerCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Customer saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Customer saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -191,7 +191,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened while getting customers");
+        assertEquals(notification.getText(), "EmsError happened while getting customers");
         notification.close();
 
         CustomerPage customerPage = new CustomerPage(driver, port);
@@ -213,7 +213,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         dialog.initWebElements();
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
-        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting addresses");
+        assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting addresses");
         dialog.close();
     }
 

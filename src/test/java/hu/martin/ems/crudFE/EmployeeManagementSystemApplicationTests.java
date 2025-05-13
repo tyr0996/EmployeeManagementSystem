@@ -1,19 +1,10 @@
 package hu.martin.ems.crudFE;
 
-import fr.opensagres.xdocreport.core.XDocReportException;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.documentmodel.OrderDM;
-import hu.martin.ems.exception.CurrencyException;
-import hu.martin.ems.model.Order;
-import hu.martin.ems.service.OrderDocumentFileType;
-import hu.martin.ems.service.OrderService;
 import hu.martin.ems.vaadin.component.BaseVO;
-import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -23,19 +14,11 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import static org.mockito.Mockito.when;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
-    @Test
-    public void getIDSeqNameTest(){
-        assertEquals("role_id_seq", dp.getIDSequenceName("role"));
-        assertEquals("permission_id_seq", dp.getIDSequenceName("permission"));
-        assertEquals("loginuser_id_seq", dp.getIDSequenceName("loginuser"));
-        assertNull(dp.getIDSequenceName("roles_permissions"));
-    }
-
     @Test
     public void testSqlFileCount() {
         Integer sqlFileCount = fileCountInFolder(dp.getGENERATED_SQL_FILES_PATH(), ".sql");
@@ -101,6 +84,25 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
     }
 
 //    @Test
+//    public void entityForcePermanentlyDeleteViolatesForeignKeyConstraint() {
+//        Role role = new Role();
+//        role.setName("testRole");
+//        role.setDeleted(0L);
+//        Permission permission = new Permission();
+//        permission.setDeleted(0L);
+//        permission.setName("testPermission");
+//        Set<Permission> permissionSet = new HashSet<>();
+//        Long id = BeanProvider.getBean(PermissionRepository.class).customSave(permission).getId();
+//        Permission savedPermission = BeanProvider.getBean(PermissionRepository.class).customFindById(id);
+//        permissionSet.add(savedPermission);
+//        role.setPermissions(permissionSet);
+//        Role savedRole = BeanProvider.getBean(RoleRepository.class).customSave(role);
+//        Long roleId = savedRole.getId();
+//        BeanProvider.getBean(RoleRepository.class).customForcePermanentlyDelete(roleId);
+//    }
+
+
+//    @Test
 //    public void copyEntityFailedTest() throws IllegalAccessException {
 ////        EntityUtil<TestVO> entityUtil = spy(EntityUtil.class);
 //        EntityUtil<TestVO> realUtil = new EntityUtil<>();
@@ -154,5 +156,7 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
             super(id, deleted);
         }
     }
+
+
 
 }

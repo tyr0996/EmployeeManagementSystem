@@ -154,7 +154,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 return (User) emsResponse.getResponseData();
             default:
                 logger.error("User findByUsernameError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
-                Notification.show("Error happened while getting username")
+                Notification.show("EmsError happened while getting username")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return null;
         }
@@ -255,7 +255,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 return (Role) response.getResponseData();
             default:
                 logger.error("Role getNoRoleError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("Error happened while getting NO_ROLE")
+                Notification.show("EmsError happened while getting NO_ROLE")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return null;
         }

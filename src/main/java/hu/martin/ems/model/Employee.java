@@ -27,18 +27,14 @@ public class Employee extends BaseEntity {
 //    @Expose
 //    private Role role;
 
-    @Transient
-    @Expose
-    private Role role;
+//    @Transient
+//    @Expose
+//    private Role role;
 
     @ManyToOne
     @JoinColumn(name = "user_loginuser_id")
     @Expose
     private User user;
-
-    public Role getRole(){
-        return user.getRoleRole();
-    }
 
     @Column(nullable = false)
     @Expose

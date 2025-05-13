@@ -63,9 +63,9 @@ public class JPAConfig {
 
     @Value("${spring.datasource.hikari.max-lifetime}")
     private Integer hibernateMaxLifetime;
-
-    @Value("${spring.jpa.hibernate.ddl-auto}")
-    private String dllAuto;
+//
+//    @Value("${spring.jpa.hibernate.ddl-auto}")
+//    private String dllAuto;
 
     @Value("${spring.jpa.properties.hibernate.format_sql}")
     private String formatSql;
@@ -131,7 +131,7 @@ public class JPAConfig {
 
         Properties jpaProperties = new Properties();
         jpaProperties.setProperty("hibernate.dialect", hibernateDialect);
-        jpaProperties.setProperty("hibernate.hbm2ddl.auto", dllAuto);
+//        jpaProperties.setProperty("hibernate.hbm2ddl.auto", dllAuto);
         jpaProperties.setProperty("hibernate.show_sql", hibernateShowSql);
         jpaProperties.setProperty("hibernate.format_sql", formatSql);
 //        jpaProperties.setProperty("hibernate.use_sql_comments", useSqlComments);

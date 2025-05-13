@@ -2,6 +2,7 @@ package hu.martin.ems.vaadin.api;
 
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.vaadin.api.base.WebClientProvider;
+import hu.martin.ems.vaadin.core.EmsError;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ public class AdminToolsApiClient {
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
@@ -56,7 +57,7 @@ public class AdminToolsApiClient {
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
@@ -72,7 +73,7 @@ public class AdminToolsApiClient {
         }
         catch (WebClientResponseException ex){
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 }

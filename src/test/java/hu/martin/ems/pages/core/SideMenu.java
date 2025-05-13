@@ -3,8 +3,10 @@ package hu.martin.ems.pages.core;
 import hu.martin.ems.pages.core.component.VaadinBaseComponent;
 import lombok.Getter;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class SideMenu extends VaadinBaseComponent {
@@ -27,21 +29,51 @@ public class SideMenu extends VaadinBaseComponent {
     public static final String ORDER_SUBMENU = SIDE_MENU + "/vaadin-horizontal-layout[13]/span";
     public static final String ORDER_CREATE_TO_CUSTOMER_SUBMENU = SIDE_MENU + "/vaadin-horizontal-layout[14]/span";
     public static final String ORDER_FROM_SUPPLIER_SUBMENU = SIDE_MENU + "/vaadin-horizontal-layout[15]/span";
+    public static final String LOGOUT_BUTTON = SIDE_MENU + "/vaadin-button";
 
-    @Getter protected WebElement adminMenu;
-    @Getter protected WebElement ordersMenu;
+    @Getter protected WebElement logoutButton;
+
+    public WebElement getAdminMenu(){
+        return getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(ADMIN_MENU)));
+    }
+
+    public WebElement getOrdersMenu(){
+        return getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(ORDERS_MENU)));
+    }
+
 
     private WebElement element;
+
+    public SideMenu(WebDriver driver){
+        this(driver, By.xpath(SIDE_MENU));
+    }
+
     public SideMenu(WebDriver driver, By provider){
         super(driver, provider);
         this.element = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(SIDE_MENU)));
-        this.adminMenu = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(ADMIN_MENU)));
-        this.ordersMenu = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(ORDERS_MENU)));
+//        this.adminMenu = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(this.element, By.tagName("span"))).get(0);
+//        this.ordersMenu = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(this.element, By.tagName("span"))).get(1);
+//        printToConsole(this.adminMenu);
+//        printToConsole(this.ordersMenu);
+//        System.out.println("***************************");
     }
 
     public void navigate(String mainMenu, String subMenu){
+        Actions action = new Actions(getDriver());
+        action.moveToElement(element).perform();
         getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(mainMenu))).click();
         getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(subMenu))).click();
         getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(mainMenu))).click();
+    }
+
+    public void logout(){
+        Actions action = new Actions(getDriver());
+        action.moveToElement(element).perform();
+        logoutButton = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(LOGOUT_BUTTON)));
+
+        JavascriptExecutor js = (JavascriptExecutor) getDriver();
+        js.executeScript("arguments[0].click()", logoutButton);
+        getWait().until(ExpectedConditions.urlMatches("http://localhost:[0-9]{4,5}/login\\?invalid-session"));
+        getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"input-vaadin-text-field-6\"]")));
     }
 }

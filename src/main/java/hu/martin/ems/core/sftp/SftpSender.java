@@ -39,7 +39,7 @@ public class SftpSender {
         } catch (SftpException e){
             System.out.println("SFTP sender fail");
             jschConfig.getChannelSftp().disconnect();
-            logger.error("Error occurred while uploading file!");
+            logger.error("EmsError occurred while uploading file!");
             return false;
         } catch (JSchException e){
             logger.error("The file upload failed because the connection to the SFTP server could not be established! Check the log for errors!");

@@ -51,6 +51,7 @@ import java.util.stream.Stream;
 @NeedCleanCoding
 public class ProductList extends VerticalLayout implements Creatable<Product> {
 
+    //TODO a Unit és a nem tudom mi helyett inkább lehetne packaging (kiszerelés)
     private final ProductApiClient productApi = BeanProvider.getBean(ProductApiClient.class);
     private final CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
     private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);
@@ -185,7 +186,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
-        });
+        }).setAutoWidth(true).setFlexGrow(0);
 
         setFilteringHeaderRow();
 
@@ -222,7 +223,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
             default:
                 productList = new ArrayList<>();
                 logger.error("Product findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("Error happened while getting products")
+                Notification.show("EmsError happened while getting products")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }
@@ -241,7 +242,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         setupCustomers();
         if(customerList == null){
             customers.setInvalid(true);
-            customers.setErrorMessage("Error happened while getting customers");
+            customers.setErrorMessage("EmsError happened while getting customers");
             customers.setEnabled(false);
             sellToCustomerButton.setEnabled(false);
         }
@@ -310,7 +311,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         setupSuppliers();
         if(supplierList == null){
             suppliers.setInvalid(true);
-            suppliers.setErrorMessage("Error happened while getting suppliers");
+            suppliers.setErrorMessage("EmsError happened while getting suppliers");
             suppliers.setEnabled(false);
             buyFromSupplierButton.setEnabled(false);
         }
@@ -354,7 +355,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
             default:
                 supplierList = null;
                 logger.error("Supplier findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("Error happened while getting suppliers")
+                Notification.show("EmsError happened while getting suppliers")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }
@@ -510,7 +511,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         setupCurrencies();
         if(currencyList == null){
             buyingPriceCurrencys.setInvalid(true);
-            buyingPriceCurrencys.setErrorMessage("Error happened while getting currencies");
+            buyingPriceCurrencys.setErrorMessage("EmsError happened while getting currencies");
             buyingPriceCurrencys.setEnabled(false);
             saveButton.setEnabled(false);
         }
@@ -528,7 +529,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         if(currencyList == null){
             sellingPriceCurrencies.setInvalid(true);
-            sellingPriceCurrencies.setErrorMessage("Error happened while getting currencies");
+            sellingPriceCurrencies.setErrorMessage("EmsError happened while getting currencies");
             sellingPriceCurrencies.setEnabled(false);
             saveButton.setEnabled(false);
         }
@@ -545,7 +546,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         setupTaxKeys();
         if(taxKeyList == null){
             taxKeys.setInvalid(true);
-            taxKeys.setErrorMessage("Error happened while getting tax keys");
+            taxKeys.setErrorMessage("EmsError happened while getting tax keys");
             taxKeys.setEnabled(false);
             saveButton.setEnabled(false);
         }
@@ -562,7 +563,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
         setupAmountUnits();
         if(amountUnitList == null){
             amountUnits.setInvalid(true);
-            amountUnits.setErrorMessage("Error happened while getting amount units");
+            amountUnits.setErrorMessage("EmsError happened while getting amount units");
             amountUnits.setEnabled(false);
             saveButton.setEnabled(false);
         }

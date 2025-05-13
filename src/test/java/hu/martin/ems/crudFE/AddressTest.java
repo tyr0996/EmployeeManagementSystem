@@ -176,7 +176,7 @@ public class AddressTest extends BaseCrudTest {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
         adminToolsPage.getClearDatabaseButton().click();
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
-        assertEquals(notificationComponent.getText(), "Internal Server Error");
+        assertEquals(notificationComponent.getText(), "Database error");
         notificationComponent.close();
     }
 
@@ -194,7 +194,7 @@ public class AddressTest extends BaseCrudTest {
         dialog.initWebElements();
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
-        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting countries");
+        assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting countries");
         dialog.close();
     }
 
@@ -212,7 +212,7 @@ public class AddressTest extends BaseCrudTest {
         dialog.initWebElements();
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
-        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting cities");
+        assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting cities");
         dialog.close();
     }
 
@@ -230,7 +230,7 @@ public class AddressTest extends BaseCrudTest {
         dialog.initWebElements();
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
-        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting street types");
+        assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting street types");
     }
 
     @Test
@@ -244,7 +244,7 @@ public class AddressTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 
     @Test
@@ -258,7 +258,7 @@ public class AddressTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Address permanently deletion failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Address permanently deletion failed: Database error");
     }
 
     @Test
@@ -272,7 +272,7 @@ public class AddressTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("Address modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("Address modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -287,7 +287,7 @@ public class AddressTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Address saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Address saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -301,7 +301,7 @@ public class AddressTest extends BaseCrudTest {
         SoftAssert sa = new SoftAssert();
         AddressPage addressPage = new AddressPage(driver, port);
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        sa.assertEquals(notification.getText(), "Error happened while getting addresses");
+        sa.assertEquals(notification.getText(), "EmsError happened while getting addresses");
         sa.assertEquals(addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 0);
         sa.assertEquals(addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 0);
 

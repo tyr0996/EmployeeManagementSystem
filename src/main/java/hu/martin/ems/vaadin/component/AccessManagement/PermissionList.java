@@ -202,7 +202,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
         }
         else{
-            Notification.show("Error happened while getting permissions")
+            Notification.show("EmsError happened while getting permissions")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
@@ -229,7 +229,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         if(roleList == null){
             roles.setInvalid(true);
             roles.setEnabled(false);
-            roles.setErrorMessage("Error happened while getting roles");
+            roles.setErrorMessage("EmsError happened while getting roles");
             saveButton.setEnabled(false);
         }
         else{
@@ -244,7 +244,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 //                roles.setValue(entity.getRoles());
 //            }
 //            else{
-//                roles.setErrorMessage("Error happened while getting paired roles");
+//                roles.setErrorMessage("EmsError happened while getting paired roles");
 //                roles.setEnabled(false);
 //                roles.setInvalid(true);
 //                saveButton.setEnabled(false);
@@ -328,7 +328,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 //            originalPermission.id = entity.id;
 //            List<Role> pairedRoles = getAllPairedRoleTo(entity);
 //            if(pairedRoles == null){
-//                Notification.show("Error happened while getting paired permissions")
+//                Notification.show("EmsError happened while getting paired permissions")
 //                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
 //                nameField.clear();
 //                createDialog.close();

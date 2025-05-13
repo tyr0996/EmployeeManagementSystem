@@ -3,6 +3,7 @@ package hu.martin.ems.vaadin.api;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.CodeStore;
+import hu.martin.ems.vaadin.core.EmsError;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -25,8 +26,8 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
             return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         }
         catch (WebClientResponseException ex){
-            logger.error("WebClient error - getChildren - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            logger.error("WebClient error - getChildren - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
@@ -41,8 +42,8 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
             return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         }
         catch(WebClientResponseException ex) {
-            logger.error("WebClient error getAllByName - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            logger.error("WebClient error getAllByName - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 }

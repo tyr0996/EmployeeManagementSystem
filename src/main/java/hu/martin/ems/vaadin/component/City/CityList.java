@@ -313,7 +313,7 @@ public class CityList extends VerticalLayout implements Creatable<City> {
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         setupCountries();
         if(countries == null){
-            countryCodes.setErrorMessage("Error happened while getting countries");
+            countryCodes.setErrorMessage("EmsError happened while getting countries");
             countryCodes.setEnabled(false);
             countryCodes.setInvalid(true);
             saveButton.setEnabled(false);

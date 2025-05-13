@@ -4,6 +4,7 @@ import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.model.Supplier;
+import hu.martin.ems.vaadin.core.EmsError;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -25,7 +26,7 @@ public class OrderElementApiClient extends EmsApiClient<OrderElement> {
             return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         }
         catch (WebClientResponseException ex){
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
@@ -40,7 +41,7 @@ public class OrderElementApiClient extends EmsApiClient<OrderElement> {
             return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
         }
         catch (WebClientResponseException ex){
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(Error.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 }

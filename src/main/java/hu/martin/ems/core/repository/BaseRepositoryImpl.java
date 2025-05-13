@@ -112,7 +112,7 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
             tempEm.persist(merged);
             transaction.commit();
             logger.info("Entity " + entity.getClass().getSimpleName() + " saved successfully: " + gson.toJson(entity));
-            return entity;
+            return merged;
         } catch (Exception e) {
 //            if (transaction.isActive()) {
 //                transaction.rollback();
@@ -129,7 +129,7 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
 
     @Transactional
     @Override
-    public T customUpdate(T entity) throws EntityNotFoundException {
+    public T customUpdate(T entity) {
         EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
         EntityTransaction transaction = tempEm.getTransaction();
@@ -142,33 +142,25 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
 
             tempEm.merge(managedEntity);
             transaction.commit();
-            logger.info(entity.getClass().getSimpleName() + " updated successfully: {}", entity);
+            logger.info("{} updated successfully: {}", entity.getClass().getSimpleName(), entity);
             return entity;
         } catch (Exception e) {
-//            if (transaction.isActive()) {
-//                transaction.rollback();
-//            }
-            throw e;
+            logger.info("{} with id {} update failed: {}", entity.getClass().getSimpleName(), entity.getId(), e.getMessage());
+            return null;
         } finally {
-//            if (tempEm.isOpen()) {
-                tempEm.close();
-//            }
+            tempEm.close();
         }
     }
 
 
 
 
-    private <T> T copyEntity(T managedEntity, T newEntity, Class<T> entityType) {
-        try {
-            for (Field field : entityType.getDeclaredFields()) {
-                field.setAccessible(true);
-                field.set(managedEntity, field.get(newEntity));
-            }
-            return managedEntity;
-        } catch (Exception e) {
-            throw new RuntimeException("Entity copy failed", e);
+    private <T> T copyEntity(T managedEntity, T newEntity, Class<T> entityType) throws IllegalAccessException {
+        for (Field field : entityType.getDeclaredFields()) {
+            field.setAccessible(true);
+            field.set(managedEntity, field.get(newEntity));
         }
+        return managedEntity;
     }
 
 
@@ -185,15 +177,16 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
 
     @Transactional
     @Override
-    public void customClearDatabaseTable() {
+    public void customClearDatabaseTable(boolean onlyPermanentlyDeleted) {
         String permanentlyDeletedElementsJpql = "SELECT e FROM " + type.getSimpleName() + " e WHERE e.deleted = 2";
-        List<T> permanentlyDeletedElements = entityManager.createQuery(permanentlyDeletedElementsJpql, type).getResultList();
+        String allElementsJpql = "SELECT e FROM " + type.getSimpleName() + " e";
+        List<T> elementsToBeDeleted = entityManager.createQuery(onlyPermanentlyDeleted ? permanentlyDeletedElementsJpql : allElementsJpql, type).getResultList();
         int clearedElements = 0;
 
         EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
 
-        for (T element : permanentlyDeletedElements) {
+        for (T element : elementsToBeDeleted) {
             clearedElements += deleteEntity(tempEm, element);
         }
         if(tempEm.isOpen()){
@@ -202,40 +195,8 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         logger.info(clearedElements + " element(s) successfully removed from database table.");
     }
 
-    @Override
-    public void customForcePermanentlyDelete(Long entityId) {
-        EntityManagerFactory factory = entityManager.getEntityManagerFactory();
-        EntityManager tempEm = factory.createEntityManager();
 
-        EntityTransaction transaction = tempEm.getTransaction();
-        try{
-            transaction.begin();
-            T en = tempEm.find(type, entityId);
-            tempEm.remove(en);
-            transaction.commit();
-            logger.info("Entity with ID " + entityId + " forced to permanently delete");
-        }
-        catch (Exception e){
-            if (e.getCause() == null) {
-                logger.error("Entity with ID " + entityId + " is not deletable due to a fatal error. It needs to be debugged.");
-                if(transaction.isActive()){
-                    transaction.rollback();
-                }
-            }
-            else /*(e.getCause().getMessage().contains("violates foreign key constraint"))*/{
-                logger.info("Entity with ID " + entityId + " is not deletable due to it has reference(s) in other table(s)");
-            }
-        }
-        finally {
-//            if(tempEm.isOpen()){
-                tempEm.clear();
-                tempEm.close();
-//            }
-        }
-    }
-
-
-    public int deleteEntity(EntityManager tempEm, T entity) {
+    private int deleteEntity(EntityManager tempEm, T entity) {
         int affected = 0;
         EntityTransaction transaction = tempEm.getTransaction();
         try{

@@ -3,6 +3,7 @@ package hu.martin.ems.core.config;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.annotations.NeedCleanCoding;
+import hu.martin.ems.service.AdminToolsService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 @NeedCleanCoding
 public class DataProvider {
     private final EntityManager em;
+    private final AdminToolsService adminToolsService;
     private final Logger logger = LoggerFactory.getLogger(DataProvider.class);
     private static List<File> loaded = new ArrayList<>();
     private static Set<EntityType<?>> loadedToEntityManager = new HashSet<>();
@@ -52,10 +54,23 @@ public class DataProvider {
     private String STATIC_JSON_FOLDER_PATH;
 
     @Autowired
-    public DataProvider(EntityManager em) throws IOException {
+    public DataProvider(EntityManager em,
+                        AdminToolsService adminTools) throws IOException {
         this.em = em;
+        adminToolsService = adminTools;
+        clearAllDatabaseTable();
         loadAllJsonAndSave();
         loaded = new ArrayList<>();
+    }
+
+    private void clearAllDatabaseTable(){
+        try{
+            deleteAllRecordsFromAllTable();
+            resetIDSequences();
+            loaded.clear();
+            em.clear();
+        }
+        catch (Exception e){}
     }
 
     private LinkedHashMap<String, String> generateAllSqlsFromJsons() throws IOException {
@@ -156,30 +171,6 @@ public class DataProvider {
         }
     }
 
-    public String getIDSequenceName(String table){
-        EntityManagerFactory factory = em.getEntityManagerFactory();
-        EntityManager tempEm = factory.createEntityManager();
-
-        EntityTransaction emt = tempEm.getTransaction();
-        emt.begin();
-        List<String> possibleRes = new ArrayList<>();
-
-        List<String> allSeq = tempEm.createNativeQuery("SELECT relname sequence_name FROM pg_class WHERE relkind = 'S'").getResultList();
-
-        int tableNameUnderscores = table.split("_").length - 1;
-
-        possibleRes = allSeq.stream().filter(v -> (v.equals(table + "_id_seq"))).toList();
-        if(possibleRes.size() != 1){
-            logger.error("Couldn't get id sequence name for the table {}, because there was {} possible sequence names! Maybe it is a cross-table?", table, possibleRes.size());
-            emt.commit();
-            tempEm.close();
-            return null;
-        }
-        emt.commit();
-        tempEm.close();
-        return possibleRes.getFirst();
-    }
-
     private void resetIDSequences(){
         EntityManagerFactory factory = em.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
@@ -188,25 +179,16 @@ public class DataProvider {
         EntityTransaction emt = tempEm.getTransaction();
         emt.begin();
         List<String> allSeq = tempEm.createNativeQuery("SELECT relname sequence_name FROM pg_class WHERE relkind = 'S'").getResultList();
-//        int reseted = 0;
+
         for(String seq : allSeq) {
             if(seq.split("_").length == 3){
                 tempEm.createNativeQuery("ALTER SEQUENCE " + seq + " RESTART WITH 1").executeUpdate();
-//                reseted++;
             }
         }
-//        int required = getAllManagedEntities().size();
-//        if(required != reseted){
-//            logger.error("There was a problem in resetting id sequences. Managed entities: " + required + ", reseted sequences: " + reseted + ". These two numbers must be equal. The transaction will be rollbacked.");
-//            emt.rollback();
-//        }
+
         emt.commit();
         tempEm.close();
     }
-
-//    private List<EntityType<?>> getAllManagedEntities() {
-//        return em.getMetamodel().getEntities().stream().toList();
-//    }
 
     public void resetDatabase() throws IOException {
         deleteAllRecordsFromAllTable();
@@ -231,6 +213,8 @@ public class DataProvider {
         List<Object[]> tables = tempEm.createNativeQuery("SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'").getResultList();
         List<String> tableNames = new ArrayList<>();
         tables.forEach(v -> tableNames.add((String) v[1]));
+        tableNames.remove("databasechangelog");
+        tableNames.remove("databasechangeloglock");
         tempEm.close();
         return tableNames;
     }
@@ -270,10 +254,6 @@ public class DataProvider {
         }
 
         protected String toSQL() {
-            if (data.isEmpty()) {
-                return "";
-            }
-
             List<String> keys = new ArrayList<>(data.get(0).keySet());
             String fieldNames = String.join(", ", keys);
             String baseSql = "INSERT INTO " + objectName + " (" + fieldNames + ") VALUES\n";
@@ -295,8 +275,14 @@ public class DataProvider {
 
         private String formatValue(Object value, String key) {
 //            if (value instanceof LinkedTreeMap && ((LinkedTreeMap<?, ?>) value).containsKey("refClass")) {
-            if(value instanceof LinkedTreeMap) { //Az EMS-es JSON kötöttebb formátuma miatt mindig van benne refClass, hogyha LinkedTreeMap
-                return generateSelectSQLQuery((LinkedTreeMap<String, Object>) value, key);
+            if(value instanceof LinkedTreeMap) { //Az EMS-es JSON kötöttebb formátuma miatt mindig van benne refClass vagy date, hogyha LinkedTreeMap
+                LinkedTreeMap valueTreeMap = (LinkedTreeMap<?,?>) value;
+                if(valueTreeMap.containsKey("refClass")){
+                    return generateSelectSQLQuery((LinkedTreeMap<String, Object>) value, key);
+                }
+                else { //original: valueTreeMap.containsKey("date")
+                    return "date('" + ((LinkedTreeMap<?, ?>) value).get("date") + "')";
+                }
             }
             else{
                 return value == null ? "NULL" : "'" + value.toString().replace("'", "\\u0027") + "'";
@@ -320,7 +306,7 @@ public class DataProvider {
 
 
         protected void setPrimaryKeyStartIfRequired(EntityManager em){
-            if(!data.isEmpty() && data.get(0).keySet().contains("id")){
+            if(data.get(0).keySet().contains("id")){
                 List<Long> allIds = data.stream().map(v -> ((Double) Double.parseDouble(v.get("id").toString())).longValue()).toList();
                 Long lastId = allIds.stream()
                         .mapToLong(v -> v)

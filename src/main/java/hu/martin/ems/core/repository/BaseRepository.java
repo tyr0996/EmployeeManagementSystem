@@ -20,11 +20,9 @@ public interface BaseRepository<T, ID> extends Repository<T, ID> {
     @Transactional
     T customSave(T entity);
 
-    T customUpdate(T entity) throws EntityNotFoundException;
+    T customUpdate(T entity);
 
     T customFindById(Long id);
 
-    void customClearDatabaseTable();
-
-    void customForcePermanentlyDelete(Long entityId);
+    void customClearDatabaseTable(boolean onlyPermanentlyDeleted);
 }

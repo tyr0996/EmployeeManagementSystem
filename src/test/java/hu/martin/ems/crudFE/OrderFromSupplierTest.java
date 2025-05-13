@@ -13,6 +13,7 @@ import hu.martin.ems.pages.OrderPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import org.checkerframework.common.reflection.qual.Invoke;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -164,7 +165,6 @@ public class OrderFromSupplierTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void nullResponseFromServiceWhenModify() throws SQLException {
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 21);
 //        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 21);
@@ -174,7 +174,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_FROM_SUPPLIER_SUBMENU);
 
         OrderFromSupplierPage orderCreateToCustomerPage = new OrderFromSupplierPage(driver, port);
-        updateOrder("Order modifying failed: Internal Server Error", false, spyDataSource, 1);
+        updateOrder("Order modifying failed: Database error", false, spyDataSource, 1);
 //        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
 
         assertFalse(VaadinNotificationComponent.hasNotification(driver));
@@ -190,7 +190,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_FROM_SUPPLIER_SUBMENU);
 
         OrderFromSupplierPage orderCreateToCustomerPage = new OrderFromSupplierPage(driver, port);
-        createOrder("Order saving failed: Internal Server Error", false, spyDataSource, 1);
+        createOrder("Order saving failed: Database error", false, spyDataSource, 1);
         assertFalse(VaadinNotificationComponent.hasNotification(driver));
 //        assertFalse(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -206,8 +206,8 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 
         OrderFromSupplierPage orderCreateToCustomerPage = new OrderFromSupplierPage(driver, port);
         assertFalse(orderCreateToCustomerPage.getSupplierComboBox().isEnabled());
-        assertEquals(orderCreateToCustomerPage.getSupplierComboBox().getErrorMessage(), "Error happened while getting suppliers");
-//        checkField(supplierComboBoxXpath, "Error happened while getting suppliers");
+        assertEquals(orderCreateToCustomerPage.getSupplierComboBox().getErrorMessage(), "EmsError happened while getting suppliers");
+//        checkField(supplierComboBoxXpath, "EmsError happened while getting suppliers");
         assertFalse(VaadinNotificationComponent.hasNotification(driver));
     }
 
@@ -223,12 +223,12 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         OrderFromSupplierPage orderCreateToCustomerPage = new OrderFromSupplierPage(driver, port);
         orderCreateToCustomerPage.getSupplierComboBox().fillWithRandom();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened while getting order elements to the supplier");
+        assertEquals(notification.getText(), "EmsError happened while getting order elements to the supplier");
         notification.close();
         assertEquals(orderCreateToCustomerPage.getGrid().getTotalRowNumber(), 0);
 //        gridTestingUtil.selectRandomFromComboBox(gridTestingUtil.findVisibleElementWithXpath(supplierComboBoxXpath));
 //        Thread.sleep(100);
-//        gridTestingUtil.checkNotificationText("Error happened while getting order elements to the supplier");
+//        gridTestingUtil.checkNotificationText("EmsError happened while getting order elements to the supplier");
 //        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(createOrderGridXpath));
     }
 
@@ -242,7 +242,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_FROM_SUPPLIER_SUBMENU);
 
         OrderFromSupplierPage orderCreateToCustomerPage = new OrderFromSupplierPage(driver, port);
-        createOrder("Error happened while getting \"Pending\" status", false, spyDataSource, 0);
+        createOrder("EmsError happened while getting \"Pending\" status", false, spyDataSource, 0);
     }
 
     @Test
@@ -256,8 +256,8 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 
         OrderFromSupplierPage orderCreateToCustomerPage = new OrderFromSupplierPage(driver, port);
         assertFalse(orderCreateToCustomerPage.getPaymentTypeComboBox().isEnabled());
-        assertEquals(orderCreateToCustomerPage.getPaymentTypeComboBox().getErrorMessage(), "Error happened while getting payment methods");
-//        checkField(paymentMethodComboBoxXpath, "Error happened while getting payment methods");
+        assertEquals(orderCreateToCustomerPage.getPaymentTypeComboBox().getErrorMessage(), "EmsError happened while getting payment methods");
+//        checkField(paymentMethodComboBoxXpath, "EmsError happened while getting payment methods");
         assertFalse(VaadinNotificationComponent.hasNotification(driver));
     }
 
@@ -272,13 +272,12 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 
         OrderFromSupplierPage orderCreateToCustomerPage = new OrderFromSupplierPage(driver, port);
         assertFalse(orderCreateToCustomerPage.getCurrencyComboBox().isEnabled());
-        assertEquals(orderCreateToCustomerPage.getCurrencyComboBox().getErrorMessage(), "Error happened while getting currencies");
-//        checkField(currencyComboBoxXpath, "Error happened while getting currencies");
+        assertEquals(orderCreateToCustomerPage.getCurrencyComboBox().getErrorMessage(), "EmsError happened while getting currencies");
+//        checkField(currencyComboBoxXpath, "EmsError happened while getting currencies");
         assertFalse(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
-    @Video
     public void updateOrder() throws SQLException {
         updateOrder(null, true, null, null);
     }
@@ -358,7 +357,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 ////        Mockito.doReturn(null).when(spyOrderService).save(any(Order.class));
 ////        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).save(any(Order.class));
 ////        Mockito.doReturn(new EmsResponse(522, "")).when(spyOrderApiClient).getOrderElements(any(Long.class));
-//        createOrder("Order saving failed: Internal Server Error", false, spyDataSource, 1);
+//        createOrder("Order saving failed: Database error", false, spyDataSource, 1);
 //    }
 
     @Test
@@ -499,7 +498,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
         page.getSupplierComboBox().fillWith(supplierName);
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened while getting order elements to the supplier");
+        assertEquals(notification.getText(), "EmsError happened while getting order elements to the supplier");
 //        gridTestingUtil.selectElementByTextFromComboBox(supplierComboBox, supplierName);
         //gridTestingUtil.selectRandomFromComboBox(supplierComboBox);
 //        Thread.sleep(200);
@@ -514,7 +513,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         page.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         orderPage.initWebElements();
         //gridTestingUtil.findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
-        //gridTestingUtil.checkNotificationText("Error happened while getting order elements to the supplier");
+        //gridTestingUtil.checkNotificationText("EmsError happened while getting order elements to the supplier");
 
 //        gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
 //        Thread.sleep(100);
@@ -601,9 +600,9 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 //        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 1);
 //        page.getCreateOrderButton().click();
 //        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-//        assertEquals(notification.getText(), "Order saving failed: Internal Server Error");
+//        assertEquals(notification.getText(), "Order saving failed: Database error");
 //        //gridTestingUtil.findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
-//        //gridTestingUtil.checkNotificationText("Order saving failed: Internal Server Error");
+//        //gridTestingUtil.checkNotificationText("Order saving failed: Database error");
 //
 //        page.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDERS_MENU);
 //        orderPage.initWebElements();
@@ -614,7 +613,6 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 //    }
 
     @Test
-    @Video
     public void moreThanOneOrderExistsForSupplierEditOne() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);

@@ -100,7 +100,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         this.grid = new PaginatedGrid<>(OrderElementVO.class);
         setupOrderElements();
         if(orderElementList == null){
-            Notification.show("Error happened while getting order elements")
+            Notification.show("EmsError happened while getting order elements")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             orderElementList = new ArrayList<>();
         }
@@ -394,7 +394,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         if(productList == null){
             products.setInvalid(true);
             products.setEnabled(false);
-            products.setErrorMessage("Error happened while getting products");
+            products.setErrorMessage("EmsError happened while getting products");
             saveButton.setEnabled(false);
         }
         else {
@@ -410,7 +410,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         if(customerList == null){
             customer.setInvalid(true);
             customer.setEnabled(false);
-            customer.setErrorMessage("Error happened while getting customers");
+            customer.setErrorMessage("EmsError happened while getting customers");
             saveButton.setEnabled(false);
         }
         else{
@@ -425,7 +425,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         if(supplierList == null){
             supplier.setInvalid(true);
             supplier.setEnabled(false);
-            supplier.setErrorMessage("Error happened while getting suppliers");
+            supplier.setErrorMessage("EmsError happened while getting suppliers");
             saveButton.setEnabled(false);
         }
         else{
@@ -499,7 +499,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             default:
                 supplierList = null;
                 logger.error("Supplier findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("Error happened while getting suppliers")
+                Notification.show("EmsError happened while getting suppliers")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }

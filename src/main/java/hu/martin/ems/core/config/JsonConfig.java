@@ -21,7 +21,7 @@ public class JsonConfig {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDate.class, new LocalDateSerializer())
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .registerTypeAdapter(LocalDate.class, new LocalDateDeserializer())
+//                .registerTypeAdapter(LocalDate.class, new LocalDateDeserializer())
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
                 .excludeFieldsWithoutExposeAnnotation()
                 .create();

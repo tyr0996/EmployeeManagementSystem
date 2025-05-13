@@ -33,7 +33,7 @@
 ////                contentLayout.add(newComponent);
 ////            });
 ////        } catch (Exception ex) {
-////            Notification.show("Error happened while load the clearing page!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+////            Notification.show("EmsError happened while load the clearing page!").addThemeVariants(NotificationVariant.LUMO_ERROR);
 ////            ex.printStackTrace();
 ////        }
 ////    }

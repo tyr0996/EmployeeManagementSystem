@@ -107,12 +107,10 @@ public class JschConfig {
 
     public void connect() throws JSchException {
         init();
-        if(channelSftp == null || !channelSftp.isConnected()){
+        if(channelSftp == null){
             channelSftp = (ChannelSftp) session.openChannel("sftp");
             channelSftp.connect();
         }
-        if(!session.isConnected()){
-            session.connect();
-        }
+        session.connect();
     }
 }

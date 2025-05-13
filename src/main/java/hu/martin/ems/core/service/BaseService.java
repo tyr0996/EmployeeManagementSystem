@@ -15,7 +15,7 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
         return repo.customSave(entity);
     }
 
-    public T update(T entity){
+    public T update(T entity) {
         return repo.customUpdate(entity);
     }
 
@@ -35,11 +35,7 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
         return repo.customFindAll(withDeleted);
     }
 
-    public void clearDatabaseTable(){ repo.customClearDatabaseTable(); }
-
-    public void forcePermanentlyDelete(Long entityId) {
-        repo.customForcePermanentlyDelete(entityId);
-    }
+    public void clearDatabaseTable(boolean onlyPermanentlyDeleted){ repo.customClearDatabaseTable(onlyPermanentlyDeleted); }
 
     public T findById(Long id) {
         return repo.customFindById(id);

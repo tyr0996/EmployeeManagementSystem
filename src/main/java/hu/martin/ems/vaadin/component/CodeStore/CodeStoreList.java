@@ -205,7 +205,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
 
     private void updateGridItems() {
         if(codeStores == null){
-            Notification.show("Error happened while getting codestores")
+            Notification.show("EmsError happened while getting codestores")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
         else{

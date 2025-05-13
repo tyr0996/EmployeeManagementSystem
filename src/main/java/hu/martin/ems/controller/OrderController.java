@@ -8,7 +8,7 @@ import hu.martin.ems.model.Order;
 import hu.martin.ems.repository.OrderRepository;
 import hu.martin.ems.service.OrderElementService;
 import hu.martin.ems.service.OrderService;
-import hu.martin.ems.vaadin.api.Error;
+import hu.martin.ems.vaadin.core.EmsError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -82,11 +82,11 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
                 return new ResponseEntity<>(EmsResponse.Description.SFTP_SENDING_SUCCESS, HttpStatus.OK);
             }
             else{
-                return new ResponseEntity<>(gson.toJson(new Error(Instant.now().toEpochMilli(), 500, EmsResponse.Description.SFTP_SENDING_ERROR, "/api/order/sendReportSFTPToAccountant")), HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>(gson.toJson(new EmsError(Instant.now().toEpochMilli(), 500, EmsResponse.Description.SFTP_SENDING_ERROR, "/api/order/sendReportSFTPToAccountant")), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
         catch (IOException e){
-            return new ResponseEntity<>(gson.toJson(new Error(Instant.now().toEpochMilli(), 500, "XLS generation failed", "/api/order/sendReportSFTPToAccountant")), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(gson.toJson(new EmsError(Instant.now().toEpochMilli(), 500, "XLS generation failed", "/api/order/sendReportSFTPToAccountant")), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

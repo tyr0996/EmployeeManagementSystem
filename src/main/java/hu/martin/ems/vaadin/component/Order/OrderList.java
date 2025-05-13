@@ -242,7 +242,7 @@ public class OrderList extends VerticalLayout {
             }
             actions.add(odtDownload, pdfDownload, sendEmail);
             return actions;
-        });
+        }).setAutoWidth(true).setFlexGrow(0);
 
         setFilteringHeaderRow();
 
@@ -380,7 +380,7 @@ public class OrderList extends VerticalLayout {
 
     private void updateGridItems() {
         if(orderList == null){
-            Notification.show("Error happened while getting orders")
+            Notification.show("EmsError happened while getting orders")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             orderList = new ArrayList<>();
         }

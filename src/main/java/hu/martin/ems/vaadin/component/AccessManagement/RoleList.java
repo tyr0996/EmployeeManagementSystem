@@ -167,7 +167,7 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
         setupPermissions();
         if(permissionList == null){
             permissions.setInvalid(true);
-            permissions.setErrorMessage("Error happened while getting permissions");
+            permissions.setErrorMessage("EmsError happened while getting permissions");
             permissions.setEnabled(false);
             saveButton.setEnabled(false);
         }
@@ -247,7 +247,7 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
         setupPermissions();
         if(permissionList == null){
             permissionsFilter.setInvalid(true);
-            permissionsFilter.setErrorMessage("Error happened while getting permissions");
+            permissionsFilter.setErrorMessage("EmsError happened while getting permissions");
             permissionsFilter.setEnabled(false);
         }
         else{
@@ -421,7 +421,7 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
                 break;
             }
             default : {
-                Notification.show("Error happened while getting roles").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                Notification.show("EmsError happened while getting roles").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 this.roles = null;
                 return;
             }

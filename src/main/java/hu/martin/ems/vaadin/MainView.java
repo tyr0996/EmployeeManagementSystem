@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
@@ -43,10 +44,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
+
 @Route("/")
 @CssImport("./styles/shared-styles.css")
 @PermitAll
 @NeedCleanCoding
+@JavaScript("./scripts/side-menu.js")
 public class MainView extends HorizontalLayout implements RouterLayout {
 
     private VerticalLayout menuLayout;

@@ -12,6 +12,6 @@ import java.time.LocalDate;
 @Repository
 @Transactional
 public interface CurrencyRepository extends BaseRepository<Currency, Long> {
-    @Query("SELECT c FROM Currency c WHERE c.validDate = :date")
+    @Query(value = "SELECT * FROM currency WHERE validdate = :date", nativeQuery = true)
     Currency findByDate(@Param("date") LocalDate date);
 }

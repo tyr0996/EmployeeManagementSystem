@@ -3,7 +3,7 @@ package hu.martin.ems.controller;
 import com.google.gson.Gson;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.service.AdminToolsService;
-import hu.martin.ems.vaadin.api.Error;
+import hu.martin.ems.vaadin.core.EmsError;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +36,10 @@ public class AdminToolsController {
     @DeleteMapping(path = "/clearDatabase", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> clearDatabase() {
         try{
-            adminToolsService.clearAllDatabaseTable();
+            adminToolsService.clearAllDatabaseTable(true);
             return new ResponseEntity<>(EmsResponse.Description.CLEAR_DATABASE_SUCCESS, HttpStatus.OK);
         } catch (ClassNotFoundException e) {
-            return new ResponseEntity<>(gson.toJson(new Error(Instant.now().toEpochMilli(), 500, EmsResponse.Description.CLEAR_DATABASE_FAILED, "/api/adminTools/clearDatabase")), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(gson.toJson(new EmsError(Instant.now().toEpochMilli(), 500, EmsResponse.Description.CLEAR_DATABASE_FAILED, "/api/adminTools/clearDatabase")), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

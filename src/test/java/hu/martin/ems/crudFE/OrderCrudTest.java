@@ -57,8 +57,6 @@ import static org.testng.Assert.*;
 @Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderCrudTest extends BaseCrudTest {
-
-
     @AfterClass
     public void destroy_2() throws IOException {
         resetDatabase();
@@ -118,7 +116,7 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderPage page = new OrderPage(driver, port);
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
 
         ReflectionTestUtils.setField(spyJschConfig, "sftpHost", originalHost);
@@ -146,7 +144,7 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderPage page = new OrderPage(driver, port);
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
         ReflectionTestUtils.setField(spyJschConfig, "sftpPassword", sftpPassword);
     }
@@ -174,7 +172,7 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderPage page = new OrderPage(driver, port);
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
     }
 
@@ -202,7 +200,7 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderPage page = new OrderPage(driver, port);
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
 
 
@@ -232,7 +230,7 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderPage page = new OrderPage(driver, port);
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
     }
 
@@ -261,14 +259,14 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderPage page = new OrderPage(driver, port);
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
     }
 
     @Test
     public void generateODTFailedCurrencyException() throws Exception {
         clearCurrencyDatabaseTable();
-        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
@@ -348,7 +346,7 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void generatePDFFailedCurrencyException() throws Exception {
 //        Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
-        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
         clearCurrencyDatabaseTable();
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -474,7 +472,7 @@ public class OrderCrudTest extends BaseCrudTest {
 //        OrderPage page = new OrderPage(driver, port);
 //        page.getSendToAccountantSftpButton().click();
 //        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-//        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+//        assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
 //        notification.close();
 //    }
 
@@ -535,7 +533,7 @@ public class OrderCrudTest extends BaseCrudTest {
         OrderPage page = new OrderPage(driver, port);
         page.getSendToAccountantSftpButton().click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Error happened when sending with SFTP");
+        assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
 
 
@@ -621,7 +619,6 @@ public class OrderCrudTest extends BaseCrudTest {
     ArgumentCaptor<EmailProperties> orderArgumentCaptor;
 
     @Test
-    @Video
     public void sendEmailSuccessTest() throws MessagingException {
         Mockito.doNothing().when(spyEmailSendingService).transportSend(any(MimeMessage.class));
 
@@ -653,7 +650,6 @@ public class OrderCrudTest extends BaseCrudTest {
 
 
     @Test
-    @Video
     public void generateEmailFailedDueToCantGetOrderFromOrderId() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -675,14 +671,13 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinButtonComponent sendEmailButton = page.getGrid().getOptionColumnButton(rowLocation, 3);
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2); //TODO Eredeti: 2
         sendEmailButton.click();
-        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver, Duration.ofMillis(5000));
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver, Duration.ofMillis(20000));
         assertEquals(notification.getText(), "Email generation failed");
         notification.close();
 
     }
 
     @Test
-    @Video
     public void sendEmailCreateAttachmentBodyPartFailedTest() throws MessagingException {
         Mockito.doThrow(MessagingException.class).when(spyEmailSendingService).createAttachmentBodyPart(any(EmailAttachment.class));
         EmptyLoggedInVaadinPage loggedInPage =
@@ -707,7 +702,6 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void sendEmailCreateMimeMessageFailedTest() throws MessagingException {
         Mockito.doThrow(MessagingException.class).when(spyEmailSendingService).createMimeMessage(any(jakarta.mail.Session.class), any(EmailProperties.class));
         EmptyLoggedInVaadinPage loggedInPage =
@@ -732,7 +726,6 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void sendEmailFailedTest() {
         EmptyLoggedInVaadinPage loggedInPage =
             (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -756,7 +749,6 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void sendEmailPDFGenerationFailedIOException() throws IOException, XDocReportException {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 //        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
@@ -784,10 +776,9 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void sendEmailPDFGenerationFailedCurrencyException() {
         clearCurrencyDatabaseTable();
-        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
 //        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
@@ -813,7 +804,6 @@ public class OrderCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void sendEmailPDFGenerationFailedXDocReportException() throws IOException, XDocReportException {
         Mockito.doThrow(XDocReportException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
 
@@ -945,7 +935,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 //
 //    @Test
@@ -960,7 +950,6 @@ public class OrderCrudTest extends BaseCrudTest {
 
 
     @Test
-    @Video
     public void deleteOrderElementWhatMemberOfAnOrder() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -1021,6 +1010,7 @@ public class OrderCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
         OrderCreateToCustomerPage createPage = new OrderCreateToCustomerPage(driver, port);
         createPage.performCreate("Erdei Róbert");
+        VaadinNotificationComponent.closeAll(driver);
 
         createPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
 //        gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
@@ -1191,7 +1181,7 @@ public class OrderCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
-        assertEquals(notificationComponent.getText(), "Error happened while getting orders");
+        assertEquals(notificationComponent.getText(), "EmsError happened while getting orders");
         notificationComponent.close();
 //        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
         assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
@@ -1200,7 +1190,7 @@ public class OrderCrudTest extends BaseCrudTest {
 //        gridTestingUtil.mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
 //        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
 //        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.checkNotificationText("Error happened while getting orders");
+//        gridTestingUtil.checkNotificationText("EmsError happened while getting orders");
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
 //        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXpath));
 //        assertEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedXpath));

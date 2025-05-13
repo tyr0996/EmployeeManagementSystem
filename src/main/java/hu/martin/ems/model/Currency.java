@@ -26,8 +26,8 @@ public class Currency extends BaseEntity {
     @Expose
     private String rateJson;
 
-    @Expose
-    private LocalDate validDate;
+//    @Expose
+//    private LocalDate validDate;
 
 //    @Transient
 //    @Expose

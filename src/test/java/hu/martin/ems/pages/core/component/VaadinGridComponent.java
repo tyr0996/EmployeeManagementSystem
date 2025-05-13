@@ -17,6 +17,13 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         super(driver, provider);
     }
 
+    protected ElementLocation convertIndexToElementLocation(Integer v) {
+        int pageSize = getPaginationData().getPageSize();
+        int page = (v / pageSize) + 1;
+        int row = v % pageSize;
+        return new ElementLocation(page, row);
+    }
+
     public int countVisibleDataRows(){
         return Integer.parseInt(getParentWebElement(element).findElement(By.tagName("span")).findElement(By.tagName("lit-pagination")).getDomAttribute("total"));
     }
@@ -30,6 +37,10 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         return headers.size();
     }
 
+    /**
+     * Counts all elements in grid (not only the current page)
+     * @return
+     */
     protected int getCurrentRowNumber(){
         return getPaginationData().getTotalElements();
     }
@@ -110,6 +121,10 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         getHeaderFilterInputFields().getLast().sendKeys(Keys.ENTER);
     }
 
+    /**
+     * Counts all elements in grid (not only the current page)
+     * @return
+     */
     public int getTotalRowNumber(){
         return getCurrentRowNumber();
 //        boolean originalStatus = showDeleted.getStatus();
@@ -151,6 +166,7 @@ public class VaadinGridComponent extends VaadinBaseComponent {
     public List<Integer> getRandomIndexes(int count){
         List<Integer> selectedElements = new ArrayList<>();
         Random random = new Random();
+        //TODO: Itt a
 
         List<Integer> numbers = new ArrayList<>();
         for (int i = 0; i < getCurrentRowNumber(); i++) {

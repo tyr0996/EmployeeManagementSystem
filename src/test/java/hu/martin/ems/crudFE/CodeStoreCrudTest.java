@@ -163,7 +163,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
 //        dialog.initWebElements();
 //        List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
 //        Assert.assertEquals(failedComponents.size(), 1);
-//        Assert.assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting countries");
+//        Assert.assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting countries");
 //    }
 
     @Test
@@ -177,7 +177,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
 
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 
     @Test
@@ -191,7 +191,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
 
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore permanently deletion failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore permanently deletion failed: Database error");
     }
 
     @Test
@@ -208,7 +208,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
 
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("CodeStore modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("CodeStore modifying failed: Database error");
         Assert.assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -223,7 +223,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
 
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore saving failed: Database error");
         Assert.assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -251,7 +251,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
 
         SoftAssert sa = new SoftAssert();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        sa.assertEquals(notification.getText(), "Error happened while getting codestores");
+        sa.assertEquals(notification.getText(), "EmsError happened while getting codestores");
         sa.assertEquals(codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
         sa.assertEquals(codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
 

@@ -155,7 +155,7 @@ public class CityCrudTest extends BaseCrudTest {
         dialog.initWebElements();
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
-        assertEquals(failedComponents.get(0).getErrorMessage(), "Error happened while getting countries");
+        assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting countries");
         dialog.close();
     }
 
@@ -170,7 +170,7 @@ public class CityCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
     }
 
     @Test
@@ -184,7 +184,7 @@ public class CityCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("City permanently deletion failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("City permanently deletion failed: Database error");
     }
 
     @Test
@@ -198,7 +198,7 @@ public class CityCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getResult().getNotificationText()).contains("City modifying failed: Internal Server Error");
+        assertThat(testResult.getResult().getNotificationText()).contains("City modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
@@ -213,7 +213,7 @@ public class CityCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-        assertThat(testResult.getNotificationWhenPerform()).contains("City saving failed: Internal Server Error");
+        assertThat(testResult.getNotificationWhenPerform()).contains("City saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
     }
 
