@@ -1,9 +1,6 @@
 package hu.martin.ems.pages.core.component;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -32,26 +29,29 @@ public class VaadinNotificationComponent extends VaadinBaseComponent {
         js.executeScript("arguments[0].remove();", this.element);
     }
 
-    public static boolean hasNotification(WebDriver driver){
+    public static String hasNotification(WebDriver driver){
         try{
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(1000), Duration.ofMillis(10));
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(notificationXpath)));
-            return true;
+            VaadinNotificationComponent notification = new VaadinNotificationComponent(driver, Duration.ofMillis(1000));
+            return notification.getText();
         }
         catch(TimeoutException ex){
-            return false;
+            return null;
         }
     }
 
     public static void closeAll(WebDriver driver){
+        closeAll(driver, new WebDriverWait(driver, Duration.ofMillis(100), Duration.ofMillis(10)));
+    }
+
+    public static void closeAll(WebDriver driver, WebDriverWait waitForClose){
         try{
-            WebDriverWait waitForClose = new WebDriverWait(driver, Duration.ofMillis(100), Duration.ofMillis(10));
             VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
             notification.close();
             waitForClose.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(notificationXpath)));
             closeAll(driver);
         }
         catch (TimeoutException ex){
+            System.out.println("nem találtam új notification-t");
         }
     }
 }

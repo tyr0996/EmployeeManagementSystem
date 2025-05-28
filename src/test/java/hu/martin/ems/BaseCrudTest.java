@@ -9,11 +9,11 @@ import hu.martin.ems.core.controller.EndpointController;
 import hu.martin.ems.core.schedule.CurrencyScheduler;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
-import hu.martin.ems.model.Currency;
 import hu.martin.ems.repository.CurrencyRepository;
 import hu.martin.ems.service.AdminToolsService;
 import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.service.OrderService;
+import hu.martin.ems.vaadin.api.base.WebClientProvider;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -27,7 +27,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -39,7 +38,6 @@ import org.testng.annotations.*;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -148,6 +146,8 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     @SpyBean
     protected static  CurrencyScheduler spyCurrencyScheduler;
 
+    @SpyBean
+    protected static WebClientProvider spyWebClientProvider;
 
     @SpyBean
     public static XDocReportRegistry spyRegistry;
@@ -160,7 +160,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
 //    @InjectMocks
     @SpyBean
-    public static SftpSender sftpSender;
+    public static SftpSender spySftpSender;
 
     @Autowired
     public WebDriverProvider driverProvider;
@@ -254,6 +254,8 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.reset(spyJschConfig);
         Mockito.reset(spyIconProvider);
         Mockito.reset(spyCurrencyScheduler);
+        Mockito.reset(spyWebClientProvider);
+        Mockito.reset(spySftpSender);
         System.out.println("Mockito reseting done!");
     }
 
@@ -268,6 +270,8 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.clearInvocations(spyJschConfig);
         Mockito.clearInvocations(spyIconProvider);
         Mockito.clearInvocations(spyCurrencyScheduler);
+        Mockito.clearInvocations(spyWebClientProvider);
+        Mockito.clearInvocations(spySftpSender);
         System.out.println("Mockito invocation clearing done!");
 
     }
@@ -342,6 +346,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
     protected void clearCurrencyDatabaseTable(){
         spyCurrencyService.clearDatabaseTable(false);
+        assert spyCurrencyService.findAll(true).size() == 0 : "clear currency table failed.";
     }
 
     protected boolean waitForDownload(String fileNameRegex, int times, int padding) throws Exception {

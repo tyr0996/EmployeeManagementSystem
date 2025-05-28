@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 
 @Service
 @AllArgsConstructor
@@ -20,34 +19,30 @@ public class SftpSender {
     private JschConfig jschConfig;
     private final Logger logger = LoggerFactory.getLogger(SftpSender.class);
 
-    public boolean send(byte[] data, String destination){
+    public boolean send(byte[] data, String fileName){
         try {
-//            jschConfig.connect();
-
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(data);
-
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-
-//            jschConfig.getSession().connect();
-//            jschConfig.getChannelSftp().connect();
+            ByteArrayInputStream inputStream = createInputStreamFromByteArray(data);
             jschConfig.connect();
-            jschConfig.getChannelSftp().put(inputStream, destination);
-            jschConfig.getChannelSftp().disconnect();
-            System.out.println("SFTP sender success");
+            jschConfig.getChannelSftp().put(inputStream, fileName);
+            jschConfig.disconnect();
             return true;
         } catch (SftpException e){
-            System.out.println("SFTP sender fail");
-            jschConfig.getChannelSftp().disconnect();
+//            jschConfig.getChannelSftp().disconnect();
             logger.error("EmsError occurred while uploading file!");
+            jschConfig.disconnect();
             return false;
-        } catch (JSchException e){
-            logger.error("The file upload failed because the connection to the SFTP server could not be established! Check the log for errors!");
-            return false;
-        } catch (Exception e) {
-            logger.error("Failed to create the output stream");
+        } catch (JSchException e) {
+            logger.error("The file upload failed because the connection to the SFTP server coulde not be established! Check the log for errors!");
+            jschConfig.disconnect();
             return false;
         }
+    }
+
+    public ByteArrayInputStream createInputStreamFromByteArray(byte[] data) {
+        return new ByteArrayInputStream(data);
+    }
+}
+
 //        finally{
 ////            if(jschConfig.getChannelSftp() != null && jschConfig.getChannelSftp().isConnected()){
 //            System.out.println("SFTP sender finally: " + (jschConfig.getChannelSftp() != null));
@@ -55,5 +50,3 @@ public class SftpSender {
 //                jschConfig.getChannelSftp().disconnect();
 //            }
 //        }
-    }
-}

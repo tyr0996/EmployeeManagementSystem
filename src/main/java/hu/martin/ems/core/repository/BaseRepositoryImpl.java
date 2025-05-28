@@ -39,7 +39,6 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         this.gson = jsonConfig.gson();
     }
 
-
     @Transactional
     @Override
     public List<T> customFindAll(boolean withDeleted) {
@@ -51,7 +50,6 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         else{
             jpql += " WHERE e.deleted = 1 OR e.deleted = 0";
         }
-        jpql += " AND id > 0";
         List<T> result = entityManager.createQuery(jpql, type).getResultList();
         return result;
     }
@@ -136,17 +134,17 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         try{
             T managedEntity = tempEm.find(type, entity.getId());
             transaction.begin();
-            tempEm.merge(managedEntity);
+//            tempEm.merge(managedEntity);
 
             copyEntity(managedEntity, entity, type);
 
-            tempEm.merge(managedEntity);
+            T result = tempEm.merge(managedEntity);
             transaction.commit();
             logger.info("{} updated successfully: {}", entity.getClass().getSimpleName(), entity);
-            return entity;
+            return result;
         } catch (Exception e) {
-            logger.info("{} with id {} update failed: {}", entity.getClass().getSimpleName(), entity.getId(), e.getMessage());
-            return null;
+            logger.error("{} with id {} update failed: {}", entity.getClass().getSimpleName(), entity.getId(), e.getMessage());
+            throw new RuntimeException(e);
         } finally {
             tempEm.close();
         }
@@ -189,9 +187,7 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         for (T element : elementsToBeDeleted) {
             clearedElements += deleteEntity(tempEm, element);
         }
-        if(tempEm.isOpen()){
-            tempEm.close();
-        }
+        tempEm.close();
         logger.info(clearedElements + " element(s) successfully removed from database table.");
     }
 
@@ -207,22 +203,14 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
             affected = 1;
         }
         catch (Exception e){
-            if (e.getCause() == null) {
-                logger.error("Entity with ID " + entity.getId() + " is not deletable due to a fatal error. It needs to be debugged.");
-//                if(transaction.isActive()){
-//                    transaction.rollback();
-//                }
-            }
-            else /*(e.getCause().getMessage().contains("violates foreign key constraint"))*/{
-                logger.info("Entity with ID " + entity.getId() + " is not deletable due to it has reference(s) in other table(s)");
-            }
+            logger.info("Entity with ID " + entity.getId() + " is not deletable due to it has reference(s) in other table(s)");
         }
-        finally{
-//            if(tempEm.isOpen()){
-//                tempEm.clear();
-                tempEm.close();
-//            }
-        }
+//        finally{
+////            if(tempEm.isOpen()){
+////                tempEm.clear();
+//                tempEm.close();
+////            }
+//        }
         return affected;
     }
 }

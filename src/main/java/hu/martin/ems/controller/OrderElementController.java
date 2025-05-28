@@ -32,7 +32,6 @@ public class OrderElementController extends BaseController<OrderElement, OrderEl
         return new ResponseEntity<>(gson.toJson(service.getBySupplier(supplierId)), HttpStatus.OK);
     }
 
-    @Override
     @GetMapping(path = "/findAll", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> findAll(@RequestParam(required = false, defaultValue = "false") Boolean withDeleted) {
         List<OrderElement> allElements = service.findAll(withDeleted);

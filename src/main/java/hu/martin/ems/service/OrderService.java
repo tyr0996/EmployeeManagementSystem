@@ -72,7 +72,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         return getOrderDocumentExport(o, out, OrderDocumentFileType.PDF);
     }
 
-    public byte[] createDocumentAsODT(Order o, OutputStream out) throws IOException, XDocReportException, CurrencyException {
+    public byte[] createDocumentAsODT(Order o, OutputStream out) throws XDocReportException, CurrencyException, IOException {
         return getOrderDocumentExport(o, out, OrderDocumentFileType.ODT);
     }
 
@@ -127,7 +127,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
 
 
 
-    public byte[] getOrderDocumentExport(Order o, OutputStream out, OrderDocumentFileType fileType) throws IOException, XDocReportException, CurrencyException { //TODO FileType can be enum
+    public byte[] getOrderDocumentExport(Order o, OutputStream out, OrderDocumentFileType fileType) throws XDocReportException, CurrencyException, IOException { //TODO FileType can be enum
         InputStream in = new OrderDM(o).getTemplate();
         IXDocReport report = registry.loadReport(in, TemplateEngineKind.Freemarker);
 

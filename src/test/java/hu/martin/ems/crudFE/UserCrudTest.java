@@ -17,14 +17,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserCrudTest extends BaseCrudTest {
@@ -51,6 +52,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("User saved: ");
         
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -66,6 +68,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertNull(testResult.getNotificationWhenPerform());
         
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -86,6 +89,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()));
         userPage.getGrid().resetFilter();
         
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -100,6 +104,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -125,30 +130,41 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()));
         userPage.getGrid().resetFilter();
         
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void databaseNotAvailableWhenGettingLoggedInUser() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0)); //2, 3 kizárva. 1- role filter
+//        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
+        SoftAssert sa = new SoftAssert();
+
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "EmsError happened while getting the logged in user. Deletion and modification is disabled");
+        sa.assertEquals(notification.getText(), "EmsError happened while getting the logged in user. Deletion and modification is disabled", "1-es");
         notification.close();
 
         UserPage userPage = new UserPage(driver, port);
-        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
-        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        sa.assertNotEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0, "2-es");
+        for(int i = 0; i < userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()); i++){
+            sa.assertFalse(userPage.getGrid().getModifyButton(i).isEnabled(), "4-es");
+            sa.assertFalse(userPage.getGrid().getDeleteButton(i).isEnabled(), "5-ös");
+        }
 //        gridTestingUtil.checkNotificationText("EmsError happened while getting the logged in user. Deletion and modification is disabled");
+        sa.assertNull(VaadinNotificationComponent.hasNotification(driver), "6-os");
+        sa.assertAll();
+
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void databaseNotAvailableWhenGettingAllUser() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(2, 3));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
@@ -158,6 +174,7 @@ public class UserCrudTest extends BaseCrudTest {
         UserPage userPage = new UserPage(driver, port);
         assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
         assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -179,6 +196,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
         assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 1);
         userPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -208,6 +226,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
         
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -225,6 +244,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertEquals(testResult.getNotificationWhenPerform(), "Username already exists!");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -253,6 +273,7 @@ public class UserCrudTest extends BaseCrudTest {
 
 //        gridTestingUtil.applyFilter(gridXpath, "Erzsi", "$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy", "false");
 //        crudTestingUtil.updateTest(withData, "Username already exists!", false);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -274,6 +295,7 @@ public class UserCrudTest extends BaseCrudTest {
 
 //        crudTestingUtil.createTest(withData, "Passwords doesn't match!", false);
         
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -298,6 +320,7 @@ public class UserCrudTest extends BaseCrudTest {
 //        withData.put("Password again", "");
 
 //        crudTestingUtil.updateTest(withData, "Password is required!", false);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -316,6 +339,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(testData.getNonDeletedRowNumberAfterMethod(), testData.getOriginalNonDeletedRowNumber());
         assertEquals(testData.getNotificationWhenPerform(), "Passwords doesn't match!");
         
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -341,10 +365,12 @@ public class UserCrudTest extends BaseCrudTest {
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Getting users failed");
+        notification.close();
         assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
 //        gridTestingUtil.checkNotificationText("Getting users failed");
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
 //        assertEquals(gridTestingUtil.countVisibleGridDataRows(gridXpath), 0);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -381,6 +407,7 @@ public class UserCrudTest extends BaseCrudTest {
 //        crudTestingUtil.updateTest(withData, null, true);
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
         
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -411,19 +438,29 @@ public class UserCrudTest extends BaseCrudTest {
 //
 //        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
 //        gridTestingUtil.checkNoMoreNotificationsVisible();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
-//    @Test
-//
-//    public void databaseUnavailableWhenGetAllUser() throws SQLException, InterruptedException {
-//        JPAConfig.resetCallIndex();
-//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
-////        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.checkNotificationText("Getting users failed");
-////        crudTestingUtil.databaseUnavailableWhenGetAllEntity(this.getClass(), spyDataSource, port, mainMenu, subMenu, "users");
-//    }
+    @Test
+    public void databaseNotAvailableWhenFindAllRoleInFilter() throws SQLException {
+//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
+
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 1);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+
+        SoftAssert sa = new SoftAssert();
+
+        sa.assertFalse(userPage.getGrid().getHeaderFilterInputFields().get(3).isEnabled());
+        sa.assertEquals(userPage.getGrid().getHeaderFilterInputFieldErrorMessage(3), "EmsError happened while getting permissions");
+        sa.assertNull(VaadinNotificationComponent.hasNotification(driver));
+
+        sa.assertAll();
+    }
 
     @Test
     public void databaseUnavailableWhenSavingUser() throws SQLException {
@@ -443,6 +480,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("User saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -463,6 +501,7 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getResult().getNotificationText()).contains("User modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @AfterClass

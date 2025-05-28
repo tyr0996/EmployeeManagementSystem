@@ -21,7 +21,7 @@ import org.testng.annotations.Test;
 import java.sql.SQLException;
 import java.time.Duration;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.testng.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class LoginTests extends BaseCrudTest {
@@ -45,6 +45,7 @@ public class LoginTests extends BaseCrudTest {
 
         assertEquals("Permission error", error.getTitle());
         assertEquals("You have no permission to log in. Contact the administrator about your roles, and try again.", error.getDescription());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -66,6 +67,7 @@ public class LoginTests extends BaseCrudTest {
 
         assertEquals("Incorrect username or password", error.getTitle());
         assertEquals("Check that you have entered the correct username and password and try again.", error.getDescription());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -84,6 +86,7 @@ public class LoginTests extends BaseCrudTest {
 
         assertEquals("Incorrect username or password", error.getTitle());
         assertEquals("Check that you have entered the correct username and password and try again.", error.getDescription());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -94,6 +97,7 @@ public class LoginTests extends BaseCrudTest {
         assertEquals("Incorrect username or password", error.getTitle());
         assertEquals("Check that you have entered the correct username and password and try again.", error.getDescription());
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -103,6 +107,7 @@ public class LoginTests extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals("User not found!", notification.getText());
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -113,6 +118,7 @@ public class LoginTests extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals("The passwords doesn't match!", notification.getText());
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -122,6 +128,7 @@ public class LoginTests extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals("The passwords doesn't match!", notification.getText());
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -133,12 +140,14 @@ public class LoginTests extends BaseCrudTest {
         notification.close();
         loginPage.logIntoApplication("admin", "asdf", true);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem engedett be az új felhasználónév-jelszó párossal!");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void authorizedCredidentalsTest() {
         LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         assertEquals("http://localhost:" + port + "/", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -146,6 +155,7 @@ public class LoginTests extends BaseCrudTest {
         LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         EmptyLoggedInVaadinPage loggedInPage = new EmptyLoggedInVaadinPage(driver, port);
         loggedInPage.logout();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -154,6 +164,7 @@ public class LoginTests extends BaseCrudTest {
         EmptyLoggedInVaadinPage loggedIn = new EmptyLoggedInVaadinPage(driver, port);
         loggedIn.logout();
 
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -187,6 +198,7 @@ public class LoginTests extends BaseCrudTest {
         loggedInPage.getSideMenu().getAdminMenu().click();
         assertEquals(true, adminSubMenusVisible());
         assertEquals(true, ordersSubMenusVisible());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -198,12 +210,14 @@ public class LoginTests extends BaseCrudTest {
         LoginPage loginPage = LoginPage.goToLoginPage(driver, port);
         loginPage.register(username, password, password, false, false);
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals("EmsError happened while getting NO_ROLE", notification.getText());
+        assertEquals("Database error", notification.getText());
+        notification.close();
 
         loginPage.logIntoApplication(username, password, false);
         assertEquals("http://localhost:" + port + "/login", driver.getCurrentUrl(), "Nem történt meg a megfelelő átirányítás");
         assertEquals("Incorrect username or password", loginPage.getErrorMessage().getTitle());
         assertEquals("Check that you have entered the correct username and password and try again.", loginPage.getErrorMessage().getDescription());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -212,6 +226,10 @@ public class LoginTests extends BaseCrudTest {
         LoginPage failedLogin = (LoginPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", false);
         assertEquals("Incorrect username or password", failedLogin.getErrorMessage().getTitle());
         assertEquals("Check that you have entered the correct username and password and try again.", failedLogin.getErrorMessage().getDescription());
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "EmsError happened while getting username");
+        notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     private boolean adminSubMenusVisible(){

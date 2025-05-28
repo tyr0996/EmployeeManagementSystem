@@ -6,7 +6,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -52,6 +51,13 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
         }
 
         assert toggleButton != null;
+    }
+
+    @Override
+    public void scrollDown(int pixels) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        WebElement scroller = (WebElement) js.executeScript("return document.querySelector('html body vaadin-multi-select-combo-box-overlay vaadin-multi-select-combo-box-scroller')");
+        js.executeScript("arguments[0].scrollTop = arguments[1];", scroller, pixels);
     }
 
 
@@ -121,32 +127,46 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
     }
 
     public void selectElements(String... elements) {
-        JavascriptExecutor js = (JavascriptExecutor) getDriver();
-
+//        JavascriptExecutor js = (JavascriptExecutor) getDriver();
         getToggleButton().click();
-
-//        List<WebElement> comboBoxOptions = getDriver().findElements(By.cssSelector("vaadin-multi-select-combo-box-item"));
-        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-multi-select-combo-box-item"));
-        int i = 0;
-        while(comboBoxOptions.size() == 0){
-            System.err.println("Nincs elem a multi select combo boxban! ");
-            toggleButton.click();
-//            printToConsole(comboBox);
-        }
-        if(comboBoxOptions.size() == 1){
-            comboBoxOptions.get(0).click();
-//            return comboBoxOptions.get(0).getText();
-        }
-        else {
-            for(WebElement comboBoxElement : comboBoxOptions){
-                if(Arrays.asList(elements).contains(comboBoxElement.getText())){
-                    JavascriptExecutor jsExecutor = (JavascriptExecutor) getDriver();
-                    jsExecutor.executeScript("arguments[0].click();", comboBoxElement);
-                    break;
-                }
+//        scrollDown(5000);
+//        waitForRefresh();
+        for(int i = 0; i < elements.length; i++){
+            if(!elements[i].equals("")){
+                element.sendKeys(elements[i]);
+                this.waitForRefresh();
+                WebElement comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("vaadin-multi-select-combo-box-item")));
+                comboBoxOptions.click();
             }
-
             getToggleButton().click();
         }
     }
+
+//    public void selectElements(String... elements) {
+////        JavascriptExecutor js = (JavascriptExecutor) getDriver();
+//        getToggleButton().click();
+//
+////        List<WebElement> comboBoxOptions = getDriver().findElements(By.cssSelector("vaadin-multi-select-combo-box-item"));
+//        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-multi-select-combo-box-item"));
+//        int i = 0;
+//        while(comboBoxOptions.size() == 0){
+//            System.err.println("Nincs elem a multi select combo boxban! ");
+//            toggleButton.click();
+////            printToConsole(comboBox);
+//        }
+//        if(comboBoxOptions.size() == 1){
+//            comboBoxOptions.get(0).click();
+////            return comboBoxOptions.get(0).getText();
+//        }
+//        else {
+//            for(WebElement comboBoxElement : comboBoxOptions){
+//                if(Arrays.asList(elements).contains(comboBoxElement.getText())){
+//                    JavascriptExecutor jsExecutor = (JavascriptExecutor) getDriver();
+//                    jsExecutor.executeScript("arguments[0].click();", comboBoxElement);
+//                    break;
+//                }
+//            }
+//            getToggleButton().click();
+//        }
+//    }
 }

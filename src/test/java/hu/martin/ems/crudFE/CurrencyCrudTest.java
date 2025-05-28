@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import static org.testng.Assert.assertNull;
 import static org.testng.AssertJUnit.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -60,6 +61,8 @@ public class CurrencyCrudTest extends BaseCrudTest {
         notificationRetro.close();
 
         assertEquals(LocalDate.now(), page.getDatePicker().getDate());
+
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -86,6 +89,8 @@ public class CurrencyCrudTest extends BaseCrudTest {
             page.getDatePicker().selectDate(generatedTodayDate);
             assertEquals(todayDate, page.getDatePicker().getDate());
         }
+
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -100,6 +105,8 @@ public class CurrencyCrudTest extends BaseCrudTest {
         assertEquals(1, page.getGrid().getPaginationData().getTotalElements().intValue());
         page.getGrid().resetFilter();
         assertEquals(163, page.getGrid().getPaginationData().getTotalElements().intValue());
+
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -108,6 +115,11 @@ public class CurrencyCrudTest extends BaseCrudTest {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CURRENCY_SUBMENU);
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Fetching exchange rates was successful!");
+        notification.close();
+
         CurrencyPage page = new CurrencyPage(driver, port);
         page.getGrid().applyFilter("EUR", "");
 
@@ -115,6 +127,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         page.getGrid().resetFilter();
         page.getGrid().applyFilter(eurData);
         assertEquals(1, page.getGrid().getPaginationData().getTotalElements().intValue());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -145,6 +158,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notificationAlready = new VaadinNotificationComponent(driver);
         assertEquals("Currencies already fetched", notificationAlready.getText());
         notificationAlready.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -162,6 +176,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         assertEquals("Fetching exchange rates was successful!", notification.getText());
         notification.close();
         assertEquals(163, page.getGrid().getPaginationData().getTotalElements().intValue());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -196,6 +211,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         assertEquals("EUR", todayEurExchangeRate[0]);
         assertEquals("EUR", oldEurExchangeRate[0]);
         assertFalse(oldEurExchangeRate[1].equals(todayEurExchangeRate[1]));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -230,6 +246,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         assertEquals("Currencies fetched successfully, but the currency server sent bad data", notificationFailed2.getText());
         notificationFailed2.close();
         assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -247,14 +264,16 @@ public class CurrencyCrudTest extends BaseCrudTest {
         assertEquals("Database error", notification.getText());
         notification.close();
         assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
     @Test
+    @Video
     public void databaseNotAvailableWhileFindCurrencyByDate() throws SQLException {
         clearCurrencyDatabaseTable();
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2);
-        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
+//        Mockito.doThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error")).when(spyRestTemplate).getForObject(Mockito.eq(fetchingCurrencyApiUrl + baseCurrency), Mockito.any(Class.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -265,6 +284,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         assertEquals("EmsError happened while getting currencies by date", notification.getText());
         notification.close();
         assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 

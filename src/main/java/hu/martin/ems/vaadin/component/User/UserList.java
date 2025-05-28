@@ -211,7 +211,6 @@ public class UserList extends VerticalLayout implements Creatable<User> {
             showDeleted = event.getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             UserVO.showDeletedCheckboxFilter.replace("deleted", newValue);
-
             userVOS = users.stream().map(UserVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
 

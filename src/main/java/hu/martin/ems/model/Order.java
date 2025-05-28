@@ -4,7 +4,6 @@ import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -57,11 +56,5 @@ public class Order extends BaseEntity {
 
     public String getName() {
         return this.getId() + " (" + this.state.getName() + ")";
-    }
-
-    @AssertTrue(message = "Either customer or supplier must be set, but not both")
-    public boolean isValid() {
-        System.out.println("OrderElement is valid: " + (customer != null) + "    " + (supplier != null));
-        return customer != null ^ supplier != null;
     }
 }

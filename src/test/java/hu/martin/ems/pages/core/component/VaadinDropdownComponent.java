@@ -155,6 +155,18 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
 //        waitForRefresh();
     }
 
+
+    public void scrollDown(int pixels) {
+//        WebElement overlay = (WebElement) ((JavascriptExecutor) driver)
+//                .executeScript("return arguments[0].shadowRoot.querySelector('vaadin-combo-box-overlay')", this.element);
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        // 3. Lista scroll container kinyerése
+        WebElement scroller = (WebElement) js.executeScript("return arguments[0].shadowRoot.querySelector('vaadin-combo-box-overlay').shadowRoot.querySelector('vaadin-combo-box-dropdown-wrapper').shadowRoot.querySelector('vaadin-combo-box-scroller')", this.element);
+
+                        // 4. Görgetés – például lefelé 1000 pixelt
+        js.executeScript("arguments[0].scrollTop = arguments[1];", scroller, pixels);
+    }
+
     @Override
     public VaadinDropdownComponent fillWith(@Nullable String value) {
         assertTrue(this.isEnabled(), "The combo box is not enabled: " + element.getText());
@@ -167,10 +179,11 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
+        List<WebElement> comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector("vaadin-combo-box-item")));
+//        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
         List<WebElement> filtered = comboBoxOptions.stream().filter(v -> v.getText().equals(value)).toList();
         if(filtered.size() == 0){
-            String elements = String.join(", ", comboBoxOptions.stream().map(v -> v.getText()).toString());
+            String elements = String.join(", ", comboBoxOptions.stream().map(v -> v.getText()).toList()).toString();
             throw new NoSuchElementException("Element " + value + " not found in " + element.getText() + ". Elements: " + elements);
         }
         filtered.get(0).click();

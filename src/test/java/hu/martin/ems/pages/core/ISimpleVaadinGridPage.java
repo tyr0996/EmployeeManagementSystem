@@ -27,6 +27,9 @@ public interface ISimpleVaadinGridPage<T> extends ILoggedInPage<T> {
 
     PerformCreateResult performCreate(LinkedHashMap<String, Object> withData);
     PerformDeleteResult performDelete();
+
+    PerformRestoreFailedResult performRestoreFailed(DataSource spyDataSource) throws SQLException;
+
     PerformRestoreResult performRestore();
     PerformPermanentlyDeleteResult performPermanentlyDelete();
     PerformUpdateResult performUpdate(LinkedHashMap<String, Object> withData, ElementLocation rowLocation);
@@ -45,6 +48,9 @@ public interface ISimpleVaadinGridPage<T> extends ILoggedInPage<T> {
 
     DoDeleteTestData doDeleteTest();
     DoDeleteTestData doDeleteTest(LinkedHashMap<String, Object> withDataCreate);
+
+    DoRestoreFailedTestData doRestoreFailedTest(DataSource spyDataSource) throws SQLException;
+
     DoRestoreTestData doRestoreTest();
     DoPermanentlyDeleteTestData doPermanentlyDeleteTest();
     DoReadTestData doReadTest(String extraDataFilter, boolean withInDeleted);

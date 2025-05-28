@@ -1,6 +1,5 @@
 package hu.martin.ems.core.repository;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.Repository;
 import org.springframework.transaction.annotation.Transactional;

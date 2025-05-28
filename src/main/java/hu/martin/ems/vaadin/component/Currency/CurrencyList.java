@@ -101,7 +101,18 @@ public class CurrencyList extends VerticalLayout {
 
     public void updateGrid(Boolean fetchButtonClicked) {
         LocalDate date = datePicker.getValue();
-        Currency currency = getCurrencyByDate(date);
+        EmsResponse response = currencyApiClient.findByDate(date);
+        Currency currency;
+        switch (response.getCode()){
+            case 200:
+                currency = (Currency) response.getResponseData();
+                break;
+            default:
+                logger.error("Currency findByDateError. Code: {}, Description: {}", response.getCode(), response.getDescription());
+                Notification.show("EmsError happened while getting currencies by date")
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return;
+        }
         Boolean needFetch = currency == null;
         if(!needFetch && fetchButtonClicked){
             Notification.show("Currencies already fetched").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
@@ -109,13 +120,13 @@ public class CurrencyList extends VerticalLayout {
 
         if (needFetch) {
             if (date.isEqual(LocalDate.now())) {
-                EmsResponse response = currencyApiClient.fetchAndSaveRates();
-                switch (response.getCode()) {
+                EmsResponse fetchAndSaveResponse = currencyApiClient.fetchAndSaveRates();
+                switch (fetchAndSaveResponse.getCode()) {
                     case 200:
-                        currency = gson.fromJson((String) response.getResponseData(), Currency.class);
+                        currency = gson.fromJson((String) fetchAndSaveResponse.getResponseData(), Currency.class);
                         break;
                     default: {
-                        Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        Notification.show(fetchAndSaveResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                     }
                 }
@@ -139,19 +150,6 @@ public class CurrencyList extends VerticalLayout {
             Notification.show("Fetching exchange rates was successful!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         }
         this.grid.setItems(curr);
-    }
-
-    private Currency getCurrencyByDate(LocalDate date) {
-        EmsResponse response = currencyApiClient.findByDate(date);
-        switch (response.getCode()){
-            case 200:
-                return (Currency) response.getResponseData();
-            default:
-                logger.error("Currency findByDateError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("EmsError happened while getting currencies by date")
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                return null;
-        }
     }
 
     private Stream<CurrencyVO> getFilteredStream() {

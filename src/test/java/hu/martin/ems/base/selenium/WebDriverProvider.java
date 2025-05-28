@@ -1,7 +1,6 @@
 package hu.martin.ems.base.selenium;
 
 import lombok.Getter;
-import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -32,12 +31,14 @@ public class WebDriverProvider {
             chromePref.put("download.default_directory", downloadFolder);
             chromePref.put("download.prompt_for_download", false);
             chromePref.put("directory_upgrade", true);
-
             chromePref.put("plugins.always_open_pdf_externally", true);
+
             options.setExperimentalOption("prefs", chromePref);
 
+//            options.addArguments("--headless");
+
             WebDriver d = new ChromeDriver(options);
-            d.manage().window().setPosition(new Point(1280, -760));
+//            d.manage().window().setPosition(new Point(1280, -760));
             d.manage().window().maximize();
             driver = d;
         }

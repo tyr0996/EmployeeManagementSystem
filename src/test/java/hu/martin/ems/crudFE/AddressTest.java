@@ -2,7 +2,6 @@ package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
-import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.pages.AddressPage;
 import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.InternalErrorNotification;
@@ -13,24 +12,20 @@ import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.AddressSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.mockito.Mockito.doThrow;
+import static org.testng.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AddressTest extends BaseCrudTest {
@@ -47,6 +42,7 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("Address saved: ");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -61,6 +57,7 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertNull(testResult.getNotificationWhenPerform());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -80,6 +77,7 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(1, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
         assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
         addressPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -99,6 +97,7 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(0, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
         assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
         addressPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -121,6 +120,7 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 1);
         addressPage.getGrid().resetFilter();
 
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -149,6 +149,7 @@ public class AddressTest extends BaseCrudTest {
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
         assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -178,6 +179,7 @@ public class AddressTest extends BaseCrudTest {
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
         assertEquals(notificationComponent.getText(), "Database error");
         notificationComponent.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -196,6 +198,7 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting countries");
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -214,6 +217,7 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting cities");
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -231,6 +235,7 @@ public class AddressTest extends BaseCrudTest {
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting street types");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -245,6 +250,7 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -259,6 +265,7 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Address permanently deletion failed: Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -274,6 +281,7 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getResult().getNotificationText()).contains("Address modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -289,23 +297,34 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Address saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void databaseNotAvailableWhenOpenPage() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADDRESS_SUBMENU);
 
         SoftAssert sa = new SoftAssert();
         AddressPage addressPage = new AddressPage(driver, port);
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification.getText(), "EmsError happened while getting addresses");
+        notification.close();
         sa.assertEquals(addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification2.getText(), "Refresh grid failed: Database error");
+        notification2.close();
         sa.assertEquals(addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification3.getText(), "Refresh grid failed: Database error");
+        notification3.close();
+        VaadinNotificationComponent.closeAll(driver);
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -319,5 +338,6 @@ public class AddressTest extends BaseCrudTest {
         sa.assertEquals(notification.getCaption().getText(), "Internal error");
         sa.assertEquals(notification.getMessage().getText(), "Please notify the administrator. Take note of any unsaved data, and click here or press ESC to continue.");
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 }

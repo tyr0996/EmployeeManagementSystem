@@ -39,7 +39,6 @@ public class JschConfig {
     @Value("${sftp.password}")
     private String sftpPassword;
 
-    public Boolean successfullyStarted = false;
 
     @Getter
     @Setter
@@ -53,64 +52,107 @@ public class JschConfig {
 
 
     public void init() throws JSchException {
-        boolean succ = true;
-        if (channelSftp == null || !channelSftp.isConnected() || !session.getUserName().equals(sftpUser)) {
-            Session jschSession = null;
-            try{
-                jschSession = jsch.getSession(sftpUser, sftpHost, sftpPort);
-                session = jschSession;
-            }
-            catch(JSchException e){
-                log.error("An unknown error occurred while opening the session!");
-                throw new JSchException("An unknown error occurred while opening the session!");
-            }
-            String password = jschSession != null && sftpPassword != null && !sftpPassword.equals("") ? sftpPassword : null;
-            jschSession.setPassword(password);
-            jschSession.setConfig("StrictHostKeyChecking", "no");
-            try{
-                jschSession.connect();
-            }
-            catch(JSchException e){
-                if(e.getCause() instanceof ConnectException){
-                    log.error("Failed to connect to the host! It may not be running or it could be outside the domain. ("+sftpHost+")");
-                    throw new JSchException("Failed to connect to the host! It may not be running or it could be outside the domain. ("+sftpHost+")");
-                }
-                else if(e.getMessage().equals("Auth fail")){
-                    log.error("Connection to the host failed because the login credentials are incorrect! (" + sftpHost + ")");
-                    throw new JSchException("Connection to the host failed because the login credentials are incorrect! (" + sftpHost + ")");
-                }
-                else{
-                    log.error("An unknown error occurred while connecting to the host! " + e.getMessage());
-                    throw new JSchException("An unknown error occurred while connecting to the host! " + e.getMessage());
-                }
-            }
-            try{
-                channelSftp = (ChannelSftp) jschSession.openChannel("sftp");
-            }
-            catch (JSchException e){
-                succ = false;
-                log.error("An error occurred while opening the channel! Please check that the session's isConnected() property is true.");
-            }
-        }
-        else{
-            succ = false;
-        }
+        try {
+            if (channelSftp == null) {
+                session = createSession();
+                log.info("Session started");
 
-        if(succ){
-            successfullyStarted = true;
-            log.info("The SFTP connection to the host has been successfully established ("+sftpHost+")");
+                session.setPassword(sftpPassword);
+                session.setConfig("StrictHostKeyChecking", "no");
+
+                connectToSession();
+                log.info("Connected to session");
+                openSftpChannel();
+                log.info("SFTP channel opened");
+                log.info("The SFTP connection to the host has been successfully established ("+sftpHost+")");
+            }
+            else{
+                log.info("The SFTP connection already existed");
+            }
         }
-        else{
+        catch (JSchException e){
             log.warn("The SFTP connection failed for some reason! Please check the log for errors.");
+            throw e;
+        }
+    }
+
+    private Session createSession() throws JSchException{
+        try{
+            Session session = jsch.getSession(sftpUser, sftpHost, sftpPort);
+            return session;
+        }
+        catch(JSchException e){
+            log.error("An unknown error occurred while opening the session!");
+            throw new JSchException("An unknown error occurred while opening the session!");
+        }
+    }
+
+    private void connectToSession() throws JSchException {
+        try{
+            session.connect();
+        }
+        catch(JSchException e){
+            if(e.getCause() instanceof ConnectException){
+                log.error("Failed to connect to the host! It may not be running or it could be outside the domain. ("+sftpHost+")");
+                throw new JSchException("Failed to connect to the host! It may not be running or it could be outside the domain. ("+sftpHost+")");
+            }
+            else if(e.getMessage().equals("Auth fail")){
+                log.error("Connection to the host failed because the login credentials are incorrect! (" + sftpHost + ")");
+                throw new JSchException("Connection to the host failed because the login credentials are incorrect! (" + sftpHost + ")");
+            }
+            else{
+                log.error("An unknown error occurred while connecting to the host! " + e.getMessage());
+                throw new JSchException("An unknown error occurred while connecting to the host! " + e.getMessage());
+            }
+        }
+    }
+
+    private void openSftpChannel() throws JSchException {
+        try{
+            channelSftp = (ChannelSftp) session.openChannel("sftp");
+            channelSftp.connect();
+        }
+        catch (JSchException e){
+            log.error("An error occurred while opening the channel! Please check that the session's isConnected() property is true.");
+            throw new JSchException("An error occurred while opening the channel! Please check that the session's isConnected() property is true.");
         }
     }
 
     public void connect() throws JSchException {
         init();
-        if(channelSftp == null){
-            channelSftp = (ChannelSftp) session.openChannel("sftp");
-            channelSftp.connect();
+//        if(channelSftp == null){
+//            channelSftp = (ChannelSftp) session.openChannel("sftp");
+//            channelSftp.connect();
+//        }
+//        session.connect();
+    }
+
+    public void disconnect(){
+        log.info("Attempting to disconnect SFTP connection...");
+        destroySftpChannel();
+        destroyJSchSession();
+
+        log.info("SFTP disconnection process completed.");
+    }
+
+    private void destroySftpChannel() {
+        if (channelSftp != null) {
+            channelSftp.disconnect();
+            log.info("SFTP channel disconnected successfully.");
+            channelSftp = null;
         }
-        session.connect();
+        else {
+            log.info("SFTP channel was already null, no action needed.");
+        }
+    }
+
+    private void destroyJSchSession(){
+        if (session != null) {
+            session.disconnect();
+            log.info("SFTP session disconnected successfully.");
+            session = null;
+        } else {
+            log.info("SFTP session was already null, no action needed.");
+        }
     }
 }

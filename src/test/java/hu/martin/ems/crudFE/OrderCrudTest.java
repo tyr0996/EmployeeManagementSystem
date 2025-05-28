@@ -1,7 +1,6 @@
 package hu.martin.ems.crudFE;
 
 import com.automation.remarks.testng.UniversalVideoListener;
-import com.automation.remarks.video.annotations.Video;
 import com.jcraft.jsch.*;
 import fr.opensagres.xdocreport.core.XDocReportException;
 import fr.opensagres.xdocreport.template.TemplateEngineKind;
@@ -13,8 +12,6 @@ import hu.martin.ems.core.file.XLSX;
 import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.documentmodel.OrderDM;
-import hu.martin.ems.model.Order;
 import hu.martin.ems.pages.*;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
@@ -24,10 +21,10 @@ import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.pages.core.doTestData.DoDeleteFailedTestData;
 import hu.martin.ems.pages.core.doTestData.DoDeleteTestData;
 import hu.martin.ems.pages.core.doTestData.DoRestoreTestData;
-import hu.martin.ems.service.OrderDocumentFileType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.mockito.*;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -36,14 +33,15 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -120,6 +118,7 @@ public class OrderCrudTest extends BaseCrudTest {
         notification.close();
 
         ReflectionTestUtils.setField(spyJschConfig, "sftpHost", originalHost);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -147,6 +146,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
         ReflectionTestUtils.setField(spyJschConfig, "sftpPassword", sftpPassword);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -174,10 +174,40 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
+    }
+
+    @Test(enabled = false)
+    public void sendSFTPFailed_OutputStreamCreationFailure() throws IOException {
+//            String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
+//            String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
+//            int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
+//
+//            JSch jsch = mock(JSch.class);
+//            Session mockSession = mock(Session.class);
+//            ChannelSftp mockChannelSftp = mock(ChannelSftp.class);
+//
+//            when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+//            doThrow(new JSchException("Unknown error")).when(mockSession).connect();
+//            when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
+//            when(mockSession.getUserName()).thenReturn(sftpUserName);
+
+//            spyJschConfig.jsch = jsch;
+        Mockito.doThrow(IOException.class).when(spySftpSender).createInputStreamFromByteArray(any(byte[].class));
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
+        notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void sendSFTPFailed_ChannelOpeningError() throws JSchException {
+        JSch originalJsch = JschConfig.jsch;
         String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
         String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
         int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
@@ -192,7 +222,7 @@ public class OrderCrudTest extends BaseCrudTest {
 //        when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
         when(mockSession.getUserName()).thenReturn(sftpUserName);
 
-        spyJschConfig.jsch = jsch;
+        JschConfig.jsch = jsch;
 
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -203,12 +233,126 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
 
+        JschConfig.jsch = originalJsch;
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
+    }
 
+    @Test(enabled = false)
+    public void sftpSending_firstChannelConnectionFailedButSecondSuccess() throws JSchException {
+
+        JSch originalJsch = JschConfig.jsch;
+        String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
+        String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
+        int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
+
+        JSch mockJsch = mock(JSch.class);
+        Session mockSession = mock(Session.class);
+        ChannelSftp mockChannelSftp = mock(ChannelSftp.class);
+        /*
+        when(mockJsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+        doNothing().when(mockSession).connect();
+        doThrow(JSchException.class).doCallRealMethod().when(mockSession).openChannel("sftp");
+//        when(mockSession.openChannel("sftp")).thenReturn(mockChannelSftp);
+        when(mockSession.getUserName()).thenReturn(sftpUserName);
+
+        JschConfig.jsch = mockJsch;
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
+        notification.close();
+
+        JschConfig.jsch = originalJsch;
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
+
+         */
+
+
+        //****************************
+
+
+        // Állapot beállítása, hogy az !channelSftp.isConnected() true legyen az init elején
+        // (ha channelSftp null, akkor is true, mert null.isConnected() nem hívódik meg)
+        // Ha nem null, akkor mockoljuk az isConnected() metódust, hogy false-t adjon vissza
+        when(mockChannelSftp.isConnected()).thenReturn(false); // Ha már van channelSftp inicializálva
+        // Ha az init() metóduson belül null a channelSftp, akkor nem kell külön beállítani
+
+        when(mockJsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+        doNothing().when(mockSession).connect(); // A session connect() metódusa ne dobjon kivételt
+        when(mockSession.openChannel("sftp")).thenThrow(JSchException.class).thenReturn(mockChannelSftp); // Ez a kulcs!
+        doNothing().when(mockChannelSftp).connect(); // A channelSftp.connect() metódusa ne dobjon kivételt
+
+        JschConfig.jsch = mockJsch;
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "SFTP sending is done");
+        notification.close();
+
+
+        // Ellenőrzések
+//        verify(mockJsch).getSession(sftpUserName, sftpHostName, sftpPort);
+//        verify(mockSession).connect(); // Ellenőrizzük, hogy a session connectje lefutott
+//        verify(mockSession).openChannel("sftp"); // Ellenőrizzük, hogy az openChannel lefutott
+//        verify(mockChannelSftp).connect(); // <--- EZ A KULCS! Ellenőrizzük, hogy a channelSftp.connect() is lefutott
+
+        JschConfig.jsch = originalJsch;
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
+
+    }
+
+    @Test(enabled = false)
+    public void sendSFTPSuccess_TwoTimes() throws JSchException {
+        JSch originalJsch = JschConfig.jsch;
+        String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
+        String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
+        int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
+
+        JSch jsch = mock(JSch.class);
+        Session mockSession = mock(Session.class);
+        ChannelSftp mockChannelSftp = mock(ChannelSftp.class);
+
+        when(jsch.getSession(sftpUserName, sftpHostName, sftpPort)).thenReturn(mockSession);
+        doNothing().when(mockSession).connect();
+//        doNothing().when().openChannel("sftp");
+        when(mockSession.openChannel("sftp")).thenThrow(JSchException.class).thenReturn(mockChannelSftp);
+        when(mockSession.getUserName()).thenReturn(sftpUserName);
+        doNothing().when(mockChannelSftp).connect();
+
+        JschConfig.jsch = jsch;
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage page = new OrderPage(driver, port);
+        page.getSendToAccountantSftpButton().click();
+        SoftAssert sa = new SoftAssert();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification.getText(), "SFTP sending is done");
+        notification.close();
+
+        page.getSendToAccountantSftpButton().click();
+        VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification2.getText(), "SFTP sending is done");
+        notification2.close();
+
+        JschConfig.jsch = originalJsch;
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
+        sa.assertAll();
     }
 
 
     @Test
     public void sendSFTPFailed_AuthFail() throws JSchException {
+        JSch originalJSch = JschConfig.jsch;
         String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
         String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
         int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
@@ -232,15 +376,17 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
+
+        JschConfig.jsch = originalJSch;
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
-
-
 
     @Test
     public void sendSFTPFailed_ConnectionRefused() throws JSchException {
         String sftpUserName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpUser");
         String sftpHostName = (String) ReflectionTestUtils.getField(spyJschConfig, "sftpHost");
         int sftpPort = Integer.parseInt(ReflectionTestUtils.getField(spyJschConfig, "sftpPort").toString());
+        JSch originalJSch = JschConfig.jsch;
 
         JSch jsch = mock(JSch.class);
         Session mockSession = mock(Session.class);
@@ -261,7 +407,11 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "EmsError happened when sending with SFTP");
         notification.close();
+        JschConfig.jsch = originalJSch;
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
+
+
 
     @Test
     public void generateODTFailedCurrencyException() throws Exception {
@@ -288,10 +438,11 @@ public class OrderCrudTest extends BaseCrudTest {
         notification.close();
         assertFalse(waitForDownload("order_[0-9]{1,}.odt", 200, 10));
         Mockito.reset(spyRegistry);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
-    public void generateODTFailedIOException() throws Exception {
+    public void generateODTFailed_IOException() throws Exception {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -315,6 +466,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertFalse(waitForDownload("order_[0-9]{1,}.odt", 200, 10));
 
         Mockito.reset(spyRegistry);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -339,6 +491,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals("Document generation failed. Not supported file type", notification.getText());
         notification.close();
         assertFalse(waitForDownload("order_[0-9]{1,}.odt", 200, 10));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -370,6 +523,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertFalse(waitForDownload("order_[0-9]{1,}.pdf", 200, 10));
 
         Mockito.reset(spyRegistry);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -397,6 +551,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertFalse(waitForDownload("order_[0-9]{1,}.pdf", 200, 10));
 
         Mockito.reset(spyRegistry);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -421,6 +576,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals("Document generation failed. Not supported file type", notification.getText());
         notification.close();
         assertFalse(waitForDownload("order_[0-9]{1,}.pdf", 200, 10));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -442,6 +598,7 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinButtonComponent odtButton = page.getGrid().getOptionAnchorButton(rowLocation, 1);
         odtButton.click();
         assertTrue(waitForDownload("order_[0-9]{1,}.odt", 200, 10));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -462,6 +619,7 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinButtonComponent odtButton = page.getGrid().getOptionAnchorButton(rowLocation, 2);
         odtButton.click();
         assertTrue(waitForDownload("order_[0-9]{1,}.pdf", 200, 10), "Download not happened!");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 //    @Test
@@ -494,6 +652,7 @@ public class OrderCrudTest extends BaseCrudTest {
         notification.close();
         Mockito.clearInvocations(spyOrderService.getXlsx());
         Mockito.reset(spyOrderService.getXlsx());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -547,6 +706,7 @@ public class OrderCrudTest extends BaseCrudTest {
         JschConfig.jsch = originalJsch;
         spyJschConfig.setSession(originalSession);
         spyJschConfig.setChannelSftp(originalChannelSftp);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -589,34 +749,8 @@ public class OrderCrudTest extends BaseCrudTest {
         Mockito.clearInvocations(mockSession);
         Mockito.clearInvocations(jsch);
         Mockito.clearInvocations(mockChannelSftp);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
-
-
-
-
-//    @Test
-//    public void sendEmailSuccessTest() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(200, true, "Email sent!")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
-//
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//
-//        WebElement grid = gridTestingUtil.findVisibleElementWithXpath(gridXpath);
-//        ElementLocation rowLocation = gridTestingUtil.getRandomLocationFromGrid(gridXpath);
-//        if (rowLocation == null) {
-//            orderCreateTest.setup();
-//            orderCreateTest.createOrder();
-//            rowLocation = new ElementLocation(1, 0);
-//        }
-//
-//        WebElement sendEmailButton = gridTestingUtil.getOptionColumnButton(gridXpath, rowLocation, 3);
-//        sendEmailButton.click();
-//        Thread.sleep(100);
-//        gridTestingUtil.checkNotificationContainsTexts("Email sent!", 5000);
-//    }
-
-    @Captor
-    ArgumentCaptor<EmailProperties> orderArgumentCaptor;
 
     @Test
     public void sendEmailSuccessTest() throws MessagingException {
@@ -645,6 +779,7 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Email sent!");
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -674,6 +809,7 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver, Duration.ofMillis(20000));
         assertEquals(notification.getText(), "Email generation failed");
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
     }
 
@@ -699,6 +835,7 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Email sending failed");
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -723,6 +860,7 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Email sending failed");
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -746,6 +884,7 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Email sending failed");
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -773,6 +912,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(notification.getText(), "Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE);
         notification.close();
         Mockito.reset(spyRegistry);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -801,6 +941,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(notification.getText(), "Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED);
         notification.close();
         Mockito.reset(spyRegistry);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -827,6 +968,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(notification.getText(), "Email sending failed: " + EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE);
         notification.close();
         Mockito.reset(spyDataSource);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -848,11 +990,14 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(1, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
         assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
         page.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void modifyOrderTest() {
         modifyOrder(null, true);
+
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     public void modifyOrder(String notificationText, Boolean needSuccess) {
@@ -878,11 +1023,6 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinButtonComponent modifyButton = page.getGrid().getModifyButton(rowLocation.getRowIndex());
         modifyButton.click();
 
-//        gridTestingUtil.goToPageInPaginatedGrid(gridXpath, rowLocation.getPageNumber());
-//        Thread.sleep(200);
-//        WebElement modifyButton = gridTestingUtil.getModifyButton(gridXpath, rowLocation.getRowIndex());
-//        Thread.sleep(200);
-//        modifyButton.click();
         OrderCreateToCustomerPage createPage = new OrderCreateToCustomerPage(driver, port);
 //
         createPage.getGrid().selectElements(3);
@@ -891,34 +1031,19 @@ public class OrderCrudTest extends BaseCrudTest {
         createPage.getPaymentTypeComboBox().fillWithRandom();
         createPage.getCreateOrderButton().click();
 
-
-//        gridTestingUtil.findVisibleElementWithXpath(createOrderGridXpathModify);
-//        Thread.sleep(2000);
-//        gridTestingUtil.selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpathModify, 3);
-//
-//        Thread.sleep(200);
-//        //gridTestingUtil.setCheckboxStatus(orderCreateTest.previouslyOrderedCheckboxXpath, true);
-
-//        gridTestingUtil.selectRandomFromComboBox(gridTestingUtil.findVisibleElementWithXpath(createOrderCurrencyComboBox));
-//        gridTestingUtil.selectRandomFromComboBox(gridTestingUtil.findVisibleElementWithXpath(createOrderPaymentComboBox));
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(createOrderSaveOrderButton).click();
-
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertThat(notification.getText()).contains(notificationText == null ? "Order updated:" : notificationText);
-//        assertEquals(notificationText == null ? "Order updated:" : notificationText, notification.getText());
+
         notification.close();
 
-//        gridTestingUtil.checkNotificationContainsTexts(notificationText == null ? "Order updated:" : notificationText);
-//
-//        Thread.sleep(100);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         page.initWebElements();
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        Thread.sleep(100);
+
         page.getGrid().applyFilter(originalData);
         assertEquals(needSuccess ? 0 : 1, page.getGrid().getTotalRowNumber());
         page.getGrid().resetFilter();
         assertEquals(original, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -936,17 +1061,8 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
-//
-//    @Test
-//    public void asdf() throws SQLException, IOException {
-//        while(true){
-//            databaseNotAvailableWhileDeleteTest();
-//            deleteOrderElementWhatMemberOfAnOrder();
-//            resetDatabase();
-//        }
-//    }
-
 
 
     @Test
@@ -1013,12 +1129,9 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent.closeAll(driver);
 
         createPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
-//        gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_ELEMENT_SUBMENU);
-//        oePage = new OrderElementPage(driver, port); //TODO lehet, hogy ez az újra inicializálás nem kell. Meg kell majd próbálni
         oePage.initWebElements();
         VaadinButtonComponent oeDeleteButtonCreatedOrder = oePage.getGrid().getDeleteButton(0);
         while(oeDeleteButtonCreatedOrder != null){
-//            oePage.initWebElements();
             oeDeleteButtonCreatedOrder.click();
             new VaadinNotificationComponent(driver).close();
             oePage.initWebElements();
@@ -1026,16 +1139,11 @@ public class OrderCrudTest extends BaseCrudTest {
         }
 
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        Thread.sleep(20);
         page.initWebElements();
         page.getGrid().getModifyButton(0).click(); //TODO megcsinálni, hogy előtte nézze meg a szerkesztésben, hogy látja-e őket.
-//        gridTestingUtil.getModifyButton(gridXpath, 0).click();
-//        Thread.sleep(1000);
         OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
-//        ocPage.getCustomerComboBox().fillWith("Erdei Róbert");
-//        ocPage.getGrid().waitForRefresh();
         assertEquals(ocPage.getGrid().getTotalNonDeletedRowNumber(null), 0);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -1054,9 +1162,6 @@ public class OrderCrudTest extends BaseCrudTest {
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
             page.initWebElements();
             page.performDelete();
-//            page.initWebElements();
-//            new VaadinNotificationComponent(driver).close();
-
         }
 
         DoRestoreTestData testResult = page.doRestoreTest();
@@ -1070,6 +1175,7 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
 //        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
         page.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
 
 //
@@ -1117,6 +1223,7 @@ public class OrderCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
         assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 //        crudTestingUtil.permanentlyDeleteTest();
     }
 
@@ -1145,6 +1252,7 @@ public class OrderCrudTest extends BaseCrudTest {
         checkFromToDatePicker(page.getToDatePicker(), page.getFromDatePicker(), null, a, null, a, dateFormat);
 
         checkFromToDatePicker(page.getFromDatePicker(), page.getToDatePicker(), null, null, null, null, dateFormat);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
     }
 
@@ -1174,26 +1282,31 @@ public class OrderCrudTest extends BaseCrudTest {
 
     @Test
     public void gettingOrdersFailed() throws SQLException {
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
 //        Mockito.doReturn(null).when(spyOrderService).findAll(true); //ApiClintben .findAllWithDeleted();
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+
         OrderPage page = new OrderPage(driver, port);
-        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
-        assertEquals(notificationComponent.getText(), "EmsError happened while getting orders");
-        notificationComponent.close();
-//        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
-        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        SoftAssert sa = new SoftAssert();
 
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification.getText(), "EmsError happened while getting orders");
+        notification.close();
 
-//        gridTestingUtil.mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 2);
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.checkNotificationText("EmsError happened while getting orders");
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXpath));
-//        assertEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedXpath));
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification2.getText(), "EmsError happened while getting orders");
+        notification2.close();
+
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification3.getText(), "EmsError happened while getting orders");
+        notification3.close();
+
+        sa.assertNull(VaadinNotificationComponent.hasNotification(driver));
+        sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 }

@@ -74,10 +74,17 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         register.setClassName("register-button");
 
         register.addClickListener(event -> {
-            Role r = getNoRole();
-            Dialog registerDialog = getRegistrationDialog(r);
-            if(r != null) {
-                registerDialog.open();
+            EmsResponse response = roleApi.findById(-1L);
+            switch (response.getCode()){
+                case 200: {
+                    Dialog registerDialog = getRegistrationDialog((Role) response.getResponseData());
+                    registerDialog.open();
+                    break;
+                }
+                default: {
+                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    break;
+                }
             }
         });
 
@@ -246,19 +253,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
             }
         });
         return d;
-    }
-
-    private Role getNoRole(){
-        EmsResponse response = roleApi.getNoRole();
-        switch (response.getCode()){
-            case 200:
-                return (Role) response.getResponseData();
-            default:
-                logger.error("Role getNoRoleError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("EmsError happened while getting NO_ROLE")
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                return null;
-        }
     }
 
     @Override

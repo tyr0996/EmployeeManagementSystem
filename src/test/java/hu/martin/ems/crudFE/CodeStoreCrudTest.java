@@ -16,6 +16,7 @@ import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +39,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore saved: ");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -52,6 +54,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertNull(testResult.getNotificationWhenPerform());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -76,6 +79,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(1, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
         Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
         codeStorePage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -97,6 +101,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(0, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
         Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
         codeStorePage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -118,6 +123,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
         Assert.assertEquals(codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 1);
         codeStorePage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
     }
 
@@ -147,24 +153,8 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
         assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
-
-//    @Test
-//    public void gettingCountryCodesFailed() throws SQLException {
-//        EmptyLoggedInVaadinPage loggedInPage =
-//                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-//        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
-//
-//        CodeStorePage codeStorePage = new CodeStorePage(driver, port);
-//        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 1);
-//        codeStorePage.getCreateButton().click();
-//
-//        CodeStoreSaveOrUpdateDialog dialog = new CodeStoreSaveOrUpdateDialog(driver);
-//        dialog.initWebElements();
-//        List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
-//        Assert.assertEquals(failedComponents.size(), 1);
-//        Assert.assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting countries");
-//    }
 
     @Test
     public void databaseNotAvailableWhileDeleteTest() throws InterruptedException, SQLException {
@@ -178,6 +168,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -192,6 +183,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore permanently deletion failed: Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -210,6 +202,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getResult().getNotificationText()).contains("CodeStore modifying failed: Database error");
         Assert.assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -225,6 +218,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore saving failed: Database error");
         Assert.assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -238,13 +232,15 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         CodeStoreSaveOrUpdateDialog dialog = new CodeStoreSaveOrUpdateDialog(driver);
         dialog.initWebElements();
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void datahbaseNotAvailableWhenGettingAllCodeStore() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
@@ -252,9 +248,17 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         SoftAssert sa = new SoftAssert();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification.getText(), "EmsError happened while getting codestores");
+        notification.close();
         sa.assertEquals(codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification2.getText(), "EmsError happened while getting codestores");
+        notification2.close();
         sa.assertEquals(codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification3.getText(), "EmsError happened while getting codestores");
+        notification3.close();
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 }

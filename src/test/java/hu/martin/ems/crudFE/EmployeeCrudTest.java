@@ -2,9 +2,11 @@ package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.core.NeedToReview;
 import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.EmployeePage;
 import hu.martin.ems.pages.LoginPage;
+import hu.martin.ems.pages.core.DoRestoreFailedTestData;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
 import hu.martin.ems.pages.core.SideMenu;
@@ -15,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,6 +38,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("Employee saved: ");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -49,9 +53,33 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertNull(testResult.getNotificationWhenPerform());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
+    public void employeeRestoreFailedTest() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
+
+        EmployeePage employeePage = new EmployeePage(driver, port);
+        DoRestoreFailedTestData testResult = employeePage.doRestoreFailedTest(spyDataSource);
+
+        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
+        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+
+        employeePage = new EmployeePage(driver, port);
+        employeePage.getGrid().applyFilter(testResult.getResult().getDeletedData());
+        employeePage.getGrid().waitForRefresh();
+        assertEquals(employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 1);
+        assertEquals(employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 0);
+        employeePage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
+    }
+
+    @Test
+    @NeedToReview(description = "A doDeleteTest-nél meghalt a notification várakozása")
     public void employeeDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -68,6 +96,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(1, employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()));
         assertEquals(0, employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()));
         employeePage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -87,6 +116,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(0, employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()));
         assertEquals(0, employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()));
         employeePage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -108,6 +138,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 0);
         assertEquals(employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 1);
         employeePage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
     }
 
@@ -137,6 +168,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
         assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -154,22 +186,31 @@ public class EmployeeCrudTest extends BaseCrudTest {
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting users");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void gettingEmployeesFailed() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
-        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
-        assertEquals(notificationComponent.getText(), "EmsError happened while getting employees");
-        notificationComponent.close();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "EmsError happened while getting employees");
+        notification.close();
 
         assertEquals(employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
+        assertEquals(notification2.getText(), "EmsError happened while getting employees");
+        notification2.close();
         assertEquals(employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
+        assertEquals(notification3.getText(), "EmsError happened while getting employees");
+        notification3.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
         
     }
 
@@ -185,6 +226,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -199,6 +241,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Employee permanently deletion failed: Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -214,6 +257,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getResult().getNotificationText()).contains("Employee modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -229,6 +273,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Employee saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -243,5 +288,6 @@ public class EmployeeCrudTest extends BaseCrudTest {
         EmployeeSaveOrUpdateDialog dialog = new EmployeeSaveOrUpdateDialog(driver);
         dialog.initWebElements();
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 }
