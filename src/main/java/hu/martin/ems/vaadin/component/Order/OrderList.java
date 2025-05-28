@@ -254,6 +254,7 @@ public class OrderList extends VerticalLayout {
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             OrderVO.showDeletedCheckboxFilter.replace("deleted", newValue);
 
+            setupOrderList();
             updateGridItems();
         });
 

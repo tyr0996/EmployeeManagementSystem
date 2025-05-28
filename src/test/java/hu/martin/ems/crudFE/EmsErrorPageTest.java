@@ -6,9 +6,12 @@ import hu.martin.ems.pages.Page403;
 import hu.martin.ems.pages.Page404;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
+import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
+
+import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class EmsErrorPageTest extends BaseCrudTest {
@@ -32,6 +35,8 @@ public class EmsErrorPageTest extends BaseCrudTest {
         sa.assertEquals(page.getCoffeeText().getText(), "While you wait, take a coffee break.");
 
         sa.assertAll();
+
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -53,6 +58,7 @@ public class EmsErrorPageTest extends BaseCrudTest {
         sa.assertEquals(page.getTipText().getText(), "Maybe try again later");
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
     }
 }

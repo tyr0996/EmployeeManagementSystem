@@ -110,11 +110,20 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
             });
 
             restoreButton.addClickListener(event -> {
-                this.employeeApi.restore(employee.original);
-                Notification.show("Employee restored: " + employee.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                setupEmployees();
-                updateGridItems();
+                EmsResponse response = this.employeeApi.restore(employee.original);
+                switch (response.getCode()) {
+                    case 200:
+                        Notification.show("Employee restored: " + employee.original.getName())
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        setupEmployees();
+                        updateGridItems();
+                        break;
+                    default: {
+                        Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                    }
+                }
+
             });
 
             deleteButton.addClickListener(event -> {

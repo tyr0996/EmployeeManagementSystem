@@ -9,7 +9,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -82,10 +81,26 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
     public void beforeEnter(BeforeEnterEvent event) {
         Map<String, List<String>> params = event.getLocation().getQueryParameters().getParameters();
         List<String> paramOrderId = params.get("orderId");
-        if(paramOrderId != null){
+        if(paramOrderId != null) {
+            setupSuppliers();
+            suppliers.setItems(supplierList);
+            setupCurrencies();
+            currencies.setItems(currencyList);
+            setupPaymentTypes();
+            paymentTypes.setItems(paymentTypeList);
             Long orderId = Long.parseLong(paramOrderId.getFirst());
-            this.editObject = orderApi.findById(orderId);
-            loadEditObject();
+            EmsResponse response = orderApi.findById(orderId);
+            switch (response.getCode()){
+                case 200: {
+                    this.editObject = (Order) orderApi.findById(orderId).getResponseData();
+                    loadEditObject();
+                    break;
+                }
+                default: {
+                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    break;
+                }
+            }
         }
     }
 

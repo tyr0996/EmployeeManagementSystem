@@ -1,7 +1,6 @@
 package hu.martin.ems.crudFE;
 
 import com.automation.remarks.testng.UniversalVideoListener;
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.pages.AdminToolsPage;
@@ -21,6 +20,7 @@ import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -43,6 +43,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("Product saved: ");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -57,6 +58,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertNull(testResult.getNotificationWhenPerform());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -71,6 +73,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -90,6 +93,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(1, productPage.getGrid().getTotalDeletedRowNumber(productPage.getShowDeletedCheckBox()));
         assertEquals(0, productPage.getGrid().getTotalNonDeletedRowNumber(productPage.getShowDeletedCheckBox()));
         productPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -109,6 +113,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(0, productPage.getGrid().getTotalDeletedRowNumber(productPage.getShowDeletedCheckBox()));
         assertEquals(0, productPage.getGrid().getTotalNonDeletedRowNumber(productPage.getShowDeletedCheckBox()));
         productPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -130,6 +135,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(productPage.getGrid().getTotalDeletedRowNumber(productPage.getShowDeletedCheckBox()), 0);
         assertEquals(productPage.getGrid().getTotalNonDeletedRowNumber(productPage.getShowDeletedCheckBox()), 1);
         productPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -159,6 +165,7 @@ public class ProductCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
         assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -179,6 +186,7 @@ public class ProductCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Order element successfully paired to customer!");
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -198,6 +206,7 @@ public class ProductCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Order element successfully paired to supplier!");
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -213,6 +222,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getResult().getNotificationText()).contains("Product modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -228,6 +238,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Product saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -248,6 +259,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(dialog.getCustomerComboBox().getErrorMessage(), "EmsError happened while getting customers");
         assertFalse(dialog.getSellButton().isEnabled());
         assertFalse(dialog.getCustomerComboBox().isEnabled());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -267,22 +279,34 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(dialog.getSupplierComboBox().getErrorMessage(), "EmsError happened while getting suppliers");
         assertFalse(dialog.getOrderButton().isEnabled());
         assertFalse(dialog.getSupplierComboBox().isEnabled());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void unexpectedResponseCodeWhenGettingAllProducts() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
 
         ProductPage productPage = new ProductPage(driver, port);
-        VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
-        assertEquals(notificationComponent.getText(), "EmsError happened while getting products");
-        notificationComponent.close();
+        SoftAssert sa = new SoftAssert();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification.getText(), "EmsError happened while getting products: Database error", "1");
+        notification.close();
 
         assertEquals(productPage.getGrid().getTotalDeletedRowNumber(productPage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification2.getText(), "EmsError happened while getting products: Database error", "2");
+        notification2.close();
+
         assertEquals(productPage.getGrid().getTotalNonDeletedRowNumber(productPage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification3.getText(), "EmsError happened while getting products: Database error", "3");
+        notification3.close();
+
+        sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -306,6 +330,7 @@ public class ProductCrudTest extends BaseCrudTest {
         sa.assertFalse(dialog.getSaveButton().isEnabled());
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -327,6 +352,7 @@ public class ProductCrudTest extends BaseCrudTest {
         sa.assertFalse(dialog.getSaveButton().isEnabled());
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -348,6 +374,7 @@ public class ProductCrudTest extends BaseCrudTest {
         sa.assertFalse(dialog.getSaveButton().isEnabled());
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -363,6 +390,7 @@ public class ProductCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Product saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 
@@ -377,6 +405,7 @@ public class ProductCrudTest extends BaseCrudTest {
         ProductSaveOrUpdateDialog dialog = new ProductSaveOrUpdateDialog(driver);
         dialog.initWebElements();
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -391,6 +420,7 @@ public class ProductCrudTest extends BaseCrudTest {
         Product_SellingDialog dialog = new Product_SellingDialog(driver);
         dialog.initWebElements();
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -405,5 +435,6 @@ public class ProductCrudTest extends BaseCrudTest {
         Product_OrderingDialog dialog = new Product_OrderingDialog(driver);
         dialog.initWebElements();
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 }

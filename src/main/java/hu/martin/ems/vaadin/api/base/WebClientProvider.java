@@ -35,7 +35,7 @@ public class WebClientProvider {
                 .build();
     }
 
-    public WebClient initBaseUrlWebClient(String baseUrl){
+    public WebClient initBaseUrlWebClient(){
         String url = "http://localhost:" + webServerAppCtxt.getWebServer().getPort() + "/";
         return WebClient.builder()
                 .baseUrl(url)

@@ -225,6 +225,10 @@
     {
       "name": "UserDeletePermission",
       "deleted": 0
+    },
+    {
+      "name": "This permission not used - only for testing",
+      "deleted": 0
     }
   ]
 }

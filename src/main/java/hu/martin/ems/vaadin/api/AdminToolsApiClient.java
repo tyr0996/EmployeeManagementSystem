@@ -1,5 +1,7 @@
 package hu.martin.ems.vaadin.api;
 
+import com.google.gson.Gson;
+import hu.martin.ems.core.actuator.HealthStatusResponse;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.vaadin.api.base.WebClientProvider;
 import hu.martin.ems.vaadin.core.EmsError;
@@ -18,6 +20,9 @@ import java.io.ByteArrayInputStream;
 public class AdminToolsApiClient {
     private WebClient.Builder webClientBuilder;
 
+    @Autowired
+    public Gson gson;
+
     private Logger logger = LoggerFactory.getLogger(AdminToolsApiClient.class);
 
     @Autowired
@@ -30,7 +35,7 @@ public class AdminToolsApiClient {
     private static final String entityName = "adminTools";
 
     public EmsResponse healthStatus(){
-        WebClient webClient = webClientProvider.initBaseUrlWebClient("");
+        WebClient webClient = webClientProvider.initBaseUrlWebClient();
         try{
             String repsonse = webClient.get()
                     .uri("actuator/health")
@@ -41,7 +46,9 @@ public class AdminToolsApiClient {
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+            return new EmsResponse(ex.getStatusCode().value(),
+                                   gson.toJson(new HealthStatusResponse("Inaccessible")),
+                                   null);
         }
     }
 

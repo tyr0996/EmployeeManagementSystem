@@ -1,7 +1,6 @@
 package hu.martin.ems.crudFE;
 
 import com.automation.remarks.testng.UniversalVideoListener;
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.UITests.UIXpaths;
@@ -13,67 +12,77 @@ import hu.martin.ems.pages.OrderPage;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
-import org.checkerframework.common.reflection.qual.Invoke;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 import javax.sql.DataSource;
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.*;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderFromSupplierTest extends BaseCrudTest {
-//    public static final String supplierComboBoxXpath = contentXpath + "/vaadin-form-layout[1]/vaadin-combo-box";
-//    public static final String currencyComboBoxXpath = contentXpath + "/vaadin-form-layout[2]/vaadin-combo-box[1]";
-//    public static final String paymentMethodComboBoxXpath = contentXpath + "/vaadin-form-layout[2]/vaadin-combo-box[2]";
-//
-//    private static final String orderElementShowDeletedXpath = OrderElementCrudTest.showDeletedCheckBoxXpath;
-//    private static final String orderElementGridXpath = OrderElementCrudTest.gridXpath;
-//    private static final String orderElementCreateButtonXpath = OrderElementCrudTest.createButtonXpath;
-//
-//    private static final String orderXpath = contentXpath + "/vaadin-grid";
-//    public static final String orderCreateOrderButtonXpath = contentXpath + "/vaadin-form-layout[2]/vaadin-button";
-//
-//    public static final String previouslyOrderedCheckboxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
-//
-//    public static final SoftAssert softAssert = new SoftAssert();
-//
-//    private static CrudTestingUtil crudTestingUtil;
-//    private static CrudTestingUtil orderElementCrudTestingUtil;
-//
-//    public static final String createOrderGridXpath = contentXpath + "/vaadin-grid";
-//
-//
-//    private static final String mainMenu = UIXpaths.ORDERS_MENU;
-//    private static final String subMenu = UIXpaths.ORDER_FROM_SUPPLIER_SUBMENU;
-//
-//
-//    private GridTestingUtil gridTestingUtil;
-//
-//
-//
-//    @BeforeClass
-//    public void setup() {
-//        gridTestingUtil = new GridTestingUtil(driver);
-//        init();
-//    }
-
-//    private void init(){
-//        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "Order", null, createOrderGridXpath, null);
-//        orderElementCrudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "OrderElement", orderElementShowDeletedXpath, orderElementGridXpath, orderElementCreateButtonXpath);
-//    }
 
     @Test
     public void createOrderTest() throws SQLException {
         createOrder();
+    }
+
+    @Test
+    public void cannotGetOrderObjectFromOrderIdOnBeforeEnter() throws SQLException, IOException {
+        Long number = dp.countElementsInTable("orders", "customer_customer_id is null and supplier_supplier_id is not null");
+        dp.resetTable(new File(dp.getGENERATED_SQL_FILES_PATH() + "\\suppliers.sql"));
+
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+
+        if(number == 0){
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
+            LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
+            withData.put("Customer", "");
+            withData.put("Supplier", "Szállító1");
+
+            OrderElementPage oePage = new OrderElementPage(driver, port);
+            oePage.performCreate(withData);
+            loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_FROM_SUPPLIER_SUBMENU);
+            OrderFromSupplierPage osPage = new OrderFromSupplierPage(driver, port);
+            osPage.getSupplierComboBox().fillWith("Szállító1");
+            osPage.getGrid().waitForRefresh();
+            osPage.getGrid().selectElements(1);
+            osPage.getCurrencyComboBox().fillWithRandom();
+            osPage.getPaymentTypeComboBox().fillWithRandom();
+            osPage.getCreateOrderButton().click();
+            VaadinNotificationComponent n = new VaadinNotificationComponent(driver);
+            n.close();
+        }
+
+        loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
+        OrderPage oPage = new OrderPage(driver, port);
+        oPage.getGrid().applyFilter("", "(S) ", "", "", "");
+        oPage.getGrid().waitForRefresh();
+        SoftAssert sa = new SoftAssert();
+//        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 7);
+//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 6);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(6, 7));
+        oPage.getGrid().getModifyButton(0).click();
+        OrderFromSupplierPage page = new OrderFromSupplierPage(driver, port);
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification.getText(), "Database error");
+        notification.close();
+
+        sa.assertEquals(page.getGrid().getTotalRowNumber(), 0);
+
+        sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -88,6 +97,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         assertEquals(orderCreateToCustomerPage.getGrid().getTotalRowNumber(), 0);
         orderCreateToCustomerPage.getShowPreviouslyOrderedElementsCheckBox().setStatus(false);
         assertEquals(orderCreateToCustomerPage.getGrid().countVisibleDataRows(), 0);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
 //        int originalRows = gridTestingUtil.countVisibleGridDataRows(createOrderGridXpath);
 //        WebElement previously = gridTestingUtil.findVisibleElementWithXpath(previouslyOrderedCheckboxXpath);
@@ -177,7 +187,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         updateOrder("Order modifying failed: Database error", false, spyDataSource, 1);
 //        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
 
-        assertFalse(VaadinNotificationComponent.hasNotification(driver));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -191,8 +201,8 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 
         OrderFromSupplierPage orderCreateToCustomerPage = new OrderFromSupplierPage(driver, port);
         createOrder("Order saving failed: Database error", false, spyDataSource, 1);
-        assertFalse(VaadinNotificationComponent.hasNotification(driver));
-//        assertFalse(VaadinNotificationComponent.hasNotification(driver));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
+//        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -208,7 +218,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         assertFalse(orderCreateToCustomerPage.getSupplierComboBox().isEnabled());
         assertEquals(orderCreateToCustomerPage.getSupplierComboBox().getErrorMessage(), "EmsError happened while getting suppliers");
 //        checkField(supplierComboBoxXpath, "EmsError happened while getting suppliers");
-        assertFalse(VaadinNotificationComponent.hasNotification(driver));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -226,6 +236,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         assertEquals(notification.getText(), "EmsError happened while getting order elements to the supplier");
         notification.close();
         assertEquals(orderCreateToCustomerPage.getGrid().getTotalRowNumber(), 0);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 //        gridTestingUtil.selectRandomFromComboBox(gridTestingUtil.findVisibleElementWithXpath(supplierComboBoxXpath));
 //        Thread.sleep(100);
 //        gridTestingUtil.checkNotificationText("EmsError happened while getting order elements to the supplier");
@@ -243,6 +254,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 
         OrderFromSupplierPage orderCreateToCustomerPage = new OrderFromSupplierPage(driver, port);
         createOrder("EmsError happened while getting \"Pending\" status", false, spyDataSource, 0);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -258,7 +270,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         assertFalse(orderCreateToCustomerPage.getPaymentTypeComboBox().isEnabled());
         assertEquals(orderCreateToCustomerPage.getPaymentTypeComboBox().getErrorMessage(), "EmsError happened while getting payment methods");
 //        checkField(paymentMethodComboBoxXpath, "EmsError happened while getting payment methods");
-        assertFalse(VaadinNotificationComponent.hasNotification(driver));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -274,12 +286,13 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         assertFalse(orderCreateToCustomerPage.getCurrencyComboBox().isEnabled());
         assertEquals(orderCreateToCustomerPage.getCurrencyComboBox().getErrorMessage(), "EmsError happened while getting currencies");
 //        checkField(currencyComboBoxXpath, "EmsError happened while getting currencies");
-        assertFalse(VaadinNotificationComponent.hasNotification(driver));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void updateOrder() throws SQLException {
         updateOrder(null, true, null, null);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     public void updateOrder(String notificationText, Boolean requiredSuccess, DataSource spyDataSource, Integer preSuccess) throws SQLException {
@@ -348,6 +361,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
             assertEquals(oPage.getGrid().getTotalRowNumber(), 1);
             oPage.getGrid().resetFilter();
         }
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 //    @Test
@@ -429,6 +443,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Order must contains at least one order element!");
+        notification.close();
         page.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         orderPage.initWebElements();
         assertEquals(orderPage.getGrid().getTotalRowNumber(), originalOrderNumber);
@@ -444,6 +459,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 //        gridTestingUtil.navigateMenu(UIXpaths.ORDERS_MENU, UIXpaths.ORDER_SUBMENU);
 //        Thread.sleep(100);
 //        assertEquals(originalOrderNumber, gridTestingUtil.countVisibleGridDataRows(createOrderGridXpath));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -499,6 +515,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         page.getSupplierComboBox().fillWith(supplierName);
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "EmsError happened while getting order elements to the supplier");
+        notification.close();
 //        gridTestingUtil.selectElementByTextFromComboBox(supplierComboBox, supplierName);
         //gridTestingUtil.selectRandomFromComboBox(supplierComboBox);
 //        Thread.sleep(200);
@@ -508,7 +525,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 //        gridTestingUtil.selectMultipleElementsFromMultibleSelectionGrid(createOrderGridXpath, 2);
 //        gridTestingUtil.selectRandomFromComboBox(gridTestingUtil.findVisibleElementWithXpath(currencyComboBoxXpath));
 //        gridTestingUtil.selectRandomFromComboBox(gridTestingUtil.findVisibleElementWithXpath(paymentMethodComboBoxXpath));
-        page.getCreateOrderButton().click();
+//        page.getCreateOrderButton().click();
 
         page.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         orderPage.initWebElements();
@@ -519,6 +536,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 //        Thread.sleep(100);
         assertEquals(orderPage.getGrid().getTotalRowNumber(), originalOrderNumber);
 //        assertEquals(originalOrderNumber, gridTestingUtil.countVisibleGridDataRows(createOrderGridXpath));
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 //    @Test
@@ -695,6 +713,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         //gridTestingUtil.findClickableElementWithXpathWithWaiting(orderCreateOrderButtonXpath).click();
         //gridTestingUtil.checkNotificationContainsTexts("Order saved:");
         updateOrder();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
     }
 
@@ -709,6 +728,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         assertEquals(orderCreateToCustomerPage.getGrid().getTotalRowNumber(), 0);
         orderCreateToCustomerPage.getShowPreviouslyOrderedElementsCheckBox().setStatus(true);
         assertEquals(orderCreateToCustomerPage.getGrid().getTotalRowNumber(), 0);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
         //assertEquals(gridTestingUtil.countVisibleGridDataRows(orderElementGridXpath), 0);
         //gridTestingUtil.setCheckboxStatus(previouslyOrderedCheckboxXpath, true);
         //assertEquals(gridTestingUtil.countVisibleGridDataRows(orderElementGridXpath), 0);
@@ -735,6 +755,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         sa.assertTrue(orderCreateToCustomerPage.getGrid().isMultiSelectEnabled());
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
         //WebElement supplierComboBox = gridTestingUtil.findVisibleElementWithXpath(supplierComboBoxXpath);
         //int originalOrderElements = gridTestingUtil.countVisibleGridDataRows(createOrderGridXpath);

@@ -60,6 +60,8 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
     private MultiSelectComboBox<Permission> permissions;
     private Role editableRole;
 
+    private Role loggedInUserRole;
+
     private Dialog createOrModifyDialog;
     private FormLayout createOrModifyForm;
     private List<Role> roles;
@@ -69,8 +71,8 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private final UserApiClient userApiClient = BeanProvider.getBean(UserApiClient.class);
 
-    private static String roleFilterText = "";
-    private static Set<Permission> permissionsFilterSet = new HashSet<>();
+    private String roleFilterText = "";
+    private Set<Permission> permissionsFilterSet = new HashSet<>();
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<RoleVO> extraData;
     private Grid.Column<RoleVO> roleColumn;
@@ -82,6 +84,8 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
 
     private MainView mainView;
 
+    EmsResponse loggedInUserResponse;
+
 
     private void appendCloseButton(Dialog d){
         Button closeButton = new Button(new Icon("lumo", "cross"),
@@ -92,6 +96,7 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
 
     public RoleList(PaginationSetting paginationSetting) {
         super(paginationSetting);
+        setLoggedInUserRole();
         this.paginationSetting = paginationSetting;
 //        this.mainView = mainView;
 
@@ -366,20 +371,24 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
         });
     }
 
-    private void disableDeletingAndEditingForLoggedInUser(RoleVO roleVO, Button deleteButton, Button editButton) {
+    private void setLoggedInUserRole(){
         EmsResponse response = userApiClient.findByUsername(CustomUserDetailsService.getLoggedInUsername());
         switch (response.getCode()){
             case 200: {
-                if(((User) response.getResponseData()).getRoleRole().equals(roleVO.original)){
-                    deleteButton.setEnabled(false);
-                    editButton.setEnabled(false);
-                }
+                loggedInUserRole = ((User) response.getResponseData()).getRoleRole();
                 break;
             }
             default:
                 Notification.show("Unable to get the current user. Deleting and editing roles are disabled").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                deleteButton.setEnabled(false);
-                editButton.setEnabled(false);
+                loggedInUserRole = null;
+                break;
+        }
+    }
+
+    private void disableDeletingAndEditingForLoggedInUser(RoleVO roleVO, Button deleteButton, Button editButton) {
+        if(loggedInUserRole == null || roleVO.original.equals(loggedInUserRole)){
+            deleteButton.setEnabled(false);
+            editButton.setEnabled(false);
         }
     }
 
@@ -393,11 +402,14 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
     }
 
     private Stream<RoleVO> getFilteredStream() {
-        return roleVOS.stream().filter(groupedRoleXPermissionVO ->
-                (roleFilterText.isEmpty() || groupedRoleXPermissionVO.role.toLowerCase().contains(roleFilterText.toLowerCase())) &&
-                        (permissionsFilterSet.isEmpty() || groupedRoleXPermissionVO.permissionSet.containsAll(permissionsFilterSet)) &&
-                        groupedRoleXPermissionVO.filterExtraData()
-        );
+        return roleVOS.stream().filter(this::filterPredicate);
+    }
+
+    private boolean filterPredicate(RoleVO groupedRoleXPermissionVO) {
+        boolean roleFilterResult = roleFilterText.isEmpty() || groupedRoleXPermissionVO.role.toLowerCase().contains(roleFilterText.toLowerCase());
+        HashSet<String> rowPermissions = new HashSet<>(groupedRoleXPermissionVO.permissionSet.stream().map(Permission::getName).toList());
+        boolean permissionFilterResult = permissionsFilterSet.isEmpty() || rowPermissions.containsAll(permissionsFilterSet.stream().map(Permission::getName).toList());
+        return roleFilterResult && permissionFilterResult && groupedRoleXPermissionVO.filterExtraData();
     }
 
     private void setRoles(){
@@ -418,6 +430,7 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
         switch (response.getCode()){
             case 200 : {
                 roles = (List<Role>) response.getResponseData();
+//                roles.removeIf(v -> v.getId() < 0);
                 break;
             }
             default : {

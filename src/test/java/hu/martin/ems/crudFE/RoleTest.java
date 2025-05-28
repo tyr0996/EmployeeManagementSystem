@@ -1,7 +1,9 @@
 package hu.martin.ems.crudFE;
 
+import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
+import hu.martin.ems.core.NeedToReview;
 import hu.martin.ems.pages.AccessManagementHeader;
 import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.LoginPage;
@@ -16,47 +18,42 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.*;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@Listeners(UniversalVideoListener.class)
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RoleTest extends BaseCrudTest {
-//    private static CrudTestingUtil crudTestingUtil;
-//    private static WebDriverWait notificationDisappearWait;
-//
-//    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout[2]/vaadin-checkbox";
-//    private static final String gridXpath = contentXpath + "/vaadin-grid";
-//    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout[2]/vaadin-button";
-//    private static final String rolesButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[1]";
-//    private static final String permissionsButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[2]";
-//    private static final String roleXPermisisonPairingButtonXPath = contentXpath + "/vaadin-horizontal-layout[1]/vaadin-button[3]";
-//
-//    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-//    private static final String subMenu = UIXpaths.ACESS_MANAGEMENT_SUBMENU;
-//
-//
-//    private GridTestingUtil gridTestingUtil;
-//
-//
-//
-//    @BeforeClass
-//    public void setup() {
-//        gridTestingUtil = new GridTestingUtil(driver);
-//        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "Role", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-//        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
-//    }
-
     @BeforeMethod
     public void beforeMethod() throws IOException {
         resetRolesAndPermissions();
+    }
+
+    @Test
+    public void NotUsedPermissionFilterTest(){
+        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
+        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
+        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
+        header.getRoleButton().click();
+
+        RolePage page = new RolePage(driver, port);
+        page.getGrid().applyFilter("", "This permission not used - only for testing");
+        page.getGrid().waitForRefresh();
+        SoftAssert sa = new SoftAssert();
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+
+        sa.assertAll();
+        page.getGrid().resetFilter();
+        page.getGrid().waitForRefresh();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -72,6 +69,7 @@ public class RoleTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("Role saved: ");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -87,10 +85,12 @@ public class RoleTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertNull(testResult.getNotificationWhenPerform());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
-    public void roleDeleteTest() {
+    public void roleDeleteTest() throws IOException {
+        resetRolesAndPermissions();
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -104,13 +104,14 @@ public class RoleTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Role deleted: ");
 
         page.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(1, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
         assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
         page.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
-    public void roleUpdateTest() throws InterruptedException {
+    public void roleUpdateTest() {
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -128,48 +129,59 @@ public class RoleTest extends BaseCrudTest {
         assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
         assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
         page.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
-    public void roleRestoreTest() throws InterruptedException {
+    @Video
+    public void roleRestoreTest() throws IOException {
+        resetRolesAndPermissions();
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
 
         RolePage page = new RolePage(driver, port);
+        SoftAssert sa = new SoftAssert();
 
         DoRestoreTestData testResult = page.doRestoreTest();
 
-        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
-        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
-        assertThat(testResult.getNotificationWhenPerform()).contains("Role restored: ");
+        sa.assertEquals((int) testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1, "Deleted row number after method not decreased");
+        sa.assertEquals((int) testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1, "Non deleted after method not increased");
+        sa.assertTrue(testResult.getNotificationWhenPerform().contains("Role restored: "), "Restore notification not match");
 
         page = new RolePage(driver, port);
         page.getGrid().applyFilter(testResult.getResult().getRestoredData());
         page.getGrid().waitForRefresh();
-        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
-        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0, "Restored element not found in deleted elements (filtered)");
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1, "Restored element not found in Non deleted elements (filtered)");
         page.getGrid().resetFilter();
+        sa.assertNull(VaadinNotificationComponent.hasNotification(driver), "There were at least one notification after test");
+
+        sa.assertAll();
     }
 
     @Test
-    public void rolePermanentlyDeleteTest() {
+    @Video
+    public void rolePermanentlyDeleteTest() throws IOException {
+        resetRolesAndPermissions();
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
         header.getRoleButton().click();
 
+        SoftAssert sa = new SoftAssert();
+
         RolePage page = new RolePage(driver, port);
         DoPermanentlyDeleteTestData testResult = page.doPermanentlyDeleteTest();
-        assertThat(testResult.getNotificationWhenPerform()).contains("Role permanently deleted: ");
+        sa.assertTrue(testResult.getNotificationWhenPerform().contains("Role permanently deleted: "), "performing notification message not contains");
 
 
-        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
-        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        sa.assertEquals((int)testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1, "Total deleted row number (after perform) not decressed");
+        sa.assertEquals((int)testResult.getNonDeletedRowNumberAfterMethod(), (int)testResult.getOriginalNonDeletedRowNumber(), "Total non deleted row number (after perform) changed");
         page.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
-        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        sa.assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), "Total deleted row number is not 0 (filtered)");
+        sa.assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), "Total non deleted row number is not 0 (filtered)");
         page.getGrid().resetFilter();
 
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -178,43 +190,13 @@ public class RoleTest extends BaseCrudTest {
 
         adminToolsPage.getClearDatabaseButton().click();
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
-        assertEquals(notificationComponent.getText(), "Clearing database was successful");
+        sa.assertEquals(notificationComponent.getText(), "Clearing database was successful", "Clearing database notification not match");
         notificationComponent.close();
+        sa.assertNull(VaadinNotificationComponent.hasNotification(driver), "There were minimum one notification at the end of the test");
+        sa.assertAll();
     }
 
-    //@Test
-//    public void extraFilterInvalidValue() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        NotificationCheck nc = new NotificationCheck();
-//        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-//        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
-//    }
-
-
-//    @Test(enabled = false)
-//    public void apiSendInvalidStatusCodeWhenSave() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).save(any(Role.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-//
-//    @Test(enabled = false)
-//    public void apiSendInvalidStatusCodeWhenModify() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleApiClient).update(any(Role.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-
     @Test
-    
     public void databaseNotAvailableWhenModify() throws SQLException {
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
@@ -230,6 +212,7 @@ public class RoleTest extends BaseCrudTest {
         assertThat(testResult.getResult().getNotificationText()).contains("Role modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
 
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -247,16 +230,12 @@ public class RoleTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
 
-
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        crudTestingUtil.databaseNotAvailableWhenDeleteTest(spyDataSource, "Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void databaseNotAvailableWhileGettingLoggedInUser() throws SQLException {
-        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 5);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(2));
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -269,16 +248,18 @@ public class RoleTest extends BaseCrudTest {
 
         int count = page.getGrid().getPaginationData().getTotalElements();
         int pageSize = page.getGrid().getPaginationData().getPageSize();
+        SoftAssert sa = new SoftAssert();
         for(int i = 0; i < count && i < pageSize; i++){
-            assertFalse(page.getGrid().getModifyButton(i).isEnabled());
-            assertFalse(page.getGrid().getDeleteButton(i).isEnabled());
+            sa.assertFalse(page.getGrid().getModifyButton(i).isEnabled());
+            sa.assertFalse(page.getGrid().getDeleteButton(i).isEnabled());
         }
+        sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
-    
     public void nullResponseFromServiceWhenCreate() throws SQLException {
-        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 14);
+//        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 14);
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -292,48 +273,9 @@ public class RoleTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Role saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
 
-
-//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 14);
-////        Mockito.doReturn(null).when(spyRoleService).save(any(Role.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        crudTestingUtil.createTest(null, "Role saving failed: Internal server error", false);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
-//    @Test
-//    public void apiSendInvalidStatusCodeWhenSaveRoleXPermission() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).save(any(RoleXPermission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        crudTestingUtil.createTest(null, "Not expected status-code in saving", false);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-//
-//    @Test
-//    public void apiSendInvalidStatusCodeWhenUpdateRoleSaveRoleXPermission() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).doCallRealMethod().when(spyRoleXPermissionApiClient).save(any(RoleXPermission.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        crudTestingUtil.updateTest(null, "Not expected status-code in modifying", false);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-//
-//    @Test
-//    public void sendInvalidStatusCodeWhenGettingAllRoleXPermissions() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleXPermissionApiClient).findAllWithUnused();
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(100);
-//        gridTestingUtil.checkNotificationText("EmsError happened while getting role-permission pairs");
-//        assertEquals(0, gridTestingUtil.countVisibleGridDataRows(gridXpath));
-//        assertEquals(0, gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedCheckBoxXpath));
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
 
     @Test
     public void nullReturnWhenGettingPermissionsOnCreate() throws SQLException {
@@ -352,6 +294,7 @@ public class RoleTest extends BaseCrudTest {
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting permissions");
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
 //        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
 //        failedFieldData.put("Permission", "EmsError happened while getting permissions");
@@ -362,7 +305,7 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void nullResponseWhenGettingAllPermissionForFilterHeaderRow() throws SQLException {
-        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 4);
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -372,52 +315,35 @@ public class RoleTest extends BaseCrudTest {
 
         assertFalse(page.getGrid().getHeaderFilterInputFields().get(1).isEnabled());
         assertEquals(page.getGrid().getHeaderFilterInputFieldErrorMessage(1), "EmsError happened while getting permissions");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
+    @NeedToReview(description = "Meg kell nézni, hogy PermissionTest-ben ez hogy néz ki")
     public void getAllRoleFailed() throws SQLException {
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 6);
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(1, 2));
         header.getRoleButton().click();
 
         RolePage page = new RolePage(driver, port);
+        SoftAssert sa = new SoftAssert();
         int countElements = page.getGrid().getPaginationData().getTotalElements();
-        assertNotEquals(countElements, 0);
+        sa.assertNotEquals(countElements, 0);
         page.getShowDeletedCheckBox().setStatus(true);
         page.getGrid().waitForRefresh();
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "EmsError happened while getting roles");
+        sa.assertEquals(notification.getText(), "EmsError happened while getting roles");
         notification.close();
 
-        assertEquals(page.getGrid().getPaginationData().getTotalElements(), countElements);
-
-
-
-//        gridTestingUtil.mockDatabaseNotAvailableAfter(getClass(), spyDataSource, 6);
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-
-//        Mockito.doReturn(null).when(spyRoleService).findAllWithGraph(true); //ApiClient-ben findAllWithGraphWithDeleted()
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(100);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//        int roleNumber = gridTestingUtil.countVisibleGridDataRows(gridXpath);
-//        assertNotEquals(roleNumber, 0);
-//        Thread.sleep(100);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(showDeletedCheckBoxXpath).click();
-//        Thread.sleep(100);
-//
-//        gridTestingUtil.checkNotificationText("EmsError happened while getting roles");
-//        assertEquals(gridTestingUtil.countVisibleGridDataRows(gridXpath), roleNumber);
-//
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
+        sa.assertEquals((int)page.getGrid().getPaginationData().getTotalElements(), countElements);
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
-    public void databaseUnavailableWhenModifying() throws SQLException, InterruptedException {
+    public void databaseUnavailableWhenModifying() throws SQLException {
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -430,6 +356,7 @@ public class RoleTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getResult().getNotificationText()).contains("Role modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
 
 
@@ -440,23 +367,6 @@ public class RoleTest extends BaseCrudTest {
 //        crudTestingUtil.databaseUnavailableWhenUpdateEntity(spyDataSource, null, null, 0);
     }
 
-//    @Test
-//    public void databaseUnavailableWhenSaving() throws SQLException, InterruptedException {
-//        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
-//        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
-//        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
-//        header.getRoleButton().click();
-//
-//        RolePage page = new RolePage(driver, port);
-//
-//
-//
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(500);
-//         crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
-//    }
 
     @AfterClass
     public void afterClass() throws IOException {

@@ -13,8 +13,10 @@ import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.SupplierSaveOrUpdateDi
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +59,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         SupplierSaveOrUpdateDialog dialog = new SupplierSaveOrUpdateDialog(driver);
         dialog.initWebElements();
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -71,6 +74,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("Supplier saved: ");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -85,6 +89,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -99,6 +104,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertNull(testResult.getNotificationWhenPerform());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -118,6 +124,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertEquals(1, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
         assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
         supplierPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -137,6 +144,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertEquals(0, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
         assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
         supplierPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -159,6 +167,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
         assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 1);
         supplierPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -188,6 +197,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
         assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 //
 //    //@Test
@@ -213,6 +223,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getResult().getNotificationText()).contains("Supplier modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -230,23 +241,35 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Supplier saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
-    
     public void unexpectedResponseCodeWhenGettingAllSuppliers() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2, 3, 4));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
+        SoftAssert sa = new SoftAssert();
+
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "EmsError happened while getting suppliers");
+        sa.assertEquals(notification.getText(), "EmsError happened while getting suppliers: Database error", "1");
         notification.close();
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
-        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
-        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification1 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification1.getText(), "EmsError happened while getting suppliers: Database error", "2");
+        notification1.close();
+
+        sa.assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification2.getText(), "EmsError happened while getting suppliers: Database error", "3"); //TODO megcsinálni
+        notification2.close();
+
+        sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -265,5 +288,6 @@ public class SupplierCrudTest extends BaseCrudTest {
         List<FailedVaadinFillableComponent> failedComponents = dialog.getFailedComponents();
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting addresses");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 }

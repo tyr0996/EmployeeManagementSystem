@@ -4,10 +4,16 @@ package hu.martin.ems.model;
 import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.PostLoad;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.*;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -20,16 +26,8 @@ public class Permission extends BaseEntity {
     private String name;
 
     @ManyToMany
-//    @JoinTable(name = "roles_permissions",
-//            joinColumns = { @JoinColumn(name = "permission_id") },
-//            inverseJoinColumns = { @JoinColumn(name = "role_id") }
-//    )
     @Expose
     private Set<Role> roles;
-
-//    @Expose
-//    @Transient
-//    List<Long> roleIds = new ArrayList<>();
 
     @PostLoad
     public void initAfterLoad(){
@@ -38,11 +36,11 @@ public class Permission extends BaseEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name + id);
+        return Objects.hash("Permission" + name + id);
     }
 
     @Override
     public boolean equals(Object o) {
-        return hashCode() == o.hashCode();
+        return o instanceof Permission && hashCode() == o.hashCode();
     }
 }

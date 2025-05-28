@@ -223,7 +223,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
             default:
                 productList = new ArrayList<>();
                 logger.error("Product findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("EmsError happened while getting products")
+                Notification.show("EmsError happened while getting products: " + response.getDescription())
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }
@@ -286,8 +286,8 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
             default:
                 customerList = null;
                 logger.error("Customer findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("")
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+//                Notification.show("")
+//                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }
     }
@@ -355,8 +355,8 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
             default:
                 supplierList = null;
                 logger.error("Supplier findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-                Notification.show("EmsError happened while getting suppliers")
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+//                Notification.show("EmsError happened while getting suppliers")
+//                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }
     }
@@ -485,7 +485,7 @@ public class ProductList extends VerticalLayout implements Creatable<Product> {
                 products = (List<Product>) response.getResponseData();
                 break;
             default:
-                Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                Notification.show("EmsError happened while getting products: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                 products = new ArrayList<>();
                 break;
         }

@@ -1,6 +1,7 @@
 package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
+import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.vaadin.component.BaseVO;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
@@ -15,10 +16,22 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
+
+
+    @Test(description = "It needs for coverage. The String-based switch statement compiles a very interesting byte code. I have to make a hashCode conflict")
+    public void testDataProviderFixObjectName(){
+        assertEquals("User".hashCode(), "UsfS".hashCode()); //This line needed to check that the User and the UsfS hashcode is equal.
+        assertEquals(DataProvider.JsonFile.fixObjectName("User"), "loginuser");
+        assertEquals(DataProvider.JsonFile.fixObjectName("Order"), "orders");
+        assertEquals(DataProvider.JsonFile.fixObjectName("UsfS"), "UsfS");
+        assertEquals(DataProvider.JsonFile.fixObjectName("OrdfS"), "OrdfS");
+        assertEquals(DataProvider.JsonFile.fixObjectName("OthfS"), "OthfS");
+        assertEquals(DataProvider.JsonFile.fixObjectName("Other"), "Other");
+    }
+
     @Test
     public void testSqlFileCount() {
         Integer sqlFileCount = fileCountInFolder(dp.getGENERATED_SQL_FILES_PATH(), ".sql");

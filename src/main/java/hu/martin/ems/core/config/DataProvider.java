@@ -19,14 +19,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -61,6 +60,16 @@ public class DataProvider {
         clearAllDatabaseTable();
         loadAllJsonAndSave();
         loaded = new ArrayList<>();
+    }
+
+    public long countElementsInTable(String table, String where){
+        EntityManagerFactory factory = em.getEntityManagerFactory();
+        EntityManager tempEm = factory.createEntityManager();
+
+        Long res = (Long) tempEm.createNativeQuery("SELECT count(*) FROM " + table + " WHERE " + where).getSingleResult();
+
+        tempEm.close();
+        return res;
     }
 
     private void clearAllDatabaseTable(){
@@ -207,6 +216,25 @@ public class DataProvider {
         executeSQL(sql.toString());
     }
 
+    public void resetTable(File sql) throws IOException {
+        String line;
+        try (BufferedReader reader = new BufferedReader(new FileReader(sql))) {
+             line = reader.readLine();
+        }
+        System.out.println("line: " + line);
+        String deleteSQL = "TRUNCATE " + JsonFile.fixObjectName(getTableNameFromInsert(line)).toLowerCase() + " CASCADE;";
+        executeSQL(deleteSQL);
+        executeSQLFile(sql);
+    }
+
+    private String getTableNameFromInsert(String line) {
+        System.out.println("Line: " + line);
+        Pattern pattern = Pattern.compile("INSERT\\s+INTO\\s+([a-zA-Z0-9_\\.]+)", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(line);
+        matcher.find();
+        return matcher.group(1);
+    }
+
     private List<String> getTableNames(){
         EntityManagerFactory factory = em.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
@@ -235,7 +263,7 @@ public class DataProvider {
 
     @NoArgsConstructor
 //    @Getter
-    static class JsonFile {
+    public static class JsonFile {
         List<Map<String, Object>> data;
         String objectName;
         ArrayList<String> required;
@@ -245,12 +273,14 @@ public class DataProvider {
             this.objectName = fixObjectName(objectName);
         }
 
-        private static String fixObjectName(String objectName){
+        public static String fixObjectName(String objectName){
+            String fixedObjectName = "";
             switch (objectName) {
-                case "Order": return "orders";
-                case "User": return "loginuser";
-                default: return objectName;
+                case "Order": fixedObjectName = "orders"; break;
+                case "User": fixedObjectName = "loginuser"; break;
+                default: fixedObjectName = objectName; break;
             }
+            return fixedObjectName;
         }
 
         protected String toSQL() {

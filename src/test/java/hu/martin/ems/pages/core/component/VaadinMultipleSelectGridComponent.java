@@ -8,7 +8,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,8 +23,6 @@ public class VaadinMultipleSelectGridComponent extends VaadinGridComponent {
         deselectAll();
         List<Integer> randomIndexes = getRandomIndexes(selectElementNumber);
         List<ElementLocation> locations = randomIndexes.stream().map(this::convertIndexToElementLocation).toList();
-        System.out.println("Locations: ");
-        locations.forEach(System.out::println);
 //        System.out.println("Kiválasztott index-ek: ");
 //        randomIndexes.forEach(System.out::println);
         selectElements(locations);

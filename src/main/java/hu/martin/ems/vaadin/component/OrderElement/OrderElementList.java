@@ -100,7 +100,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         this.grid = new PaginatedGrid<>(OrderElementVO.class);
         setupOrderElements();
         if(orderElementList == null){
-            Notification.show("EmsError happened while getting order elements")
+            Notification.show("Getting order elements failed")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             orderElementList = new ArrayList<>();
         }
@@ -557,11 +557,11 @@ public class OrderElementVO extends BaseVO {
         }
 
         private String generateCustomerOrSupplierName(OrderElement orderElement){
-            if(orderElement.getCustomer() == null && orderElement.getSupplier() != null){
-                return "(S) " + orderElement.getSupplier().getName();
-            }
-            else if(orderElement.getCustomer() != null && orderElement.getSupplier() != null){
+            if(orderElement.getCustomer() != null && orderElement.getSupplier() != null){
                 return "(S) " + orderElement.getSupplier().getName() + ", (C) " + orderElement.getCustomer().getName();
+            }
+            else if(orderElement.getCustomer() == null){
+                return "(S) " + orderElement.getSupplier().getName();
             }
             else{
                 return "(C) " + orderElement.getCustomer().getName();

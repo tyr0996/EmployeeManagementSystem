@@ -90,7 +90,7 @@ public abstract class EmsApiClient<T> {
         }
     }
 
-    public T restore(T entity){
+    public EmsResponse restore(T entity){
         WebClient webClientCsrf = webClientProvider.initCsrfWebClient(entityName);
         try{
             String response = webClientCsrf.put()
@@ -100,13 +100,12 @@ public abstract class EmsApiClient<T> {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return gson.fromJson(response, entityType);
+            return new EmsResponse(200, gson.fromJson(response, entityType), "");
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - restore - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
 //            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-            //TODO
-            return null;
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
@@ -170,108 +169,9 @@ public abstract class EmsApiClient<T> {
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - findAll - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
-
-//    public EmsResponse findAllWithNegativeID(){
-//        WebClient webClient = webClientProvider.initWebClient(entityName);
-//        try{
-//            String jsonResponse = webClient.mutate().codecs(
-//                            configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
-//                    .build()
-//                    .get()
-//                    .uri("findAllWithNegativeID")
-//                    .retrieve()
-//                    .bodyToMono(String.class)
-//                    .block();
-//            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-//        }
-//        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-//        }
-//    }
-
-
-//    public EmsResponse findAllWithGraph(){
-//        WebClient webClient = webClientProvider.initWebClient(entityName);
-//        try{
-//            String jsonResponse = webClient.mutate().codecs(
-//                            configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
-//                    .build()
-//                    .get()
-//                    .uri("findAllWithGraph")
-//                    .retrieve()
-//                    .bodyToMono(String.class)
-//                    .block();
-//            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-//        }
-//        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllWithGraph - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-//        }
-//    }
-
-
-    //TODO: ezt meg kell szüntetni ezeket a graph-os dolgokat
-//    public EmsResponse findAllWithGraphWithNegativeID(){
-//        WebClient webClient = webClientProvider.initWebClient(entityName);
-//        try{
-//            String jsonResponse = webClient.mutate().codecs(
-//                            configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
-//                    .build()
-//                    .get()
-//                    .uri("findAllWithGraphWithNegativeID")
-//                    .retrieve()
-//                    .bodyToMono(String.class)
-//                    .block();
-//            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-//        }
-//        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllWithGraphWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-//        }
-//    }
-
-//
-//    public EmsResponse findAllWithGraphWithDeleted(){
-//        WebClient webClient = webClientProvider.initWebClient(entityName);
-//        try{
-//            String jsonResponse = webClient.mutate().codecs(
-//                            configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
-//                    .build()
-//                    .get()
-//                    .uri("findAllWithGraph?withDeleted=true")
-//                    .retrieve()
-//                    .bodyToMono(String.class)
-//                    .block();
-//            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-//        }
-//        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllWithGraphWithDeleted - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
-//        }
-//    }
-//
-//    public EmsResponse findAllWithGraphWithDeletedWithNegativeID(){
-//        WebClient webClient = webClientProvider.initWebClient(entityName);
-//        try{
-//            String jsonResponse = webClient.mutate().codecs(
-//                            configurer -> configurer.defaultCodecs().maxInMemorySize(16*1024*1024))
-//                    .build()
-//                    .get()
-//                    .uri("findAllWithGraphWithNegativeID?withDeleted=true")
-//                    .retrieve()
-//                    .bodyToMono(String.class)
-//                    .block();
-//            return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-//        }
-//        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllWithGraphWithDeletedWithNegativeID - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-//        }
-//    }
 
     public EmsResponse findAllWithDeleted() {
         WebClient webClient = webClientProvider.initWebClient(entityName);
@@ -288,44 +188,25 @@ public abstract class EmsApiClient<T> {
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - findAllWithDeleted - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
-            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
-    public T findById(Long id) {
+    public EmsResponse findById(Long id) {
         WebClient webClient = webClientProvider.initWebClient(entityName);
-        String response = webClient.get()
-                .uri("findById?id={id}", id)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-        return gson.fromJson(response, entityType);
-
+        try{
+            String response = webClient.get()
+                    .uri("findById?id={id}", id)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            return new EmsResponse(200, gson.fromJson(response, entityType), "");
+        }
+        catch(WebClientResponseException ex){
+            logger.error("WebClient error - findById - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+        }
     }
-
-//    public EmsResponse findAllByIds(List<Long> ids){
-//        WebClient webClient = webClientProvider.initWebClient(entityName);
-//        try{
-//            String response = webClient.get()
-//                    .uri("findAllByIds?ids=" + Arrays.toString(ids.toArray()))
-//                    .retrieve()
-//                    .bodyToMono(String.class)
-//                    .block();
-//            return new EmsResponse(200, gson.fromJson(response, entityType), "");
-//        }
-//        catch(WebClientResponseException ex){
-//            logger.error("WebClient error - findAllByIds - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsEmsError.class).getError());
-//        }
-//    }
-//    public void forcePermanentlyDelete(Long id){
-//        WebClient webClientCsrf = webClientProvider.initCsrfWebClient(entityName);
-//        webClientCsrf.delete()
-//                .uri("forcePermanentlyDelete?id={id}", id)
-//                .retrieve()
-//                .bodyToMono(Void.class)
-//                .block();
-//    }
 
     public List<T> convertResponseToEntityList(String jsonResponse) throws JsonParseException {
         return convertResponseToEntityList(jsonResponse, this.entityType);
@@ -342,8 +223,6 @@ public abstract class EmsApiClient<T> {
         });
         return resultList;
     }
-
-
 
     public T convertResponseToEntity(String jsonResponse) {
         return convertResponseToEntityList("[" + jsonResponse + "]").get(0);

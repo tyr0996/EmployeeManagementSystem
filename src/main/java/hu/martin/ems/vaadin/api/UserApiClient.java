@@ -27,8 +27,9 @@ public class UserApiClient extends EmsApiClient<User> {
                     .block();
             return new EmsResponse(200, convertResponseToEntity(jsonResponse), "");
         }
-        catch (WebClientResponseException e){
-            return new EmsResponse(e.getStatusCode().value(), e.getResponseBodyAsString(), "");
+        catch (WebClientResponseException ex){
+            logger.error("WebClient error - findByUserName - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString(), "");
         }
     }
 }

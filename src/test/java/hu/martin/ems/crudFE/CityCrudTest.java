@@ -16,11 +16,11 @@ import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CityCrudTest extends BaseCrudTest {
@@ -36,6 +36,7 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("City saved: ");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -50,6 +51,7 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertNull(testResult.getNotificationWhenPerform());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -69,6 +71,7 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(1, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
         assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
         cityPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -88,6 +91,7 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(0, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
         assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
         cityPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -110,6 +114,7 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 1);
         cityPage.getGrid().resetFilter();
 
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -139,6 +144,7 @@ public class CityCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
         assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -157,6 +163,7 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting countries");
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -171,6 +178,7 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -185,6 +193,7 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("City permanently deletion failed: Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -200,6 +209,7 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getResult().getNotificationText()).contains("City modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -215,13 +225,15 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("City saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void databaseNotAvailableWhenSetupCities() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
@@ -229,9 +241,17 @@ public class CityCrudTest extends BaseCrudTest {
         SoftAssert sa = new SoftAssert();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification.getText(), "Getting cities failed");
+        notification.close();
         sa.assertEquals(cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification2.getText(), "Getting cities failed");
+        notification2.close();
         sa.assertEquals(cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification3.getText(), "Getting cities failed");
+        notification3.close();
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 }

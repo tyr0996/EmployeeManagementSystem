@@ -27,6 +27,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         resetRolesAndPermissions();
     }
 
+
     @Test
     public void createRoleXPermissionTest() {
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
@@ -42,6 +43,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Role successfully paired!");
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -62,6 +64,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Role pairing failed!");
         notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 //    @Test
@@ -95,6 +98,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         assertFalse(page.getSaveButton().isEnabled());
         assertTrue(page.getRoleComboBox().isEnabled());
         assertEquals(page.getPermissionsComboBox().getErrorMessage(), "EmsError happened while getting permissions");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
 //    @Test
@@ -134,6 +138,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         sa.assertEquals(page.getPermissionsComboBox().getErrorMessage(), "", "Permission combo box has error message");
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -161,6 +166,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         sa.assertEquals(page.getPermissionsComboBox().getErrorMessage(), "");
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -183,6 +189,7 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         sa.assertFalse(page.getSaveButton().isEnabled());
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @AfterClass

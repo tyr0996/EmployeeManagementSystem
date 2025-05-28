@@ -25,14 +25,15 @@ import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderElementCrudTest extends BaseCrudTest {
@@ -79,6 +80,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
         assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
 
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -95,6 +97,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saved: ");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -111,6 +114,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saved: ");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -166,6 +170,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         page.getGrid().resetFilter();
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
 //        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
 //        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -174,6 +179,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void orderElementDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -183,15 +189,19 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         DoDeleteTestData testResult = page.doDeleteTest();
 
-        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
-        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
-        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement deleted: ");
+        SoftAssert sa = new SoftAssert();
+
+        sa.assertEquals((int)testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
+        sa.assertEquals((int)testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
+        sa.assertTrue(testResult.getNotificationWhenPerform().contains("OrderElement deleted: "));
 
         page.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(1, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
-        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
         page.getGrid().resetFilter();
+        sa.assertNull(VaadinNotificationComponent.hasNotification(driver));
 
+        sa.assertAll();
 
 //
 //
@@ -214,6 +224,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -234,6 +245,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
         assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
         page.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -244,17 +256,21 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         OrderElementPage page = new OrderElementPage(driver, port);
         DoRestoreTestData testResult = page.doRestoreTest();
+        SoftAssert sa = new SoftAssert();
 
-        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
-        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
-        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement restored: ");
+        sa.assertEquals((int) testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        sa.assertEquals((int) testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
+        sa.assertTrue(testResult.getNotificationWhenPerform().contains("OrderElement restored: "));
 
         page = new OrderElementPage(driver, port);
         page.getGrid().applyFilter(testResult.getResult().getRestoredData());
         page.getGrid().waitForRefresh();
-        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
-        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
         page.getGrid().resetFilter();
+
+        sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 //
 //
 //
@@ -265,6 +281,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
+    @Video
     public void orderElementPermanentlyDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -272,15 +289,17 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         OrderElementPage page = new OrderElementPage(driver, port);
 
+        SoftAssert sa = new SoftAssert();
+
         DoPermanentlyDeleteTestData testResult = page.doPermanentlyDeleteTest();
-        assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement permanently deleted: ");
+        sa.assertTrue(testResult.getNotificationWhenPerform().contains("OrderElement permanently deleted: "));
 
 
-        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
-        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
+        sa.assertEquals((int)testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        sa.assertEquals((int)testResult.getNonDeletedRowNumberAfterMethod(), (int)testResult.getOriginalNonDeletedRowNumber());
         page.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
-        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        sa.assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
+        sa.assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
         page.getGrid().resetFilter();
 
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -289,8 +308,11 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         adminToolsPage.getClearDatabaseButton().click();
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
-        assertEquals(notificationComponent.getText(), "Clearing database was successful");
+        sa.assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
+        sa.assertNull(VaadinNotificationComponent.hasNotification(driver));
+
+        sa.assertAll();
     }
 
 //    //@Test
@@ -306,7 +328,8 @@ public class OrderElementCrudTest extends BaseCrudTest {
     @Test
     public void findAllOrderElementWithDeletedFailedButWithoutIsSuccess() throws SQLException {
         SoftAssert sa = new SoftAssert();
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 3);
+//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 3);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(3,4));
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
@@ -319,35 +342,47 @@ public class OrderElementCrudTest extends BaseCrudTest {
         sa.assertEquals(notification.getText(), "Getting order elements failed");
         notification.close();
         sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification1 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification1.getText(), "Getting order elements failed");
+        notification1.close();
         sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), elements);
 
+
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void findAllOrderElementWithAndWithoutFailed() throws SQLException {
         SoftAssert sa = new SoftAssert();
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 2);
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
 
         OrderElementPage page = new OrderElementPage(driver, port);
+
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification.getText(), "Getting order elements failed");
+        notification.close();
+
         sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
-        VaadinNotificationComponent notification_1 = new VaadinNotificationComponent(driver);
-        sa.assertEquals(notification_1.getText(), "EmsError happened while getting order elements");
-        notification_1.close();
+        VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification2.getText(), "Getting order elements failed");
+        notification2.close();
 
         sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
-        VaadinNotificationComponent notification_2 = new VaadinNotificationComponent(driver);
-        sa.assertEquals(notification_2.getText(), "Getting order elements failed");
-        notification_2.close();
+        VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
+        sa.assertEquals(notification3.getText(), "Getting order elements failed");
+        notification3.close();
 
         sa.assertAll();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
-    public void findAllSuppliersFailed() throws SQLException, InterruptedException {
+    public void findAllSuppliersFailed() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 5);
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -356,10 +391,15 @@ public class OrderElementCrudTest extends BaseCrudTest {
         OrderElementPage page = new OrderElementPage(driver, port);
         page.getCreateButton().click();
         OrderElementSaveOrUpdateDialog dialog = new OrderElementSaveOrUpdateDialog(driver);
-        dialog.initWebElements();assertEquals(dialog.getFailedComponents().size(), 1);
+        dialog.initWebElements();
+        assertEquals(dialog.getFailedComponents().size(), 1);
         assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "EmsError happened while getting suppliers");
         assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Supplier");
         dialog.close();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "EmsError happened while getting suppliers");
+        notification.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
 ////        Mockito.doReturn(null).when(spySupplierService).findAll(false);//Controllerben alapértelmezett
 //        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
@@ -385,6 +425,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "EmsError happened while getting customers");
         assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Customer");
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -401,6 +442,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "EmsError happened while getting products");
         assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Product");
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -416,6 +458,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
 
 
 
@@ -437,5 +480,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getResult().getNotificationText()).contains("OrderElement modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 }

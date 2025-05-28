@@ -16,11 +16,12 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.*;
+
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CustomerCrudTest extends BaseCrudTest {
@@ -36,6 +37,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Database error");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -50,6 +52,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("Customer saved: ");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -64,6 +67,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertNull(testResult.getNotificationWhenPerform());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -83,6 +87,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(1, customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedCheckBox()));
         assertEquals(0, customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedCheckBox()));
         customerPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -102,6 +107,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(0, customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedCheckBox()));
         assertEquals(0, customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedCheckBox()));
         customerPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -123,6 +129,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedCheckBox()), 0);
         assertEquals(customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedCheckBox()), 1);
         customerPage.getGrid().resetFilter();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -151,6 +158,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(driver);
         assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -166,6 +174,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getResult().getNotificationText()).contains("Customer modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -181,22 +190,34 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("Customer saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
     public void unexpectedResponseCodeWhenFindAllCustomer() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
+
+        CustomerPage customerPage = new CustomerPage(driver, port);
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "EmsError happened while getting customers");
         notification.close();
 
-        CustomerPage customerPage = new CustomerPage(driver, port);
-        assertEquals(customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedCheckBox()), 0);
         assertEquals(customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
+        assertEquals(notification2.getText(), "EmsError happened while getting customers");
+        notification2.close();
+
+        assertEquals(customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedCheckBox()), 0);
+        VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
+        assertEquals(notification3.getText(), "EmsError happened while getting customers");
+        notification3.close();
+
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @Test
@@ -215,6 +236,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(failedComponents.size(), 1);
         assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting addresses");
         dialog.close();
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
     @AfterMethod
