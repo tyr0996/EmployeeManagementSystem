@@ -41,10 +41,6 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         xlsx = new XLSX();
     }
 
-//    public List<OrderElement> getOrderElements(Long orderId) {
-//        return this.repo.getOrderElements(orderId);
-//    }
-
     @Autowired
     private CurrencyService currencyService;
 
@@ -154,18 +150,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
         ctx.put("to", new CustomerDM(o.getCustomer()));
 
         return fileType.generate(report, ctx, out);
-//        if(fileType.equals("PDF")){
-//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//            report.convert(ctx, Options.getTo(ConverterTypeTo.PDF).via(ConverterTypeVia.ODFDOM), baos);
-//            out.write(baos.toByteArray());
-//            return baos.toByteArray();
-//        }
-//        else if(fileType.equals("ODT")){
-//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//            report.process(ctx, baos);
-//            out.write(baos.toByteArray());
-//            return baos.toByteArray();
-//        }
+
     }
 
     public String generateHTMLEmail(Long orderId){
@@ -216,8 +201,8 @@ public class OrderService extends BaseService<Order, OrderRepository> {
                         <p>Ezúton értesítjük, hogy sikeresen fogadtuk megrendelését az alábbi részletekkel:</p>
                             <strong>Megrendelés száma:</strong> %s
                             <strong>Dátum:</strong> %s
-                        <p>A rendelésének részletes leírását a mellékelt PDF fájl tartalmazza.</p>"
-                            + "        <p>Köszönjük, hogy minket választott! Kérdése esetén forduljon hozzánk bizalommal.</p>
+                        <p>A rendelésének részletes leírását a mellékelt PDF fájl tartalmazza.</p>
+                        <p>Köszönjük, hogy minket választott! Kérdése esetén forduljon hozzánk bizalommal.</p>
                         <div class="footer">
                             <p>Ez egy automatikus értesítés, kérjük ne válaszoljon erre az e-mailre.</p>
                         </div>
