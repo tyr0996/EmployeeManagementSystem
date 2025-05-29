@@ -1,0 +1,167 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > NotFound</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.vaadin.component.Errors</a>
+</div>
+
+<h1>Coverage Summary for Class: NotFound (hu.martin.ems.vaadin.component.Errors)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">NotFound</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (17/17)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">NotFound$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (17/17)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.vaadin.component.Errors;
+&nbsp;
+&nbsp;import com.vaadin.flow.component.html.Div;
+&nbsp;import com.vaadin.flow.component.html.Image;
+&nbsp;import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+&nbsp;import com.vaadin.flow.router.*;
+&nbsp;import hu.martin.ems.vaadin.MainView;
+&nbsp;import jakarta.annotation.security.PermitAll;
+&nbsp;import jakarta.servlet.http.HttpServletResponse;
+&nbsp;
+&nbsp;//@AnonymousAllowed
+&nbsp;@PermitAll
+&nbsp;@Route(value = &quot;not-found&quot;, layout = MainView.class)
+&nbsp;public class NotFound extends VerticalLayout implements HasErrorParameter&lt;NotFoundException&gt; {
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int setErrorParameter(BeforeEnterEvent event, ErrorParameter&lt;NotFoundException&gt; parameter) {
+<b class="fc">&nbsp;        return HttpServletResponse.SC_NOT_FOUND;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public NotFound() {</b>
+&nbsp;//        // Modern elrendezés: vízszintes layout a cicás képpel
+&nbsp;//        HorizontalLayout layout = new HorizontalLayout();
+&nbsp;//        layout.setSpacing(true);
+&nbsp;//        layout.setAlignItems(Alignment.CENTER); // Kép és szöveg központozása
+&nbsp;
+&nbsp;        // Aranyos cicás kép
+<b class="fc">&nbsp;        Image catImage = new Image(&quot;https://www.dailypaws.com/thmb/ZpHbaUCcoEQ5FPvB5XizOwaJFLI=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/cat-games-fetch-301741957-2000-55f0272d106b40d3852635754f06a2e9.jpg&quot;, &quot;Sad cat&quot;);</b>
+&nbsp;//        catImage.setHeight(&quot;200px&quot;);
+&nbsp;
+&nbsp;
+&nbsp;        // Dühös üzenet
+<b class="fc">&nbsp;        Div angryMessage = new Div();</b>
+<b class="fc">&nbsp;        angryMessage.setText(&quot;The page cannot be found because the kitty above played it somewhere&quot;);</b>
+<b class="fc">&nbsp;        angryMessage.getStyle().set(&quot;color&quot;, &quot;red&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;font-size&quot;, &quot;66px&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;font-weight&quot;, &quot;bold&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;margin-top&quot;, &quot;20px&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;margin-right&quot;, &quot;20px&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;text-align&quot;, &quot;center&quot;);</b>
+&nbsp;
+&nbsp;        // Vicces, aranyos rész: miért is ne?
+<b class="fc">&nbsp;        Div cuteMessage = new Div();</b>
+<b class="fc">&nbsp;        cuteMessage.setText(&quot;Maybe try again later&quot;);</b>
+<b class="fc">&nbsp;        cuteMessage.getStyle().set(&quot;color&quot;, &quot;blue&quot;).set(&quot;font-size&quot;, &quot;35px&quot;).set(&quot;font-style&quot;, &quot;italic&quot;);</b>
+&nbsp;
+&nbsp;        // Az összes komponenst a fõ elrendezéshez adjuk hozzá
+<b class="fc">&nbsp;        add(catImage, angryMessage, cuteMessage);</b>
+&nbsp;
+&nbsp;        // Elrendezés finomhangolása
+<b class="fc">&nbsp;        setAlignItems(Alignment.CENTER);</b>
+<b class="fc">&nbsp;        setJustifyContentMode(JustifyContentMode.CENTER);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

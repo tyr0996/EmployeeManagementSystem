@@ -1,0 +1,94 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BaseRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.core.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseRepository (hu.martin.ems.core.repository)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">BaseRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.core.repository;
+&nbsp;
+&nbsp;import org.springframework.data.repository.NoRepositoryBean;
+&nbsp;import org.springframework.data.repository.Repository;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@NoRepositoryBean
+&nbsp;public interface BaseRepository&lt;T, ID&gt; extends Repository&lt;T, ID&gt; {
+&nbsp;    List&lt;T&gt; customFindAll(boolean withDeleted);
+&nbsp;
+&nbsp;    T customDelete(T entity);
+&nbsp;
+&nbsp;    T customRestore(T entity);
+&nbsp;
+&nbsp;    T customPermanentlyDelete(Long entity);
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    T customSave(T entity);
+&nbsp;
+&nbsp;    T customUpdate(T entity);
+&nbsp;
+&nbsp;    T customFindById(Long id);
+&nbsp;
+&nbsp;    void customClearDatabaseTable(boolean onlyPermanentlyDeleted);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

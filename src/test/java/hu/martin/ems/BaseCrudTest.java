@@ -6,7 +6,7 @@ import hu.martin.ems.base.selenium.WebDriverProvider;
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.*;
 import hu.martin.ems.core.controller.EndpointController;
-import hu.martin.ems.core.schedule.CurrencyScheduler;
+import hu.martin.ems.schedule.CurrencyScheduler;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.repository.CurrencyRepository;

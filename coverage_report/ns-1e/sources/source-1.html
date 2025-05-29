@@ -1,0 +1,174 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AccessDenied</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.vaadin.component.Errors</a>
+</div>
+
+<h1>Coverage Summary for Class: AccessDenied (hu.martin.ems.vaadin.component.Errors)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AccessDenied</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (24/24)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AccessDenied$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (24/24)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.vaadin.component.Errors;
+&nbsp;
+&nbsp;import com.vaadin.flow.component.dependency.CssImport;
+&nbsp;import com.vaadin.flow.component.html.Div;
+&nbsp;import com.vaadin.flow.component.html.Image;
+&nbsp;import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+&nbsp;import com.vaadin.flow.router.*;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.vaadin.MainView;
+&nbsp;import jakarta.annotation.security.PermitAll;
+&nbsp;import jakarta.servlet.http.HttpServletResponse;
+&nbsp;
+&nbsp;@CssImport(&quot;./styles/ButtonVariant.css&quot;)
+&nbsp;@CssImport(&quot;./styles/grid.css&quot;)
+&nbsp;@PermitAll
+&nbsp;@Route(value = &quot;access-denied&quot;, layout = MainView.class)
+&nbsp;@NeedCleanCoding
+&nbsp;public class AccessDenied extends VerticalLayout implements HasErrorParameter&lt;AccessDeniedException&gt; {
+<b class="fc">&nbsp;    public AccessDenied() {</b>
+<b class="fc">&nbsp;        add(getCatImage(), getNormalMessage(), getPermissionMessage(), getCoffeMessage());</b>
+&nbsp;
+<b class="fc">&nbsp;        setAlignItems(Alignment.CENTER);</b>
+<b class="fc">&nbsp;        setJustifyContentMode(JustifyContentMode.CENTER);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Div getNormalMessage(){
+<b class="fc">&nbsp;        Div normalMessage = new Div();</b>
+<b class="fc">&nbsp;        normalMessage.setText(&quot;You don&#39;t have permission to perform this action!&quot;);</b>
+<b class="fc">&nbsp;        normalMessage.getStyle().set(&quot;color&quot;, &quot;red&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;font-size&quot;, &quot;66px&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;font-weight&quot;, &quot;bold&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;margin-top&quot;, &quot;20px&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;margin-right&quot;, &quot;20px&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;text-align&quot;, &quot;center&quot;);</b>
+<b class="fc">&nbsp;        return normalMessage;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Div getPermissionMessage(){
+<b class="fc">&nbsp;        Div permissionMessage = new Div();</b>
+<b class="fc">&nbsp;        permissionMessage.setText(&quot;Try to get permission from your boss!&quot;);</b>
+<b class="fc">&nbsp;        permissionMessage.getStyle().set(&quot;color&quot;, &quot;blue&quot;).set(&quot;font-size&quot;, &quot;35px&quot;).set(&quot;font-style&quot;, &quot;italic&quot;);</b>
+<b class="fc">&nbsp;        return permissionMessage;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Div getCoffeMessage(){
+<b class="fc">&nbsp;        Div coffeeMessage = new Div();</b>
+<b class="fc">&nbsp;        coffeeMessage.setText(&quot;While you wait, take a coffee break.&quot;);</b>
+<b class="fc">&nbsp;        coffeeMessage.getStyle().set(&quot;color&quot;, &quot;blue&quot;).set(&quot;font-size&quot;, &quot;35px&quot;).set(&quot;font-style&quot;, &quot;italic&quot;);</b>
+<b class="fc">&nbsp;        return coffeeMessage;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public int setErrorParameter(BeforeEnterEvent event, ErrorParameter&lt;AccessDeniedException&gt; parameter) {
+<b class="fc">&nbsp;        return HttpServletResponse.SC_FORBIDDEN;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Image getCatImage(){
+<b class="fc">&nbsp;        Image catImage = new Image(&quot;https://i.pinimg.com/236x/b5/15/95/b51595de229aaa7712279a7653c307f0.jpg&quot;, &quot;Angry cat&quot;);</b>
+<b class="fc">&nbsp;        return catImage;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

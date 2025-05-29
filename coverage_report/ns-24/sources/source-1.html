@@ -1,0 +1,666 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > UserList</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.vaadin.component.User</a>
+</div>
+
+<h1>Coverage Summary for Class: UserList (hu.martin.ems.vaadin.component.User)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">UserList</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (33/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (66/66)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (250/250)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">UserList$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">UserList$UserVO</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (34/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (68/68)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (258/258)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.vaadin.component.User;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.vaadin.flow.component.Component;
+&nbsp;import com.vaadin.flow.component.Key;
+&nbsp;import com.vaadin.flow.component.button.Button;
+&nbsp;import com.vaadin.flow.component.button.ButtonVariant;
+&nbsp;import com.vaadin.flow.component.checkbox.Checkbox;
+&nbsp;import com.vaadin.flow.component.combobox.ComboBox;
+&nbsp;import com.vaadin.flow.component.dependency.CssImport;
+&nbsp;import com.vaadin.flow.component.dialog.Dialog;
+&nbsp;import com.vaadin.flow.component.formlayout.FormLayout;
+&nbsp;import com.vaadin.flow.component.grid.Grid;
+&nbsp;import com.vaadin.flow.component.grid.HeaderRow;
+&nbsp;import com.vaadin.flow.component.html.NativeLabel;
+&nbsp;import com.vaadin.flow.component.icon.Icon;
+&nbsp;import com.vaadin.flow.component.icon.VaadinIcon;
+&nbsp;import com.vaadin.flow.component.notification.Notification;
+&nbsp;import com.vaadin.flow.component.notification.NotificationVariant;
+&nbsp;import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+&nbsp;import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+&nbsp;import com.vaadin.flow.component.textfield.PasswordField;
+&nbsp;import com.vaadin.flow.component.textfield.TextField;
+&nbsp;import com.vaadin.flow.router.Route;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.auth.SecurityService;
+&nbsp;import hu.martin.ems.core.config.BeanProvider;
+&nbsp;import hu.martin.ems.core.config.IconProvider;
+&nbsp;import hu.martin.ems.core.model.EmsResponse;
+&nbsp;import hu.martin.ems.core.model.PaginationSetting;
+&nbsp;import hu.martin.ems.core.model.User;
+&nbsp;import hu.martin.ems.model.Role;
+&nbsp;import hu.martin.ems.vaadin.MainView;
+&nbsp;import hu.martin.ems.vaadin.api.RoleApiClient;
+&nbsp;import hu.martin.ems.vaadin.api.UserApiClient;
+&nbsp;import hu.martin.ems.vaadin.component.BaseVO;
+&nbsp;import hu.martin.ems.vaadin.component.Creatable;
+&nbsp;import jakarta.annotation.security.RolesAllowed;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+&nbsp;import org.vaadin.klaudeta.PaginatedGrid;
+&nbsp;
+&nbsp;import java.util.*;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.Stream;
+&nbsp;@CssImport(&quot;./styles/grid.css&quot;)
+&nbsp;@Route(value = &quot;user/list&quot;, layout = MainView.class)
+&nbsp;@RolesAllowed(&quot;ROLE_UserMenuOpenPermission&quot;)
+&nbsp;@NeedCleanCoding
+&nbsp;public class UserList extends VerticalLayout implements Creatable&lt;User&gt; {
+<b class="fc">&nbsp;    private boolean showDeleted = false;</b>
+&nbsp;    private HorizontalLayout buttonsLayout;
+&nbsp;    private PaginatedGrid&lt;UserVO, String&gt; grid;
+&nbsp;    private final PaginationSetting paginationSetting;
+&nbsp;    private Button saveButton;
+&nbsp;    private TextField usernameField;
+&nbsp;    private PasswordField passwordField;
+&nbsp;    private PasswordField passwordAgainField;
+&nbsp;    private ComboBox&lt;Role&gt; roles;
+&nbsp;
+&nbsp;    private User editableUser;
+&nbsp;
+&nbsp;    private Dialog createOrModifyDialog;
+&nbsp;    private FormLayout createOrModifyForm;
+<b class="fc">&nbsp;    private LinkedHashMap&lt;String, List&lt;String&gt;&gt; mergedFilterMap = new LinkedHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    Grid.Column&lt;UserVO&gt; userNameColumn;
+&nbsp;    Grid.Column&lt;UserVO&gt; passwordHashColumn;
+&nbsp;    Grid.Column&lt;UserVO&gt; enabledColumn;
+&nbsp;    Grid.Column&lt;UserVO&gt; roleColumn;
+&nbsp;
+&nbsp;    private Grid.Column&lt;UserVO&gt; extraData;
+&nbsp;
+&nbsp;    List&lt;User&gt; users;
+&nbsp;    List&lt;UserVO&gt; userVOS;
+&nbsp;    List&lt;Role&gt; roleList;
+&nbsp;
+<b class="fc">&nbsp;    private Gson gson = BeanProvider.getBean(Gson.class);</b>
+&nbsp;
+&nbsp;
+<b class="fc">&nbsp;    private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);</b>
+<b class="fc">&nbsp;    private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);</b>
+<b class="fc">&nbsp;    private final SecurityService securityService = BeanProvider.getBean(SecurityService.class);</b>
+&nbsp;
+<b class="fc">&nbsp;    private String usernameFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private String passwordHashFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private String enabledFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private String roleFilter = &quot;&quot;;</b>
+&nbsp;
+<b class="fc">&nbsp;    private Logger logger = LoggerFactory.getLogger(UserList.class);</b>
+&nbsp;    private MainView mainView;
+&nbsp;
+&nbsp;
+<b class="fc">&nbsp;    public UserList(PaginationSetting paginationSetting) {</b>
+<b class="fc">&nbsp;        UserVO.showDeletedCheckboxFilter.put(&quot;deleted&quot;, Arrays.asList(&quot;0&quot;));</b>
+<b class="fc">&nbsp;        this.paginationSetting = paginationSetting;</b>
+<b class="fc">&nbsp;        this.users = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.createOrModifyForm = new FormLayout();</b>
+<b class="fc">&nbsp;        createUsersGrid();</b>
+<b class="fc">&nbsp;        createLayout();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createUsersGrid(){
+<b class="fc">&nbsp;        this.grid = new PaginatedGrid&lt;&gt;(UserVO.class);</b>
+<b class="fc">&nbsp;        grid.addClassName(&quot;styling&quot;);</b>
+<b class="fc">&nbsp;        grid.setPartNameGenerator(user -&gt; user.deleted != 0 ? &quot;deleted&quot; : null);</b>
+<b class="fc">&nbsp;        setGridColumns();</b>
+<b class="fc">&nbsp;        setFilteringHeaderRow();</b>
+<b class="fc">&nbsp;        grid.setPageSize(paginationSetting.getPageSize());</b>
+<b class="fc">&nbsp;        grid.setPaginationLocation(paginationSetting.getPaginationLocation());</b>
+&nbsp;
+<b class="fc">&nbsp;        updateGridItems();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setFilteringHeaderRow() throws RuntimeException {
+<b class="fc">&nbsp;        TextField usernameFilter = new TextField();</b>
+<b class="fc">&nbsp;        usernameFilter.setPlaceholder(&quot;Search username...&quot;);</b>
+<b class="fc">&nbsp;        usernameFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        usernameFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            usernameFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField passwordHashFilter = new TextField();</b>
+<b class="fc">&nbsp;        passwordHashFilter.setPlaceholder(&quot;Search password hash...&quot;);</b>
+<b class="fc">&nbsp;        passwordHashFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        passwordHashFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            passwordHashFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField enabledFilter = new TextField();</b>
+<b class="fc">&nbsp;        enabledFilter.setPlaceholder(&quot;Search enabled...&quot;);</b>
+<b class="fc">&nbsp;        enabledFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        enabledFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            enabledFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        ComboBox&lt;Role&gt; rolesFilter = new ComboBox();</b>
+<b class="fc">&nbsp;        ComboBox.ItemFilter&lt;Role&gt; filterPermission = (permission, filterString) -&gt;</b>
+<b class="fc">&nbsp;                permission.getName().toLowerCase().contains(filterString.toLowerCase());</b>
+<b class="fc">&nbsp;        setupRoles();</b>
+<b class="fc">&nbsp;        if(roleList == null){</b>
+<b class="fc">&nbsp;            rolesFilter.setInvalid(true);</b>
+<b class="fc">&nbsp;            rolesFilter.setErrorMessage(&quot;EmsError happened while getting permissions&quot;);</b>
+<b class="fc">&nbsp;            rolesFilter.setEnabled(false);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            rolesFilter.setInvalid(false);</b>
+<b class="fc">&nbsp;            rolesFilter.setEnabled(true);</b>
+<b class="fc">&nbsp;            rolesFilter.setItems(filterPermission, roleList);</b>
+<b class="fc">&nbsp;            rolesFilter.setItemLabelGenerator(Role::getName);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        rolesFilter.addValueChangeListener(v -&gt; {</b>
+<b class="fc">&nbsp;            roleFilter = v.getValue() == null ? &quot;&quot; : v.getValue().getName();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField extraDataFilter = new TextField();</b>
+&nbsp;
+<b class="fc">&nbsp;        extraDataFilter.addKeyDownListener(Key.ENTER, event -&gt; {</b>
+<b class="fc">&nbsp;            if(extraDataFilter.getValue().isEmpty()){</b>
+<b class="fc">&nbsp;                UserVO.extraDataFilterMap.clear();</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                UserVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+&nbsp;        // Header-row hozzáadása a Grid-hez és a szûrõk elhelyezése
+<b class="fc">&nbsp;        HeaderRow filterRow = grid.appendHeaderRow();</b>
+<b class="fc">&nbsp;        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, &quot;&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(userNameColumn).setComponent(filterField(usernameFilter, &quot;Username&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(passwordHashColumn).setComponent(filterField(passwordHashFilter, &quot;Password hash&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(roleColumn).setComponent(filterField(rolesFilter, &quot;Role&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(enabledColumn).setComponent(filterField(enabledFilter, &quot;Enabled&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Component filterField(Component filterField, String title){
+<b class="fc">&nbsp;        VerticalLayout res = new VerticalLayout();</b>
+<b class="fc">&nbsp;        res.getStyle().set(&quot;padding&quot;, &quot;0px&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;display&quot;, &quot;flex&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;align-items&quot;, &quot;center&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;justify-content&quot;, &quot;center&quot;);</b>
+<b class="fc">&nbsp;        filterField.getStyle().set(&quot;display&quot;, &quot;flex&quot;).set(&quot;width&quot;, &quot;100%&quot;);</b>
+<b class="fc">&nbsp;        NativeLabel titleLabel = new NativeLabel(title);</b>
+<b class="fc">&nbsp;        res.add(titleLabel, filterField);</b>
+<b class="fc">&nbsp;        res.setClassName(&quot;vaadin-header-cell-content&quot;);</b>
+<b class="fc">&nbsp;        return res;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createLayout(){
+<b class="fc">&nbsp;        Button create = new Button(&quot;Create&quot;);</b>
+<b class="fc">&nbsp;        create.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            generateSaveOrUpdateDialog();</b>
+<b class="fc">&nbsp;            createOrModifyDialog.open();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        Checkbox withDeletedCheckbox = new Checkbox(&quot;Show deleted&quot;);</b>
+<b class="fc">&nbsp;        withDeletedCheckbox.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            showDeleted = event.getValue();</b>
+<b class="fc">&nbsp;            List&lt;String&gt; newValue = showDeleted ? Arrays.asList(&quot;1&quot;, &quot;0&quot;) : Arrays.asList(&quot;0&quot;);</b>
+<b class="fc">&nbsp;            UserVO.showDeletedCheckboxFilter.replace(&quot;deleted&quot;, newValue);</b>
+<b class="fc">&nbsp;            userVOS = users.stream().map(UserVO::new).collect(Collectors.toList());</b>
+<b class="fc">&nbsp;            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));</b>
+&nbsp;
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        buttonsLayout = new HorizontalLayout();</b>
+<b class="fc">&nbsp;        buttonsLayout.add(create, withDeletedCheckbox);</b>
+<b class="fc">&nbsp;        buttonsLayout.setAlignSelf(Alignment.CENTER, create);</b>
+&nbsp;
+<b class="fc">&nbsp;        add(buttonsLayout, grid);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void appendCloseButton(Dialog d){
+<b class="fc">&nbsp;        Button closeButton = new Button(new Icon(&quot;lumo&quot;, &quot;cross&quot;),</b>
+<b class="fc">&nbsp;                (e) -&gt; d.close());</b>
+<b class="fc">&nbsp;        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);</b>
+<b class="fc">&nbsp;        d.getHeader().add(closeButton);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void generateSaveOrUpdateDialog() {
+<b class="fc">&nbsp;        createOrModifyDialog = new Dialog((editableUser == null ? &quot;Create&quot; : &quot;Modify&quot;) + &quot; user&quot;);</b>
+<b class="fc">&nbsp;        appendCloseButton(createOrModifyDialog);</b>
+<b class="fc">&nbsp;        createSaveOrUpdateForm();</b>
+<b class="fc">&nbsp;        saveButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            EmsResponse response = saveUser();</b>
+<b class="fc">&nbsp;            switch (response.getCode()){</b>
+&nbsp;                case 200:
+<b class="fc">&nbsp;                    Notification.show(&quot;User &quot; + (editableUser == null ? &quot;saved: &quot; : &quot;updated: &quot;) + ((User) response.getResponseData()).getUsername())</b>
+<b class="fc">&nbsp;                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                    usernameField.clear();</b>
+<b class="fc">&nbsp;                    passwordField.clear();</b>
+<b class="fc">&nbsp;                    passwordAgainField.clear();</b>
+<b class="fc">&nbsp;                    createOrModifyDialog.close();</b>
+<b class="fc">&nbsp;                    updateGridItems();</b>
+<b class="fc">&nbsp;                    break;</b>
+&nbsp;                case 400: {
+<b class="fc">&nbsp;                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+<b class="fc">&nbsp;                    break;</b>
+&nbsp;                }
+&nbsp;                default: {
+<b class="fc">&nbsp;                    Notification.show(&quot;User &quot; + (editableUser == null ? &quot;saving &quot; : &quot;modifying &quot; ) + &quot;failed: &quot; + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+<b class="fc">&nbsp;                    createOrModifyDialog.close();</b>
+&nbsp;                    break;
+&nbsp;                }
+&nbsp;            }
+<b class="fc">&nbsp;            editableUser = null;</b>
+&nbsp;        });
+<b class="fc">&nbsp;        createOrModifyDialog.add(this.createOrModifyForm);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createSaveOrUpdateForm(){
+<b class="fc">&nbsp;        this.createOrModifyForm.removeAll();</b>
+<b class="fc">&nbsp;        saveButton = new Button(&quot;Save&quot;);</b>
+<b class="fc">&nbsp;        usernameField = new TextField(&quot;Username&quot;);</b>
+<b class="fc">&nbsp;        passwordField = new PasswordField(&quot;Password&quot;);</b>
+<b class="fc">&nbsp;        passwordAgainField = new PasswordField(&quot;Password again&quot;);</b>
+<b class="fc">&nbsp;        roles = new ComboBox&lt;&gt;(&quot;Role&quot;);</b>
+<b class="fc">&nbsp;        ComboBox.ItemFilter&lt;Role&gt; filterUser = (role, filterString) -&gt;</b>
+<b class="fc">&nbsp;                role.getName().toLowerCase().contains(filterString.toLowerCase());</b>
+<b class="fc">&nbsp;        setupRoles();</b>
+<b class="fc">&nbsp;        if(roleList != null){</b>
+<b class="fc">&nbsp;            roles.setItems(filterUser, roleList);</b>
+<b class="fc">&nbsp;            roles.setItemLabelGenerator(Role::getName);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            roles.setEnabled(false);</b>
+<b class="fc">&nbsp;            roles.setInvalid(true);</b>
+<b class="fc">&nbsp;            saveButton.setEnabled(false);</b>
+<b class="fc">&nbsp;            roles.setErrorMessage(&quot;EmsError happened while getting roles&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (editableUser != null) {</b>
+<b class="fc">&nbsp;            usernameField.setValue(editableUser.getUsername());</b>
+<b class="fc">&nbsp;            passwordField.setValue(&quot;&quot;);</b>
+<b class="fc">&nbsp;            passwordAgainField.setValue(&quot;&quot;);</b>
+<b class="fc">&nbsp;            roles.setValue(editableUser.getRoleRole());</b>
+&nbsp;        }
+<b class="fc">&nbsp;        createOrModifyForm.add(usernameField, passwordField, passwordAgainField, roles, saveButton);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setupRoles() {
+<b class="fc">&nbsp;        EmsResponse response = roleApi.findAll();</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                roleList = (List&lt;Role&gt;) response.getResponseData();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                roleList = null;</b>
+<b class="fc">&nbsp;                logger.error(&quot;Role findAllByIds. Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private EmsResponse saveUser(){
+<b class="fc">&nbsp;        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();</b>
+<b class="fc">&nbsp;        User user = Objects.requireNonNullElseGet(editableUser, User::new);</b>
+&nbsp;//        if((editableUser == null || ) &amp;&amp; usernameCheck(usernameField.getValue())){
+<b class="fc">&nbsp;        if(!usernameCheck(usernameField.getValue())){</b>
+<b class="fc">&nbsp;            createOrModifyDialog.close();</b>
+<b class="fc">&nbsp;            editableUser = null;</b>
+<b class="fc">&nbsp;            return new EmsResponse(400, &quot;Username already exists!&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if(!passwordField.getValue().equals(passwordAgainField.getValue())){</b>
+&nbsp;            //Notification.show(&quot;Passwords doesn&#39;t match!&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);
+<b class="fc">&nbsp;            createOrModifyDialog.close();</b>
+<b class="fc">&nbsp;            editableUser = null;</b>
+<b class="fc">&nbsp;            return new EmsResponse(400, &quot;Passwords doesn&#39;t match!&quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        else if(passwordField.getValue() == &quot;&quot;) {</b>
+<b class="fc">&nbsp;            String passwordValue = passwordField.getValue();</b>
+&nbsp;            //Notification.show(&quot;Password is required!&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);
+<b class="fc">&nbsp;            createOrModifyDialog.close();</b>
+<b class="fc">&nbsp;            editableUser = null;</b>
+<b class="fc">&nbsp;            return new EmsResponse(400, &quot;Password is required!&quot;);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            user.setPasswordHash(encoder.encode(passwordField.getValue()));</b>
+&nbsp;        }
+<b class="fc">&nbsp;        user.setDeleted(0L);</b>
+<b class="fc">&nbsp;        user.setUsername(usernameField.getValue());</b>
+<b class="fc">&nbsp;        user.setRoleRole(roles.getValue());</b>
+<b class="fc">&nbsp;        user.setEnabled(true);</b>
+<b class="fc">&nbsp;        EmsResponse response = null;</b>
+<b class="fc">&nbsp;        if(editableUser != null){</b>
+<b class="fc">&nbsp;            response = userApi.update(user);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            response = userApi.save(user);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return response;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Boolean usernameCheck(String username){
+<b class="fc">&nbsp;        EmsResponse response = userApi.findByUsername(username); //TODO: mi történik, ha nem érhetõ el az adatbázis?</b>
+<b class="fc">&nbsp;        if(editableUser != null &amp;&amp; editableUser.getUsername().equals(username)) {</b>
+<b class="fc">&nbsp;            return true;</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            return response.getResponseData() == null;</b>
+&nbsp;        }
+&nbsp;//        else if(response.getResponseData() != null){
+&nbsp;//            return false;
+&nbsp;//        }
+&nbsp;//        else if(editableUser != null){
+&nbsp;//            return true;
+&nbsp;//        }
+&nbsp;//        return true;
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setGridColumns(){
+<b class="fc">&nbsp;        userNameColumn = this.grid.addColumn(v -&gt; v.username);</b>
+<b class="fc">&nbsp;        passwordHashColumn = this.grid.addColumn(v -&gt; v.passwordHash);</b>
+<b class="fc">&nbsp;        enabledColumn = this.grid.addColumn(v -&gt; v.enabled);</b>
+<b class="fc">&nbsp;        roleColumn = this.grid.addColumn(v -&gt; v.role);</b>
+&nbsp;
+<b class="fc">&nbsp;        addOptionsColumn();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addOptionsColumn(){
+<b class="fc">&nbsp;        EmsResponse response = userApi.findByUsername(securityService.getAuthenticatedUser().getUsername());</b>
+&nbsp;        final UserVO loggedInUserVO;
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:{
+<b class="fc">&nbsp;                loggedInUserVO = new UserVO((User) response.getResponseData());</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            }
+&nbsp;            default: {
+<b class="fc">&nbsp;                loggedInUserVO = null;</b>
+<b class="fc">&nbsp;                Notification.show(&quot;EmsError happened while getting the logged in user. Deletion and modification is disabled&quot;);</b>
+&nbsp;                break;
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;
+<b class="fc">&nbsp;        extraData = this.grid.addComponentColumn(entry -&gt; {</b>
+<b class="fc">&nbsp;            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));</b>
+<b class="fc">&nbsp;            Button deleteButton = new Button(VaadinIcon.TRASH.create());</b>
+<b class="fc">&nbsp;            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);</b>
+<b class="fc">&nbsp;            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());</b>
+<b class="fc">&nbsp;            restoreButton.addClassNames(&quot;info_button_variant&quot;);</b>
+<b class="fc">&nbsp;            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));</b>
+<b class="fc">&nbsp;            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);</b>
+&nbsp;
+&nbsp;//            System.out.println(&quot;loggedInUserVo null: &quot; + (loggedInUserVO == null) + &quot;   megegyezik: &quot; + loggedInUserVO.equals(entry));
+&nbsp;
+<b class="fc">&nbsp;            if(loggedInUserVO == null || loggedInUserVO.equals(entry)){</b>
+<b class="fc">&nbsp;                editButton.setEnabled(false);</b>
+<b class="fc">&nbsp;                deleteButton.setEnabled(false);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            editButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                editableUser = entry.original;</b>
+<b class="fc">&nbsp;                generateSaveOrUpdateDialog();</b>
+<b class="fc">&nbsp;                createOrModifyDialog.open();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            restoreButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                userApi.restore(entry.original);</b>
+<b class="fc">&nbsp;                Notification.show(&quot;User restored: &quot; + entry.username)</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                updateGridItems();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            deleteButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                EmsResponse resp = this.userApi.delete(entry.original);</b>
+<b class="fc">&nbsp;                switch (resp.getCode()){</b>
+&nbsp;                    case 200: {
+<b class="fc">&nbsp;                        Notification.show(&quot;User deleted: &quot; + entry.original.getUsername())</b>
+<b class="fc">&nbsp;                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                        updateGridItems();</b>
+<b class="fc">&nbsp;                        break;</b>
+&nbsp;                    }
+&nbsp;                    default: {
+<b class="fc">&nbsp;                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="fc">&nbsp;                setupUsers();</b>
+<b class="fc">&nbsp;                updateGridItems();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            permanentDeleteButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                userApi.permanentlyDelete(entry.id);</b>
+<b class="fc">&nbsp;                Notification.show(&quot;User permanently deleted: &quot; + entry.username)</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                updateGridItems();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            HorizontalLayout actions = new HorizontalLayout();</b>
+<b class="fc">&nbsp;            if (entry.deleted == 0) {</b>
+<b class="fc">&nbsp;                actions.add(editButton, deleteButton);</b>
+&nbsp;            } else {
+<b class="fc">&nbsp;                actions.add(permanentDeleteButton, restoreButton);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            return actions;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateGridItems() {
+<b class="fc">&nbsp;        setupUsers();</b>
+<b class="fc">&nbsp;        if(users != null){</b>
+<b class="fc">&nbsp;            userVOS = users.stream().map(UserVO::new).collect(Collectors.toList());</b>
+<b class="fc">&nbsp;            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            Notification.show(&quot;Getting users failed&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setupUsers(){
+<b class="fc">&nbsp;        EmsResponse response = userApi.findAllWithDeleted();</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                users = (List&lt;User&gt;) response.getResponseData();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                logger.error(&quot;User findAllWithDeleted error in UserList&quot;);</b>
+<b class="fc">&nbsp;                users = null;</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Stream&lt;UserVO&gt; getFilteredStream() {
+<b class="fc">&nbsp;        return userVOS.stream().filter(userVO -&gt;</b>
+<b class="fc">&nbsp;                (usernameFilterText.isEmpty() || userVO.username.toLowerCase().contains(usernameFilterText.toLowerCase())) &amp;&amp;</b>
+<b class="fc">&nbsp;                (passwordHashFilterText.isEmpty() || userVO.passwordHash.toLowerCase().contains(passwordHashFilterText.toLowerCase())) &amp;&amp;</b>
+<b class="fc">&nbsp;                (enabledFilterText.isEmpty() || userVO.enabled.toLowerCase().equals(enabledFilterText.toLowerCase())) &amp;&amp;</b>
+<b class="fc">&nbsp;                (roleFilter.isEmpty() || userVO.role.toLowerCase().equals(roleFilter.toLowerCase())) &amp;&amp;</b>
+<b class="fc">&nbsp;                userVO.filterExtraData()</b>
+&nbsp;//                        (showDeleted ? (userVO.deleted == 0 || userVO.deleted == 1) : userVO.deleted == 0)
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    protected class UserVO extends BaseVO {
+&nbsp;        private User original;
+&nbsp;        private String username;
+&nbsp;        private String passwordHash;
+&nbsp;        private String enabled;
+&nbsp;        private String role;
+&nbsp;
+&nbsp;        public UserVO(User user){
+<b class="fc">&nbsp;            super(user.id, user.getDeleted());</b>
+<b class="fc">&nbsp;            this.original = user;</b>
+<b class="fc">&nbsp;            this.id = user.getId();</b>
+<b class="fc">&nbsp;            this.deleted = user.getDeleted();</b>
+<b class="fc">&nbsp;            this.username = user.getUsername();</b>
+<b class="fc">&nbsp;            this.passwordHash = user.getPasswordHash();</b>
+<b class="fc">&nbsp;            this.role = user.getRoleRole().getName();</b>
+<b class="fc">&nbsp;            this.enabled = user.isEnabled() ? &quot;true&quot; : &quot;false&quot;; //TODO berakni a táblázatba, hogy benne legyen, hogy engedélyezve van-e, vagy sem.</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

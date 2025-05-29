@@ -1,0 +1,238 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > OrderController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: OrderController (hu.martin.ems.controller)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OrderController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (28/28)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">OrderController$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (28/28)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.controller;
+&nbsp;
+&nbsp;import fr.opensagres.xdocreport.core.XDocReportException;
+&nbsp;import hu.martin.ems.core.controller.BaseController;
+&nbsp;import hu.martin.ems.core.model.EmsResponse;
+&nbsp;import hu.martin.ems.exception.CurrencyException;
+&nbsp;import hu.martin.ems.model.Order;
+&nbsp;import hu.martin.ems.repository.OrderRepository;
+&nbsp;import hu.martin.ems.service.OrderElementService;
+&nbsp;import hu.martin.ems.service.OrderService;
+&nbsp;import hu.martin.ems.vaadin.core.EmsError;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.MediaType;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.io.ByteArrayOutputStream;
+&nbsp;import java.io.IOException;
+&nbsp;import java.time.Instant;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.LinkedHashMap;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api/order&quot;)
+&nbsp;public class OrderController extends BaseController&lt;Order, OrderService, OrderRepository&gt; {
+&nbsp;    public OrderController(OrderService service) {
+<b class="fc">&nbsp;        super(service);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private OrderElementService orderElementService;
+&nbsp;
+&nbsp;    @PostMapping(path = &quot;/createDocumentAsODT&quot;)
+&nbsp;    public ResponseEntity&lt;byte[]&gt; createDocumentAsODT(@RequestBody Order order) {
+&nbsp;        try{
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(service.createDocumentAsODT(order, new ByteArrayOutputStream()), HttpStatus.OK);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch(IOException e){</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch (XDocReportException e){</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch (CurrencyException e){</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED.getBytes(), HttpStatus.BAD_GATEWAY);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(path = &quot;/createDocumentAsPDF&quot;)
+&nbsp;    public ResponseEntity&lt;byte[]&gt; createDocumentAsPDF(@RequestBody Order order) {
+&nbsp;        try{
+<b class="fc">&nbsp;            byte[] res = service.createDocumentAsPDF(order, new ByteArrayOutputStream());</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(res, HttpStatus.OK);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch(IOException e){</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch (XDocReportException e){</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch (CurrencyException e){</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED.getBytes(), HttpStatus.BAD_GATEWAY);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(path = &quot;/generateHTMLEmail&quot;)
+&nbsp;    public ResponseEntity&lt;String&gt; generateHTMLEmail(@RequestParam Long orderId){
+&nbsp;        try{
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(service.generateHTMLEmail(orderId), HttpStatus.OK);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch (Exception e){</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @PutMapping(path = &quot;/sendReportSFTPToAccountant&quot;)
+&nbsp;    public ResponseEntity&lt;String&gt; sendReportSFTPToAccountant(@RequestBody LinkedHashMap&lt;String, LocalDate&gt; data) {
+&nbsp;        try{
+<b class="fc">&nbsp;            boolean res = service.sendReportSFTPToAccountant(data.get(&quot;from&quot;), data.get(&quot;to&quot;));</b>
+<b class="fc">&nbsp;            if(res){</b>
+<b class="fc">&nbsp;                return new ResponseEntity&lt;&gt;(EmsResponse.Description.SFTP_SENDING_SUCCESS, HttpStatus.OK);</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                return new ResponseEntity&lt;&gt;(gson.toJson(new EmsError(Instant.now().toEpochMilli(), 500, EmsResponse.Description.SFTP_SENDING_ERROR, &quot;/api/order/sendReportSFTPToAccountant&quot;)), HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        catch (IOException e){</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(gson.toJson(new EmsError(Instant.now().toEpochMilli(), 500, &quot;XLS generation failed&quot;, &quot;/api/order/sendReportSFTPToAccountant&quot;)), HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @DeleteMapping(path = &quot;/permanentlyDelete&quot;, produces = MediaType.APPLICATION_JSON_VALUE)
+&nbsp;    public ResponseEntity&lt;String&gt; permanentlyDelete(@RequestParam(value = &quot;id&quot;) Long entityId) {
+<b class="fc">&nbsp;        orderElementService.permanentlyDeleteByOrder(entityId);</b>
+<b class="fc">&nbsp;        service.permanentlyDelete(entityId);</b>
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(&quot;{\&quot;response\&quot;:\&quot;ok\&quot;}&quot;, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;//    @GetMapping(path = &quot;getOrderElements&quot;, produces = MediaType.APPLICATION_JSON_VALUE)
+&nbsp;//    public ResponseEntity&lt;String&gt; getOrderElements(@RequestParam(value = &quot;orderId&quot;) Long orderId) throws JsonProcessingException {
+&nbsp;//        return new ResponseEntity&lt;&gt;(gson.toJson(service.getOrderElements(orderId)), HttpStatus.OK);
+&nbsp;//    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

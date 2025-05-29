@@ -1,0 +1,388 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > LoginView</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.vaadin.component.Login</a>
+</div>
+
+<h1>Coverage Summary for Class: LoginView (hu.martin.ems.vaadin.component.Login)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LoginView</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (12/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (16/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (130/130)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.vaadin.component.Login;
+&nbsp;
+&nbsp;import com.vaadin.flow.component.button.Button;
+&nbsp;import com.vaadin.flow.component.dialog.Dialog;
+&nbsp;import com.vaadin.flow.component.formlayout.FormLayout;
+&nbsp;import com.vaadin.flow.component.login.LoginI18n;
+&nbsp;import com.vaadin.flow.component.login.LoginOverlay;
+&nbsp;import com.vaadin.flow.component.notification.Notification;
+&nbsp;import com.vaadin.flow.component.notification.NotificationVariant;
+&nbsp;import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+&nbsp;import com.vaadin.flow.component.textfield.PasswordField;
+&nbsp;import com.vaadin.flow.component.textfield.TextField;
+&nbsp;import com.vaadin.flow.router.BeforeEnterEvent;
+&nbsp;import com.vaadin.flow.router.BeforeEnterObserver;
+&nbsp;import com.vaadin.flow.router.Route;
+&nbsp;import com.vaadin.flow.server.VaadinRequest;
+&nbsp;import com.vaadin.flow.server.VaadinServletRequest;
+&nbsp;import com.vaadin.flow.server.auth.AnonymousAllowed;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.auth.CustomUserDetailsService;
+&nbsp;import hu.martin.ems.core.config.BeanProvider;
+&nbsp;import hu.martin.ems.core.model.EmsResponse;
+&nbsp;import hu.martin.ems.core.model.User;
+&nbsp;import hu.martin.ems.model.Role;
+&nbsp;import hu.martin.ems.vaadin.api.RoleApiClient;
+&nbsp;import hu.martin.ems.vaadin.api.UserApiClient;
+&nbsp;import hu.martin.ems.vaadin.core.EmsDialog;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.security.authentication.AuthenticationManager;
+&nbsp;import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+&nbsp;import org.springframework.security.core.Authentication;
+&nbsp;import org.springframework.security.core.AuthenticationException;
+&nbsp;import org.springframework.security.core.context.SecurityContextHolder;
+&nbsp;import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+&nbsp;
+&nbsp;@Route(value = &quot;login&quot;)
+&nbsp;@AnonymousAllowed
+&nbsp;@NeedCleanCoding
+&nbsp;public class LoginView extends VerticalLayout implements BeforeEnterObserver {
+&nbsp;
+<b class="fc">&nbsp;    private LoginI18n login = LoginI18n.createDefault();</b>
+&nbsp;//    private LoginForm login = new LoginForm();
+&nbsp;
+<b class="fc">&nbsp;    private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);</b>
+<b class="fc">&nbsp;    private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);</b>
+&nbsp;
+<b class="fc">&nbsp;    private LoginI18n.ErrorMessage NO_ROLE_USER = new LoginI18n.ErrorMessage();</b>
+<b class="fc">&nbsp;    private LoginI18n.ErrorMessage BAD_CREDIDENTALS = new LoginI18n.ErrorMessage();</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private AuthenticationManager authenticationManager;
+&nbsp;
+&nbsp;    @Value(&quot;${rememberme.key}&quot;)
+&nbsp;    private String key;
+&nbsp;
+<b class="fc">&nbsp;    Logger logger = LoggerFactory.getLogger(User.class);</b>
+&nbsp;
+&nbsp;
+<b class="fc">&nbsp;    public LoginView() {</b>
+&nbsp;//        addAttachListener(event -&gt; {
+&nbsp;//            VaadinSession.getCurrent().setAttribute(&quot;csrfToken&quot;, getCsrfTokenFromCookie());
+&nbsp;//        });
+&nbsp;
+<b class="fc">&nbsp;        NO_ROLE_USER.setTitle(&quot;Permission error&quot;);</b>
+<b class="fc">&nbsp;        NO_ROLE_USER.setMessage(&quot;You have no permission to log in. Contact the administrator about your roles, and try again.&quot;);</b>
+<b class="fc">&nbsp;        BAD_CREDIDENTALS.setTitle(&quot;Incorrect username or password&quot;);</b>
+<b class="fc">&nbsp;        BAD_CREDIDENTALS.setMessage(&quot;Check that you have entered the correct username and password and try again.&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        Button register = new Button(&quot;Register&quot;);</b>
+<b class="fc">&nbsp;        register.setClassName(&quot;register-button&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        register.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            EmsResponse response = roleApi.findById(-1L);</b>
+<b class="fc">&nbsp;            switch (response.getCode()){</b>
+&nbsp;                case 200: {
+<b class="fc">&nbsp;                    Dialog registerDialog = getRegistrationDialog((Role) response.getResponseData());</b>
+<b class="fc">&nbsp;                    registerDialog.open();</b>
+<b class="fc">&nbsp;                    break;</b>
+&nbsp;                }
+&nbsp;                default: {
+<b class="fc">&nbsp;                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                    break;
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        LoginOverlay loginOverlay = new LoginOverlay();</b>
+&nbsp;
+<b class="fc">&nbsp;        loginOverlay.setTitle(&quot;EMS&quot;);</b>
+<b class="fc">&nbsp;        loginOverlay.setDescription(&quot;The Employee Management System.&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        LoginI18n.Form loginForm = login.getForm();</b>
+<b class="fc">&nbsp;        loginForm.setTitle(&quot;Login&quot;);</b>
+<b class="fc">&nbsp;        loginForm.setUsername(&quot;Username&quot;);</b>
+<b class="fc">&nbsp;        loginForm.setPassword(&quot;Password&quot;);</b>
+<b class="fc">&nbsp;        loginForm.setSubmit(&quot;Login&quot;);</b>
+<b class="fc">&nbsp;        loginForm.setForgotPassword(&quot;Forgot password&quot;);</b>
+<b class="fc">&nbsp;        login.setForm(loginForm);</b>
+&nbsp;
+&nbsp;        //loginOverlay.setAction(&quot;login&quot;); //Azért kellett kivenni, mert különben újratölti a login formot, és nem jelennek meg a hibaüzenetek
+<b class="fc">&nbsp;        loginOverlay.setI18n(login);</b>
+<b class="fc">&nbsp;        loginOverlay.getFooter().add(register);</b>
+<b class="fc">&nbsp;        loginOverlay.setOpened(true);</b>
+<b class="fc">&nbsp;        add(loginOverlay);</b>
+&nbsp;
+<b class="fc">&nbsp;        loginOverlay.addLoginListener(e -&gt; {</b>
+<b class="fc">&nbsp;            String userName = e.getUsername();</b>
+<b class="fc">&nbsp;            String password = e.getPassword();</b>
+<b class="fc">&nbsp;            User user = getByUserName(userName);</b>
+<b class="fc">&nbsp;            if(user != null &amp;&amp; user.getRoleRole().getName().equals(&quot;NO_ROLE&quot;)){</b>
+<b class="fc">&nbsp;                login.setErrorMessage(NO_ROLE_USER);</b>
+<b class="fc">&nbsp;                loginOverlay.setI18n(login);</b>
+<b class="fc">&nbsp;                loginOverlay.setError(true);</b>
+<b class="fc">&nbsp;                loginOverlay.setEnabled(true);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            else if(user != null){</b>
+&nbsp;                try {
+<b class="fc">&nbsp;                    UsernamePasswordAuthenticationToken authRequest =</b>
+&nbsp;                            new UsernamePasswordAuthenticationToken(userName, password);
+<b class="fc">&nbsp;                    Authentication auth = authenticationManager.authenticate(authRequest);</b>
+&nbsp;
+<b class="fc">&nbsp;                    SecurityContextHolder.getContext().setAuthentication(auth);</b>
+&nbsp;
+<b class="fc">&nbsp;                    VaadinServletRequest vaadinRequest = (VaadinServletRequest) VaadinRequest.getCurrent();</b>
+<b class="fc">&nbsp;                    HttpServletRequest request = vaadinRequest.getHttpServletRequest();</b>
+<b class="fc">&nbsp;                    request.getSession().setAttribute(&quot;SPRING_SECURITY_CONTEXT&quot;, SecurityContextHolder.getContext());</b>
+&nbsp;
+&nbsp;//                    HttpServletResponse response = VaadinServletResponse.getCurrent().getHttpServletResponse();
+<b class="fc">&nbsp;                    CustomUserDetailsService.getLoggedInUsername();</b>
+<b class="fc">&nbsp;                    loginOverlay.close();</b>
+<b class="fc">&nbsp;                    getUI().ifPresent(ui -&gt; ui.navigate(&quot;/&quot;));</b>
+&nbsp;                }
+<b class="fc">&nbsp;                catch (AuthenticationException ex) {</b>
+<b class="fc">&nbsp;                    login.setErrorMessage(BAD_CREDIDENTALS);</b>
+<b class="fc">&nbsp;                    loginOverlay.setI18n(login);</b>
+<b class="fc">&nbsp;                    loginOverlay.setError(true);</b>
+<b class="fc">&nbsp;                    loginOverlay.setEnabled(true);</b>
+<b class="fc">&nbsp;                }</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                login.setErrorMessage(BAD_CREDIDENTALS);</b>
+<b class="fc">&nbsp;                loginOverlay.setI18n(login);</b>
+<b class="fc">&nbsp;                loginOverlay.setError(true);</b>
+<b class="fc">&nbsp;                loginOverlay.setEnabled(true);</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        loginOverlay.addForgotPasswordListener(e -&gt; {</b>
+<b class="fc">&nbsp;            getForgotPasswordDialog().open();</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private User getByUserName(String username){
+<b class="fc">&nbsp;        EmsResponse emsResponse = userApi.findByUsername(username);</b>
+<b class="fc">&nbsp;        switch (emsResponse.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                return (User) emsResponse.getResponseData();</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                logger.error(&quot;User findByUsernameError. Code: {}, Description: {}&quot;, emsResponse.getCode(), emsResponse.getDescription());</b>
+<b class="fc">&nbsp;                Notification.show(&quot;EmsError happened while getting username&quot;)</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+<b class="fc">&nbsp;                return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Dialog getRegistrationDialog(Role noRole) {
+<b class="fc">&nbsp;        EmsDialog d = new EmsDialog(&quot;Registration&quot;);</b>
+<b class="fc">&nbsp;        d.addCloseButton();</b>
+&nbsp;
+&nbsp;//        Button closeButton = new Button(new Icon(&quot;lumo&quot;, &quot;cross&quot;),
+&nbsp;//                (e) -&gt; d.close());
+&nbsp;//        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+&nbsp;//        d.getHeader().add(closeButton);
+&nbsp;
+<b class="fc">&nbsp;        FormLayout form = new FormLayout();</b>
+<b class="fc">&nbsp;        TextField userName = new TextField(&quot;Username&quot;);</b>
+<b class="fc">&nbsp;        PasswordField password = new PasswordField(&quot;Password&quot;);</b>
+<b class="fc">&nbsp;        PasswordField passwordAgain = new PasswordField(&quot;Password again&quot;);</b>
+<b class="fc">&nbsp;        Button register = new Button(&quot;Register&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        form.add(userName, password, passwordAgain, register);</b>
+<b class="fc">&nbsp;        d.add(form);</b>
+&nbsp;
+<b class="fc">&nbsp;        register.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            User allreadyUser = getByUserName(userName.getValue());</b>
+<b class="fc">&nbsp;            if(allreadyUser != null){</b>
+<b class="fc">&nbsp;                Notification.show(&quot;Username already exists!&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                if(!password.getValue().equals(passwordAgain.getValue())){</b>
+<b class="fc">&nbsp;                    Notification.show(&quot;The passwords doesn&#39;t match!&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                }
+&nbsp;                else{
+<b class="fc">&nbsp;                    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();</b>
+<b class="fc">&nbsp;                    User newUser = new User();</b>
+<b class="fc">&nbsp;                    newUser.setPasswordHash(encoder.encode(password.getValue()));</b>
+<b class="fc">&nbsp;                    newUser.setUsername(userName.getValue());</b>
+<b class="fc">&nbsp;                    newUser.setDeleted(0L);</b>
+<b class="fc">&nbsp;                    newUser.setRoleRole(noRole);</b>
+<b class="fc">&nbsp;                    newUser.setEnabled(true);</b>
+<b class="fc">&nbsp;                    userApi.save(newUser);</b>
+<b class="fc">&nbsp;                    Notification.show(&quot;Registration successful!&quot;);</b>
+<b class="fc">&nbsp;                    d.close();</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+<b class="fc">&nbsp;        return d;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Dialog getForgotPasswordDialog(){
+<b class="fc">&nbsp;        Dialog d = new Dialog(&quot;Forgot password&quot;);</b>
+<b class="fc">&nbsp;        FormLayout form = new FormLayout();</b>
+<b class="fc">&nbsp;        TextField userName = new TextField(&quot;Username&quot;);</b>
+<b class="fc">&nbsp;        Button next = new Button(&quot;Next&quot;);</b>
+<b class="fc">&nbsp;        next.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            Dialog passwordDialog = passwordDialog(d, userName.getValue());</b>
+<b class="fc">&nbsp;            passwordDialog.open();</b>
+&nbsp;        });
+<b class="fc">&nbsp;        form.add(userName, next);</b>
+<b class="fc">&nbsp;        d.add(form);</b>
+<b class="fc">&nbsp;        return d;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Dialog passwordDialog(Dialog parent, String userName) {
+<b class="fc">&nbsp;        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();</b>
+<b class="fc">&nbsp;        Dialog d = new Dialog(&quot;Forgot password for &quot; + userName);</b>
+<b class="fc">&nbsp;        FormLayout form = new FormLayout();</b>
+<b class="fc">&nbsp;        PasswordField pw1 = new PasswordField(&quot;Password&quot;);</b>
+<b class="fc">&nbsp;        PasswordField pw2 = new PasswordField(&quot;Password again&quot;);</b>
+<b class="fc">&nbsp;        Button submit = new Button(&quot;Submit&quot;);</b>
+<b class="fc">&nbsp;        form.add(pw1, pw2, submit);</b>
+<b class="fc">&nbsp;        d.add(form);</b>
+<b class="fc">&nbsp;        submit.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            if(pw1.getValue().equals(pw2.getValue())){</b>
+<b class="fc">&nbsp;                User user = getByUserName(userName);</b>
+<b class="fc">&nbsp;                if(user == null){</b>
+<b class="fc">&nbsp;                    Notification.show(&quot;User not found!&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                }
+&nbsp;                else{
+<b class="fc">&nbsp;                    user.setPasswordHash(encoder.encode(pw1.getValue()));</b>
+<b class="fc">&nbsp;                    userApi.update(user);</b>
+<b class="fc">&nbsp;                    Notification.show(&quot;Password changed successfully!&quot;).addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                    d.close();</b>
+<b class="fc">&nbsp;                    parent.close();</b>
+&nbsp;                }
+<b class="fc">&nbsp;            }</b>
+&nbsp;            else{
+<b class="fc">&nbsp;                Notification.show(&quot;The passwords doesn&#39;t match!&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;            }
+&nbsp;        });
+<b class="fc">&nbsp;        return d;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+<b class="fc">&nbsp;    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {}</b>
+&nbsp;
+&nbsp;//
+&nbsp;//    private String getCsrfTokenFromCookie() {
+&nbsp;//        VaadinServletRequest vaadinRequest = (VaadinServletRequest) VaadinRequest.getCurrent();
+&nbsp;//        Cookie[] cookies = vaadinRequest.getHttpServletRequest().getCookies();
+&nbsp;//
+&nbsp;//        for (Cookie cookie : cookies) {
+&nbsp;//            if (&quot;XSRF-TOKEN&quot;.equals(cookie.getName())) {
+&nbsp;//                return cookie.getValue();
+&nbsp;//            }
+&nbsp;//        }
+&nbsp;//        return null;
+&nbsp;//    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

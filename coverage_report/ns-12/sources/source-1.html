@@ -1,0 +1,288 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MainView</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.vaadin</a>
+</div>
+
+<h1>Coverage Summary for Class: MainView (hu.martin.ems.vaadin)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MainView</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (52/52)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">MainView$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (52/52)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.vaadin;
+&nbsp;
+&nbsp;import com.vaadin.flow.component.Component;
+&nbsp;import com.vaadin.flow.component.UI;
+&nbsp;import com.vaadin.flow.component.button.Button;
+&nbsp;import com.vaadin.flow.component.dependency.CssImport;
+&nbsp;import com.vaadin.flow.component.dependency.JavaScript;
+&nbsp;import com.vaadin.flow.component.html.Div;
+&nbsp;import com.vaadin.flow.component.html.Span;
+&nbsp;import com.vaadin.flow.component.notification.Notification;
+&nbsp;import com.vaadin.flow.component.notification.NotificationVariant;
+&nbsp;import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+&nbsp;import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+&nbsp;import com.vaadin.flow.router.Route;
+&nbsp;import com.vaadin.flow.router.RouterLayout;
+&nbsp;import com.vaadin.flow.server.VaadinService;
+&nbsp;import com.vaadin.flow.server.VaadinServletService;
+&nbsp;import com.vaadin.flow.server.VaadinSession;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.auth.SecurityService;
+&nbsp;import hu.martin.ems.core.model.PaginationSetting;
+&nbsp;import hu.martin.ems.vaadin.component.AccessManagement.AccessManagement;
+&nbsp;import hu.martin.ems.vaadin.component.Address.AddressList;
+&nbsp;import hu.martin.ems.vaadin.component.AdminTools.AdminTools;
+&nbsp;import hu.martin.ems.vaadin.component.City.CityList;
+&nbsp;import hu.martin.ems.vaadin.component.CodeStore.CodeStoreList;
+&nbsp;import hu.martin.ems.vaadin.component.Currency.CurrencyList;
+&nbsp;import hu.martin.ems.vaadin.component.Customer.CustomerList;
+&nbsp;import hu.martin.ems.vaadin.component.Employee.EmployeeList;
+&nbsp;import hu.martin.ems.vaadin.component.Order.OrderCreateToCustomer;
+&nbsp;import hu.martin.ems.vaadin.component.Order.OrderFromSupplier;
+&nbsp;import hu.martin.ems.vaadin.component.Order.OrderList;
+&nbsp;import hu.martin.ems.vaadin.component.OrderElement.OrderElementList;
+&nbsp;import hu.martin.ems.vaadin.component.Product.ProductList;
+&nbsp;import hu.martin.ems.vaadin.component.Supplier.SupplierList;
+&nbsp;import hu.martin.ems.vaadin.component.User.UserList;
+&nbsp;import jakarta.annotation.security.PermitAll;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import jakarta.servlet.http.HttpServletResponse;
+&nbsp;import jakarta.validation.constraints.NotNull;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.security.core.context.SecurityContextHolder;
+&nbsp;import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+&nbsp;
+&nbsp;
+&nbsp;@Route(&quot;/&quot;)
+&nbsp;@CssImport(&quot;./styles/shared-styles.css&quot;)
+&nbsp;@PermitAll
+&nbsp;@NeedCleanCoding
+&nbsp;@JavaScript(&quot;./scripts/side-menu.js&quot;)
+&nbsp;public class MainView extends HorizontalLayout implements RouterLayout {
+&nbsp;
+&nbsp;    private VerticalLayout menuLayout;
+<b class="fc">&nbsp;    private Logger logger = LoggerFactory.getLogger(MainView.class);</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private PaginationSetting paginationSetting;
+&nbsp;
+&nbsp;//    @Autowired
+&nbsp;//    private ComponentManager componentManager;
+&nbsp;
+&nbsp;    private Div contentLayout;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private SecurityService securityService;
+&nbsp;
+<b class="fc">&nbsp;    public MainView() {</b>
+<b class="fc">&nbsp;        menuLayout = new VerticalLayout();</b>
+<b class="fc">&nbsp;        menuLayout.setClassName(&quot;side-menu&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        contentLayout = new Div();</b>
+<b class="fc">&nbsp;        contentLayout.setClassName(&quot;content-layout&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;Employee&quot;, EmployeeList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;Access management&quot;, AccessManagement.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;Codestore&quot;, CodeStoreList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;City&quot;, CityList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;Address&quot;, AddressList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;Customer&quot;, CustomerList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;Product&quot;, ProductList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;Supplier&quot;, SupplierList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;Currency&quot;, CurrencyList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;Users&quot;, UserList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Admin&quot;, &quot;Admin tools&quot;, AdminTools.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Orders&quot;, &quot;OrderElement&quot;, OrderElementList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Orders&quot;, &quot;Order&quot;, OrderList.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Orders&quot;, &quot;Order create for customer&quot;, OrderCreateToCustomer.class);</b>
+<b class="fc">&nbsp;        addMenu(menuLayout, &quot;Orders&quot;, &quot;Order from supplier&quot;, OrderFromSupplier.class);</b>
+&nbsp;
+<b class="fc">&nbsp;        addLogoutButton();</b>
+&nbsp;
+&nbsp;//        addClassName(&quot;main-view&quot;);
+<b class="fc">&nbsp;        add(menuLayout, contentLayout);</b>
+&nbsp;//        add(menuLayout);
+<b class="fc">&nbsp;        setSizeFull();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addLogoutButton() {
+<b class="fc">&nbsp;        Button logoutButton = new Button(&quot;Log out&quot;, event -&gt; {</b>
+<b class="fc">&nbsp;            HttpServletRequest request = (HttpServletRequest) VaadinServletService.getCurrentRequest();</b>
+<b class="fc">&nbsp;            HttpServletResponse response = VaadinServletService.getCurrentResponse();</b>
+&nbsp;
+<b class="fc">&nbsp;            SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();</b>
+<b class="fc">&nbsp;            logoutHandler.logout(request, response, SecurityContextHolder.getContext().getAuthentication());</b>
+&nbsp;
+<b class="fc">&nbsp;            UI.getCurrent().getPage().setLocation(&quot;logout&quot;);</b>
+<b class="fc">&nbsp;            Notification.show(&quot;Logging out successfully!&quot;).addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+&nbsp;
+<b class="fc">&nbsp;            securityService.logout();</b>
+&nbsp;
+<b class="fc">&nbsp;            VaadinSession.getCurrent().close();</b>
+<b class="fc">&nbsp;            VaadinService.getCurrentRequest().getWrappedSession().invalidate();</b>
+&nbsp;
+<b class="fc">&nbsp;            SecurityContextHolder.clearContext();</b>
+&nbsp;        });
+<b class="fc">&nbsp;        logoutButton.addClassNames(&quot;logout-button&quot;);</b>
+<b class="fc">&nbsp;        menuLayout.add(logoutButton);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addMenu(VerticalLayout menuLayout, String mainMenuName,
+&nbsp;                         String subMenuName, @NotNull Class&lt;? extends Component&gt; viewClass) {
+<b class="fc">&nbsp;        Span mainMenu = (Span) menuLayout.getChildren()</b>
+<b class="fc">&nbsp;                .filter(component -&gt; component instanceof Span &amp;&amp; ((Span) component).getText().equals(mainMenuName))</b>
+<b class="fc">&nbsp;                .findFirst()</b>
+<b class="fc">&nbsp;                .orElseGet(() -&gt; {</b>
+<b class="fc">&nbsp;                    Span newMainMenu = new Span(mainMenuName);</b>
+<b class="fc">&nbsp;                    menuLayout.add(newMainMenu);</b>
+<b class="fc">&nbsp;                    return newMainMenu;</b>
+&nbsp;                });
+&nbsp;
+<b class="fc">&nbsp;        Span listLink = new Span(subMenuName);</b>
+<b class="fc">&nbsp;        HorizontalLayout listMenu = new HorizontalLayout(listLink);</b>
+&nbsp;
+<b class="fc">&nbsp;        listLink.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            listLink.getUI().ifPresent(ui -&gt; ui.navigate(viewClass));</b>
+&nbsp;//            UI.getCurrent().navigate(viewClass);
+&nbsp;        });
+&nbsp;//        listLink.addClickListener(event -&gt; {
+&nbsp;//
+&nbsp;//        });
+&nbsp;//
+&nbsp;//        listLink.addClickListener(event -&gt; UI.getCurrent().navigate(viewClass));
+&nbsp;
+<b class="fc">&nbsp;        listMenu.setVisible(false);</b>
+&nbsp;
+&nbsp;        // Fõmenü elem kattintásakor a listák megjelenítése/rejtése
+<b class="fc">&nbsp;        mainMenu.getElement().addEventListener(&quot;click&quot;, e -&gt; {</b>
+<b class="fc">&nbsp;            listMenu.setVisible(!listMenu.isVisible());</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        menuLayout.add(listMenu);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,517 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DataProvider</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.core.config</a>
+</div>
+
+<h1>Coverage Summary for Class: DataProvider (hu.martin.ems.core.config)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DataProvider</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (22/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (20/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (134/134)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DataProvider$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">DataProvider$$SpringCGLIB$$1</td>
+  </tr>
+  <tr>
+    <td class="name">DataProvider$JsonFile</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (18/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (43/43)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (31/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (38/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (177/177)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.core.config;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.google.gson.internal.LinkedTreeMap;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.service.AdminToolsService;
+&nbsp;import jakarta.persistence.EntityManager;
+&nbsp;import jakarta.persistence.EntityManagerFactory;
+&nbsp;import jakarta.persistence.EntityTransaction;
+&nbsp;import jakarta.persistence.metamodel.EntityType;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.NoArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.annotation.Configuration;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import javax.annotation.PostConstruct;
+&nbsp;import java.io.*;
+&nbsp;import java.nio.file.Files;
+&nbsp;import java.nio.file.Path;
+&nbsp;import java.nio.file.Paths;
+&nbsp;import java.util.*;
+&nbsp;import java.util.regex.Matcher;
+&nbsp;import java.util.regex.Pattern;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;
+&nbsp;@Configuration
+&nbsp;@Transactional
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@NeedCleanCoding
+&nbsp;public class DataProvider {
+&nbsp;    private final EntityManager em;
+&nbsp;    private final AdminToolsService adminToolsService;
+<b class="fc">&nbsp;    private final Logger logger = LoggerFactory.getLogger(DataProvider.class);</b>
+<b class="fc">&nbsp;    private static List&lt;File&gt; loaded = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;    private static Set&lt;EntityType&lt;?&gt;&gt; loadedToEntityManager = new HashSet&lt;&gt;();</b>
+<b class="fc">&nbsp;    private static Set&lt;EntityType&lt;?&gt;&gt; tree = new HashSet&lt;&gt;();</b>
+&nbsp;
+<b class="fc">&nbsp;    private static final Path jsonsDirectory = Paths.get(&quot;src/main/resources/static&quot;);</b>
+<b class="fc">&nbsp;    private static Gson gson = new Gson();</b>
+&nbsp;
+&nbsp;    @Value(&quot;${generated.sql.files.path}&quot;)
+<b class="fc">&nbsp;    @Getter</b>
+&nbsp;    private String GENERATED_SQL_FILES_PATH;
+&nbsp;
+&nbsp;    @Value(&quot;${static.json.folder.path}&quot;)
+<b class="fc">&nbsp;    @Getter</b>
+&nbsp;    private String STATIC_JSON_FOLDER_PATH;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public DataProvider(EntityManager em,
+<b class="fc">&nbsp;                        AdminToolsService adminTools) throws IOException {</b>
+<b class="fc">&nbsp;        this.em = em;</b>
+<b class="fc">&nbsp;        adminToolsService = adminTools;</b>
+<b class="fc">&nbsp;        clearAllDatabaseTable();</b>
+<b class="fc">&nbsp;        loadAllJsonAndSave();</b>
+<b class="fc">&nbsp;        loaded = new ArrayList&lt;&gt;();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public long countElementsInTable(String table, String where){
+<b class="fc">&nbsp;        EntityManagerFactory factory = em.getEntityManagerFactory();</b>
+<b class="fc">&nbsp;        EntityManager tempEm = factory.createEntityManager();</b>
+&nbsp;
+<b class="fc">&nbsp;        Long res = (Long) tempEm.createNativeQuery(&quot;SELECT count(*) FROM &quot; + table + &quot; WHERE &quot; + where).getSingleResult();</b>
+&nbsp;
+<b class="fc">&nbsp;        tempEm.close();</b>
+<b class="fc">&nbsp;        return res;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void clearAllDatabaseTable(){
+&nbsp;        try{
+<b class="fc">&nbsp;            deleteAllRecordsFromAllTable();</b>
+<b class="fc">&nbsp;            resetIDSequences();</b>
+<b class="fc">&nbsp;            loaded.clear();</b>
+<b class="fc">&nbsp;            em.clear();</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch (Exception e){}</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private LinkedHashMap&lt;String, String&gt; generateAllSqlsFromJsons() throws IOException {
+<b class="fc">&nbsp;        LinkedHashMap&lt;String, String&gt; result = new LinkedHashMap&lt;&gt;();</b>
+&nbsp;//        try{
+<b class="fc">&nbsp;            List&lt;File&gt; files = Files.walk(jsonsDirectory)</b>
+<b class="fc">&nbsp;                    .filter(Files::isRegularFile)</b>
+<b class="fc">&nbsp;                    .filter(path -&gt; path.toString().toLowerCase().endsWith(&quot;.json&quot;))</b>
+<b class="fc">&nbsp;                    .map(Path::toFile).toList();</b>
+<b class="fc">&nbsp;            for(int i = 0; i &lt; files.size(); i++){</b>
+<b class="fc">&nbsp;                result.put(files.get(i).getName().substring(0, files.get(i).getName().length() - 5) + &quot;.sql&quot;, generateSqlFromJson(files.get(i)));</b>
+&nbsp;            }
+&nbsp;//        }
+&nbsp;//        catch (IOException e){
+&nbsp;//            log.error(&quot;IOException happened while creating sqls from the json files for database&quot;);
+&nbsp;//            e.printStackTrace();
+&nbsp;//        }
+<b class="fc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void saveAllSqlsFromJsons() throws IOException {
+<b class="fc">&nbsp;        LinkedHashMap&lt;String, String&gt; fileNameAndFileContent = generateAllSqlsFromJsons();</b>
+<b class="fc">&nbsp;        File directory = new File(GENERATED_SQL_FILES_PATH);</b>
+<b class="fc">&nbsp;        deleteFilesInDirectory(directory);</b>
+<b class="fc">&nbsp;        for (Map.Entry&lt;String, String&gt; entry : fileNameAndFileContent.entrySet()) {</b>
+<b class="fc">&nbsp;            writeFile(entry.getKey(), entry.getValue());</b>
+<b class="fc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void deleteFilesInDirectory(File directory) {
+<b class="fc">&nbsp;        for (File file : Objects.requireNonNull(directory.listFiles())) {</b>
+<b class="fc">&nbsp;            file.delete();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public void writeFile(String fileName, String fileContent) throws IOException {
+<b class="fc">&nbsp;        File file = new File(GENERATED_SQL_FILES_PATH + &quot;\\&quot; + fileName);</b>
+<b class="fc">&nbsp;        try (FileWriter writer = new FileWriter(file)) {</b>
+<b class="fc">&nbsp;            writer.write(fileContent);</b>
+<b class="fc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public String generateSqlFromJson(File jsonFile) throws IOException {
+<b class="fc">&nbsp;        try (FileReader reader = new FileReader(jsonFile)){</b>
+<b class="fc">&nbsp;            JsonFile json = gson.fromJson(reader, JsonFile.class);</b>
+<b class="fc">&nbsp;            return json.toSQL();</b>
+<b class="fc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void loadAllJsonAndSave() throws IOException {
+<b class="fc">&nbsp;        Path directory = Paths.get(&quot;src/main/resources/static&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        List&lt;File&gt; files = Files.walk(directory)</b>
+<b class="fc">&nbsp;                .filter(Files::isRegularFile)</b>
+<b class="fc">&nbsp;                .filter(path -&gt; path.toString().toLowerCase().endsWith(&quot;.json&quot;))</b>
+<b class="fc">&nbsp;                .map(Path::toFile).collect(Collectors.toList());</b>
+<b class="fc">&nbsp;        for (File v : files) {</b>
+<b class="fc">&nbsp;            if (!loaded.contains(v)) {</b>
+<b class="fc">&nbsp;                loadRequiredJsonAndSave(files, v);</b>
+&nbsp;            }
+<b class="fc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void loadRequiredJsonAndSave(List&lt;File&gt; allFiles, File jsonFile) throws IOException {
+<b class="fc">&nbsp;        if (loaded.contains(jsonFile)) {</b>
+&nbsp;            return;
+&nbsp;        } else {
+<b class="fc">&nbsp;            FileReader reader = new FileReader(jsonFile);</b>
+<b class="fc">&nbsp;            JsonFile json = gson.fromJson(reader, JsonFile.class);</b>
+<b class="fc">&nbsp;            List&lt;String&gt; required = json.required;</b>
+&nbsp;
+<b class="fc">&nbsp;            List&lt;File&gt; requiredFiles = allFiles.stream()</b>
+<b class="fc">&nbsp;                    .filter(file -&gt; required.contains(file.getName())).toList();</b>
+<b class="fc">&nbsp;            for(int i = 0; i &lt; requiredFiles.size(); i++){</b>
+<b class="fc">&nbsp;                loadRequiredJsonAndSave(allFiles, requiredFiles.get(i));</b>
+&nbsp;            }
+<b class="fc">&nbsp;            saveJsonToDatabase(jsonFile);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void saveJsonToDatabase(File jsonFile) throws IOException {
+<b class="fc">&nbsp;        EntityManagerFactory factory = em.getEntityManagerFactory();</b>
+<b class="fc">&nbsp;        EntityManager tempEm = factory.createEntityManager();</b>
+<b class="fc">&nbsp;        EntityTransaction entityTransaction = tempEm.getTransaction();</b>
+<b class="fc">&nbsp;        try (FileReader reader = new FileReader(jsonFile)){</b>
+<b class="fc">&nbsp;            JsonFile json = gson.fromJson(reader, JsonFile.class);</b>
+<b class="fc">&nbsp;            json.init();</b>
+<b class="fc">&nbsp;            String sql = json.toSQL();</b>
+<b class="fc">&nbsp;            entityTransaction.begin();</b>
+<b class="fc">&nbsp;            tempEm.createNativeQuery(sql).executeUpdate();</b>
+<b class="fc">&nbsp;            tempEm.flush();</b>
+<b class="fc">&nbsp;            entityTransaction.commit();</b>
+<b class="fc">&nbsp;            json.setPrimaryKeyStartIfRequired(tempEm);</b>
+<b class="fc">&nbsp;            logger.info(&quot;Data loaded successfully from JSON! &quot; + jsonFile.getName());</b>
+<b class="fc">&nbsp;            loaded.add(jsonFile);</b>
+<b class="fc">&nbsp;        } finally {</b>
+<b class="fc">&nbsp;            tempEm.close();</b>
+<b class="fc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void resetIDSequences(){
+<b class="fc">&nbsp;        EntityManagerFactory factory = em.getEntityManagerFactory();</b>
+<b class="fc">&nbsp;        EntityManager tempEm = factory.createEntityManager();</b>
+&nbsp;
+<b class="fc">&nbsp;        List&lt;String&gt; tableNames = getTableNames();</b>
+<b class="fc">&nbsp;        EntityTransaction emt = tempEm.getTransaction();</b>
+<b class="fc">&nbsp;        emt.begin();</b>
+<b class="fc">&nbsp;        List&lt;String&gt; allSeq = tempEm.createNativeQuery(&quot;SELECT relname sequence_name FROM pg_class WHERE relkind = &#39;S&#39;&quot;).getResultList();</b>
+&nbsp;
+<b class="fc">&nbsp;        for(String seq : allSeq) {</b>
+<b class="fc">&nbsp;            if(seq.split(&quot;_&quot;).length == 3){</b>
+<b class="fc">&nbsp;                tempEm.createNativeQuery(&quot;ALTER SEQUENCE &quot; + seq + &quot; RESTART WITH 1&quot;).executeUpdate();</b>
+&nbsp;            }
+<b class="fc">&nbsp;        }</b>
+&nbsp;
+<b class="fc">&nbsp;        emt.commit();</b>
+<b class="fc">&nbsp;        tempEm.close();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void resetDatabase() throws IOException {
+<b class="fc">&nbsp;        deleteAllRecordsFromAllTable();</b>
+<b class="fc">&nbsp;        resetIDSequences();</b>
+<b class="fc">&nbsp;        loaded.clear();</b>
+<b class="fc">&nbsp;        em.clear();</b>
+<b class="fc">&nbsp;        loadAllJsonAndSave();</b>
+&nbsp;//        loaded = new ArrayList&lt;&gt;();
+&nbsp;    }
+&nbsp;
+&nbsp;    private void deleteAllRecordsFromAllTable(){
+<b class="fc">&nbsp;        StringBuilder sql = new StringBuilder();</b>
+<b class="fc">&nbsp;        for(int i = 0; i &lt; getTableNames().size(); i++){</b>
+<b class="fc">&nbsp;            sql.append(&quot;TRUNCATE \&quot;&quot;).append(getTableNames().get(i)).append(&quot;\&quot; CASCADE; &quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        executeSQL(sql.toString());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void resetTable(File sql) throws IOException {
+&nbsp;        String line;
+<b class="fc">&nbsp;        try (BufferedReader reader = new BufferedReader(new FileReader(sql))) {</b>
+<b class="fc">&nbsp;             line = reader.readLine();</b>
+<b class="fc">&nbsp;        }</b>
+<b class="fc">&nbsp;        System.out.println(&quot;line: &quot; + line);</b>
+<b class="fc">&nbsp;        String deleteSQL = &quot;TRUNCATE &quot; + JsonFile.fixObjectName(getTableNameFromInsert(line)).toLowerCase() + &quot; CASCADE;&quot;;</b>
+<b class="fc">&nbsp;        executeSQL(deleteSQL);</b>
+<b class="fc">&nbsp;        executeSQLFile(sql);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String getTableNameFromInsert(String line) {
+<b class="fc">&nbsp;        System.out.println(&quot;Line: &quot; + line);</b>
+<b class="fc">&nbsp;        Pattern pattern = Pattern.compile(&quot;INSERT\\s+INTO\\s+([a-zA-Z0-9_\\.]+)&quot;, Pattern.CASE_INSENSITIVE);</b>
+<b class="fc">&nbsp;        Matcher matcher = pattern.matcher(line);</b>
+<b class="fc">&nbsp;        matcher.find();</b>
+<b class="fc">&nbsp;        return matcher.group(1);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;String&gt; getTableNames(){
+<b class="fc">&nbsp;        EntityManagerFactory factory = em.getEntityManagerFactory();</b>
+<b class="fc">&nbsp;        EntityManager tempEm = factory.createEntityManager();</b>
+<b class="fc">&nbsp;        List&lt;Object[]&gt; tables = tempEm.createNativeQuery(&quot;SELECT * FROM pg_catalog.pg_tables WHERE schemaname != &#39;pg_catalog&#39; AND schemaname != &#39;information_schema&#39;&quot;).getResultList();</b>
+<b class="fc">&nbsp;        List&lt;String&gt; tableNames = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        tables.forEach(v -&gt; tableNames.add((String) v[1]));</b>
+<b class="fc">&nbsp;        tableNames.remove(&quot;databasechangelog&quot;);</b>
+<b class="fc">&nbsp;        tableNames.remove(&quot;databasechangeloglock&quot;);</b>
+<b class="fc">&nbsp;        tempEm.close();</b>
+<b class="fc">&nbsp;        return tableNames;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void executeSQL(String sql){
+<b class="fc">&nbsp;        EntityManagerFactory factory = em.getEntityManagerFactory();</b>
+<b class="fc">&nbsp;        EntityManager tempEm = factory.createEntityManager();</b>
+<b class="fc">&nbsp;        EntityTransaction entityTransaction = tempEm.getTransaction();</b>
+<b class="fc">&nbsp;        entityTransaction.begin();</b>
+<b class="fc">&nbsp;        tempEm.createNativeQuery(sql).executeUpdate();</b>
+<b class="fc">&nbsp;        entityTransaction.commit();</b>
+<b class="fc">&nbsp;        tempEm.close();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void executeSQLFile(File sql) throws IOException {
+<b class="fc">&nbsp;        executeSQL(Files.readString(sql.toPath()));</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    @NoArgsConstructor</b>
+&nbsp;//    @Getter
+&nbsp;    public static class JsonFile {
+&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; data;
+&nbsp;        String objectName;
+&nbsp;        ArrayList&lt;String&gt; required;
+&nbsp;
+&nbsp;        @PostConstruct
+&nbsp;        public void init(){
+<b class="fc">&nbsp;            this.objectName = fixObjectName(objectName);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        public static String fixObjectName(String objectName){
+<b class="fc">&nbsp;            String fixedObjectName = &quot;&quot;;</b>
+<b class="fc">&nbsp;            switch (objectName) {</b>
+<b class="fc">&nbsp;                case &quot;Order&quot;: fixedObjectName = &quot;orders&quot;; break;</b>
+<b class="fc">&nbsp;                case &quot;User&quot;: fixedObjectName = &quot;loginuser&quot;; break;</b>
+<b class="fc">&nbsp;                default: fixedObjectName = objectName; break;</b>
+&nbsp;            }
+<b class="fc">&nbsp;            return fixedObjectName;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        protected String toSQL() {
+<b class="fc">&nbsp;            List&lt;String&gt; keys = new ArrayList&lt;&gt;(data.get(0).keySet());</b>
+<b class="fc">&nbsp;            String fieldNames = String.join(&quot;, &quot;, keys);</b>
+<b class="fc">&nbsp;            String baseSql = &quot;INSERT INTO &quot; + objectName + &quot; (&quot; + fieldNames + &quot;) VALUES\n&quot;;</b>
+<b class="fc">&nbsp;            List&lt;String&gt; valueRows = data.stream()</b>
+<b class="fc">&nbsp;                    .map(obj -&gt; buildValuesRow(obj, keys))</b>
+<b class="fc">&nbsp;                    .collect(Collectors.toList());</b>
+&nbsp;
+&nbsp;//            return (baseSql + String.join(&quot;,\n&quot;, valueRows)).replaceAll(&quot;&#39;(\\d+)\\.0&#39;&quot;, &quot;&#39;$1&#39;&quot;);
+<b class="fc">&nbsp;            return (baseSql + String.join(&quot;,\n&quot;, valueRows)).replaceAll(&quot;&#39;(-?\\d+)\\.0&#39;&quot;, &quot;&#39;$1&#39;&quot;);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private String buildValuesRow(Map&lt;String, Object&gt; obj, List&lt;String&gt; keys) {
+<b class="fc">&nbsp;            List&lt;String&gt; valuesList = keys.stream()</b>
+<b class="fc">&nbsp;                    .map(key -&gt; formatValue(obj.get(key), key))</b>
+<b class="fc">&nbsp;                    .collect(Collectors.toList());</b>
+&nbsp;
+<b class="fc">&nbsp;            return &quot;\t(&quot; + String.join(&quot;, &quot;, valuesList) + &quot;)&quot;;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private String formatValue(Object value, String key) {
+&nbsp;//            if (value instanceof LinkedTreeMap &amp;&amp; ((LinkedTreeMap&lt;?, ?&gt;) value).containsKey(&quot;refClass&quot;)) {
+<b class="fc">&nbsp;            if(value instanceof LinkedTreeMap) { //Az EMS-es JSON kötöttebb formátuma miatt mindig van benne refClass vagy date, hogyha LinkedTreeMap</b>
+<b class="fc">&nbsp;                LinkedTreeMap valueTreeMap = (LinkedTreeMap&lt;?,?&gt;) value;</b>
+<b class="fc">&nbsp;                if(valueTreeMap.containsKey(&quot;refClass&quot;)){</b>
+<b class="fc">&nbsp;                    return generateSelectSQLQuery((LinkedTreeMap&lt;String, Object&gt;) value, key);</b>
+&nbsp;                }
+&nbsp;                else { //original: valueTreeMap.containsKey(&quot;date&quot;)
+<b class="fc">&nbsp;                    return &quot;date(&#39;&quot; + ((LinkedTreeMap&lt;?, ?&gt;) value).get(&quot;date&quot;) + &quot;&#39;)&quot;;</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                return value == null ? &quot;NULL&quot; : &quot;&#39;&quot; + value.toString().replace(&quot;&#39;&quot;, &quot;\\u0027&quot;) + &quot;&#39;&quot;;</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        private static String generateSelectSQLQuery(LinkedTreeMap&lt;String, Object&gt; reference, String columnName) {
+<b class="fc">&nbsp;            String refClass = fixObjectName((String) reference.get(&quot;refClass&quot;));</b>
+<b class="fc">&nbsp;            LinkedTreeMap&lt;String, Object&gt; filter = (LinkedTreeMap&lt;String, Object&gt;) reference.get(&quot;filter&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;            String conditions = filter.entrySet().stream()</b>
+<b class="fc">&nbsp;                    .map(entry -&gt; buildConditionForSelect(entry.getKey(), entry.getValue()))</b>
+<b class="fc">&nbsp;                    .collect(Collectors.joining(&quot; AND &quot;));</b>
+&nbsp;
+<b class="fc">&nbsp;            return &quot;(SELECT id as &quot; + columnName + &quot; FROM &quot; + refClass + &quot; WHERE &quot; + conditions + &quot; LIMIT 1)&quot;;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private static String buildConditionForSelect(String key, Object value) {
+<b class="fc">&nbsp;            return key + (value instanceof String ? &quot; ILIKE \&#39;&quot; + value + &quot;\&#39;&quot; : &quot; = &quot; + value);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;
+&nbsp;        protected void setPrimaryKeyStartIfRequired(EntityManager em){
+<b class="fc">&nbsp;            if(data.get(0).keySet().contains(&quot;id&quot;)){</b>
+<b class="fc">&nbsp;                List&lt;Long&gt; allIds = data.stream().map(v -&gt; ((Double) Double.parseDouble(v.get(&quot;id&quot;).toString())).longValue()).toList();</b>
+<b class="fc">&nbsp;                Long lastId = allIds.stream()</b>
+<b class="fc">&nbsp;                        .mapToLong(v -&gt; v)</b>
+<b class="fc">&nbsp;                        .max().orElseThrow(NoSuchElementException::new);</b>
+&nbsp;
+<b class="fc">&nbsp;                EntityTransaction emt = em.getTransaction();</b>
+<b class="fc">&nbsp;                emt.begin();</b>
+<b class="fc">&nbsp;                Object seq = em.createNativeQuery(&quot;SELECT pg_get_serial_sequence(&#39;&quot; + this.objectName + &quot;&#39;, &#39;id&#39;);&quot;).getSingleResult();</b>
+<b class="fc">&nbsp;                String sql = &quot;ALTER SEQUENCE &quot; + seq + &quot; RESTART WITH &quot; + (lastId + 1);</b>
+<b class="fc">&nbsp;                em.createNativeQuery(sql).executeUpdate();</b>
+<b class="fc">&nbsp;                emt.commit();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

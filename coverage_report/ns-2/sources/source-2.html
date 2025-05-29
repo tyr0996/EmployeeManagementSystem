@@ -1,0 +1,158 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AdminToolsController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: AdminToolsController (hu.martin.ems.controller)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AdminToolsController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AdminToolsController$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.controller;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import hu.martin.ems.core.model.EmsResponse;
+&nbsp;import hu.martin.ems.service.AdminToolsService;
+&nbsp;import hu.martin.ems.vaadin.core.EmsError;
+&nbsp;import jakarta.annotation.security.PermitAll;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.MediaType;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.stereotype.Controller;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;
+&nbsp;import java.time.Instant;
+&nbsp;
+&nbsp;@Controller
+&nbsp;@RequestMapping(&quot;/api/adminTools&quot;)
+&nbsp;@PermitAll
+&nbsp;//@AnonymousAllowed
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;public class AdminToolsController {
+&nbsp;    private AdminToolsService adminToolsService;
+&nbsp;
+&nbsp;    private Gson gson;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public AdminToolsController(AdminToolsService adminToolsService,
+<b class="fc">&nbsp;                                Gson gson){</b>
+<b class="fc">&nbsp;        this.adminToolsService = adminToolsService;</b>
+<b class="fc">&nbsp;        this.gson = gson;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @DeleteMapping(path = &quot;/clearDatabase&quot;, produces = MediaType.APPLICATION_JSON_VALUE)
+&nbsp;    public ResponseEntity&lt;String&gt; clearDatabase() {
+&nbsp;        try{
+<b class="fc">&nbsp;            adminToolsService.clearAllDatabaseTable(true);</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(EmsResponse.Description.CLEAR_DATABASE_SUCCESS, HttpStatus.OK);</b>
+<b class="fc">&nbsp;        } catch (ClassNotFoundException e) {</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(gson.toJson(new EmsError(Instant.now().toEpochMilli(), 500, EmsResponse.Description.CLEAR_DATABASE_FAILED, &quot;/api/adminTools/clearDatabase&quot;)), HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

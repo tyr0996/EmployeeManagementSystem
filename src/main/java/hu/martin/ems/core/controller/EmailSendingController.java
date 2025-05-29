@@ -29,9 +29,8 @@ public class EmailSendingController {
     private final Gson gson = BeanProvider.getBean(Gson.class);
 
 
-    @PostMapping(path = "/sendEmail", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE) //TODO ezt lehet, hogy ki lehet venni a mediatype-okat
+    @PostMapping(path = "/sendEmail", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> send(@RequestBody EmailProperties properties) throws JsonProcessingException {
-        boolean success = service.send(properties);
-        return new ResponseEntity<>(gson.toJson(success), HttpStatus.OK);
+        return new ResponseEntity<>(gson.toJson(service.send(properties)), HttpStatus.OK);
     }
 }

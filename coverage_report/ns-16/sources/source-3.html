@@ -1,0 +1,616 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RoleList</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.vaadin.component.AccessManagement</a>
+</div>
+
+<h1>Coverage Summary for Class: RoleList (hu.martin.ems.vaadin.component.AccessManagement)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RoleList</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (32/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (49/49)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (215/215)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RoleList$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">RoleList$RoleVO</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (33/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (49/49)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (223/223)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.vaadin.component.AccessManagement;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.vaadin.flow.component.Component;
+&nbsp;import com.vaadin.flow.component.Key;
+&nbsp;import com.vaadin.flow.component.button.Button;
+&nbsp;import com.vaadin.flow.component.button.ButtonVariant;
+&nbsp;import com.vaadin.flow.component.checkbox.Checkbox;
+&nbsp;import com.vaadin.flow.component.combobox.ComboBox;
+&nbsp;import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+&nbsp;import com.vaadin.flow.component.dependency.CssImport;
+&nbsp;import com.vaadin.flow.component.dialog.Dialog;
+&nbsp;import com.vaadin.flow.component.formlayout.FormLayout;
+&nbsp;import com.vaadin.flow.component.grid.Grid;
+&nbsp;import com.vaadin.flow.component.grid.HeaderRow;
+&nbsp;import com.vaadin.flow.component.html.NativeLabel;
+&nbsp;import com.vaadin.flow.component.icon.Icon;
+&nbsp;import com.vaadin.flow.component.icon.VaadinIcon;
+&nbsp;import com.vaadin.flow.component.notification.Notification;
+&nbsp;import com.vaadin.flow.component.notification.NotificationVariant;
+&nbsp;import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+&nbsp;import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+&nbsp;import com.vaadin.flow.component.textfield.TextField;
+&nbsp;import com.vaadin.flow.router.Route;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.auth.CustomUserDetailsService;
+&nbsp;import hu.martin.ems.core.config.BeanProvider;
+&nbsp;import hu.martin.ems.core.config.IconProvider;
+&nbsp;import hu.martin.ems.core.model.EmsResponse;
+&nbsp;import hu.martin.ems.core.model.PaginationSetting;
+&nbsp;import hu.martin.ems.core.model.User;
+&nbsp;import hu.martin.ems.model.Permission;
+&nbsp;import hu.martin.ems.model.Role;
+&nbsp;import hu.martin.ems.vaadin.MainView;
+&nbsp;import hu.martin.ems.vaadin.api.PermissionApiClient;
+&nbsp;import hu.martin.ems.vaadin.api.RoleApiClient;
+&nbsp;import hu.martin.ems.vaadin.api.UserApiClient;
+&nbsp;import hu.martin.ems.vaadin.component.BaseVO;
+&nbsp;import hu.martin.ems.vaadin.component.Creatable;
+&nbsp;import jakarta.annotation.security.RolesAllowed;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.vaadin.klaudeta.PaginatedGrid;
+&nbsp;
+&nbsp;import java.util.*;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;@CssImport(&quot;./styles/grid.css&quot;)
+&nbsp;@NeedCleanCoding
+&nbsp;@RolesAllowed(&quot;ROLE_RoleMenuOpenPermission&quot;)
+&nbsp;@Route(value = &quot;/accessManagement/list/role&quot;, layout = MainView.class)
+&nbsp;public class RoleList extends AccessManagement implements Creatable&lt;Role&gt; {
+<b class="fc">&nbsp;    private boolean showDeleted = false;</b>
+&nbsp;    private PaginatedGrid&lt;RoleVO, String&gt; grid;
+&nbsp;    private final PaginationSetting paginationSetting;
+&nbsp;    private HorizontalLayout buttonsLayout;
+&nbsp;    private Button saveButton;
+&nbsp;    private TextField nameField;
+&nbsp;    private MultiSelectComboBox&lt;Permission&gt; permissions;
+&nbsp;    private Role editableRole;
+&nbsp;
+&nbsp;    private Role loggedInUserRole;
+&nbsp;
+&nbsp;    private Dialog createOrModifyDialog;
+&nbsp;    private FormLayout createOrModifyForm;
+&nbsp;    private List&lt;Role&gt; roles;
+&nbsp;    private List&lt;RoleVO&gt; roleVOS;
+&nbsp;
+<b class="fc">&nbsp;    private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);</b>
+<b class="fc">&nbsp;    private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);</b>
+<b class="fc">&nbsp;    private final UserApiClient userApiClient = BeanProvider.getBean(UserApiClient.class);</b>
+&nbsp;
+<b class="fc">&nbsp;    private String roleFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private Set&lt;Permission&gt; permissionsFilterSet = new HashSet&lt;&gt;();</b>
+<b class="fc">&nbsp;    private LinkedHashMap&lt;String, List&lt;String&gt;&gt; mergedFilterMap = new LinkedHashMap&lt;&gt;();</b>
+&nbsp;    private Grid.Column&lt;RoleVO&gt; extraData;
+&nbsp;    private Grid.Column&lt;RoleVO&gt; roleColumn;
+&nbsp;    private Grid.Column&lt;RoleVO&gt; permissionsColumn;
+&nbsp;
+<b class="fc">&nbsp;    private Logger logger = LoggerFactory.getLogger(RoleList.class);</b>
+&nbsp;    List&lt;Permission&gt; permissionList;
+<b class="fc">&nbsp;    private Gson gson = BeanProvider.getBean(Gson.class);</b>
+&nbsp;
+&nbsp;    private MainView mainView;
+&nbsp;
+&nbsp;    EmsResponse loggedInUserResponse;
+&nbsp;
+&nbsp;
+&nbsp;    private void appendCloseButton(Dialog d){
+<b class="fc">&nbsp;        Button closeButton = new Button(new Icon(&quot;lumo&quot;, &quot;cross&quot;),</b>
+<b class="fc">&nbsp;                (e) -&gt; d.close());</b>
+<b class="fc">&nbsp;        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);</b>
+<b class="fc">&nbsp;        d.getHeader().add(closeButton);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public RoleList(PaginationSetting paginationSetting) {
+<b class="fc">&nbsp;        super(paginationSetting);</b>
+<b class="fc">&nbsp;        setLoggedInUserRole();</b>
+<b class="fc">&nbsp;        this.paginationSetting = paginationSetting;</b>
+&nbsp;//        this.mainView = mainView;
+&nbsp;
+<b class="fc">&nbsp;        RoleVO.showDeletedCheckboxFilter.put(&quot;deleted&quot;, Arrays.asList(&quot;0&quot;));</b>
+&nbsp;
+<b class="fc">&nbsp;        this.roles = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        this.createOrModifyForm = new FormLayout();</b>
+&nbsp;
+<b class="fc">&nbsp;        createRoleXPermissionGrid();</b>
+<b class="fc">&nbsp;        createLayout();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createRoleXPermissionGrid(){
+<b class="fc">&nbsp;        setRoles();</b>
+&nbsp;
+<b class="fc">&nbsp;        this.grid = new PaginatedGrid&lt;&gt;(RoleVO.class);</b>
+<b class="fc">&nbsp;        grid.addClassName(&quot;styling&quot;);</b>
+<b class="fc">&nbsp;        grid.setPartNameGenerator(roleVO -&gt; roleVO.original.getDeleted() != 0 ? &quot;deleted&quot; : null);</b>
+<b class="fc">&nbsp;        setGridColumns();</b>
+<b class="fc">&nbsp;        setFilteringHeaderRow();</b>
+&nbsp;
+<b class="fc">&nbsp;        grid.setPageSize(paginationSetting.getPageSize());</b>
+<b class="fc">&nbsp;        grid.setPaginationLocation(paginationSetting.getPaginationLocation());</b>
+<b class="fc">&nbsp;        updateGridItems();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createLayout(){
+<b class="fc">&nbsp;        Button create = new Button(&quot;Create&quot;);</b>
+<b class="fc">&nbsp;        create.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            generateSaveOrUpdateDialog();</b>
+<b class="fc">&nbsp;            createOrModifyDialog.open();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        Checkbox withDeletedCheckbox = new Checkbox(&quot;Show deleted&quot;);</b>
+<b class="fc">&nbsp;        withDeletedCheckbox.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            showDeleted = event.getValue();</b>
+<b class="fc">&nbsp;            List&lt;String&gt; newValue = showDeleted ? Arrays.asList(&quot;1&quot;, &quot;0&quot;) : Arrays.asList(&quot;0&quot;);</b>
+<b class="fc">&nbsp;            RoleVO.showDeletedCheckboxFilter.replace(&quot;deleted&quot;, newValue);</b>
+<b class="fc">&nbsp;            setRoles();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        buttonsLayout = new HorizontalLayout();</b>
+<b class="fc">&nbsp;        buttonsLayout.add(create, withDeletedCheckbox);</b>
+<b class="fc">&nbsp;        buttonsLayout.setAlignSelf(Alignment.CENTER, create);</b>
+&nbsp;
+<b class="fc">&nbsp;        add(buttonsLayout, grid);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void generateSaveOrUpdateDialog() {
+<b class="fc">&nbsp;        createOrModifyDialog = new Dialog((editableRole == null ? &quot;Create&quot; : &quot;Modify&quot;) + &quot; role&quot;);</b>
+<b class="fc">&nbsp;        createSaveOrUpdateForm();</b>
+<b class="fc">&nbsp;        saveButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            saveRoleWithPermissions();</b>
+<b class="fc">&nbsp;            setRoles();</b>
+<b class="fc">&nbsp;            nameField.clear();</b>
+<b class="fc">&nbsp;            createOrModifyDialog.close();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        createOrModifyDialog.add(this.createOrModifyForm);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void createSaveOrUpdateForm(){
+<b class="fc">&nbsp;        this.createOrModifyForm.removeAll();</b>
+<b class="fc">&nbsp;        nameField = new TextField(&quot;Name&quot;);</b>
+<b class="fc">&nbsp;        saveButton = new Button(&quot;Save&quot;);</b>
+&nbsp;        //Button editRoleXPermissionButton = new Button(&quot;Edit permissions&quot;);
+&nbsp;
+<b class="fc">&nbsp;        permissions = new MultiSelectComboBox&lt;&gt;(&quot;Permission&quot;);</b>
+<b class="fc">&nbsp;        ComboBox.ItemFilter&lt;Permission&gt; filterPermission = (permission, filterString) -&gt;</b>
+<b class="fc">&nbsp;                permission.getName().toLowerCase().contains(filterString.toLowerCase());</b>
+<b class="fc">&nbsp;        setupPermissions();</b>
+<b class="fc">&nbsp;        if(permissionList == null){</b>
+<b class="fc">&nbsp;            permissions.setInvalid(true);</b>
+<b class="fc">&nbsp;            permissions.setErrorMessage(&quot;EmsError happened while getting permissions&quot;);</b>
+<b class="fc">&nbsp;            permissions.setEnabled(false);</b>
+<b class="fc">&nbsp;            saveButton.setEnabled(false);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            saveButton.setEnabled(true);</b>
+<b class="fc">&nbsp;            permissions.setInvalid(false);</b>
+<b class="fc">&nbsp;            permissions.setEnabled(true);</b>
+<b class="fc">&nbsp;            permissions.setItems(filterPermission, permissionList);</b>
+<b class="fc">&nbsp;            permissions.setItemLabelGenerator(Permission::getName);</b>
+<b class="fc">&nbsp;            if (editableRole != null) {</b>
+<b class="fc">&nbsp;                nameField.setValue(editableRole.getName());</b>
+<b class="fc">&nbsp;                List&lt;Permission&gt; editableRolePermissions = editableRole.getPermissions().stream().toList();</b>
+<b class="fc">&nbsp;                permissions.setValue(editableRolePermissions);</b>
+&nbsp;
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        appendCloseButton(createOrModifyDialog);</b>
+<b class="fc">&nbsp;        createOrModifyForm.add(nameField, permissions, saveButton);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setupPermissions() {
+<b class="fc">&nbsp;        EmsResponse response = permissionApi.findAll();</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                permissionList = (List&lt;Permission&gt;) response.getResponseData();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                permissionList = null;</b>
+<b class="fc">&nbsp;                logger.error(&quot;Permission findAllError. Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void saveRoleWithPermissions() {
+<b class="fc">&nbsp;        EmsResponse resp = null;</b>
+<b class="fc">&nbsp;        if (editableRole == null) {</b>
+<b class="fc">&nbsp;            Role r = new Role();</b>
+<b class="fc">&nbsp;            r.setPermissions(permissions.getSelectedItems());</b>
+<b class="fc">&nbsp;            r.setName(nameField.getValue());</b>
+<b class="fc">&nbsp;            r.setDeleted(0L);</b>
+<b class="fc">&nbsp;            resp = roleApi.save(r);</b>
+<b class="fc">&nbsp;        }</b>
+&nbsp;        else{
+<b class="fc">&nbsp;            editableRole.setPermissions(permissions.getSelectedItems());</b>
+<b class="fc">&nbsp;            editableRole.setName(nameField.getValue());</b>
+<b class="fc">&nbsp;            resp = roleApi.update(editableRole);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        updateGridItems();</b>
+<b class="fc">&nbsp;        switch (resp.getCode()){</b>
+&nbsp;            case 200: {
+<b class="fc">&nbsp;                Notification.show(&quot;Role &quot; + (editableRole == null ? &quot;saved: &quot; : &quot;updated: &quot;) + nameField.getValue())</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            }
+&nbsp;            default: {
+<b class="fc">&nbsp;                Notification.show(&quot;Role &quot; + (editableRole == null ? &quot;saving &quot; : &quot;modifying &quot;) + &quot;failed: &quot; + resp.getDescription())</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                break;
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setFilteringHeaderRow(){
+<b class="fc">&nbsp;        TextField roleFilter = new TextField();</b>
+<b class="fc">&nbsp;        roleFilter.setPlaceholder(&quot;Search role...&quot;);</b>
+<b class="fc">&nbsp;        roleFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        roleFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            roleFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        MultiSelectComboBox&lt;Permission&gt; permissionsFilter = new MultiSelectComboBox();</b>
+<b class="fc">&nbsp;        ComboBox.ItemFilter&lt;Permission&gt; filterPermission = (permission, filterString) -&gt;</b>
+<b class="fc">&nbsp;                permission.getName().toLowerCase().contains(filterString.toLowerCase());</b>
+<b class="fc">&nbsp;        setupPermissions();</b>
+<b class="fc">&nbsp;        if(permissionList == null){</b>
+<b class="fc">&nbsp;            permissionsFilter.setInvalid(true);</b>
+<b class="fc">&nbsp;            permissionsFilter.setErrorMessage(&quot;EmsError happened while getting permissions&quot;);</b>
+<b class="fc">&nbsp;            permissionsFilter.setEnabled(false);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            permissionsFilter.setInvalid(false);</b>
+<b class="fc">&nbsp;            permissionsFilter.setEnabled(true);</b>
+<b class="fc">&nbsp;            permissionsFilter.setItems(filterPermission, permissionList);</b>
+<b class="fc">&nbsp;            permissionsFilter.setItemLabelGenerator(Permission::getName);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        permissionsFilter.addSelectionListener(v -&gt; {</b>
+<b class="fc">&nbsp;            permissionsFilterSet = v.getAllSelectedItems();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField extraDataFilter = new TextField();</b>
+<b class="fc">&nbsp;        extraDataFilter.addKeyDownListener(Key.ENTER, event -&gt; {</b>
+<b class="fc">&nbsp;            if(extraDataFilter.getValue().isEmpty()){</b>
+<b class="fc">&nbsp;                RoleVO.extraDataFilterMap.clear();</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                RoleVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        HeaderRow filterRow = grid.appendHeaderRow();</b>
+<b class="fc">&nbsp;        filterRow.getCell(roleColumn).setComponent(filterField(roleFilter, &quot;Role&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(permissionsColumn).setComponent(filterField(permissionsFilter, &quot;Permissions&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, &quot;&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setGridColumns(){
+<b class="fc">&nbsp;        roleColumn = this.grid.addColumn(v -&gt; v.role);</b>
+<b class="fc">&nbsp;        permissionsColumn = this.grid.addColumn(v -&gt; v.permissions);</b>
+<b class="fc">&nbsp;        addOptionsColumn();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Component filterField(Component filterField, String title){
+<b class="fc">&nbsp;        VerticalLayout res = new VerticalLayout();</b>
+<b class="fc">&nbsp;        res.getStyle().set(&quot;padding&quot;, &quot;0px&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;display&quot;, &quot;flex&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;align-items&quot;, &quot;center&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;justify-content&quot;, &quot;center&quot;);</b>
+<b class="fc">&nbsp;        filterField.getStyle().set(&quot;display&quot;, &quot;flex&quot;).set(&quot;width&quot;, &quot;100%&quot;);</b>
+<b class="fc">&nbsp;        NativeLabel titleLabel = new NativeLabel(title);</b>
+<b class="fc">&nbsp;        res.add(titleLabel, filterField);</b>
+<b class="fc">&nbsp;        res.setClassName(&quot;vaadin-header-cell-content&quot;);</b>
+<b class="fc">&nbsp;        return res;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void addOptionsColumn(){
+<b class="fc">&nbsp;        extraData = this.grid.addComponentColumn(roleVO -&gt; {</b>
+<b class="fc">&nbsp;            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));</b>
+<b class="fc">&nbsp;            Button deleteButton = new Button(VaadinIcon.TRASH.create());</b>
+<b class="fc">&nbsp;            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);</b>
+<b class="fc">&nbsp;            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());</b>
+<b class="fc">&nbsp;            restoreButton.addClassNames(&quot;info_button_variant&quot;);</b>
+<b class="fc">&nbsp;            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));</b>
+<b class="fc">&nbsp;            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);</b>
+&nbsp;
+<b class="fc">&nbsp;            disableDeletingAndEditingForLoggedInUser(roleVO, deleteButton, editButton);</b>
+&nbsp;
+<b class="fc">&nbsp;            editButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                editableRole = roleVO.original;</b>
+<b class="fc">&nbsp;                generateSaveOrUpdateDialog();</b>
+<b class="fc">&nbsp;                createOrModifyDialog.open();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            restoreButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                roleApi.restore(roleVO.original);</b>
+<b class="fc">&nbsp;                setRoles();</b>
+<b class="fc">&nbsp;                updateGridItems();</b>
+<b class="fc">&nbsp;                Notification.show(&quot;Role restored: &quot; + roleVO.role)</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            deleteButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                EmsResponse resp = this.roleApi.delete(roleVO.original);</b>
+<b class="fc">&nbsp;                switch (resp.getCode()){</b>
+&nbsp;                    case 200: {
+<b class="fc">&nbsp;                        Notification.show(&quot;Role deleted: &quot; + roleVO.original.getName())</b>
+<b class="fc">&nbsp;                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                        updateGridItems();</b>
+<b class="fc">&nbsp;                        break;</b>
+&nbsp;                    }
+&nbsp;                    default: {
+<b class="fc">&nbsp;                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="fc">&nbsp;                setRoles();</b>
+<b class="fc">&nbsp;                updateGridItems();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            permanentDeleteButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                roleApi.permanentlyDelete(roleVO.id);</b>
+&nbsp;//                List&lt;RoleXPermission&gt; rxps = getAlRoleXPermissionByRole(roleVO.original.role);
+&nbsp;//                for(RoleXPermission rxp : rxps){
+&nbsp;//                    roleXPermissionApi.permanentlyDelete(rxp.id);
+&nbsp;//                }
+<b class="fc">&nbsp;                Notification.show(&quot;Role permanently deleted: &quot; + roleVO.role)</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                setRoles();</b>
+<b class="fc">&nbsp;                updateGridItems();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            HorizontalLayout actions = new HorizontalLayout();</b>
+<b class="fc">&nbsp;            if (roleVO.deleted == 0) {</b>
+<b class="fc">&nbsp;                actions.add(editButton, deleteButton);</b>
+&nbsp;            } else {
+<b class="fc">&nbsp;                actions.add(permanentDeleteButton, restoreButton);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            return actions;</b>
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setLoggedInUserRole(){
+<b class="fc">&nbsp;        EmsResponse response = userApiClient.findByUsername(CustomUserDetailsService.getLoggedInUsername());</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200: {
+<b class="fc">&nbsp;                loggedInUserRole = ((User) response.getResponseData()).getRoleRole();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            }
+&nbsp;            default:
+<b class="fc">&nbsp;                Notification.show(&quot;Unable to get the current user. Deleting and editing roles are disabled&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+<b class="fc">&nbsp;                loggedInUserRole = null;</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void disableDeletingAndEditingForLoggedInUser(RoleVO roleVO, Button deleteButton, Button editButton) {
+<b class="fc">&nbsp;        if(loggedInUserRole == null || roleVO.original.equals(loggedInUserRole)){</b>
+<b class="fc">&nbsp;            deleteButton.setEnabled(false);</b>
+<b class="fc">&nbsp;            editButton.setEnabled(false);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateGridItems() {
+<b class="fc">&nbsp;        if(roles != null){</b>
+<b class="fc">&nbsp;            roleVOS = roles.stream().map(RoleVO::new).collect(Collectors.toList());</b>
+<b class="fc">&nbsp;            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));</b>
+&nbsp;        }
+&nbsp;        else{
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Stream&lt;RoleVO&gt; getFilteredStream() {
+<b class="fc">&nbsp;        return roleVOS.stream().filter(this::filterPredicate);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean filterPredicate(RoleVO groupedRoleXPermissionVO) {
+<b class="fc">&nbsp;        boolean roleFilterResult = roleFilterText.isEmpty() || groupedRoleXPermissionVO.role.toLowerCase().contains(roleFilterText.toLowerCase());</b>
+<b class="fc">&nbsp;        HashSet&lt;String&gt; rowPermissions = new HashSet&lt;&gt;(groupedRoleXPermissionVO.permissionSet.stream().map(Permission::getName).toList());</b>
+<b class="fc">&nbsp;        boolean permissionFilterResult = permissionsFilterSet.isEmpty() || rowPermissions.containsAll(permissionsFilterSet.stream().map(Permission::getName).toList());</b>
+<b class="fc">&nbsp;        return roleFilterResult &amp;&amp; permissionFilterResult &amp;&amp; groupedRoleXPermissionVO.filterExtraData();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setRoles(){
+&nbsp;        List&lt;Role&gt; roles;
+&nbsp;        EmsResponse response;
+<b class="fc">&nbsp;        if(showDeleted){</b>
+<b class="fc">&nbsp;            response = roleApi.findAllWithDeleted();</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            response = roleApi.findAll();</b>
+&nbsp;        }
+&nbsp;//        if(showDeleted) {
+&nbsp;//            response = roleApi.findAllWithGraphWithDeleted();
+&nbsp;//        }
+&nbsp;//        else{
+&nbsp;//            response = roleApi.findAllWithGraph();
+&nbsp;//        }
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200 : {
+<b class="fc">&nbsp;                roles = (List&lt;Role&gt;) response.getResponseData();</b>
+&nbsp;//                roles.removeIf(v -&gt; v.getId() &lt; 0);
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            }
+&nbsp;            default : {
+<b class="fc">&nbsp;                Notification.show(&quot;EmsError happened while getting roles&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+<b class="fc">&nbsp;                this.roles = null;</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        this.roles.clear();</b>
+<b class="fc">&nbsp;        this.roles.addAll(roles);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected class RoleVO extends BaseVO {
+&nbsp;        private Role original;
+&nbsp;        private String role;
+&nbsp;        private String permissions;
+&nbsp;
+&nbsp;        private Set&lt;Permission&gt; permissionSet;
+&nbsp;
+&nbsp;        public RoleVO(Role original){
+<b class="fc">&nbsp;            super(original.getId(), original.getDeleted());</b>
+<b class="fc">&nbsp;            this.original = original;</b>
+<b class="fc">&nbsp;            this.role = original.getName();</b>
+<b class="fc">&nbsp;            this.permissions = original.getPermissions().stream()</b>
+<b class="fc">&nbsp;                    .filter(Objects::nonNull)</b>
+<b class="fc">&nbsp;                    .map(Permission::getName)</b>
+<b class="fc">&nbsp;                    .collect(Collectors.joining(&quot;, &quot;));</b>
+<b class="fc">&nbsp;            this.permissionSet = original.getPermissions();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

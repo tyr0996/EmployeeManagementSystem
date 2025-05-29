@@ -1,0 +1,88 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > OrderRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: OrderRepository (hu.martin.ems.repository)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">OrderRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.repository;
+&nbsp;
+&nbsp;import hu.martin.ems.core.repository.BaseRepository;
+&nbsp;import hu.martin.ems.model.Order;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.stereotype.Repository;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@Repository
+&nbsp;@Transactional
+&nbsp;public interface OrderRepository extends BaseRepository&lt;Order, Long&gt; {
+&nbsp;//    @Query(&quot;SELECT oe FROM OrderElement oe WHERE &quot; +
+&nbsp;//            &quot;oe.order.id = :orderId&quot;)
+&nbsp;//    List&lt;OrderElement&gt; getOrderElements(@Param(&quot;orderId&quot;) Long orderId);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT o FROM Order o WHERE o.deleted = 0 AND o.timeOfOrder BETWEEN :from AND :to&quot;)
+&nbsp;    List&lt;Order&gt; getOrdersByTimeOfOrderBetween(LocalDateTime from, LocalDateTime to);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>
