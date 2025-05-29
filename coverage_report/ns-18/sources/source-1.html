@@ -1,0 +1,215 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AdminTools</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.vaadin.component.AdminTools</a>
+</div>
+
+<h1>Coverage Summary for Class: AdminTools (hu.martin.ems.vaadin.component.AdminTools)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AdminTools</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (35/35)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AdminTools$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (35/35)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.vaadin.component.AdminTools;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.vaadin.flow.component.button.Button;
+&nbsp;import com.vaadin.flow.component.dependency.CssImport;
+&nbsp;import com.vaadin.flow.component.html.Anchor;
+&nbsp;import com.vaadin.flow.component.html.Div;
+&nbsp;import com.vaadin.flow.component.html.Paragraph;
+&nbsp;import com.vaadin.flow.component.notification.Notification;
+&nbsp;import com.vaadin.flow.component.notification.NotificationVariant;
+&nbsp;import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+&nbsp;import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+&nbsp;import com.vaadin.flow.router.Route;
+&nbsp;import com.vaadin.flow.server.StreamResource;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.actuator.HealthStatusResponse;
+&nbsp;import hu.martin.ems.core.config.BeanProvider;
+&nbsp;import hu.martin.ems.core.model.EmsResponse;
+&nbsp;import hu.martin.ems.core.model.PaginationSetting;
+&nbsp;import hu.martin.ems.vaadin.MainView;
+&nbsp;import hu.martin.ems.vaadin.api.AdminToolsApiClient;
+&nbsp;import jakarta.annotation.security.RolesAllowed;
+&nbsp;
+&nbsp;import java.io.ByteArrayInputStream;
+&nbsp;import java.util.function.Supplier;
+&nbsp;
+&nbsp;@CssImport(&quot;./styles/ButtonVariant.css&quot;)
+&nbsp;@CssImport(&quot;./styles/grid.css&quot;)
+&nbsp;@Route(value = &quot;adminTools&quot;, layout = MainView.class)
+&nbsp;@NeedCleanCoding
+&nbsp;
+&nbsp;//@SpringComponent
+&nbsp;@RolesAllowed(&quot;ROLE_AdminToolsMenuOpenPermission&quot;)
+&nbsp;//@PostAuthorize(&quot;hasAuthority(&#39;ROLE_AdminToolsMenuOpenPermission&#39;)&quot;)
+&nbsp;public class AdminTools extends VerticalLayout {
+<b class="fc">&nbsp;    private final AdminToolsApiClient adminToolsApiClient = BeanProvider.getBean(AdminToolsApiClient.class);</b>
+<b class="fc">&nbsp;    private final Gson gson = BeanProvider.getBean(Gson.class);</b>
+&nbsp;
+<b class="fc">&nbsp;    public AdminTools(PaginationSetting paginationSetting) {</b>
+<b class="fc">&nbsp;        Button clearDatabaseButton = new Button(&quot;Clear database&quot;);</b>
+<b class="fc">&nbsp;        Anchor exportEndpoints = createDownloadAnchor(&quot;Export APIs&quot;, adminToolsApiClient::exportApis);</b>
+<b class="fc">&nbsp;        add(clearDatabaseButton, exportEndpoints);</b>
+&nbsp;
+<b class="fc">&nbsp;        clearDatabaseButton.addClickListener(v -&gt; {</b>
+<b class="fc">&nbsp;            EmsResponse response = adminToolsApiClient.clearDatabase();</b>
+<b class="fc">&nbsp;            Notification.show(response.getDescription()).addThemeVariants(</b>
+<b class="fc">&nbsp;                    response.getCode() == 200 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR);</b>
+&nbsp;        });
+<b class="fc">&nbsp;        EmsResponse status = adminToolsApiClient.healthStatus();</b>
+<b class="fc">&nbsp;        Div actuator = new Div();</b>
+<b class="fc">&nbsp;        HorizontalLayout health = new HorizontalLayout();</b>
+<b class="fc">&nbsp;        health.add(new Paragraph(&quot;Health status&quot;));</b>
+<b class="fc">&nbsp;        String healthStatus = gson.fromJson(status.getResponseData().toString(), HealthStatusResponse.class).getStatus();</b>
+<b class="fc">&nbsp;        Paragraph healthStatusParagraph = new Paragraph(healthStatus);</b>
+<b class="fc">&nbsp;        healthStatusParagraph.getStyle().set(&quot;color&quot;, healthStatus.equals(&quot;UP&quot;) ? &quot;green&quot; : &quot;red&quot;);</b>
+<b class="fc">&nbsp;        health.add(healthStatusParagraph);</b>
+&nbsp;//        actuator.add(new Div(.toString()));
+<b class="fc">&nbsp;        actuator.add(health);</b>
+<b class="fc">&nbsp;        add(actuator);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Anchor createDownloadAnchor(String buttonText, Supplier&lt;EmsResponse&gt; apiCall){
+<b class="fc">&nbsp;        Button downloadButton = new Button(buttonText);</b>
+<b class="fc">&nbsp;        Anchor downloadAnchor = new Anchor();</b>
+<b class="fc">&nbsp;        downloadAnchor.add(downloadButton);</b>
+&nbsp;
+<b class="fc">&nbsp;        downloadButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            EmsResponse response = apiCall.get();</b>
+<b class="fc">&nbsp;            if (response.getCode() == 200) {</b>
+<b class="fc">&nbsp;                StreamResource resource = new StreamResource(&quot;ems_apis.json&quot;, () -&gt; (ByteArrayInputStream) response.getResponseData());</b>
+<b class="fc">&nbsp;                downloadAnchor.setHref(resource);</b>
+<b class="fc">&nbsp;                downloadAnchor.getElement().setAttribute(&quot;download&quot;, &quot;ems_apis.json&quot;);</b>
+<b class="fc">&nbsp;                downloadAnchor.getElement().callJsFunction(&quot;click&quot;);</b>
+<b class="fc">&nbsp;            } else {</b>
+<b class="fc">&nbsp;                downloadAnchor.setHref(&quot;&quot;);</b>
+<b class="fc">&nbsp;                Notification.show(response.getDescription())</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;            }
+&nbsp;        });
+<b class="fc">&nbsp;        return downloadAnchor;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

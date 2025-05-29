@@ -1,0 +1,731 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > OrderElementList</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.vaadin.component.OrderElement</a>
+</div>
+
+<h1>Coverage Summary for Class: OrderElementList (hu.martin.ems.vaadin.component.OrderElement)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OrderElementList</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (35/35)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (58/58)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (297/297)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">OrderElementList$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">OrderElementList$OrderElementVO</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (15/15)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (37/37)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (66/66)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (312/312)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.vaadin.component.OrderElement;
+&nbsp;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.vaadin.flow.component.Component;
+&nbsp;import com.vaadin.flow.component.Key;
+&nbsp;import com.vaadin.flow.component.button.Button;
+&nbsp;import com.vaadin.flow.component.button.ButtonVariant;
+&nbsp;import com.vaadin.flow.component.checkbox.Checkbox;
+&nbsp;import com.vaadin.flow.component.combobox.ComboBox;
+&nbsp;import com.vaadin.flow.component.dependency.CssImport;
+&nbsp;import com.vaadin.flow.component.dialog.Dialog;
+&nbsp;import com.vaadin.flow.component.formlayout.FormLayout;
+&nbsp;import com.vaadin.flow.component.grid.Grid;
+&nbsp;import com.vaadin.flow.component.grid.HeaderRow;
+&nbsp;import com.vaadin.flow.component.html.NativeLabel;
+&nbsp;import com.vaadin.flow.component.icon.Icon;
+&nbsp;import com.vaadin.flow.component.icon.VaadinIcon;
+&nbsp;import com.vaadin.flow.component.notification.Notification;
+&nbsp;import com.vaadin.flow.component.notification.NotificationVariant;
+&nbsp;import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+&nbsp;import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+&nbsp;import com.vaadin.flow.component.textfield.NumberField;
+&nbsp;import com.vaadin.flow.component.textfield.TextField;
+&nbsp;import com.vaadin.flow.router.Route;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.config.BeanProvider;
+&nbsp;import hu.martin.ems.core.config.IconProvider;
+&nbsp;import hu.martin.ems.core.model.EmsResponse;
+&nbsp;import hu.martin.ems.core.model.PaginationSetting;
+&nbsp;import hu.martin.ems.model.Customer;
+&nbsp;import hu.martin.ems.model.OrderElement;
+&nbsp;import hu.martin.ems.model.Product;
+&nbsp;import hu.martin.ems.model.Supplier;
+&nbsp;import hu.martin.ems.vaadin.MainView;
+&nbsp;import hu.martin.ems.vaadin.api.*;
+&nbsp;import hu.martin.ems.vaadin.component.BaseVO;
+&nbsp;import hu.martin.ems.vaadin.component.Creatable;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.vaadin.klaudeta.PaginatedGrid;
+&nbsp;
+&nbsp;import jakarta.annotation.security.RolesAllowed;
+&nbsp;import java.util.*;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;@Route(value = &quot;orderElement/list&quot;, layout = MainView.class)
+&nbsp;@CssImport(&quot;./styles/ButtonVariant.css&quot;)
+&nbsp;@RolesAllowed(&quot;ROLE_OrderElementMenuOpenPermission&quot;)
+&nbsp;@CssImport(&quot;./styles/grid.css&quot;)
+&nbsp;@NeedCleanCoding
+&nbsp;public class OrderElementList extends VerticalLayout implements Creatable&lt;OrderElement&gt; {
+&nbsp;
+<b class="fc">&nbsp;    private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);</b>
+<b class="fc">&nbsp;    private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);</b>
+<b class="fc">&nbsp;    private final ProductApiClient productApi = BeanProvider.getBean(ProductApiClient.class);</b>
+<b class="fc">&nbsp;    private final CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);</b>
+<b class="fc">&nbsp;    private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);</b>
+<b class="fc">&nbsp;    private final Gson gson = BeanProvider.getBean(Gson.class);</b>
+<b class="fc">&nbsp;    private boolean showDeleted = false;</b>
+&nbsp;    private PaginatedGrid&lt;OrderElementVO, String&gt; grid;
+&nbsp;    
+&nbsp;    private List&lt;OrderElementVO&gt; orderElementVOS;
+&nbsp;
+&nbsp;    private final PaginationSetting paginationSetting;
+&nbsp;    private Grid.Column&lt;OrderElementVO&gt; customerOrSupplierName;
+&nbsp;    private Grid.Column&lt;OrderElementVO&gt; grossPriceColumn;
+&nbsp;    private Grid.Column&lt;OrderElementVO&gt; netPriceColumn;
+&nbsp;    private Grid.Column&lt;OrderElementVO&gt; orderColumn;
+&nbsp;    private Grid.Column&lt;OrderElementVO&gt; productColumn;
+&nbsp;    private Grid.Column&lt;OrderElementVO&gt; taxKeyColumn;
+&nbsp;    private Grid.Column&lt;OrderElementVO&gt; unitColumn;
+&nbsp;    private Grid.Column&lt;OrderElementVO&gt; unitNetPriceColumn;
+&nbsp;
+<b class="fc">&nbsp;    private LinkedHashMap&lt;String, List&lt;String&gt;&gt; mergedFilterMap = new LinkedHashMap&lt;&gt;();</b>
+&nbsp;    private Grid.Column&lt;OrderElementVO&gt; extraData;
+&nbsp;
+<b class="fc">&nbsp;    private String grossPriceFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private String netPriceFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private String orderFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private String productFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private String taxKeyFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private String unitFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private String unitNetPriceFilterText = &quot;&quot;;</b>
+<b class="fc">&nbsp;    private String customerOrSupplierNameFilterText = &quot;&quot;;</b>
+&nbsp;    List&lt;OrderElement&gt; orderElementList;
+&nbsp;    List&lt;Product&gt; productList;
+&nbsp;    List&lt;Customer&gt; customerList;
+&nbsp;    List&lt;Supplier&gt; supplierList;
+<b class="fc">&nbsp;    Logger logger = LoggerFactory.getLogger(OrderElement.class);</b>
+&nbsp;    private MainView mainView;
+&nbsp;
+&nbsp;    @Autowired
+<b class="fc">&nbsp;    public OrderElementList(PaginationSetting paginationSetting) {</b>
+<b class="fc">&nbsp;        this.paginationSetting = paginationSetting;</b>
+<b class="fc">&nbsp;        OrderElementVO.showDeletedCheckboxFilter.put(&quot;deleted&quot;, Arrays.asList(&quot;0&quot;));</b>
+&nbsp;
+<b class="fc">&nbsp;        this.grid = new PaginatedGrid&lt;&gt;(OrderElementVO.class);</b>
+<b class="fc">&nbsp;        setupOrderElements();</b>
+<b class="fc">&nbsp;        if(orderElementList == null){</b>
+<b class="fc">&nbsp;            Notification.show(&quot;Getting order elements failed&quot;)</b>
+<b class="fc">&nbsp;                    .addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+<b class="fc">&nbsp;            orderElementList = new ArrayList&lt;&gt;();</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        updateGridItems();</b>
+&nbsp;
+<b class="fc">&nbsp;        grossPriceColumn = grid.addColumn(v -&gt; v.grossPrice);</b>
+<b class="fc">&nbsp;        netPriceColumn = grid.addColumn(v -&gt; v.netPrice);</b>
+<b class="fc">&nbsp;        orderColumn = grid.addColumn(v -&gt; v.order);</b>
+<b class="fc">&nbsp;        productColumn = grid.addColumn(v -&gt; v.product);</b>
+<b class="fc">&nbsp;        taxKeyColumn = grid.addColumn(v -&gt; v.taxKey);</b>
+<b class="fc">&nbsp;        unitColumn = grid.addColumn(v -&gt; v.unit);</b>
+<b class="fc">&nbsp;        unitNetPriceColumn = grid.addColumn(v -&gt; v.unitNetPrice);</b>
+<b class="fc">&nbsp;        customerOrSupplierName = grid.addColumn(v -&gt; v.customerOrSupplierName);</b>
+&nbsp;
+<b class="fc">&nbsp;        grid.addClassName(&quot;styling&quot;);</b>
+<b class="fc">&nbsp;        grid.setPartNameGenerator(orderElementVO -&gt; orderElementVO.deleted != 0 ? &quot;deleted&quot; : null);</b>
+<b class="fc">&nbsp;        grid.setPageSize(paginationSetting.getPageSize());</b>
+<b class="fc">&nbsp;        grid.setPaginationLocation(paginationSetting.getPaginationLocation());</b>
+&nbsp;
+&nbsp;
+&nbsp;        //region Options column
+<b class="fc">&nbsp;        extraData = this.grid.addComponentColumn(orderElement -&gt; {</b>
+<b class="fc">&nbsp;            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));</b>
+<b class="fc">&nbsp;            Button deleteButton = new Button(VaadinIcon.TRASH.create());</b>
+<b class="fc">&nbsp;            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);</b>
+<b class="fc">&nbsp;            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());</b>
+<b class="fc">&nbsp;            restoreButton.addClassNames(&quot;info_button_variant&quot;);</b>
+<b class="fc">&nbsp;            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));</b>
+<b class="fc">&nbsp;            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);</b>
+&nbsp;
+<b class="fc">&nbsp;            editButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                Dialog d = getSaveOrUpdateDialog(orderElement.original);</b>
+<b class="fc">&nbsp;                d.open();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            restoreButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                this.orderElementApi.restore(orderElement.original);</b>
+<b class="fc">&nbsp;                Notification.show(&quot;OrderElement restored: &quot; + orderElement.original.getName())</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                setupOrderElements();</b>
+<b class="fc">&nbsp;                updateGridItems();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            deleteButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                EmsResponse resp = this.orderElementApi.delete(orderElement.original);</b>
+<b class="fc">&nbsp;                switch (resp.getCode()){</b>
+&nbsp;                    case 200: {
+<b class="fc">&nbsp;                        Notification.show(&quot;OrderElement deleted: &quot; + orderElement.original.getName())</b>
+<b class="fc">&nbsp;                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                        updateGridItems();</b>
+<b class="fc">&nbsp;                        break;</b>
+&nbsp;                    }
+&nbsp;                    default: {
+<b class="fc">&nbsp;                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="fc">&nbsp;                setupOrderElements();</b>
+<b class="fc">&nbsp;                updateGridItems();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            permanentDeleteButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;                this.orderElementApi.permanentlyDelete(orderElement.original.getId());</b>
+<b class="fc">&nbsp;                Notification.show(&quot;OrderElement permanently deleted: &quot; + orderElement.original.getName())</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                setupOrderElements();</b>
+<b class="fc">&nbsp;                updateGridItems();</b>
+&nbsp;            });
+&nbsp;
+<b class="fc">&nbsp;            HorizontalLayout actions = new HorizontalLayout();</b>
+<b class="fc">&nbsp;            if (orderElement.original.getDeleted() == 0) {</b>
+<b class="fc">&nbsp;                actions.add(editButton, deleteButton);</b>
+&nbsp;            } else {
+<b class="fc">&nbsp;                actions.add(permanentDeleteButton, restoreButton);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            return actions;</b>
+&nbsp;        });
+<b class="fc">&nbsp;        setFilteringHeaderRow();</b>
+&nbsp;
+&nbsp;        //endregion
+&nbsp;
+<b class="fc">&nbsp;        Button create = new Button(&quot;Create&quot;);</b>
+<b class="fc">&nbsp;        create.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            Dialog d = getSaveOrUpdateDialog(null);</b>
+<b class="fc">&nbsp;            d.open();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        Checkbox showDeletedCheckbox = new Checkbox(&quot;Show deleted&quot;);</b>
+<b class="fc">&nbsp;        showDeletedCheckbox.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            showDeleted = event.getValue();</b>
+<b class="fc">&nbsp;            List&lt;String&gt; newValue = showDeleted ? Arrays.asList(&quot;1&quot;, &quot;0&quot;) : Arrays.asList(&quot;0&quot;);</b>
+<b class="fc">&nbsp;            OrderElementVO.showDeletedCheckboxFilter.replace(&quot;deleted&quot;, newValue);</b>
+<b class="fc">&nbsp;            setupOrderElements();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+<b class="fc">&nbsp;        HorizontalLayout hl = new HorizontalLayout();</b>
+<b class="fc">&nbsp;        hl.add(showDeletedCheckbox, create);</b>
+<b class="fc">&nbsp;        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);</b>
+<b class="fc">&nbsp;        hl.setAlignSelf(Alignment.CENTER, create);</b>
+&nbsp;
+<b class="fc">&nbsp;        add(hl, grid);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setupOrderElements() {
+<b class="fc">&nbsp;        EmsResponse response = orderElementApi.findAllWithDeleted();</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                orderElementList = (List&lt;OrderElement&gt;) response.getResponseData();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                orderElementList = null;</b>
+<b class="fc">&nbsp;                logger.error(&quot;OrderElement findAllError. Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private Stream&lt;OrderElementVO&gt; getFilteredStream() {
+<b class="fc">&nbsp;        return orderElementVOS.stream().filter(orderElementVO -&gt;</b>
+<b class="fc">&nbsp;                filterField(customerOrSupplierNameFilterText, orderElementVO.customerOrSupplierName) &amp;&amp;</b>
+<b class="fc">&nbsp;                filterField(grossPriceFilterText, orderElementVO.grossPrice.toString()) &amp;&amp;</b>
+<b class="fc">&nbsp;                filterField(netPriceFilterText, orderElementVO.netPrice.toString()) &amp;&amp;</b>
+<b class="fc">&nbsp;                filterFieldWithNullFilter(orderFilterText, orderElementVO.order) &amp;&amp;</b>
+<b class="fc">&nbsp;                filterField(productFilterText, orderElementVO.product) &amp;&amp;</b>
+<b class="fc">&nbsp;                filterField(taxKeyFilterText, orderElementVO.taxKey) &amp;&amp;</b>
+<b class="fc">&nbsp;                filterField(unitFilterText, orderElementVO.unit.toString()) &amp;&amp;</b>
+<b class="fc">&nbsp;                filterField(unitNetPriceFilterText, orderElementVO.unitNetPrice.toString()) &amp;&amp;</b>
+<b class="fc">&nbsp;                orderElementVO.filterExtraData()</b>
+&nbsp;
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    //TODO megcsinálni a többinél is
+&nbsp;    private boolean filterFieldWithNullFilter(String filterFieldText, String fieldValue){
+<b class="fc">&nbsp;        if(filterFieldText.toLowerCase().equals(&quot;null&quot;)){</b>
+<b class="fc">&nbsp;            return fieldValue.isEmpty();</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            return filterField(filterFieldText, fieldValue);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean filterField(String filterFieldText, String fieldValue){
+&nbsp;//        if(taxKeyFilterText.equals(filterFieldText))
+&nbsp;//        System.out.println(&quot;Itt az elsõ: &quot; + filterFieldText.isEmpty() + &quot;   és a második &quot; + fieldValue.toLowerCase().contains(filterFieldText.toLowerCase()));
+<b class="fc">&nbsp;        return filterFieldText.isEmpty() || fieldValue.toLowerCase().contains(filterFieldText.toLowerCase());</b>
+&nbsp;    }
+&nbsp;    
+&nbsp;    private Component createFilterField(TextField filterField, String title){
+<b class="fc">&nbsp;        VerticalLayout res = new VerticalLayout();</b>
+<b class="fc">&nbsp;        res.getStyle().set(&quot;padding&quot;, &quot;0px&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;display&quot;, &quot;flex&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;align-items&quot;, &quot;center&quot;)</b>
+<b class="fc">&nbsp;                .set(&quot;justify-content&quot;, &quot;center&quot;);</b>
+<b class="fc">&nbsp;        filterField.getStyle().set(&quot;display&quot;, &quot;flex&quot;).set(&quot;width&quot;, &quot;100%&quot;);</b>
+<b class="fc">&nbsp;        NativeLabel titleLabel = new NativeLabel(title);</b>
+<b class="fc">&nbsp;        res.add(titleLabel, filterField);</b>
+<b class="fc">&nbsp;        res.setClassName(&quot;vaadin-header-cell-content&quot;);</b>
+<b class="fc">&nbsp;        return res;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setFilteringHeaderRow(){
+<b class="fc">&nbsp;        TextField grossPriceFilter = new TextField();</b>
+<b class="fc">&nbsp;        grossPriceFilter.setPlaceholder(&quot;Search gross price...&quot;);</b>
+<b class="fc">&nbsp;        grossPriceFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        grossPriceFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            grossPriceFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField netPriceFilter = new TextField();</b>
+<b class="fc">&nbsp;        netPriceFilter.setPlaceholder(&quot;Search net price...&quot;);</b>
+<b class="fc">&nbsp;        netPriceFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        netPriceFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            netPriceFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField orderFilter = new TextField();</b>
+<b class="fc">&nbsp;        orderFilter.setPlaceholder(&quot;Search order...&quot;);</b>
+<b class="fc">&nbsp;        orderFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        orderFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            orderFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField productFilter = new TextField();</b>
+<b class="fc">&nbsp;        productFilter.setPlaceholder(&quot;Search product...&quot;);</b>
+<b class="fc">&nbsp;        productFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        productFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            productFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField taxKeyFilter = new TextField();</b>
+<b class="fc">&nbsp;        taxKeyFilter.setPlaceholder(&quot;Search tax key...&quot;);</b>
+<b class="fc">&nbsp;        taxKeyFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        taxKeyFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            taxKeyFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField unitFilter = new TextField();</b>
+<b class="fc">&nbsp;        unitFilter.setPlaceholder(&quot;Search unit...&quot;);</b>
+<b class="fc">&nbsp;        unitFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        unitFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            unitFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField unitNetPriceFilter = new TextField();</b>
+<b class="fc">&nbsp;        unitNetPriceFilter.setPlaceholder(&quot;Search unit net price...&quot;);</b>
+<b class="fc">&nbsp;        unitNetPriceFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        unitNetPriceFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            unitNetPriceFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField customerOrSupplierNameFilter = new TextField();</b>
+<b class="fc">&nbsp;        customerOrSupplierNameFilter.setPlaceholder(&quot;Search customer/supplier...&quot;);</b>
+<b class="fc">&nbsp;        customerOrSupplierNameFilter.setClearButtonVisible(true);</b>
+<b class="fc">&nbsp;        customerOrSupplierNameFilter.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            customerOrSupplierNameFilterText = event.getValue().trim();</b>
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        TextField extraDataFilter = new TextField();</b>
+<b class="fc">&nbsp;        extraDataFilter.addKeyDownListener(Key.ENTER, event -&gt; {</b>
+<b class="fc">&nbsp;            if(extraDataFilter.getValue().isEmpty()){</b>
+<b class="fc">&nbsp;                OrderElementVO.extraDataFilterMap.clear();</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                OrderElementVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            grid.getDataProvider().refreshAll();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+&nbsp;
+&nbsp;        // Header-row hozzáadása a Grid-hez és a szûrõk elhelyezése
+<b class="fc">&nbsp;        HeaderRow filterRow = grid.appendHeaderRow();;</b>
+<b class="fc">&nbsp;        filterRow.getCell(grossPriceColumn).setComponent(createFilterField(grossPriceFilter, &quot;Gross price&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(netPriceColumn).setComponent(createFilterField(netPriceFilter, &quot;Net price&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(orderColumn).setComponent(createFilterField(orderFilter, &quot;Order&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(productColumn).setComponent(createFilterField(productFilter, &quot;Product&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(taxKeyColumn).setComponent(createFilterField(taxKeyFilter, &quot;Tax key&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(unitColumn).setComponent(createFilterField(unitFilter, &quot;Unit&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(unitNetPriceColumn).setComponent(createFilterField(unitNetPriceFilter, &quot;Unit net price&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(customerOrSupplierName).setComponent(createFilterField(customerOrSupplierNameFilter, &quot;Customer/Supplier&quot;));</b>
+<b class="fc">&nbsp;        filterRow.getCell(extraData).setComponent(createFilterField(extraDataFilter, &quot;&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void updateGridItems() {
+<b class="fc">&nbsp;        if(orderElementList == null){</b>
+<b class="fc">&nbsp;            Notification.show(&quot;Getting order elements failed&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            orderElementVOS = orderElementList.stream().map(OrderElementVO::new).collect(Collectors.toList());</b>
+<b class="fc">&nbsp;            this.grid.setItems(getFilteredStream().collect(Collectors.toList()));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void appendCloseButton(Dialog d){
+<b class="fc">&nbsp;        Button closeButton = new Button(new Icon(&quot;lumo&quot;, &quot;cross&quot;),</b>
+<b class="fc">&nbsp;                (e) -&gt; d.close());</b>
+<b class="fc">&nbsp;        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);</b>
+<b class="fc">&nbsp;        d.getHeader().add(closeButton);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public Dialog getSaveOrUpdateDialog(OrderElement entity) {
+<b class="fc">&nbsp;        Dialog createDialog = new Dialog((entity == null ? &quot;Create&quot; : &quot;Modify&quot;) + &quot; order element&quot;);</b>
+<b class="fc">&nbsp;        appendCloseButton(createDialog);</b>
+<b class="fc">&nbsp;        FormLayout formLayout = new FormLayout();</b>
+&nbsp;
+<b class="fc">&nbsp;        Button saveButton = new Button(&quot;Save&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        setupProducts();</b>
+<b class="fc">&nbsp;        ComboBox&lt;Product&gt; products = new ComboBox&lt;&gt;(&quot;Product&quot;);</b>
+<b class="fc">&nbsp;        ComboBox.ItemFilter&lt;Product&gt; productFilter = (element, filterString) -&gt;</b>
+<b class="fc">&nbsp;                element.getName().toLowerCase().contains(filterString.toLowerCase());</b>
+<b class="fc">&nbsp;        if(productList == null){</b>
+<b class="fc">&nbsp;            products.setInvalid(true);</b>
+<b class="fc">&nbsp;            products.setEnabled(false);</b>
+<b class="fc">&nbsp;            products.setErrorMessage(&quot;EmsError happened while getting products&quot;);</b>
+<b class="fc">&nbsp;            saveButton.setEnabled(false);</b>
+&nbsp;        }
+&nbsp;        else {
+<b class="fc">&nbsp;            products.setItems(productFilter, productList);</b>
+<b class="fc">&nbsp;            products.setItemLabelGenerator(Product::getName);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        setupCustomers();</b>
+<b class="fc">&nbsp;        ComboBox&lt;Customer&gt; customer = new ComboBox&lt;&gt;(&quot;Customer&quot;);</b>
+<b class="fc">&nbsp;        ComboBox.ItemFilter&lt;Customer&gt; customerFilter = (element, filterString) -&gt;</b>
+<b class="fc">&nbsp;                element.getName().toLowerCase().contains(filterString.toLowerCase());</b>
+&nbsp;
+<b class="fc">&nbsp;        if(customerList == null){</b>
+<b class="fc">&nbsp;            customer.setInvalid(true);</b>
+<b class="fc">&nbsp;            customer.setEnabled(false);</b>
+<b class="fc">&nbsp;            customer.setErrorMessage(&quot;EmsError happened while getting customers&quot;);</b>
+<b class="fc">&nbsp;            saveButton.setEnabled(false);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            customer.setItems(customerFilter, customerList);</b>
+<b class="fc">&nbsp;            customer.setItemLabelGenerator(Customer::getName);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        setupSuppliers();</b>
+<b class="fc">&nbsp;        ComboBox&lt;Supplier&gt; supplier = new ComboBox&lt;&gt;(&quot;Supplier&quot;);</b>
+<b class="fc">&nbsp;        ComboBox.ItemFilter&lt;Supplier&gt; supplierFilter = (element, filterString) -&gt;</b>
+<b class="fc">&nbsp;                element.getName().toLowerCase().contains(filterString.toLowerCase());</b>
+<b class="fc">&nbsp;        if(supplierList == null){</b>
+<b class="fc">&nbsp;            supplier.setInvalid(true);</b>
+<b class="fc">&nbsp;            supplier.setEnabled(false);</b>
+<b class="fc">&nbsp;            supplier.setErrorMessage(&quot;EmsError happened while getting suppliers&quot;);</b>
+<b class="fc">&nbsp;            saveButton.setEnabled(false);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            supplier.setItems(supplierFilter, supplierList);</b>
+<b class="fc">&nbsp;            supplier.setItemLabelGenerator(Supplier::getName);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        NumberField unitField = new NumberField(&quot;Unit&quot;);</b>
+&nbsp;
+&nbsp;
+<b class="fc">&nbsp;        if (entity != null) {</b>
+<b class="fc">&nbsp;            products.setValue(entity.getProduct());</b>
+&nbsp;//            orders.setValue(entity.getOrder());
+<b class="fc">&nbsp;            unitField.setValue(entity.getUnit().doubleValue());</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        saveButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            OrderElement orderElement = Objects.requireNonNullElseGet(entity, OrderElement::new);</b>
+<b class="fc">&nbsp;            orderElement.setProduct(products.getValue());</b>
+&nbsp;            //orderElement.setOrder(orders.getValue());
+<b class="fc">&nbsp;            orderElement.setUnit(unitField.getValue().intValue());</b>
+<b class="fc">&nbsp;            orderElement.setUnitNetPrice(products.getValue().getSellingPriceNet().intValue());</b>
+<b class="fc">&nbsp;            orderElement.setTaxKey(products.getValue().getTaxKey());</b>
+<b class="fc">&nbsp;            orderElement.setNetPrice(orderElement.getUnitNetPrice() * orderElement.getUnit());</b>
+<b class="fc">&nbsp;            orderElement.setSupplier(supplier.getValue());</b>
+<b class="fc">&nbsp;            orderElement.setCustomer(customer.getValue());</b>
+<b class="fc">&nbsp;            double tax = (Double.parseDouble(orderElement.getTaxKey().getName()) / 100) + 1;</b>
+<b class="fc">&nbsp;            orderElement.setGrossPrice(((Double) Math.ceil(tax * orderElement.getNetPrice())).intValue());</b>
+<b class="fc">&nbsp;            orderElement.setDeleted(0L);</b>
+<b class="fc">&nbsp;            orderElement.setName(products.getValue().getName());</b>
+<b class="fc">&nbsp;            orderElement.setTaxPrice(orderElement.getGrossPrice().doubleValue() - orderElement.getNetPrice().doubleValue());</b>
+<b class="fc">&nbsp;            EmsResponse response = null;</b>
+<b class="fc">&nbsp;            if(entity != null){</b>
+<b class="fc">&nbsp;                response = orderElementApi.update(orderElement);</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                response = orderElementApi.save(orderElement);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            switch (response.getCode()){</b>
+&nbsp;                case 200: {
+<b class="fc">&nbsp;                    Notification.show(&quot;OrderElement &quot; + (entity == null ? &quot;saved: &quot; : &quot;updated: &quot;) + orderElement)</b>
+<b class="fc">&nbsp;                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                    break; //TODO</b>
+&nbsp;                }
+&nbsp;
+&nbsp;                default:{
+<b class="fc">&nbsp;                    Notification.show(&quot;OrderElement &quot; + (entity == null ? &quot;saving &quot; : &quot;modifying &quot; ) + &quot;failed: &quot; + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                    break; //TODO
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;
+<b class="fc">&nbsp;            products.setValue(null);</b>
+<b class="fc">&nbsp;            unitField.setValue(null);</b>
+<b class="fc">&nbsp;            createDialog.close();</b>
+<b class="fc">&nbsp;            setupOrderElements();</b>
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        formLayout.add(products, unitField, supplier, customer, saveButton);</b>
+<b class="fc">&nbsp;        createDialog.add(formLayout);</b>
+<b class="fc">&nbsp;        return createDialog;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setupSuppliers() {
+<b class="fc">&nbsp;        EmsResponse response = supplierApi.findAll();</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                supplierList = (List&lt;Supplier&gt;) response.getResponseData();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                supplierList = null;</b>
+<b class="fc">&nbsp;                logger.error(&quot;Supplier findAllError. Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+<b class="fc">&nbsp;                Notification.show(&quot;EmsError happened while getting suppliers&quot;)</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setupCustomers() {
+<b class="fc">&nbsp;        EmsResponse response = customerApi.findAll();</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                customerList = (List&lt;Customer&gt;) response.getResponseData();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                customerList = null;</b>
+<b class="fc">&nbsp;                logger.error(&quot;Customers findAllError. Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setupProducts() {
+<b class="fc">&nbsp;        EmsResponse response = productApi.findAll();</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                productList = (List&lt;Product&gt;) response.getResponseData();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                productList = null;</b>
+<b class="fc">&nbsp;                logger.error(&quot;Product findAllError. Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @NeedCleanCoding
+&nbsp;public class OrderElementVO extends BaseVO {
+&nbsp;        private OrderElement original;
+&nbsp;        private String product;
+&nbsp;        private String order;
+&nbsp;        private String taxKey;
+&nbsp;        private Integer unit;
+&nbsp;        private Integer unitNetPrice;
+&nbsp;        private Integer netPrice;
+&nbsp;        private Integer grossPrice;
+&nbsp;        private String customerOrSupplierName;
+&nbsp;
+&nbsp;        public OrderElementVO(OrderElement orderElement) {
+<b class="fc">&nbsp;            super(orderElement.id, orderElement.getDeleted());</b>
+<b class="fc">&nbsp;            this.original = orderElement;</b>
+<b class="fc">&nbsp;            this.product = original.getProduct().getName();</b>
+<b class="fc">&nbsp;            this.order = original.getOrderId() == null ? &quot;&quot; : original.getOrderId().toString();</b>
+<b class="fc">&nbsp;            this.unit = original.getUnit();</b>
+<b class="fc">&nbsp;            this.unitNetPrice = original.getUnitNetPrice();</b>
+<b class="fc">&nbsp;            this.taxKey = original.getTaxKey().getName() + &quot;%&quot;;</b>
+<b class="fc">&nbsp;            this.netPrice = original.getNetPrice();</b>
+<b class="fc">&nbsp;            this.grossPrice = original.getGrossPrice();</b>
+<b class="fc">&nbsp;            this.customerOrSupplierName = generateCustomerOrSupplierName(orderElement);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        private String generateCustomerOrSupplierName(OrderElement orderElement){
+<b class="fc">&nbsp;            if(orderElement.getCustomer() != null &amp;&amp; orderElement.getSupplier() != null){</b>
+<b class="fc">&nbsp;                return &quot;(S) &quot; + orderElement.getSupplier().getName() + &quot;, (C) &quot; + orderElement.getCustomer().getName();</b>
+&nbsp;            }
+<b class="fc">&nbsp;            else if(orderElement.getCustomer() == null){</b>
+<b class="fc">&nbsp;                return &quot;(S) &quot; + orderElement.getSupplier().getName();</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                return &quot;(C) &quot; + orderElement.getCustomer().getName();</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

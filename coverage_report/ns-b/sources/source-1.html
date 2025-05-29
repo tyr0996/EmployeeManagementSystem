@@ -1,0 +1,146 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BaseService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.core.service</a>
+</div>
+
+<h1>Coverage Summary for Class: BaseService (hu.martin.ems.core.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BaseService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.core.service;
+&nbsp;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.repository.BaseRepository;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+<b class="fc">&nbsp;@AllArgsConstructor</b>
+&nbsp;@NeedCleanCoding
+&nbsp;public class BaseService&lt;T, R extends BaseRepository&lt;T, Long&gt;&gt; {
+&nbsp;    protected R repo;
+&nbsp;
+&nbsp;    public T save(T entity) {
+<b class="fc">&nbsp;        return repo.customSave(entity);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public T update(T entity) {
+<b class="fc">&nbsp;        return repo.customUpdate(entity);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public T delete(T entity) {
+<b class="fc">&nbsp;        return repo.customDelete(entity);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public T restore(T entity) {
+<b class="fc">&nbsp;        return repo.customRestore(entity);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public T permanentlyDelete(Long entityId) {
+<b class="fc">&nbsp;        return repo.customPermanentlyDelete(entityId);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;T&gt; findAll(boolean withDeleted) {
+<b class="fc">&nbsp;        return repo.customFindAll(withDeleted);</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    public void clearDatabaseTable(boolean onlyPermanentlyDeleted){ repo.customClearDatabaseTable(onlyPermanentlyDeleted); }</b>
+&nbsp;
+&nbsp;    public T findById(Long id) {
+<b class="fc">&nbsp;        return repo.customFindById(id);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

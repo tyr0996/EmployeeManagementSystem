@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/city")
 @AnonymousAllowed
 public class CityController extends BaseController<City, CityService, CityRepository> {
-
     public CityController(CityService service) {
         super(service);
     }

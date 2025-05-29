@@ -1,0 +1,189 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AdminToolsApiClient</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.vaadin.api</a>
+</div>
+
+<h1>Coverage Summary for Class: AdminToolsApiClient (hu.martin.ems.vaadin.api)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AdminToolsApiClient</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (35/35)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.vaadin.api;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import hu.martin.ems.core.actuator.HealthStatusResponse;
+&nbsp;import hu.martin.ems.core.model.EmsResponse;
+&nbsp;import hu.martin.ems.vaadin.api.base.WebClientProvider;
+&nbsp;import hu.martin.ems.vaadin.core.EmsError;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.web.reactive.function.client.WebClient;
+&nbsp;import org.springframework.web.reactive.function.client.WebClientResponseException;
+&nbsp;
+&nbsp;import java.io.ByteArrayInputStream;
+&nbsp;
+&nbsp;@Service
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;public class AdminToolsApiClient {
+&nbsp;    private WebClient.Builder webClientBuilder;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public Gson gson;
+&nbsp;
+<b class="fc">&nbsp;    private Logger logger = LoggerFactory.getLogger(AdminToolsApiClient.class);</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private WebClientProvider webClientProvider;
+&nbsp;
+<b class="fc">&nbsp;    public AdminToolsApiClient(){</b>
+<b class="fc">&nbsp;        this.webClientBuilder = WebClient.builder();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private static final String entityName = &quot;adminTools&quot;;
+&nbsp;
+&nbsp;    public EmsResponse healthStatus(){
+<b class="fc">&nbsp;        WebClient webClient = webClientProvider.initBaseUrlWebClient();</b>
+&nbsp;        try{
+<b class="fc">&nbsp;            String repsonse = webClient.get()</b>
+<b class="fc">&nbsp;                    .uri(&quot;actuator/health&quot;)</b>
+<b class="fc">&nbsp;                    .retrieve()</b>
+<b class="fc">&nbsp;                    .bodyToMono(String.class)</b>
+<b class="fc">&nbsp;                    .block();</b>
+<b class="fc">&nbsp;            return new EmsResponse(200, repsonse, &quot;&quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch(WebClientResponseException ex){</b>
+<b class="fc">&nbsp;            logger.error(&quot;WebClient error - Status: {}, Body: {}&quot;, ex.getStatusCode().value(), ex.getResponseBodyAsString());</b>
+<b class="fc">&nbsp;            return new EmsResponse(ex.getStatusCode().value(),</b>
+<b class="fc">&nbsp;                                   gson.toJson(new HealthStatusResponse(&quot;Inaccessible&quot;)),</b>
+&nbsp;                                   null);
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public EmsResponse clearDatabase(){
+<b class="fc">&nbsp;        WebClient csrfWebClient = webClientProvider.initCsrfWebClient(entityName);</b>
+&nbsp;        try{
+<b class="fc">&nbsp;            String repsonse = csrfWebClient.delete()</b>
+<b class="fc">&nbsp;                    .uri(&quot;clearDatabase&quot;)</b>
+<b class="fc">&nbsp;                    .retrieve()</b>
+<b class="fc">&nbsp;                    .bodyToMono(String.class)</b>
+<b class="fc">&nbsp;                    .block();</b>
+<b class="fc">&nbsp;            return new EmsResponse(200, repsonse);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch(WebClientResponseException ex){</b>
+<b class="fc">&nbsp;            logger.error(&quot;WebClient error - Status: {}, Body: {}&quot;, ex.getStatusCode().value(), ex.getResponseBodyAsString());</b>
+<b class="fc">&nbsp;            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public EmsResponse exportApis(){
+<b class="fc">&nbsp;        WebClient webClient = webClientProvider.initWebClient(&quot;eps&quot;);</b>
+&nbsp;        try{
+<b class="fc">&nbsp;            byte[] response =  webClient.get()</b>
+<b class="fc">&nbsp;                    .uri(&quot;exportApis&quot;)</b>
+<b class="fc">&nbsp;                    .retrieve()</b>
+<b class="fc">&nbsp;                    .bodyToMono(byte[].class)</b>
+<b class="fc">&nbsp;                    .block();</b>
+<b class="fc">&nbsp;            return new EmsResponse(200, new ByteArrayInputStream(response), &quot;&quot;);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch (WebClientResponseException ex){</b>
+<b class="fc">&nbsp;            logger.error(&quot;WebClient error - Status: {}, Body: {}&quot;, ex.getStatusCode().value(), ex.getResponseBodyAsString());</b>
+<b class="fc">&nbsp;            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

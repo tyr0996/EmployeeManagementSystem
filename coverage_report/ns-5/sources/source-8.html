@@ -1,0 +1,279 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JschConfig</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.core.config</a>
+</div>
+
+<h1>Coverage Summary for Class: JschConfig (hu.martin.ems.core.config)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JschConfig</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (10/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (59/59)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">JschConfig$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (10/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (59/59)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.core.config;
+&nbsp;
+&nbsp;import com.jcraft.jsch.ChannelSftp;
+&nbsp;import com.jcraft.jsch.JSch;
+&nbsp;import com.jcraft.jsch.JSchException;
+&nbsp;import com.jcraft.jsch.Session;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.sftp.SftpSender;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.Setter;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.annotation.Configuration;
+&nbsp;
+&nbsp;import java.net.ConnectException;
+&nbsp;
+&nbsp;@Configuration
+&nbsp;@NeedCleanCoding
+<b class="fc">&nbsp;public class JschConfig {</b>
+&nbsp;
+<b class="fc">&nbsp;    private static Logger log = LoggerFactory.getLogger(SftpSender.class);</b>
+&nbsp;
+&nbsp;    @Value(&quot;${sftp.host}&quot;)
+&nbsp;    private String sftpHost;
+&nbsp;
+&nbsp;    @Value(&quot;${sftp.port}&quot;)
+&nbsp;    private int sftpPort;
+&nbsp;
+&nbsp;    @Value(&quot;${sftp.user.tester}&quot;)
+&nbsp;    private String sftpUser;
+&nbsp;
+&nbsp;    @Value(&quot;${sftp.password}&quot;)
+&nbsp;    private String sftpPassword;
+&nbsp;
+<b class="fc">&nbsp;    @Getter</b>
+<b class="fc">&nbsp;    @Setter</b>
+&nbsp;    private ChannelSftp channelSftp;
+&nbsp;
+<b class="fc">&nbsp;    @Setter</b>
+<b class="fc">&nbsp;    @Getter</b>
+&nbsp;    private Session session;
+&nbsp;
+<b class="fc">&nbsp;    public static JSch jsch = new JSch();</b>
+&nbsp;
+&nbsp;
+&nbsp;    public void init() throws JSchException {
+&nbsp;        try {
+<b class="fc">&nbsp;            if (channelSftp == null) {</b>
+<b class="fc">&nbsp;                session = createSession();</b>
+<b class="fc">&nbsp;                log.info(&quot;Session started&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;                session.setPassword(sftpPassword);</b>
+<b class="fc">&nbsp;                session.setConfig(&quot;StrictHostKeyChecking&quot;, &quot;no&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;                connectToSession();</b>
+<b class="fc">&nbsp;                log.info(&quot;Connected to session&quot;);</b>
+<b class="fc">&nbsp;                openSftpChannel();</b>
+<b class="fc">&nbsp;                log.info(&quot;SFTP channel opened&quot;);</b>
+<b class="fc">&nbsp;                log.info(&quot;The SFTP connection to the host has been successfully established (&quot;+sftpHost+&quot;)&quot;);</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                log.info(&quot;The SFTP connection already existed&quot;);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="fc">&nbsp;        catch (JSchException e){</b>
+<b class="fc">&nbsp;            log.warn(&quot;The SFTP connection failed for some reason! Please check the log for errors.&quot;);</b>
+<b class="fc">&nbsp;            throw e;</b>
+<b class="fc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Session createSession() throws JSchException{
+&nbsp;        try{
+<b class="fc">&nbsp;            Session session = jsch.getSession(sftpUser, sftpHost, sftpPort);</b>
+<b class="fc">&nbsp;            return session;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch(JSchException e){</b>
+<b class="fc">&nbsp;            log.error(&quot;An unknown error occurred while opening the session!&quot;);</b>
+<b class="fc">&nbsp;            throw new JSchException(&quot;An unknown error occurred while opening the session!&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void connectToSession() throws JSchException {
+&nbsp;        try{
+<b class="fc">&nbsp;            session.connect();</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch(JSchException e){</b>
+<b class="fc">&nbsp;            if(e.getCause() instanceof ConnectException){</b>
+<b class="fc">&nbsp;                log.error(&quot;Failed to connect to the host! It may not be running or it could be outside the domain. (&quot;+sftpHost+&quot;)&quot;);</b>
+<b class="fc">&nbsp;                throw new JSchException(&quot;Failed to connect to the host! It may not be running or it could be outside the domain. (&quot;+sftpHost+&quot;)&quot;);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            else if(e.getMessage().equals(&quot;Auth fail&quot;)){</b>
+<b class="fc">&nbsp;                log.error(&quot;Connection to the host failed because the login credentials are incorrect! (&quot; + sftpHost + &quot;)&quot;);</b>
+<b class="fc">&nbsp;                throw new JSchException(&quot;Connection to the host failed because the login credentials are incorrect! (&quot; + sftpHost + &quot;)&quot;);</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                log.error(&quot;An unknown error occurred while connecting to the host! &quot; + e.getMessage());</b>
+<b class="fc">&nbsp;                throw new JSchException(&quot;An unknown error occurred while connecting to the host! &quot; + e.getMessage());</b>
+&nbsp;            }
+<b class="fc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void openSftpChannel() throws JSchException {
+&nbsp;        try{
+<b class="fc">&nbsp;            channelSftp = (ChannelSftp) session.openChannel(&quot;sftp&quot;);</b>
+<b class="fc">&nbsp;            channelSftp.connect();</b>
+&nbsp;        }
+<b class="fc">&nbsp;        catch (JSchException e){</b>
+<b class="fc">&nbsp;            log.error(&quot;An error occurred while opening the channel! Please check that the session&#39;s isConnected() property is true.&quot;);</b>
+<b class="fc">&nbsp;            throw new JSchException(&quot;An error occurred while opening the channel! Please check that the session&#39;s isConnected() property is true.&quot;);</b>
+<b class="fc">&nbsp;        }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void connect() throws JSchException {
+<b class="fc">&nbsp;        init();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void disconnect(){
+<b class="fc">&nbsp;        log.info(&quot;Attempting to disconnect SFTP connection...&quot;);</b>
+<b class="fc">&nbsp;        destroySftpChannel();</b>
+<b class="fc">&nbsp;        destroyJSchSession();</b>
+&nbsp;
+<b class="fc">&nbsp;        log.info(&quot;SFTP disconnection process completed.&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void destroySftpChannel() {
+<b class="fc">&nbsp;        if (channelSftp != null) {</b>
+<b class="fc">&nbsp;            channelSftp.disconnect();</b>
+<b class="fc">&nbsp;            log.info(&quot;SFTP channel disconnected successfully.&quot;);</b>
+<b class="fc">&nbsp;            channelSftp = null;</b>
+&nbsp;        }
+&nbsp;        else {
+<b class="fc">&nbsp;            log.info(&quot;SFTP channel was already null, no action needed.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void destroyJSchSession(){
+<b class="fc">&nbsp;        if (session != null) {</b>
+<b class="fc">&nbsp;            session.disconnect();</b>
+<b class="fc">&nbsp;            log.info(&quot;SFTP session disconnected successfully.&quot;);</b>
+<b class="fc">&nbsp;            session = null;</b>
+&nbsp;        } else {
+<b class="fc">&nbsp;            log.info(&quot;SFTP session was already null, no action needed.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

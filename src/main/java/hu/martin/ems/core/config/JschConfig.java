@@ -30,15 +30,8 @@ public class JschConfig {
     @Value("${sftp.user.tester}")
     private String sftpUser;
 
-    @Value("${sftp.privateKey}")
-    private String sftpPrivateKey;
-
-    @Value("${sftp.privateKeyPassphrase}")
-    private String sftpPrivateKeyPassphrase;
-
     @Value("${sftp.password}")
     private String sftpPassword;
-
 
     @Getter
     @Setter
@@ -120,11 +113,6 @@ public class JschConfig {
 
     public void connect() throws JSchException {
         init();
-//        if(channelSftp == null){
-//            channelSftp = (ChannelSftp) session.openChannel("sftp");
-//            channelSftp.connect();
-//        }
-//        session.connect();
     }
 
     public void disconnect(){

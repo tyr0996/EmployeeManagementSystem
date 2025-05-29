@@ -3,7 +3,6 @@ package hu.martin.ems.crudFE;
 import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
-import hu.martin.ems.core.NeedToReview;
 import hu.martin.ems.pages.AccessManagementHeader;
 import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.LoginPage;
@@ -259,7 +258,6 @@ public class RoleTest extends BaseCrudTest {
 
     @Test
     public void nullResponseFromServiceWhenCreate() throws SQLException {
-//        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 14);
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -295,12 +293,6 @@ public class RoleTest extends BaseCrudTest {
         assertEquals(failedComponents.get(0).getErrorMessage(), "EmsError happened while getting permissions");
         dialog.close();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
-
-//        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-//        failedFieldData.put("Permission", "EmsError happened while getting permissions");
-//
-//        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
     }
 
     @Test
@@ -319,7 +311,6 @@ public class RoleTest extends BaseCrudTest {
     }
 
     @Test
-    @NeedToReview(description = "Meg kell nézni, hogy PermissionTest-ben ez hogy néz ki")
     public void getAllRoleFailed() throws SQLException {
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);

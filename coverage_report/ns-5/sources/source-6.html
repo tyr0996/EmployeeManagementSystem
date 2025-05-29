@@ -1,0 +1,138 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > IconProvider</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.core.config</a>
+</div>
+
+<h1>Coverage Summary for Class: IconProvider (hu.martin.ems.core.config)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">IconProvider</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.core.config;
+&nbsp;
+&nbsp;import com.vaadin.flow.component.icon.SvgIcon;
+&nbsp;import com.vaadin.flow.server.StreamResource;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.experimental.UtilityClass;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;import java.io.ByteArrayInputStream;
+&nbsp;import java.io.IOException;
+&nbsp;import java.nio.file.Files;
+&nbsp;import java.nio.file.Path;
+&nbsp;import java.nio.file.Paths;
+&nbsp;
+&nbsp;@Component
+<b class="fc">&nbsp;public class IconProvider {</b>
+&nbsp;    public final static  String PDF_FILE_ICON_ICON = &quot;pdf-file&quot;;
+&nbsp;    public final static  String ODT_FILE_ICON = &quot;odt-file&quot;;
+&nbsp;    public final static  String PERMANENTLY_DELETE_ICON = &quot;clear&quot;;
+&nbsp;    public final static  String EDIT_ICON = &quot;edit&quot;;
+&nbsp;
+&nbsp;    public SvgIcon create(String icon) {
+&nbsp;        try {
+<b class="fc">&nbsp;            byte[] iconData = readAllBytes(Paths.get(&quot;src/main/resources/frontend/icon/&quot; + icon + &quot;.svg&quot;));</b>
+<b class="fc">&nbsp;            StreamResource resource = new StreamResource(icon, () -&gt; new ByteArrayInputStream(iconData));</b>
+<b class="fc">&nbsp;            return new SvgIcon(resource);</b>
+<b class="fc">&nbsp;        } catch (IOException e) {</b>
+<b class="fc">&nbsp;            throw new RuntimeException(e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public byte[] readAllBytes(Path path) throws IOException {
+<b class="fc">&nbsp;        return Files.readAllBytes(path);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

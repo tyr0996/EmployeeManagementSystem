@@ -1,0 +1,229 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CurrencyService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.service</a>
+</div>
+
+<h1>Coverage Summary for Class: CurrencyService (hu.martin.ems.service)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CurrencyService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (26/26)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.service;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.google.gson.internal.LinkedTreeMap;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.service.BaseService;
+&nbsp;import hu.martin.ems.exception.CurrencyException;
+&nbsp;import hu.martin.ems.exception.FetchingCurrenciesException;
+&nbsp;import hu.martin.ems.exception.ParsingCurrenciesException;
+&nbsp;import hu.martin.ems.model.Currency;
+&nbsp;import hu.martin.ems.repository.CodeStoreRepository;
+&nbsp;import hu.martin.ems.repository.CurrencyRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.web.client.RestClientException;
+&nbsp;import org.springframework.web.client.RestTemplate;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.LinkedHashMap;
+&nbsp;
+&nbsp;@Service
+&nbsp;@NeedCleanCoding
+&nbsp;public class CurrencyService extends BaseService&lt;Currency, CurrencyRepository&gt; {
+&nbsp;    public CurrencyService(CurrencyRepository currencyRepository) {
+<b class="fc">&nbsp;        super(currencyRepository);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private RestTemplate restTemplate;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private CodeStoreRepository codeStoreRepository;
+&nbsp;
+&nbsp;    @Value(&quot;${api.currency.url}&quot;)
+&nbsp;    private String apiUrl;
+&nbsp;
+&nbsp;    @Value(&quot;${api.currency.baseCurrency}&quot;)
+&nbsp;    private String baseCurrency;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private Gson gson;
+&nbsp;
+&nbsp;    public Currency fetchAndSaveRates() throws ParsingCurrenciesException, FetchingCurrenciesException {
+&nbsp;//        Currency curr = repo.findByDate(LocalDate.now());
+&nbsp;//        if(curr != null){
+&nbsp;//            throw new CurrenciesAlreadyFetchedException();
+&nbsp;//        }
+&nbsp;        try {
+<b class="fc">&nbsp;            LinkedHashMap&lt;String, Object&gt; response = restTemplate.getForObject(apiUrl + baseCurrency, LinkedHashMap.class);</b>
+<b class="fc">&nbsp;            LinkedHashMap&lt;String, Object&gt; rates = (LinkedHashMap&lt;String, Object&gt;) response.get(&quot;rates&quot;);</b>
+<b class="fc">&nbsp;            rates.forEach((k, v) -&gt; {</b>
+<b class="fc">&nbsp;                rates.replace(k, Double.parseDouble(v.toString()));</b>
+&nbsp;            });
+<b class="fc">&nbsp;            String fixedRates = response.get(&quot;rates&quot;).toString().replaceAll(&quot;\\b[A-Z]+\\b&quot;, &quot;\&quot;$0\&quot;&quot;) //Belerakja idézõjelbe</b>
+<b class="fc">&nbsp;                    .replaceAll(&quot;=&quot;, &quot;:&quot;);</b>
+<b class="fc">&nbsp;            Currency currency = new Currency();</b>
+&nbsp;
+<b class="fc">&nbsp;            currency.setBaseCurrency(codeStoreRepository.findByName(response.get(&quot;base&quot;).toString()));</b>
+&nbsp;            //CurrencyResponse cr = om.readValue(fixedRates, CurrencyResponse.class);
+<b class="fc">&nbsp;            currency.setRateJson(fixedRates);</b>
+<b class="fc">&nbsp;            currency.setDeleted(0L);</b>
+<b class="fc">&nbsp;            Currency saved = this.repo.customSave(currency);</b>
+<b class="fc">&nbsp;            return saved;</b>
+<b class="fc">&nbsp;        } catch (ClassCastException e){</b>
+<b class="fc">&nbsp;            throw new ParsingCurrenciesException();</b>
+<b class="fc">&nbsp;        } catch (RestClientException e){</b>
+<b class="fc">&nbsp;            throw new FetchingCurrenciesException();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    public Double convert(String from, String to, Double amount) throws CurrencyException {
+<b class="fc">&nbsp;        Currency c = this.repo.findByDate(LocalDate.now());</b>
+<b class="fc">&nbsp;        if (c != null) {</b>
+<b class="fc">&nbsp;            LinkedTreeMap&lt;String, Double&gt; map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);</b>
+<b class="fc">&nbsp;            Double f = map.get(from.toUpperCase());</b>
+<b class="fc">&nbsp;            Double t = map.get(to.toUpperCase());</b>
+<b class="fc">&nbsp;            return (f * amount) / t;</b>
+&nbsp;        } else {
+<b class="fc">&nbsp;            fetchAndSaveRates();</b>
+<b class="fc">&nbsp;            return convert(from, to, amount);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;//    @Deprecated
+&nbsp;//    public Double convert(LocalDate date, String from, String to, Double amount) throws CurrencyException {
+&nbsp;//        Currency c = this.repo.findByDate(date);
+&nbsp;//        if (c != null) {
+&nbsp;//            LinkedTreeMap&lt;String, Double&gt; map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
+&nbsp;//            Double f = map.get(from.toUpperCase());
+&nbsp;//            Double t = map.get(to.toUpperCase());
+&nbsp;//            return (f * amount) / t;
+&nbsp;//        } else if (date.equals(LocalDate.now())) {
+&nbsp;//            fetchAndSaveRates();
+&nbsp;//            return convert(date, from, to, amount);
+&nbsp;//        } else {
+&nbsp;//            throw new NullPointerException(&quot;Nincs árfolyam az adott dátumhoz elmentve, és annak lekérdezése csak a mai napra lehetséges!&quot;);
+&nbsp;//        }
+&nbsp;//    }
+&nbsp;//
+&nbsp;//    public Double get(LocalDate date, String currency) {
+&nbsp;//        Currency c = this.repo.findByDate(date);
+&nbsp;//        if (c != null) {
+&nbsp;//            LinkedTreeMap&lt;String, Double&gt; map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
+&nbsp;//            return map.get(currency);
+&nbsp;//        } else {
+&nbsp;//            throw new NullPointerException(&quot;Nincs árfolyam az adott dátumhoz elmentve!&quot;);
+&nbsp;//        }
+&nbsp;//    }
+&nbsp;
+&nbsp;    public Currency findByDate(LocalDate date) {
+<b class="fc">&nbsp;        return this.repo.findByDate(date);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

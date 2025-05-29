@@ -1,0 +1,224 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > OrderElement</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.model</a>
+</div>
+
+<h1>Coverage Summary for Class: OrderElement (hu.martin.ems.model)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OrderElement</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (16/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (17/17)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">OrderElement$HibernateInstantiator$yAfnEUes</td>
+  </tr>
+  <tr>
+    <td class="name">OrderElement$HibernateProxy$GZkoOpdh</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (16/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (17/17)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.model;
+&nbsp;
+&nbsp;import com.google.gson.annotations.Expose;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.model.BaseEntity;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.Setter;
+&nbsp;
+&nbsp;@Entity
+&nbsp;@Getter
+<b class="fc">&nbsp;@Setter</b>
+&nbsp;@NeedCleanCoding
+<b class="fc">&nbsp;public class OrderElement extends BaseEntity {</b>
+&nbsp;    @ManyToOne
+&nbsp;    @JoinColumn(name = &quot;product_product_id&quot;)
+&nbsp;    @Expose
+<b class="fc">&nbsp;    private Product product;</b>
+&nbsp;
+&nbsp;    @ManyToOne(fetch = FetchType.EAGER)
+&nbsp;    @JoinTable(name = &quot;orders_orderelement&quot;,
+&nbsp;        joinColumns = @JoinColumn(name = &quot;orderelements_id&quot;),
+&nbsp;        inverseJoinColumns = @JoinColumn(name = &quot;order_id&quot;)
+&nbsp;    )
+&nbsp;//    @JoinColumn(name = &quot;order_id&quot;, columnDefinition = &quot;BIGINT&quot;)
+<b class="fc">&nbsp;    private Order orderObject;</b>
+&nbsp;
+&nbsp;
+&nbsp;    @ManyToOne
+&nbsp;    @JoinColumn(name = &quot;customer_customer_id&quot;, columnDefinition = &quot;BIGINT&quot;)
+&nbsp;    @Expose
+<b class="fc">&nbsp;    private Customer customer;</b>
+&nbsp;
+&nbsp;    @ManyToOne
+&nbsp;    @JoinColumn(name = &quot;supplier_supplier_id&quot;, columnDefinition = &quot;BIGINT&quot;)
+&nbsp;    @Expose
+<b class="fc">&nbsp;    private Supplier supplier;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+&nbsp;    @Expose
+<b class="fc">&nbsp;    private Integer unit;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+&nbsp;    @Expose
+<b class="fc">&nbsp;    private Integer unitNetPrice;</b>
+&nbsp;
+&nbsp;    @ManyToOne
+&nbsp;    @JoinColumn(name = &quot;taxKey_codestore_id&quot;)
+&nbsp;    @Expose
+<b class="fc">&nbsp;    private CodeStore taxKey;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+&nbsp;    @Expose
+<b class="fc">&nbsp;    private Integer netPrice;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+&nbsp;    @Expose
+<b class="fc">&nbsp;    private Double taxPrice;</b>
+&nbsp;
+&nbsp;    @Column(nullable = false)
+&nbsp;    @Expose
+<b class="fc">&nbsp;    private Integer grossPrice;</b>
+&nbsp;
+&nbsp;    @Expose
+&nbsp;    @Transient
+&nbsp;    private String name;
+&nbsp;
+&nbsp;    @Expose
+&nbsp;    @Transient
+<b class="fc">&nbsp;    private Long orderId;</b>
+&nbsp;
+&nbsp;    @PostLoad
+&nbsp;    public void initAfterLoad(){
+<b class="fc">&nbsp;        if(getOrderObject() != null){</b>
+<b class="fc">&nbsp;            this.orderId = getOrderObject().getId();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public String getName() {
+<b class="fc">&nbsp;        return this.product.getName();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String toString(){
+<b class="fc">&nbsp;        return this.getName() + &quot; (&quot; + this.unit + &quot; &quot; + this.product.getAmountUnit().getName() + &quot;)&quot;;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

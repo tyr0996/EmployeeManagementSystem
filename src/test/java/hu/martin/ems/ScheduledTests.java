@@ -1,22 +1,11 @@
 package hu.martin.ems;
 
-import hu.martin.ems.core.config.DataProvider;
-import hu.martin.ems.core.schedule.CurrencyScheduler;
-import hu.martin.ems.repository.CurrencyRepository;
-import hu.martin.ems.service.CurrencyService;
-import lombok.AllArgsConstructor;
+import hu.martin.ems.schedule.CurrencyScheduler;
 import org.awaitility.Awaitility;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.testng.annotations.Test;
 
 import java.time.LocalDate;

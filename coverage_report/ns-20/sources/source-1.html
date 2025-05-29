@@ -1,0 +1,651 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > OrderCreateToCustomer</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.vaadin.component.Order</a>
+</div>
+
+<h1>Coverage Summary for Class: OrderCreateToCustomer (hu.martin.ems.vaadin.component.Order)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OrderCreateToCustomer</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (21/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (55/55)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (184/184)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">OrderCreateToCustomer$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">OrderCreateToCustomer$OrderElementVO</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (17/17)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (30/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (57/57)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (201/201)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.vaadin.component.Order;
+&nbsp;
+&nbsp;import com.vaadin.flow.component.UI;
+&nbsp;import com.vaadin.flow.component.button.Button;
+&nbsp;import com.vaadin.flow.component.checkbox.Checkbox;
+&nbsp;import com.vaadin.flow.component.combobox.ComboBox;
+&nbsp;import com.vaadin.flow.component.formlayout.FormLayout;
+&nbsp;import com.vaadin.flow.component.grid.Grid;
+&nbsp;import com.vaadin.flow.component.grid.GridVariant;
+&nbsp;import com.vaadin.flow.component.notification.Notification;
+&nbsp;import com.vaadin.flow.component.notification.NotificationVariant;
+&nbsp;import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+&nbsp;import com.vaadin.flow.router.BeforeEnterEvent;
+&nbsp;import com.vaadin.flow.router.BeforeEnterObserver;
+&nbsp;import com.vaadin.flow.router.Route;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.config.BeanProvider;
+&nbsp;import hu.martin.ems.core.config.CodeStoreIds;
+&nbsp;import hu.martin.ems.core.model.EmsResponse;
+&nbsp;import hu.martin.ems.core.model.PaginationSetting;
+&nbsp;import hu.martin.ems.model.CodeStore;
+&nbsp;import hu.martin.ems.model.Customer;
+&nbsp;import hu.martin.ems.model.Order;
+&nbsp;import hu.martin.ems.model.OrderElement;
+&nbsp;import hu.martin.ems.vaadin.MainView;
+&nbsp;import hu.martin.ems.vaadin.api.CodeStoreApiClient;
+&nbsp;import hu.martin.ems.vaadin.api.CustomerApiClient;
+&nbsp;import hu.martin.ems.vaadin.api.OrderApiClient;
+&nbsp;import hu.martin.ems.vaadin.api.OrderElementApiClient;
+&nbsp;import hu.martin.ems.vaadin.component.BaseVO;
+&nbsp;import jakarta.annotation.security.RolesAllowed;
+&nbsp;import jakarta.validation.constraints.NotNull;
+&nbsp;import lombok.Getter;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.vaadin.klaudeta.PaginatedGrid;
+&nbsp;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Objects;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;@Route(value = &quot;order/create/customer&quot;, layout = MainView.class)
+&nbsp;@RolesAllowed(&quot;ROLE_OrderCreateMenuOpenPermission&quot;)
+&nbsp;@NeedCleanCoding
+&nbsp;public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnterObserver {
+&nbsp;
+&nbsp;    public Order editObject;
+<b class="fc">&nbsp;    private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);</b>
+<b class="fc">&nbsp;    private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);</b>
+<b class="fc">&nbsp;    private final CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);</b>
+<b class="fc">&nbsp;    private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);</b>
+&nbsp;
+&nbsp;    private List&lt;OrderElementVO&gt; orderElementVOS;
+&nbsp;    private PaginatedGrid&lt;OrderElementVO, String&gt; grid;
+&nbsp;
+<b class="fc">&nbsp;    private Boolean showPreviously = false;</b>
+&nbsp;
+&nbsp;    ComboBox&lt;CodeStore&gt; paymentTypes;
+&nbsp;    ComboBox&lt;CodeStore&gt; currencies;
+&nbsp;
+<b class="fc">&nbsp;    private Logger logger = LoggerFactory.getLogger(Order.class);</b>
+&nbsp;
+&nbsp;    List&lt;Customer&gt; customerList;
+&nbsp;    List&lt;CodeStore&gt; paymentTypeList;
+&nbsp;    List&lt;CodeStore&gt; currencyList;
+&nbsp;
+&nbsp;    ComboBox&lt;Customer&gt; customers;
+&nbsp;    Checkbox showPreviouslyOrderedElements;
+&nbsp;
+&nbsp;    @Autowired
+<b class="fc">&nbsp;    public OrderCreateToCustomer(PaginationSetting paginationSetting){</b>
+<b class="fc">&nbsp;        init(paginationSetting);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void beforeEnter(BeforeEnterEvent event) {
+<b class="fc">&nbsp;        Map&lt;String, List&lt;String&gt;&gt; params = event.getLocation().getQueryParameters().getParameters();</b>
+<b class="fc">&nbsp;        List&lt;String&gt; paramOrderId = params.get(&quot;orderId&quot;);</b>
+<b class="fc">&nbsp;        if(paramOrderId != null) {</b>
+<b class="fc">&nbsp;            setupCustomers();</b>
+<b class="fc">&nbsp;            customers.setItems(customerList);</b>
+<b class="fc">&nbsp;            setupCurrencies();</b>
+<b class="fc">&nbsp;            currencies.setItems(currencyList);</b>
+<b class="fc">&nbsp;            setupPaymentTypes();</b>
+<b class="fc">&nbsp;            paymentTypes.setItems(paymentTypeList);</b>
+<b class="fc">&nbsp;            Long orderId = Long.parseLong(paramOrderId.getFirst());</b>
+<b class="fc">&nbsp;            EmsResponse response = orderApi.findById(orderId);</b>
+<b class="fc">&nbsp;            switch (response.getCode()){</b>
+&nbsp;                case 200: {
+<b class="fc">&nbsp;                    this.editObject = (Order) orderApi.findById(orderId).getResponseData();</b>
+<b class="fc">&nbsp;                    loadEditObject();</b>
+<b class="fc">&nbsp;                    break;</b>
+&nbsp;                }
+&nbsp;                default: {
+<b class="fc">&nbsp;                    Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                    break;
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void loadEditObject(){
+<b class="fc">&nbsp;        customers.setEnabled(false);</b>
+<b class="fc">&nbsp;        customers.setValue(editObject.getCustomer());</b>
+<b class="fc">&nbsp;        showPreviouslyOrderedElements.setValue(true);</b>
+<b class="fc">&nbsp;        showPreviously = true;</b>
+<b class="fc">&nbsp;        paymentTypes.setValue(editObject.getPaymentType());</b>
+<b class="fc">&nbsp;        currencies.setValue(editObject.getCurrency());</b>
+<b class="fc">&nbsp;        orderElementVOS = getOrderElementsByCustomer(editObject.getCustomer()).stream().map(OrderElementVO::new).collect(Collectors.toList());</b>
+<b class="fc">&nbsp;        updateGridItems();</b>
+<b class="fc">&nbsp;        grid.setSelectionMode(Grid.SelectionMode.MULTI);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void init(PaginationSetting paginationSetting){
+<b class="fc">&nbsp;        FormLayout formLayout = new FormLayout();</b>
+&nbsp;
+<b class="fc">&nbsp;        Button saveButton = new Button(&quot;Create order&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        grid = new PaginatedGrid&lt;&gt;(OrderElementVO.class);</b>
+<b class="fc">&nbsp;        grid.setItems(new ArrayList&lt;&gt;());</b>
+<b class="fc">&nbsp;        grid.removeColumnByKey(&quot;original&quot;);</b>
+<b class="fc">&nbsp;        grid.setSelectionMode(Grid.SelectionMode.MULTI);</b>
+<b class="fc">&nbsp;        grid.asMultiSelect();</b>
+<b class="fc">&nbsp;        grid.setPageSize(paginationSetting.getPageSize());</b>
+<b class="fc">&nbsp;        grid.setPaginationLocation(paginationSetting.getPaginationLocation());</b>
+&nbsp;
+<b class="fc">&nbsp;        grid.addThemeVariants(GridVariant.LUMO_COMPACT);</b>
+<b class="fc">&nbsp;        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);</b>
+&nbsp;
+<b class="fc">&nbsp;        customers = new ComboBox&lt;&gt;(&quot;Customer&quot;);</b>
+<b class="fc">&nbsp;        ComboBox.ItemFilter&lt;Customer&gt; customerFilter = (element, filterString) -&gt;</b>
+<b class="fc">&nbsp;                element.getName().toLowerCase().contains(filterString.toLowerCase());</b>
+<b class="fc">&nbsp;        setupCustomers();</b>
+<b class="fc">&nbsp;        if(customerList == null){</b>
+<b class="fc">&nbsp;            customers.setEnabled(false);</b>
+<b class="fc">&nbsp;            customers.setInvalid(true);</b>
+<b class="fc">&nbsp;            customers.setErrorMessage(&quot;EmsError happened while getting customers&quot;);</b>
+<b class="fc">&nbsp;            saveButton.setEnabled(false);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            customers.setItems(customerFilter, customerList);</b>
+<b class="fc">&nbsp;            customers.setItemLabelGenerator(Customer::getName);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        customers.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            if (event.getValue() != null) {</b>
+<b class="fc">&nbsp;                orderElementVOS = getOrderElementsByCustomer(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList());</b>
+&nbsp;//                if(orderElementVOS == null){
+&nbsp;//                    Notification.show(&quot;EmsError happened while getting order elements to the customer&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);
+&nbsp;//                    orderElementVOS = new ArrayList&lt;&gt;();
+&nbsp;//                }
+&nbsp;            } else {
+<b class="fc">&nbsp;                orderElementVOS = new ArrayList&lt;&gt;();</b>
+&nbsp;            }
+<b class="fc">&nbsp;            updateGridItems();</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        showPreviouslyOrderedElements = new Checkbox(&quot;Show previously ordered elements&quot;);</b>
+<b class="fc">&nbsp;        showPreviouslyOrderedElements.addValueChangeListener(event -&gt; {</b>
+<b class="fc">&nbsp;            showPreviously = !showPreviously;</b>
+<b class="fc">&nbsp;            orderElementVOS = customers.getValue() == null ?</b>
+<b class="fc">&nbsp;                    new ArrayList&lt;&gt;() :</b>
+<b class="fc">&nbsp;                    getOrderElementsByCustomer(customers.getValue()).stream().map(OrderElementVO::new).toList();</b>
+&nbsp;
+<b class="fc">&nbsp;            if(showPreviously){</b>
+<b class="fc">&nbsp;                grid.setSelectionMode(Grid.SelectionMode.NONE);</b>
+<b class="fc">&nbsp;                grid.setItems(getFilteredStream().filter(v -&gt; v.original.getOrderId() != null).toList());</b>
+&nbsp;//                grid.setItems(getFilteredStream().filter(v -&gt; {
+&nbsp;//                    boolean ressss = v.original.getOrderId() != null;
+&nbsp;//                    System.out.println(&quot;orderrId: &quot; + v.original.getOrderId() + &quot;   resss: &quot; + ressss);
+&nbsp;//                    return ressss;
+&nbsp;//                }).toList());
+&nbsp;            }
+&nbsp;            else { //Ide akkor megyünk be, hogyha kikapcsoljuk a showPreviously-t
+<b class="fc">&nbsp;                grid.setSelectionMode(Grid.SelectionMode.MULTI);</b>
+&nbsp;
+&nbsp;//                grid.setItems(getFilteredStream().toList());
+<b class="fc">&nbsp;                grid.setItems(getFilteredStream().toList());</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            if(editObject != null){</b>
+<b class="fc">&nbsp;                grid.setSelectionMode(Grid.SelectionMode.MULTI);</b>
+&nbsp;            }
+&nbsp;//            updateGridItems();
+&nbsp;        });
+&nbsp;//        HorizontalLayout hl = new HorizontalLayout();
+&nbsp;//        hl.add(showPreviouslyOrderedElements);
+&nbsp;//        hl.setAlignSelf(Alignment.CENTER, showPreviouslyOrderedElements);
+&nbsp;
+<b class="fc">&nbsp;        setupPaymentTypes();</b>
+<b class="fc">&nbsp;        paymentTypes = new ComboBox&lt;&gt;(&quot;Payment type&quot;);</b>
+<b class="fc">&nbsp;        ComboBox.ItemFilter&lt;CodeStore&gt; paymentTypeFilter = (element, filterString) -&gt;</b>
+<b class="fc">&nbsp;                element.getName().toLowerCase().contains(filterString.toLowerCase());</b>
+<b class="fc">&nbsp;        if(paymentTypeList == null){</b>
+<b class="fc">&nbsp;            paymentTypes.setErrorMessage(&quot;EmsError happened while getting payment methods&quot;);</b>
+<b class="fc">&nbsp;            paymentTypes.setEnabled(false);</b>
+<b class="fc">&nbsp;            paymentTypes.setInvalid(true);</b>
+<b class="fc">&nbsp;            saveButton.setEnabled(false);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            paymentTypes.setItems(paymentTypeFilter, paymentTypeList);</b>
+<b class="fc">&nbsp;            paymentTypes.setItemLabelGenerator(CodeStore::getName);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        setupCurrencies();</b>
+<b class="fc">&nbsp;        currencies = new ComboBox&lt;&gt;(&quot;Currency&quot;);</b>
+<b class="fc">&nbsp;        ComboBox.ItemFilter&lt;CodeStore&gt; currencyFilter = (element, filterString) -&gt;</b>
+<b class="fc">&nbsp;                element.getName().toLowerCase().contains(filterString.toLowerCase());</b>
+<b class="fc">&nbsp;        if(currencyList == null){</b>
+<b class="fc">&nbsp;            currencies.setEnabled(false);</b>
+<b class="fc">&nbsp;            currencies.setInvalid(true);</b>
+<b class="fc">&nbsp;            currencies.setErrorMessage(&quot;EmsError happened while getting currencies&quot;);</b>
+<b class="fc">&nbsp;            saveButton.setEnabled(false);</b>
+&nbsp;        }
+&nbsp;        else{
+<b class="fc">&nbsp;            currencies.setItems(currencyFilter, currencyList);</b>
+<b class="fc">&nbsp;            currencies.setItemLabelGenerator(CodeStore::getName);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        saveButton.addClickListener(event -&gt; {</b>
+<b class="fc">&nbsp;            CodeStore pending = getPendingCodeStore();</b>
+<b class="fc">&nbsp;            if(pending == null){</b>
+<b class="fc">&nbsp;                Notification.show(&quot;EmsError happened while getting \&quot;Pending\&quot; status&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+&nbsp;                return;
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            Order order = Objects.requireNonNullElseGet(editObject, Order::new);</b>
+<b class="fc">&nbsp;            order.setState(pending);</b>
+<b class="fc">&nbsp;            order.setTimeOfOrder(LocalDateTime.now());</b>
+<b class="fc">&nbsp;            order.setCustomer(customers.getValue());</b>
+<b class="fc">&nbsp;            order.setPaymentType(paymentTypes.getValue());</b>
+<b class="fc">&nbsp;            order.setDeleted(0L);</b>
+<b class="fc">&nbsp;            order.setCurrency(currencies.getValue());</b>
+&nbsp;//            Long orderId = order.getId();
+&nbsp;//            if(orderId == null){
+&nbsp;//                EmsResponse response = orderApi.save(order);
+&nbsp;//                switch (response.getCode()){
+&nbsp;//                    case 200:
+&nbsp;//                        order = (Order) response.getResponseData();
+&nbsp;//                        orderId = order.getId();
+&nbsp;//                        break;
+&nbsp;//                    case 500:
+&nbsp;//                        Notification.show(&quot;Order saving failed&quot;).addThemeVariants(NotificationVariant.LUMO_ERROR);
+&nbsp;//                        updateGridItems();
+&nbsp;//                        return;
+&nbsp;//                    default:
+&nbsp;//                        Notification.show(&quot;Not expected status-code in saving&quot;).addThemeVariants(NotificationVariant.LUMO_WARNING);
+&nbsp;//                        updateGridItems();
+&nbsp;//                        return;
+&nbsp;//                }
+&nbsp;//            }
+&nbsp;
+<b class="fc">&nbsp;            List&lt;OrderElement&gt; orderElements = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;            List&lt;OrderElementVO&gt; selected = grid.getSelectedItems().stream().toList();</b>
+&nbsp;
+<b class="fc">&nbsp;            for(int i = 0; i &lt; selected.size(); i++){</b>
+<b class="fc">&nbsp;                OrderElement oe = selected.get(i).original;</b>
+<b class="fc">&nbsp;                orderElements.add(oe);</b>
+&nbsp;            }
+<b class="fc">&nbsp;            order.setOrderElements(orderElements);</b>
+&nbsp;
+<b class="fc">&nbsp;            if(orderElements.isEmpty()){</b>
+<b class="fc">&nbsp;                Notification.show(&quot;Order must contains at least one order element!&quot;).addThemeVariants(NotificationVariant.LUMO_WARNING);</b>
+&nbsp;            }
+&nbsp;            else{
+&nbsp;                EmsResponse response;
+<b class="fc">&nbsp;                if(editObject == null){</b>
+<b class="fc">&nbsp;                    response = orderApi.save(order);</b>
+&nbsp;                }
+&nbsp;                else{
+<b class="fc">&nbsp;                    response = orderApi.update(order);</b>
+&nbsp;                }
+<b class="fc">&nbsp;                switch (response.getCode()){</b>
+&nbsp;                    case 200:
+<b class="fc">&nbsp;                        order = (Order) response.getResponseData();</b>
+<b class="fc">&nbsp;                        Notification.show(&quot;Order &quot; + (editObject == null ? &quot;saved: &quot; : &quot;updated: &quot;) + order)</b>
+<b class="fc">&nbsp;                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);</b>
+<b class="fc">&nbsp;                        break;</b>
+&nbsp;                    default:
+<b class="fc">&nbsp;                        Notification.show(&quot;Order &quot; + (editObject == null ? &quot;saving &quot; : &quot;modifying &quot;) + &quot; failed: &quot; + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+<b class="fc">&nbsp;                        updateGridItems();</b>
+&nbsp;                        return;
+&nbsp;                }
+<b class="fc">&nbsp;                customers.setValue(customers.getEmptyValue());</b>
+<b class="fc">&nbsp;                paymentTypes.setValue(paymentTypes.getEmptyValue());</b>
+&nbsp;            }
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        formLayout.add(customers, showPreviouslyOrderedElements);</b>
+<b class="fc">&nbsp;        FormLayout formLayout1 = new FormLayout();</b>
+<b class="fc">&nbsp;        formLayout1.add(currencies, paymentTypes);</b>
+<b class="fc">&nbsp;        formLayout1.add(saveButton);</b>
+&nbsp;//        add(formLayout, hl, grid, formLayout1);û
+<b class="fc">&nbsp;        add(formLayout, grid, formLayout1);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    //region setup methods
+&nbsp;
+&nbsp;    private void setupCustomers() {
+<b class="fc">&nbsp;        EmsResponse response = customerApi.findAll();</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                customerList = (List&lt;Customer&gt;) response.getResponseData();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                customerList = null;</b>
+<b class="fc">&nbsp;                logger.error(&quot;Customer findAllError. [payment types] Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private CodeStore getPendingCodeStore() {
+<b class="fc">&nbsp;        EmsResponse response = codeStoreApi.getAllByName(&quot;Pending&quot;);</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                return ((List&lt;CodeStore&gt;) response.getResponseData()).get(0);</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                logger.error(&quot;CodeStore getChildrenError. [status] Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+<b class="fc">&nbsp;                return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;OrderElement&gt; getOrderElementsByCustomer(Customer customer) {
+<b class="fc">&nbsp;        EmsResponse response = orderElementApi.getByCustomer(customer);</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                return (List&lt;OrderElement&gt;) response.getResponseData();</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                logger.error(&quot;OrderElement getOrderElementsByCustomerError. Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+<b class="fc">&nbsp;                Notification.show(&quot;EmsError happened while getting order elements to the customer&quot;)</b>
+<b class="fc">&nbsp;                        .addThemeVariants(NotificationVariant.LUMO_ERROR);</b>
+<b class="fc">&nbsp;                return null;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setupPaymentTypes() {
+<b class="fc">&nbsp;        EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.PAYMENT_TYPES_CODESTORE_ID);</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                paymentTypeList = (List&lt;CodeStore&gt;) response.getResponseData();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                paymentTypeList = null;</b>
+<b class="fc">&nbsp;                logger.error(&quot;CodeStore getChildrenError. [payment types] Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private void setupCurrencies() {
+<b class="fc">&nbsp;        EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.CURRENCIES_CODESTORE_ID);</b>
+<b class="fc">&nbsp;        switch (response.getCode()){</b>
+&nbsp;            case 200:
+<b class="fc">&nbsp;                currencyList = (List&lt;CodeStore&gt;) response.getResponseData();</b>
+<b class="fc">&nbsp;                break;</b>
+&nbsp;            default:
+<b class="fc">&nbsp;                currencyList = null;</b>
+<b class="fc">&nbsp;                logger.error(&quot;CodeStore getChildrenError [currencies]. Code: {}, Description: {}&quot;, response.getCode(), response.getDescription());</b>
+&nbsp;                break;
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;//    private void undoUpdate(Order originalOrder, List&lt;OrderElement&gt; originalOrderElements) {
+&nbsp;//        orderApi.update(originalOrder);
+&nbsp;//        List&lt;OrderElement&gt; orderElements = null;
+&nbsp;//        EmsResponse response = orderApi.getOrderElements(editObject.getId());
+&nbsp;//        switch (response.getCode()){
+&nbsp;//            case 200:
+&nbsp;//                orderElements = (List&lt;OrderElement&gt;) response.getResponseData();
+&nbsp;//                break;
+&nbsp;//            default:
+&nbsp;//                logger.error(&quot;UndoUpdate failed in OrderCreateToCustomer [Getting orderElements]. OrderId: &quot; + originalOrder.getId());
+&nbsp;//                return;
+&nbsp;//        }
+&nbsp;//
+&nbsp;//        orderElements.forEach(v -&gt; {
+&nbsp;//            v.setOrder(null);
+&nbsp;//            orderElementApi.update(v);
+&nbsp;//        });
+&nbsp;//        originalOrderElements.forEach(v -&gt; {
+&nbsp;//            v.setOrder(originalOrder);
+&nbsp;//            orderElementApi.update(v);
+&nbsp;//        });
+&nbsp;//        logger.info(&quot;Undo order update successful&quot;);
+&nbsp;//        updateGridItems();
+&nbsp;//    }
+&nbsp;//
+&nbsp;//    private void undoSave(Order order){
+&nbsp;//        List&lt;OrderElement&gt; orderElements;
+&nbsp;//        EmsResponse response = orderApi.getOrderElements(order.getId());
+&nbsp;//        switch (response.getCode()){
+&nbsp;//            case 200:
+&nbsp;//                orderElements = (List&lt;OrderElement&gt;) response.getResponseData();
+&nbsp;//                break;
+&nbsp;//            default:
+&nbsp;//                logger.error(&quot;UndoSave failed in OrderCreateToCustomer. OrderId: &quot; + order.getId());
+&nbsp;//                return;
+&nbsp;//        }
+&nbsp;//        orderElements.forEach(v -&gt; {
+&nbsp;//            v.setOrder(null);
+&nbsp;//            orderElementApi.update(v);
+&nbsp;//        });
+&nbsp;//        orderApi.forcePermanentlyDelete(order.getId());
+&nbsp;//        logger.info(&quot;Undo order create successful&quot;);
+&nbsp;//        updateGridItems();
+&nbsp;//    }
+&nbsp;
+&nbsp;
+&nbsp;    //endregion
+&nbsp;
+&nbsp;
+&nbsp;    private Stream&lt;OrderElementVO&gt; getFilteredStream() {
+<b class="fc">&nbsp;        if(editObject != null){</b>
+<b class="fc">&nbsp;            orderElementVOS = getOrderElementsByCustomer(editObject.getCustomer()).stream().filter(v -&gt;</b>
+<b class="fc">&nbsp;                (v.getOrderId() == null) || v.getOrderId().equals(editObject.getId())</b>
+<b class="fc">&nbsp;            ).map(OrderElementVO::new).collect(Collectors.toList());</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return orderElementVOS.stream().filter(orderElementVO -&gt;</b>
+&nbsp;            {
+<b class="fc">&nbsp;                OrderElement oe = orderElementVO.getOriginal();</b>
+<b class="fc">&nbsp;                boolean res = showPreviously || oe.getOrderId() == null;</b>
+<b class="fc">&nbsp;                Boolean filter = orderElementVO.filterExtraData();</b>
+&nbsp;//                System.out.println(&quot;Res: &quot; + res + &quot;  Filter: &quot; + filter);
+<b class="fc">&nbsp;                return res &amp;&amp; filter;</b>
+&nbsp;            });
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public void updateGridItems(){
+<b class="fc">&nbsp;        orderElementVOS = getFilteredStream().toList();</b>
+<b class="fc">&nbsp;        grid.setItems(orderElementVOS);</b>
+<b class="fc">&nbsp;        if(editObject != null){</b>
+<b class="fc">&nbsp;            List&lt;OrderElementVO&gt; selected = orderElementVOS.stream()</b>
+<b class="fc">&nbsp;                    .filter(v -&gt; {</b>
+<b class="fc">&nbsp;                        if(v.getOriginal().getOrderId() != null){</b>
+<b class="fc">&nbsp;                            return v.original.getOrderId().equals(editObject.getId());</b>
+&nbsp;                        }
+&nbsp;                        else{
+<b class="fc">&nbsp;                            return false;</b>
+&nbsp;                        }
+<b class="fc">&nbsp;                    }).toList();</b>
+<b class="fc">&nbsp;            UI.getCurrent().access(() -&gt; {</b>
+<b class="fc">&nbsp;                grid.deselectAll();</b>
+<b class="fc">&nbsp;                selected.stream()</b>
+<b class="fc">&nbsp;                        .distinct() // Biztosítsd, hogy ne legyen duplikáció</b>
+<b class="fc">&nbsp;                        .forEach(v -&gt; grid.getSelectionModel().select(v));</b>
+&nbsp;            });
+&nbsp;//            UI.getCurrent().access(() -&gt; {
+&nbsp;//                selected.forEach(v -&gt; {
+&nbsp;//                    grid.getSelectionModel().select(v);
+&nbsp;//                });
+&nbsp;//            });
+&nbsp;
+&nbsp;
+&nbsp;            //UI.getCurrent().push(); // Kliens-szerver szinkronizálás kényszerítése
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Getter
+&nbsp;    @NeedCleanCoding
+&nbsp;public class OrderElementVO extends BaseVO {
+&nbsp;
+&nbsp;        @NotNull
+<b class="fc">&nbsp;        private OrderElement original;</b>
+<b class="fc">&nbsp;        private String product;</b>
+<b class="fc">&nbsp;        private String orderNumber;</b>
+<b class="fc">&nbsp;        private String taxKey;</b>
+<b class="fc">&nbsp;        private Integer unit;</b>
+<b class="fc">&nbsp;        private Integer unitNetPrice;</b>
+<b class="fc">&nbsp;        private Integer netPrice;</b>
+<b class="fc">&nbsp;        private Integer grossPrice;</b>
+&nbsp;
+&nbsp;        public OrderElementVO(OrderElement orderElement) {
+<b class="fc">&nbsp;            super(orderElement.id, orderElement.getDeleted());</b>
+<b class="fc">&nbsp;            this.original = orderElement;</b>
+<b class="fc">&nbsp;            this.product = original.getProduct().getName();</b>
+<b class="fc">&nbsp;            this.orderNumber = original.getOrderId() == null ? &quot;&quot; : original.getOrderId().toString();</b>
+<b class="fc">&nbsp;            this.unit = original.getUnit();</b>
+<b class="fc">&nbsp;            this.unitNetPrice = original.getUnitNetPrice();</b>
+<b class="fc">&nbsp;            this.taxKey = original.getTaxKey().getName() + &quot;%&quot;;</b>
+<b class="fc">&nbsp;            this.netPrice = original.getNetPrice();</b>
+<b class="fc">&nbsp;            this.grossPrice = original.getGrossPrice();</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

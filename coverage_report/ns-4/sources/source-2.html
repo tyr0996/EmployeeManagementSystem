@@ -1,0 +1,299 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SecurityConfiguration</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.core.auth</a>
+</div>
+
+<h1>Coverage Summary for Class: SecurityConfiguration (hu.martin.ems.core.auth)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SecurityConfiguration</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (63/63)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SecurityConfiguration$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">SecurityConfiguration$$SpringCGLIB$$FastClass$$0</td>
+  </tr>
+  <tr>
+    <td class="name">SecurityConfiguration$$SpringCGLIB$$FastClass$$1</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (63/63)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.core.auth;
+&nbsp;
+&nbsp;import com.vaadin.flow.spring.security.VaadinWebSecurity;
+&nbsp;import hu.martin.ems.annotations.NeedCleanCoding;
+&nbsp;import hu.martin.ems.core.service.UserService;
+&nbsp;import hu.martin.ems.vaadin.component.Login.LoginView;
+&nbsp;import jakarta.servlet.http.HttpServletRequest;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.context.annotation.Bean;
+&nbsp;import org.springframework.context.annotation.Configuration;
+&nbsp;import org.springframework.security.authentication.AuthenticationManager;
+&nbsp;import org.springframework.security.authentication.ProviderManager;
+&nbsp;import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+&nbsp;import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+&nbsp;import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+&nbsp;import org.springframework.security.config.annotation.web.builders.WebSecurity;
+&nbsp;import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+&nbsp;import org.springframework.security.config.http.SessionCreationPolicy;
+&nbsp;import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+&nbsp;import org.springframework.security.crypto.password.PasswordEncoder;
+&nbsp;import org.springframework.security.provisioning.JdbcUserDetailsManager;
+&nbsp;import org.springframework.security.provisioning.UserDetailsManager;
+&nbsp;import org.springframework.security.web.SecurityFilterChain;
+&nbsp;import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+&nbsp;import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+&nbsp;import org.springframework.web.cors.CorsConfiguration;
+&nbsp;import org.springframework.web.cors.CorsConfigurationSource;
+&nbsp;import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+&nbsp;
+&nbsp;import javax.sql.DataSource;
+&nbsp;import java.util.Arrays;
+&nbsp;
+&nbsp;@EnableWebSecurity
+&nbsp;@Configuration
+&nbsp;@EnableGlobalMethodSecurity(prePostEnabled = true, jsr250Enabled = true, securedEnabled = true)
+&nbsp;@NeedCleanCoding
+&nbsp;public class SecurityConfiguration extends VaadinWebSecurity {
+&nbsp;    private final SecurityService securityService;
+&nbsp;
+&nbsp;
+<b class="fc">&nbsp;    public SecurityConfiguration(SecurityService securityService){</b>
+<b class="fc">&nbsp;        this.securityService = securityService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public CustomUserDetailsService userDetailsService;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    public UserService userService;
+&nbsp;
+&nbsp;    @Value(&quot;${rememberme.key}&quot;)
+&nbsp;    private String key;
+&nbsp;
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+&nbsp;//        configure(http);
+<b class="fc">&nbsp;        http</b>
+<b class="fc">&nbsp;                .cors(cors -&gt; {</b>
+<b class="fc">&nbsp;                    cors.configurationSource(corsConfigurationSource());</b>
+&nbsp;                })
+<b class="fc">&nbsp;                .sessionManagement(session -&gt; session</b>
+<b class="fc">&nbsp;                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)</b>
+<b class="fc">&nbsp;                        .invalidSessionUrl(&quot;/login?invalid-session&quot;)</b>
+<b class="fc">&nbsp;                        .maximumSessions(1)</b>
+<b class="fc">&nbsp;                        .expiredUrl(&quot;/login?session-expired&quot;))</b>
+<b class="fc">&nbsp;                .csrf(csrf -&gt; {</b>
+<b class="fc">&nbsp;                    csrf.ignoringRequestMatchers(HttpServletRequest::isRequestedSessionIdFromCookie);</b>
+<b class="fc">&nbsp;                    csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());</b>
+&nbsp;                })
+&nbsp;
+&nbsp;//                .csrf(csrf -&gt; csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+&nbsp;//                .csrf(csrf -&gt; csrf.disable())
+&nbsp;//                .csrf(csrf -&gt; csrf.ignoringRequestMatchers(&quot;/vaadinServlet/**&quot;)
+&nbsp;//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+<b class="fc">&nbsp;                .authorizeHttpRequests((requests) -&gt; requests</b>
+<b class="fc">&nbsp;                        .requestMatchers(new AntPathRequestMatcher(&quot;/public/**&quot;)).permitAll()</b>
+<b class="fc">&nbsp;                        .requestMatchers(&quot;/csrf&quot;).permitAll()</b>
+<b class="fc">&nbsp;                        .requestMatchers(&quot;/api/**&quot;).permitAll()//TODO: only for testing!</b>
+<b class="fc">&nbsp;                        .requestMatchers(&quot;/login**&quot;).permitAll()</b>
+<b class="fc">&nbsp;                        .requestMatchers(&quot;/access-denied&quot;).permitAll()</b>
+<b class="fc">&nbsp;                        .requestMatchers(&quot;/actuator&quot;).permitAll() //TODO only for testing</b>
+<b class="fc">&nbsp;                        .requestMatchers(&quot;/actuator/*&quot;).permitAll() //TODO only for testing</b>
+<b class="fc">&nbsp;                        .requestMatchers(&quot;/**&quot;).permitAll()</b>
+<b class="fc">&nbsp;                        .anyRequest().authenticated()</b>
+&nbsp;                )
+<b class="fc">&nbsp;                .exceptionHandling(exception -&gt; {</b>
+<b class="fc">&nbsp;                    exception.accessDeniedPage(&quot;/accesss-denied&quot;)</b>
+<b class="fc">&nbsp;                            .configure(http);</b>
+&nbsp;                })
+<b class="fc">&nbsp;                .formLogin(form -&gt; form.loginPage(&quot;/login&quot;))</b>
+<b class="fc">&nbsp;                .logout(logout -&gt; logout</b>
+<b class="fc">&nbsp;                        .permitAll()</b>
+<b class="fc">&nbsp;                        .logoutUrl(&quot;/logout&quot;)</b>
+<b class="fc">&nbsp;                        .logoutSuccessUrl(&quot;/login&quot;)</b>
+<b class="fc">&nbsp;                        .invalidateHttpSession(true)</b>
+<b class="fc">&nbsp;                        .deleteCookies(&quot;JSESSIONID&quot;));</b>
+<b class="fc">&nbsp;        return http.build();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;//    @Bean
+&nbsp;//    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+&nbsp;//        return authenticationConfiguration.getAuthenticationManager();
+&nbsp;//    }
+&nbsp;
+&nbsp;//    @Bean
+&nbsp;//    public AccessDeniedHandler accessDeniedHandler() {
+&nbsp;//        return (request, response, accessDeniedException) -&gt;
+&nbsp;//                response.sendRedirect(&quot;/access-denied&quot;);
+&nbsp;//    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    public AuthenticationManager authenticationManager() {
+<b class="fc">&nbsp;        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();</b>
+<b class="fc">&nbsp;        authProvider.setUserDetailsService(userDetailsService);</b>
+<b class="fc">&nbsp;        authProvider.setPasswordEncoder(new BCryptPasswordEncoder());</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ProviderManager(authProvider);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void configure(HttpSecurity http) throws Exception {
+<b class="fc">&nbsp;        super.configure(http);</b>
+&nbsp;//        http.rememberMe(me -&gt; {
+&nbsp;//            me.alwaysRemember(true);
+&nbsp;//            me.key(key);
+&nbsp;//            me.rememberMeCookieName(&quot;rememberMe&quot;);
+&nbsp;//            me.tokenValiditySeconds(86400);
+&nbsp;//            me.userDetailsService(userDetailsService);
+&nbsp;//        });
+<b class="fc">&nbsp;        setLoginView(http, LoginView.class);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void configure(WebSecurity web) throws Exception {
+<b class="fc">&nbsp;        super.configure(web);</b>
+<b class="fc">&nbsp;        web.ignoring()</b>
+<b class="fc">&nbsp;                .requestMatchers(&quot;/VAADIN/**&quot;)</b>
+<b class="fc">&nbsp;                .requestMatchers(&quot;/favicon.ico&quot;)</b>
+<b class="fc">&nbsp;                .requestMatchers(&quot;/manifest.webmanifest&quot;, &quot;/sw.js&quot;, &quot;/offline.html&quot;)</b>
+<b class="fc">&nbsp;                .requestMatchers(&quot;/icons/**&quot;)</b>
+<b class="fc">&nbsp;                .requestMatchers(&quot;/images/**&quot;)</b>
+<b class="fc">&nbsp;                .requestMatchers(&quot;/frontend/**&quot;)</b>
+<b class="fc">&nbsp;                .requestMatchers(&quot;/webjars/**&quot;)</b>
+<b class="fc">&nbsp;                .requestMatchers(&quot;/css/**&quot;, &quot;/js/**&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    public CorsConfigurationSource corsConfigurationSource() {
+<b class="fc">&nbsp;        final CorsConfiguration configuration = new CorsConfiguration();</b>
+<b class="fc">&nbsp;        configuration.setAllowedOrigins(Arrays.asList(&quot;*&quot;));</b>
+<b class="fc">&nbsp;        configuration.setAllowedMethods(Arrays.asList(&quot;HEAD&quot;, &quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;PATCH&quot;));</b>
+<b class="fc">&nbsp;        configuration.setExposedHeaders(Arrays.asList(&quot;Authorization&quot;));</b>
+&nbsp;        // setAllowCredentials(true) is important, otherwise:
+&nbsp;        // The value of the &#39;Access-Control-Allow-Origin&#39; header in the response must not be the wildcard &#39;*&#39; when the request&#39;s credentials mode is &#39;include&#39;.
+<b class="fc">&nbsp;        configuration.setAllowCredentials(true);</b>
+&nbsp;        // setAllowedHeaders is important! Without it, OPTIONS preflight request
+&nbsp;        // will fail with 403 Invalid CORS request
+<b class="fc">&nbsp;        configuration.setAllowedHeaders(Arrays.asList(&quot;Accept&quot;,&quot;Access-Control-Request-Method&quot;,&quot;Access-Control-Request-Headers&quot;,</b>
+&nbsp;                &quot;Accept-Language&quot;,&quot;Authorization&quot;,&quot;Content-Type&quot;,&quot;Request-Name&quot;,&quot;Request-Surname&quot;,&quot;Origin&quot;,&quot;X-Request-AppVersion&quot;,
+&nbsp;                &quot;X-Request-OsVersion&quot;, &quot;X-Request-Device&quot;, &quot;X-Requested-With&quot;));
+<b class="fc">&nbsp;        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();</b>
+<b class="fc">&nbsp;        source.registerCorsConfiguration(&quot;/**&quot;, configuration);</b>
+<b class="fc">&nbsp;        return source;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    public UserDetailsManager userDetailsService(DataSource dataSource) {
+<b class="fc">&nbsp;        JdbcUserDetailsManager manager = new JdbcUserDetailsManager();</b>
+<b class="fc">&nbsp;        manager.setDataSource(dataSource);</b>
+<b class="fc">&nbsp;        return manager;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    public PasswordEncoder passwordEncoder() {
+<b class="fc">&nbsp;        return new BCryptPasswordEncoder();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>

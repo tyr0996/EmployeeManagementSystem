@@ -2,7 +2,6 @@ package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
-import hu.martin.ems.core.NeedToReview;
 import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.EmployeePage;
 import hu.martin.ems.pages.LoginPage;
@@ -79,7 +78,6 @@ public class EmployeeCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @NeedToReview(description = "A doDeleteTest-nél meghalt a notification várakozása")
     public void employeeDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);

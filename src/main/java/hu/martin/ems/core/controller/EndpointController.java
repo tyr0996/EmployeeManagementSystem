@@ -3,10 +3,8 @@ package hu.martin.ems.core.controller;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import hu.martin.ems.core.config.BeanProvider;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -30,10 +28,6 @@ import java.util.regex.Pattern;
 @RequestMapping("/api/eps")
 @AnonymousAllowed
 public class EndpointController {
-//    @Qualifier("webApplicationContext")
-//    @Autowired
-//    private ApplicationContext applicationContext;
-
     @Autowired
     @Qualifier("requestMappingHandlerMapping")
     @Getter
@@ -42,10 +36,9 @@ public class EndpointController {
     @Autowired
     private Gson gson;
 
+
     @GetMapping(path = "/exportApis", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<byte[]> getAllEndpoints() {
-//        ApplicationContext ctx = new AnnotationConfigApplicationContext(EmployeeManagementSystemApplication.class);
-//        RequestMappingHandlerMapping handlerMapping = BeanProvider.getBean(RequestMappingHandlerMapping.class);
         Map<RequestMappingInfo, HandlerMethod> handlerMethods = getHandlerMapping().getHandlerMethods();
         List<RestEndPoint> eps = new ArrayList<>();
         handlerMethods.forEach((key, value) -> {

@@ -1,0 +1,230 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EndpointController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">hu.martin.ems.core.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: EndpointController (hu.martin.ems.core.controller)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EndpointController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (18/18)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">EndpointController$RestEndPoint</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (19/19)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package hu.martin.ems.core.controller;
+&nbsp;
+&nbsp;import com.google.gson.Gson;
+&nbsp;import com.google.gson.annotations.Expose;
+&nbsp;import com.vaadin.flow.server.auth.AnonymousAllowed;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.Getter;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.beans.factory.annotation.Qualifier;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.MediaType;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.stereotype.Controller;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestMapping;
+&nbsp;import org.springframework.web.method.HandlerMethod;
+&nbsp;import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+&nbsp;import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+&nbsp;
+&nbsp;import java.nio.charset.StandardCharsets;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.regex.Matcher;
+&nbsp;import java.util.regex.Pattern;
+&nbsp;
+&nbsp;@Controller
+&nbsp;@RequestMapping(&quot;/api/eps&quot;)
+&nbsp;@AnonymousAllowed
+<b class="fc">&nbsp;public class EndpointController {</b>
+&nbsp;    @Autowired
+&nbsp;    @Qualifier(&quot;requestMappingHandlerMapping&quot;)
+<b class="fc">&nbsp;    @Getter</b>
+&nbsp;    private RequestMappingHandlerMapping handlerMapping;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private Gson gson;
+&nbsp;
+&nbsp;
+&nbsp;    @GetMapping(path = &quot;/exportApis&quot;, produces = MediaType.APPLICATION_JSON_VALUE)
+&nbsp;    public ResponseEntity&lt;byte[]&gt; getAllEndpoints() {
+<b class="fc">&nbsp;        Map&lt;RequestMappingInfo, HandlerMethod&gt; handlerMethods = getHandlerMapping().getHandlerMethods();</b>
+<b class="fc">&nbsp;        List&lt;RestEndPoint&gt; eps = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;        handlerMethods.forEach((key, value) -&gt; {</b>
+<b class="fc">&nbsp;            eps.add(processKey(key.toString()));</b>
+&nbsp;        });
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(gson.toJson(eps).getBytes(StandardCharsets.UTF_8), HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private RestEndPoint processKey(String input){
+&nbsp;        // Regular expression minta
+<b class="fc">&nbsp;        String regex = &quot;(\\w+)\\s\\[(\\/[^\\s]+)\\]&quot;;</b>
+&nbsp;
+<b class="fc">&nbsp;        Pattern pattern = Pattern.compile(regex);</b>
+<b class="fc">&nbsp;        Matcher matcher = pattern.matcher(input);</b>
+&nbsp;
+<b class="fc">&nbsp;        if (matcher.find()) {</b>
+<b class="fc">&nbsp;            String method = matcher.group(1);</b>
+<b class="fc">&nbsp;            String url = matcher.group(2);</b>
+<b class="fc">&nbsp;            if(!url.equals(&quot;/api/eps/exportApis&quot;)){</b>
+<b class="fc">&nbsp;                return new RestEndPoint(method, url);</b>
+&nbsp;            }
+&nbsp;            else{
+<b class="fc">&nbsp;                return null;</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="fc">&nbsp;            System.out.println(&quot;No match found. Input: &quot; + input);</b>
+<b class="fc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    @AllArgsConstructor</b>
+&nbsp;    public class RestEndPoint{
+&nbsp;
+&nbsp;        @Expose
+&nbsp;        public String method;
+&nbsp;        @Expose
+&nbsp;        public String URL;
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-05-29 09:45</div>
+</div>
+</body>
+</html>
