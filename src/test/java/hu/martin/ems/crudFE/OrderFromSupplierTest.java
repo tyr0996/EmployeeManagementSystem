@@ -146,11 +146,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         OrderFromSupplierPage ocPage = new OrderFromSupplierPage(driver, port);
         ocPage.getSupplierComboBox().fillWith(supplierName);
         ocPage.getGrid().waitForRefresh();
-//        page.initWebElements();
-//
-//        page.getSupplierComboBox().fillWith(supplierName);
-//        page.getGrid().waitForRefresh();
-//        page.getGrid().init();
+
 
         assertEquals(ocPage.getGrid().getTotalRowNumber(), originalOrderElements + 3);
 
@@ -411,18 +407,10 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         oePage.performCreate(sameSupplier);
 
         oePage.getGrid().applyFilter(orderElementGridSupplierFilter);
-        oePage.performDelete(); //TODO: ez itt meghalt, mert a notification null volt.
+        oePage.performDelete();
         oePage.performDelete();
         oePage.getGrid().resetFilter();
-//        orderElementCrudTestingUtil.createTest(sameUser, "", true);
-//        orderElementCrudTestingUtil.createTest(sameUser, "", true);
-//        orderElementCrudTestingUtil.createTest(sameUser, "", true);
-//        orderElementCrudTestingUtil.createTest(sameUser, "", true);
-//        orderElementCrudTestingUtil.createTest(sameUser, "", true);
 
-
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        Thread.sleep(100);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_FROM_SUPPLIER_SUBMENU);
         page.initWebElements();
 //        supplierComboBox = gridTestingUtil.findVisibleElementWithXpath(supplierComboBoxXpath);
@@ -499,7 +487,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         oePage.performCreate(sameSupplier);
 
         oePage.getGrid().applyFilter(orderElementGridSupplierFilter);
-        oePage.performDelete(); //TODO: ez itt meghalt, mert a notification null volt.
+        oePage.performDelete();
         oePage.performDelete();
         oePage.getGrid().resetFilter();
 

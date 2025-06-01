@@ -19,10 +19,13 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.date.DateUtil;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CurrencyApiClient;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +43,11 @@ import java.util.stream.Stream;
 @RolesAllowed("ROLE_CurrencyMenuOpenPermission")
 @NeedCleanCoding
 //@RolesAllowed("CurrencyMenuOpenPermission")
-public class CurrencyList extends VerticalLayout {
+public class CurrencyList extends EmsFilterableGridComponent {
 
     private final CurrencyApiClient currencyApiClient = BeanProvider.getBean(CurrencyApiClient.class);
     private boolean showDeleted = false;
+    @Getter
     private PaginatedGrid<CurrencyVO, String> grid;
 
     private Gson gson = BeanProvider.getBean(Gson.class);
@@ -54,8 +58,8 @@ public class CurrencyList extends VerticalLayout {
 
     Grid.Column<CurrencyVO> nameColumn;
     Grid.Column<CurrencyVO> valColumn;
-    private String nameFilterText = "";
-    private String valFilterText = "";
+    private TextFilteringHeaderCell nameFilter;
+    private TextFilteringHeaderCell valFilter;
 
     private DatePicker datePicker;
     Logger logger = LoggerFactory.getLogger(CurrencyList.class);
@@ -78,7 +82,7 @@ public class CurrencyList extends VerticalLayout {
         datePicker = new DatePicker("Date");
         datePicker.setMax(LocalDate.now());
         datePicker.setValue(LocalDate.now());
-        datePicker.addValueChangeListener(event -> updateGrid());
+        datePicker.addValueChangeListener(event -> updateGridItems());
         datePicker.setI18n(new DatePicker.DatePickerI18n().setDateFormats(
                 "yyyy. MM. dd",
                 DateUtil.generateAllFormats().toArray(new String[0])
@@ -89,13 +93,13 @@ public class CurrencyList extends VerticalLayout {
 
         setFilteringHeaderRow();
 
-        updateGrid();
+        updateGridItems();
 
         Anchor currencyApiAnchor = new Anchor("https://www.exchangerate-api.com", "Rates By Exchange Rate API");
         add(fetch, datePicker, grid, currencyApiAnchor);
     }
 
-    public void updateGrid(){
+    public void updateGridItems(){
         updateGrid(false);
     }
 
@@ -134,7 +138,7 @@ public class CurrencyList extends VerticalLayout {
                 Notification.show("Exchange rates cannot be downloaded retroactively!")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 datePicker.setValue(LocalDate.now());
-                updateGrid();
+                updateGridItems();
                 return;
             }
         }
@@ -154,8 +158,8 @@ public class CurrencyList extends VerticalLayout {
 
     private Stream<CurrencyVO> getFilteredStream() {
         return currencyVOS.stream().filter(currencyVO ->
-                (valFilterText.isEmpty() || currencyVO.val.toLowerCase().contains(valFilterText.toLowerCase())) &&
-                (nameFilterText.isEmpty() || currencyVO.name.toLowerCase().contains(nameFilterText.toLowerCase()))
+                (valFilter.isEmpty() || currencyVO.val.toLowerCase().contains(valFilter.getFilterText().toLowerCase())) &&
+                (nameFilter.isEmpty() || currencyVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase()))
         );
     }
 
@@ -173,25 +177,9 @@ public class CurrencyList extends VerticalLayout {
     }
 
     private void setFilteringHeaderRow(){
-        TextField nameFilter = new TextField();
-        nameFilter.setPlaceholder("Search name...");
-        nameFilter.setClearButtonVisible(true);
-        nameFilter.addValueChangeListener(event -> {
-            nameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGrid();
-        });
+        nameFilter = new TextFilteringHeaderCell("Search name...", this);
+        valFilter = new TextFilteringHeaderCell("Search val...", this);
 
-        TextField valFilter = new TextField();
-        valFilter.setPlaceholder("Search val...");
-        valFilter.setClearButtonVisible(true);
-        valFilter.addValueChangeListener(event -> {
-            valFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGrid();
-        });
-
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(valColumn).setComponent(filterField(valFilter, "Val"));
         filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));

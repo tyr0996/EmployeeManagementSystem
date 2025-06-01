@@ -20,7 +20,7 @@ public class ScreenshotMaker {
     public void takeScreenshot(WebDriver driver) {
         File f = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
         try{
-            String path = screenshotFolder + screenshotId + ".png";
+            String path = screenshotFolder + "/" + screenshotId + ".png";
             FileUtils.copyFile(f, new File(path));
             screenshotId++;
         } catch (IOException e) {

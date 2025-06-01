@@ -28,6 +28,8 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.model.Product;
@@ -36,12 +38,13 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -51,7 +54,7 @@ import java.util.stream.Stream;
 @RolesAllowed("ROLE_OrderElementMenuOpenPermission")
 @CssImport("./styles/grid.css")
 @NeedCleanCoding
-public class OrderElementList extends VerticalLayout implements Creatable<OrderElement> {
+public class OrderElementList extends EmsFilterableGridComponent implements Creatable<OrderElement> {
 
     private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);
     private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
@@ -60,6 +63,8 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);
     private final Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
+
+    @Getter
     private PaginatedGrid<OrderElementVO, String> grid;
     
     private List<OrderElementVO> orderElementVOS;
@@ -77,14 +82,16 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<OrderElementVO> extraData;
 
-    private String grossPriceFilterText = "";
-    private String netPriceFilterText = "";
-    private String orderFilterText = "";
-    private String productFilterText = "";
-    private String taxKeyFilterText = "";
-    private String unitFilterText = "";
-    private String unitNetPriceFilterText = "";
-    private String customerOrSupplierNameFilterText = "";
+    private TextFilteringHeaderCell grossPriceFilter;
+    private TextFilteringHeaderCell netPriceFilter;
+    private TextFilteringHeaderCell orderFilter;
+    private TextFilteringHeaderCell productFilter;
+    private TextFilteringHeaderCell taxKeyFilter;
+    private TextFilteringHeaderCell unitFilter;
+    private TextFilteringHeaderCell unitNetPriceFilter;
+    private TextFilteringHeaderCell customerOrSupplierNameFilter;
+
+
     List<OrderElement> orderElementList;
     List<Product> productList;
     List<Customer> customerList;
@@ -98,6 +105,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         OrderElementVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(OrderElementVO.class);
+
         setupOrderElements();
         if(orderElementList == null){
             Notification.show("Getting order elements failed")
@@ -105,7 +113,6 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             orderElementList = new ArrayList<>();
         }
 
-        updateGridItems();
 
         grossPriceColumn = grid.addColumn(v -> v.grossPrice);
         netPriceColumn = grid.addColumn(v -> v.netPrice);
@@ -178,8 +185,6 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
             }
             return actions;
         });
-        setFilteringHeaderRow();
-
         //endregion
 
         Button create = new Button("Create");
@@ -201,6 +206,9 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
         hl.setAlignSelf(Alignment.CENTER, create);
 
+        setFilteringHeaderRow();
+        updateGridItems();
+
         add(hl, grid);
     }
 
@@ -219,14 +227,14 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
 
     private Stream<OrderElementVO> getFilteredStream() {
         return orderElementVOS.stream().filter(orderElementVO ->
-                filterField(customerOrSupplierNameFilterText, orderElementVO.customerOrSupplierName) &&
-                filterField(grossPriceFilterText, orderElementVO.grossPrice.toString()) &&
-                filterField(netPriceFilterText, orderElementVO.netPrice.toString()) &&
-                filterFieldWithNullFilter(orderFilterText, orderElementVO.order) &&
-                filterField(productFilterText, orderElementVO.product) &&
-                filterField(taxKeyFilterText, orderElementVO.taxKey) &&
-                filterField(unitFilterText, orderElementVO.unit.toString()) &&
-                filterField(unitNetPriceFilterText, orderElementVO.unitNetPrice.toString()) &&
+                filterField(customerOrSupplierNameFilter, orderElementVO.customerOrSupplierName) &&
+                filterField(grossPriceFilter, orderElementVO.grossPrice.toString()) &&
+                filterField(netPriceFilter, orderElementVO.netPrice.toString()) &&
+                filterFieldWithNullFilter(orderFilter, orderElementVO.order) &&
+                filterField(productFilter, orderElementVO.product) &&
+                filterField(taxKeyFilter, orderElementVO.taxKey) &&
+                filterField(unitFilter, orderElementVO.unit.toString()) &&
+                filterField(unitNetPriceFilter, orderElementVO.unitNetPrice.toString()) &&
                 orderElementVO.filterExtraData()
 
         );
@@ -234,19 +242,19 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
 
 
     //TODO megcsinálni a többinél is
-    private boolean filterFieldWithNullFilter(String filterFieldText, String fieldValue){
-        if(filterFieldText.toLowerCase().equals("null")){
+    private boolean filterFieldWithNullFilter(TextFilteringHeaderCell filterField, String fieldValue){
+        if(filterField.getFilterText().toLowerCase().equals("null")){
             return fieldValue.isEmpty();
         }
         else{
-            return filterField(filterFieldText, fieldValue);
+            return filterField(filterField, fieldValue);
         }
     }
 
-    private boolean filterField(String filterFieldText, String fieldValue){
+    private boolean filterField(TextFilteringHeaderCell filterField, String fieldValue){
 //        if(taxKeyFilterText.equals(filterFieldText))
 //        System.out.println("Itt az első: " + filterFieldText.isEmpty() + "   és a második " + fieldValue.toLowerCase().contains(filterFieldText.toLowerCase()));
-        return filterFieldText.isEmpty() || fieldValue.toLowerCase().contains(filterFieldText.toLowerCase());
+        return filterField.isEmpty() || fieldValue.toLowerCase().contains(filterField.getFilterText().toLowerCase());
     }
     
     private Component createFilterField(TextField filterField, String title){
@@ -263,77 +271,14 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
     }
 
     private void setFilteringHeaderRow(){
-        TextField grossPriceFilter = new TextField();
-        grossPriceFilter.setPlaceholder("Search gross price...");
-        grossPriceFilter.setClearButtonVisible(true);
-        grossPriceFilter.addValueChangeListener(event -> {
-            grossPriceFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField netPriceFilter = new TextField();
-        netPriceFilter.setPlaceholder("Search net price...");
-        netPriceFilter.setClearButtonVisible(true);
-        netPriceFilter.addValueChangeListener(event -> {
-            netPriceFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField orderFilter = new TextField();
-        orderFilter.setPlaceholder("Search order...");
-        orderFilter.setClearButtonVisible(true);
-        orderFilter.addValueChangeListener(event -> {
-            orderFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField productFilter = new TextField();
-        productFilter.setPlaceholder("Search product...");
-        productFilter.setClearButtonVisible(true);
-        productFilter.addValueChangeListener(event -> {
-            productFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField taxKeyFilter = new TextField();
-        taxKeyFilter.setPlaceholder("Search tax key...");
-        taxKeyFilter.setClearButtonVisible(true);
-        taxKeyFilter.addValueChangeListener(event -> {
-            taxKeyFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField unitFilter = new TextField();
-        unitFilter.setPlaceholder("Search unit...");
-        unitFilter.setClearButtonVisible(true);
-        unitFilter.addValueChangeListener(event -> {
-            unitFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField unitNetPriceFilter = new TextField();
-        unitNetPriceFilter.setPlaceholder("Search unit net price...");
-        unitNetPriceFilter.setClearButtonVisible(true);
-        unitNetPriceFilter.addValueChangeListener(event -> {
-            unitNetPriceFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField customerOrSupplierNameFilter = new TextField();
-        customerOrSupplierNameFilter.setPlaceholder("Search customer/supplier...");
-        customerOrSupplierNameFilter.setClearButtonVisible(true);
-        customerOrSupplierNameFilter.addValueChangeListener(event -> {
-            customerOrSupplierNameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        grossPriceFilter = new TextFilteringHeaderCell("Search gross price...", this);
+        netPriceFilter = new TextFilteringHeaderCell("Search net price...", this);
+        orderFilter = new TextFilteringHeaderCell("Search order...", this);
+        productFilter = new TextFilteringHeaderCell("Search product...", this);
+        taxKeyFilter = new TextFilteringHeaderCell("Search tax key...", this);
+        unitFilter = new TextFilteringHeaderCell("Search unit...", this);
+        unitNetPriceFilter = new TextFilteringHeaderCell("Search unit net price...", this);
+        customerOrSupplierNameFilter = new TextFilteringHeaderCell("Search customer/supplier...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -362,7 +307,7 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
         filterRow.getCell(extraData).setComponent(createFilterField(extraDataFilter, ""));
     }
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         if(orderElementList == null){
             Notification.show("Getting order elements failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
@@ -468,12 +413,12 @@ public class OrderElementList extends VerticalLayout implements Creatable<OrderE
                 case 200: {
                     Notification.show("OrderElement " + (entity == null ? "saved: " : "updated: ") + orderElement)
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    break; //TODO
+                    break;
                 }
 
                 default:{
                     Notification.show("OrderElement " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    break; //TODO
+                    break;
                 }
             }
 

@@ -44,3 +44,5 @@ node_modules
 hibernate.log
 
 /video
+/src/main/resources/selenium/_screenshotFolder/*.png
+/src/test/java/hu/martin/ems/sql

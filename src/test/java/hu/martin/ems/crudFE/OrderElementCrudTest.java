@@ -148,9 +148,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
         while(allNonOrderedLines.size() == 0) {
             page.performCreate(null);
             allNonOrderedLines = page.getGrid().getAllLackingLines(true);
-//            orderElementCreateTest();
-//            gridTestingUtil.navigateMenu(mainMenu, subMenu); //TODO: itt volt egy ilyen navigate, amit nem értek, hogy miért kell.
-//            allNonOrderedLines = crudTestingUtil.getAllDataLinesWithEmpty();
         }
 
         Collections.shuffle(allFullLines);
@@ -158,7 +155,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         SoftAssert sa = new SoftAssert();
 
-//        crudTestingUtil.readTest(allFullLines.get(0), null, false, null);
         page.getGrid().applyFilter(allFullLines.get(0));
         sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
         sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);

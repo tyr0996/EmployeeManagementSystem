@@ -27,6 +27,8 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.IEmsFilterableGridPage;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
@@ -36,6 +38,7 @@ import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,8 +55,9 @@ import java.util.stream.Stream;
 @RolesAllowed("ROLE_PermissionMenuOpenPermission")
 @NeedCleanCoding
 @Route(value = "/accessManagement/list/permission", layout = MainView.class)
-public class PermissionList extends AccessManagement implements Creatable<Permission> {
+public class PermissionList extends AccessManagement implements Creatable<Permission>, IEmsFilterableGridPage<PermissionList.PermissionVO> {
     private boolean withDeleted = false;
+    @Getter
     private PaginatedGrid<PermissionVO, String> grid;
     private final PaginationSetting paginationSetting;
     private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
@@ -65,9 +69,9 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
     private Grid.Column<PermissionVO> extraData;
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
 
-    private static String idFilterText = "";
+    private TextFilteringHeaderCell idFilter;
 
-    private static String nameFilterText = "";
+    private TextFilteringHeaderCell nameFilter;
     List<PermissionVO> permissionVOS;
 
     private static TextField nameField;
@@ -92,7 +96,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         PermissionVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(PermissionVO.class);
-        updateGridItems();
+
 
         idColumn = grid.addColumn(v -> v.id);
         nameColumn = grid.addColumn(v -> v.name);
@@ -158,7 +162,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
             return actions;
         });
 
-        setFilteringHeaderRow();
+
 
         Button create = new Button("Create");
         create.addClickListener(event -> {
@@ -179,6 +183,9 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         hl.setAlignSelf(Alignment.CENTER, withDeletedCheckbox);
         hl.setAlignSelf(Alignment.CENTER, create);
 
+        setFilteringHeaderRow();
+        updateGridItems();
+
         add(hl, grid);
     }
 
@@ -195,7 +202,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         }
     }
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         setupPermissions();
         if(permissionList != null){
             permissionVOS = permissionList.stream().map(PermissionVO::new).collect(Collectors.toList());
@@ -240,15 +247,6 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         if (entity != null) {
             nameField.setValue(entity.getName());
             roles.setValue(entity.getRoles());
-//            if(entity.getRoles() != null){
-//                roles.setValue(entity.getRoles());
-//            }
-//            else{
-//                roles.setErrorMessage("EmsError happened while getting paired roles");
-//                roles.setEnabled(false);
-//                roles.setInvalid(true);
-//                saveButton.setEnabled(false);
-//            }
         }
 
         saveButton.addClickListener(event -> {
@@ -276,32 +274,12 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
     }
 
     private void saveRolesWithPermission(Permission entity){
-//        EmsResponse responseFindAllOriginalRoles = roleApi.findAllByIds(entity.getRoleIds());
-//        List<Role> originalRoles = new ArrayList<>();
-//        switch (responseFindAllOriginalRoles.getCode()){
-//            case 200:
-//                originalRoles = (List<Role>) responseFindAllOriginalRoles.getResponseData();
-//                break;
-//            case 500:
-//                Notification.show(responseFindAllOriginalRoles.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                createDialog.close();
-//                return;
-//            default:
-//                Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying"));
-//                createDialog.close();
-//                return;
-//        }
-//        if(entity != null){
-//            entity.setRoles(roles.getSelectedItems());
-//            entity.setName(nameField.getValue());
-//        }
         Boolean isUpdate = true;
         if(entity == null){
             entity = new Permission();
             entity.setDeleted(0L);
             isUpdate = false;
         }
-//        entity.setRoleIds(roles.getSelectedItems().stream().map(Role::getId).toList());
         entity.setName(nameField.getValue());
 
 
@@ -319,121 +297,19 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         }
         nameField.clear();
         createDialog.close();
-//        Permission originalPermission = null;
-//        List<Role> originalRoles = null;
-//        if(entity != null){
-//            originalPermission = new Permission();
-//            originalPermission.setName(entity.getName());
-//            originalPermission.setDeleted(entity.getDeleted());
-//            originalPermission.id = entity.id;
-//            List<Role> pairedRoles = getAllPairedRoleTo(entity);
-//            if(pairedRoles == null){
-//                Notification.show("EmsError happened while getting paired permissions")
-//                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                nameField.clear();
-//                createDialog.close();
-//                return;
-//            }
-//            else{
-//                originalRoles = pairedRoles;
-//            }
-//
-//        }
-//
-//        Permission permission = null;
-//        if(entity != null){
-//            permission = entity;
-//        }
-//        else{
-//            permission = new Permission();
-//        }
-//
-//        permission.setDeleted(0L);
-//        permission.setName(nameField.getValue());
-//        EmsResponse permissionResponse = null;
-//        if(entity != null){
-//            permissionResponse = permissionApi.update(permission);
-//        }
-//        else{
-//            permissionResponse = permissionApi.save(permission);
-//        }
-//        switch (permissionResponse.getCode()){
-//            case 200:
-//                permission = (Permission) permissionResponse.getResponseData();
-//                break;
-//            case 500:
-//                Notification.show(permissionResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                createDialog.close();
-//                return;
-//            default:
-//                Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying"));
-//                createDialog.close();
-//                return;
-//        }
-//        roleXPermissionApi.removeAllRolesFrom(entity);
-//        List<Role> selectedRoles = roles.getSelectedItems().stream().toList();
-//        for(int i = 0; i < selectedRoles.size(); i++){
-//            RoleXPermission rxp = new RoleXPermission(selectedRoles.get(i), permission);
-//            rxp.setDeleted(0L);
-//            EmsResponse roleXPermissionResponse = roleXPermissionApi.save(rxp);
-//            switch (roleXPermissionResponse.getCode()){
-//                case 200: break;
-//                case 500:
-//                    if(entity == null){
-//                        undoSave((Permission) permissionResponse.getResponseData());
-//                    }
-//                    else{
-//                        undoUpdate(originalPermission, originalRoles);
-//                    }
-//                    Notification.show(roleXPermissionResponse.getDescription());
-//                    createDialog.close();
-//                    return;
-//                default:
-//                    if(entity == null){
-//                        undoSave((Permission) permissionResponse.getResponseData());
-//                    }
-//                    else{
-//                        undoUpdate(originalPermission, originalRoles);
-//                    }
-//                    Notification.show("Not expected status-code in " + (entity == null ? "saving" : "modifying"));
-//                    createDialog.close();
-//                    return;
-//            }
-//        }
-
-
-
-
-        nameField.clear();
-        createDialog.close();
     }
 
     private Stream<PermissionVO> getFilteredStream() {
         return permissionVOS.stream().filter(permissionVO ->
-                (idFilterText.isEmpty() || permissionVO.id.toString().toLowerCase().contains(idFilterText.toLowerCase())) &&
-                        (nameFilterText.isEmpty() || permissionVO.name.toLowerCase().contains(nameFilterText.toLowerCase())) &&
+                (idFilter.isEmpty() || permissionVO.id.toString().toLowerCase().contains(idFilter.getFilterText().toLowerCase())) &&
+                        (nameFilter.isEmpty() || permissionVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase())) &&
                         permissionVO.filterExtraData()
         );
     }
 
     private void setFilteringHeaderRow(){
-        TextField idColumnFilter = new TextField();
-        idColumnFilter.setPlaceholder("Search id...");
-        idColumnFilter.setClearButtonVisible(true);
-        idColumnFilter.addValueChangeListener(event -> {
-            idFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField nameColumnFilter = new TextField();
-        nameColumnFilter.setPlaceholder("Search name...");
-        nameColumnFilter.setClearButtonVisible(true);
-        nameColumnFilter.addValueChangeListener(event -> {
-            nameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        idFilter = new TextFilteringHeaderCell("Search id...", this);
+        nameFilter = new TextFilteringHeaderCell("Search name...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -448,10 +324,9 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
             updateGridItems();
         });
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();;
-        filterRow.getCell(idColumn).setComponent(filterField(idColumnFilter, "ID"));
-        filterRow.getCell(nameColumn).setComponent(filterField(nameColumnFilter, "Name"));
+        filterRow.getCell(idColumn).setComponent(filterField(idFilter, "ID"));
+        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
         filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 

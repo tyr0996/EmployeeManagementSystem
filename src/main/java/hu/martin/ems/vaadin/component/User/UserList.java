@@ -29,6 +29,8 @@ import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.RoleApiClient;
@@ -36,6 +38,7 @@ import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -48,9 +51,10 @@ import java.util.stream.Stream;
 @Route(value = "user/list", layout = MainView.class)
 @RolesAllowed("ROLE_UserMenuOpenPermission")
 @NeedCleanCoding
-public class UserList extends VerticalLayout implements Creatable<User> {
+public class UserList extends EmsFilterableGridComponent implements Creatable<User> {
     private boolean showDeleted = false;
     private HorizontalLayout buttonsLayout;
+    @Getter
     private PaginatedGrid<UserVO, String> grid;
     private final PaginationSetting paginationSetting;
     private Button saveButton;
@@ -83,9 +87,10 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private final SecurityService securityService = BeanProvider.getBean(SecurityService.class);
 
-    private String usernameFilterText = "";
-    private String passwordHashFilterText = "";
-    private String enabledFilterText = "";
+//    private String usernameFilterText = "";
+    private TextFilteringHeaderCell usernameFilter;
+    private TextFilteringHeaderCell passwordHashFilter;
+    private TextFilteringHeaderCell enabledFilter;
     private String roleFilter = "";
 
     private Logger logger = LoggerFactory.getLogger(UserList.class);
@@ -114,32 +119,9 @@ public class UserList extends VerticalLayout implements Creatable<User> {
     }
 
     private void setFilteringHeaderRow() throws RuntimeException {
-        TextField usernameFilter = new TextField();
-        usernameFilter.setPlaceholder("Search username...");
-        usernameFilter.setClearButtonVisible(true);
-        usernameFilter.addValueChangeListener(event -> {
-            usernameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField passwordHashFilter = new TextField();
-        passwordHashFilter.setPlaceholder("Search password hash...");
-        passwordHashFilter.setClearButtonVisible(true);
-        passwordHashFilter.addValueChangeListener(event -> {
-            passwordHashFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField enabledFilter = new TextField();
-        enabledFilter.setPlaceholder("Search enabled...");
-        enabledFilter.setClearButtonVisible(true);
-        enabledFilter.addValueChangeListener(event -> {
-            enabledFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        usernameFilter = new TextFilteringHeaderCell("Search username...", this);
+        passwordHashFilter = new TextFilteringHeaderCell("Search password hash...", this);
+        enabledFilter = new TextFilteringHeaderCell("Search enabled...", this);
 
         ComboBox<Role> rolesFilter = new ComboBox();
         ComboBox.ItemFilter<Role> filterPermission = (permission, filterString) ->
@@ -352,13 +334,6 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         else{
             return response.getResponseData() == null;
         }
-//        else if(response.getResponseData() != null){
-//            return false;
-//        }
-//        else if(editableUser != null){
-//            return true;
-//        }
-//        return true;
     }
 
     private void setGridColumns(){
@@ -449,7 +424,7 @@ public class UserList extends VerticalLayout implements Creatable<User> {
         });
     }
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         setupUsers();
         if(users != null){
             userVOS = users.stream().map(UserVO::new).collect(Collectors.toList());
@@ -475,12 +450,11 @@ public class UserList extends VerticalLayout implements Creatable<User> {
 
     private Stream<UserVO> getFilteredStream() {
         return userVOS.stream().filter(userVO ->
-                (usernameFilterText.isEmpty() || userVO.username.toLowerCase().contains(usernameFilterText.toLowerCase())) &&
-                (passwordHashFilterText.isEmpty() || userVO.passwordHash.toLowerCase().contains(passwordHashFilterText.toLowerCase())) &&
-                (enabledFilterText.isEmpty() || userVO.enabled.toLowerCase().equals(enabledFilterText.toLowerCase())) &&
+                (usernameFilter.isEmpty() || userVO.username.toLowerCase().contains(usernameFilter.getFilterText().toLowerCase())) &&
+                (passwordHashFilter.isEmpty() || userVO.passwordHash.toLowerCase().contains(passwordHashFilter.getFilterText().toLowerCase())) &&
+                (enabledFilter.isEmpty() || userVO.enabled.toLowerCase().equals(enabledFilter.getFilterText().toLowerCase())) &&
                 (roleFilter.isEmpty() || userVO.role.toLowerCase().equals(roleFilter.toLowerCase())) &&
                 userVO.filterExtraData()
-//                        (showDeleted ? (userVO.deleted == 0 || userVO.deleted == 1) : userVO.deleted == 0)
         );
     }
 

@@ -38,13 +38,13 @@ public class DateUtil {
         }
 //        System.out.println("allFormat szűrés nélkül: " + allFormat.size());
 //        System.out.println("allFormat szűréssel: " + (allFormat.stream().filter(v -> !v.contains("MMdd") && !v.contains("yyyyMM")).toList()).size());
-        return allFormat.stream().filter(v -> !v.contains("MMdd") && !v.contains("yyyyMM")).toList();
+//        return allFormat.stream().filter(v -> !v.contains("MMdd") && !v.contains("yyyyMM")).toList();
+        return allFormat;
     }
 
     private static List<String> generateMiddleCombinations() {
         List<String> combinations = new ArrayList<>();
         combinations.add(" ");
-        combinations.add(""); //TODO ezt majd ki kell venni. Ekkor nem fog kelleni a generateAllFormats-nál a szűrés. Addig viszont marad
 
         for (String sep : separators) {
             combinations.add(sep);
