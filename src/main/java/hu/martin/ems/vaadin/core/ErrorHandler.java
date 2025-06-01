@@ -21,8 +21,6 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(emsError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
-
     @ExceptionHandler({TransactionException.class, JpaSystemException.class, GenericJDBCException.class})
     public final ResponseEntity<EmsError> handleSqlException(Exception ex, WebRequest request){
         EmsError emsError = new EmsError(Instant.now().toEpochMilli(), 500, "Database error", request.getContextPath());

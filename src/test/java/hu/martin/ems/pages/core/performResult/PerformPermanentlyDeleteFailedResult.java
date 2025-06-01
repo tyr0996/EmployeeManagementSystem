@@ -7,5 +7,4 @@ import lombok.Setter;
 @Setter
 public class PerformPermanentlyDeleteFailedResult {
     private String[] permanentlyDeletedData;
-    //TODO
 }

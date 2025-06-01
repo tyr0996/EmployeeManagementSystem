@@ -27,6 +27,8 @@ import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.City;
 import hu.martin.ems.model.CodeStore;
@@ -37,6 +39,7 @@ import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,13 +55,15 @@ import java.util.stream.Stream;
 //@PreAuthorize("hasRole('AddressesMenuOpenPermission')")
 @RolesAllowed("ROLE_AddressesMenuOpenPermission")
 @NeedCleanCoding
-public class AddressList extends VerticalLayout implements Creatable<Address> {
+public class AddressList extends EmsFilterableGridComponent implements Creatable<Address> {
 
     private final AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private final CityApiClient cityApi = BeanProvider.getBean(CityApiClient.class);
     private Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
+
+    @Getter
     private PaginatedGrid<AddressVO, String> grid;
     private final PaginationSetting paginationSetting;
     List<Address> addresses;
@@ -72,11 +77,17 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     Grid.Column<AddressVO> extraData;
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
 
-    private static String cityFilterText = "";
-    private static String countryCodeFilterText = "";
-    private static String houseNumberFilterText = "";
-    private static String streetNameFilterText = "";
-    private static String streetTypeFilterText = "";
+    private TextFilteringHeaderCell cityFilter;
+    private TextFilteringHeaderCell countryCodeFilter;
+    private TextFilteringHeaderCell houseNumberFilter;
+    private TextFilteringHeaderCell streetNameFilter;
+    private TextFilteringHeaderCell streetTypeFilter;
+
+//    private static String cityFilterText = "";
+//    private static String countryCodeFilterText = "";
+//    private static String houseNumberFilterText = "";
+//    private static String streetNameFilterText = "";
+//    private static String streetTypeFilterText = "";
 
     private Button createOrModifySaveButton = new Button("Save");
 
@@ -219,11 +230,11 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
 
     private Stream<AddressVO> getFilteredStream() {
         return addressVOS.stream().filter(addressVO ->
-                (cityFilterText.isEmpty() || addressVO.city.toLowerCase().contains(cityFilterText.toLowerCase())) &&
-                        (countryCodeFilterText.isEmpty() || addressVO.countryCode.toLowerCase().contains(countryCodeFilterText.toLowerCase())) &&
-                        (houseNumberFilterText.isEmpty() || addressVO.houseNumber.toLowerCase().contains(houseNumberFilterText.toLowerCase())) &&
-                        (streetTypeFilterText.isEmpty() || addressVO.streetType.toLowerCase().contains(streetTypeFilterText.toLowerCase())) &&
-                        (streetNameFilterText.isEmpty() || addressVO.streetName.toLowerCase().contains(streetNameFilterText.toLowerCase())) &&
+                (cityFilter.isEmpty() || addressVO.city.toLowerCase().contains(cityFilter.getFilterText().toLowerCase())) &&
+                        (countryCodeFilter.isEmpty() || addressVO.countryCode.toLowerCase().contains(countryCodeFilter.getFilterText().toLowerCase())) &&
+                        (houseNumberFilter.isEmpty() || addressVO.houseNumber.toLowerCase().contains(houseNumberFilter.getFilterText().toLowerCase())) &&
+                        (streetTypeFilter.isEmpty() || addressVO.streetType.toLowerCase().contains(streetTypeFilter.getFilterText().toLowerCase())) &&
+                        (streetNameFilter.isEmpty() || addressVO.streetName.toLowerCase().contains(streetNameFilter.getFilterText().toLowerCase())) &&
                         addressVO.filterExtraData()
         );
     }
@@ -242,50 +253,11 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     }
 
     private void setFilteringHeaderRow(){
-        TextField cityFilter = new TextField();
-        cityFilter.setPlaceholder("Search city...");
-        cityFilter.setClearButtonVisible(true);
-        cityFilter.addValueChangeListener(event -> {
-            cityFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField countryCodeFilter = new TextField();
-        countryCodeFilter.setPlaceholder("Search country code...");
-        countryCodeFilter.setClearButtonVisible(true);
-        countryCodeFilter.addValueChangeListener(event -> {
-            countryCodeFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField streetNameFilter = new TextField();
-        streetNameFilter.setPlaceholder("Search street name...");
-        streetNameFilter.setClearButtonVisible(true);
-        streetNameFilter.addValueChangeListener(event -> {
-            streetNameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField streetTypeFilter = new TextField();
-        streetTypeFilter.setPlaceholder("Search street type...");
-        streetTypeFilter.setClearButtonVisible(true);
-        streetTypeFilter.addValueChangeListener(event -> {
-            streetTypeFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField houseNumberFilter = new TextField();
-        houseNumberFilter.setPlaceholder("Search street type...");
-        houseNumberFilter.setClearButtonVisible(true);
-        houseNumberFilter.addValueChangeListener(event -> {
-            houseNumberFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        cityFilter = new TextFilteringHeaderCell("Search city...", this);
+        countryCodeFilter = new TextFilteringHeaderCell("Search country code...", this);
+        streetNameFilter = new TextFilteringHeaderCell("Search street name...", this);
+        streetTypeFilter = new TextFilteringHeaderCell("Search street type...", this);
+        houseNumberFilter = new TextFilteringHeaderCell("Search street type...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -310,7 +282,7 @@ public class AddressList extends VerticalLayout implements Creatable<Address> {
     }
 
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         EmsResponse response = addressApi.findAllWithDeleted();
         List<Address> addresses;
         switch (response.getCode()){

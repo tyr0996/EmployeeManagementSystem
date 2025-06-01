@@ -20,20 +20,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class AccessManagement extends VerticalLayout implements RouterLayout {
 
     private final PaginationSetting paginationSetting;
-
-    private Button listRoles;
-    private Button listPermissions;
-    private Button pairRolesWithPermissions;
     private HorizontalLayout buttonsLayout;
 //    private MainView mainView;
 
     @Autowired
     public AccessManagement(PaginationSetting paginationSetting) {
-//        this.mainView = mainView;
         this.paginationSetting = paginationSetting;
-//        this.roleList = new RoleList(paginationSetting);
-//        this.permissionList = new PermissionList(paginationSetting);
-//        this.roleXPermissionCreate = new RoleXPermissionCreate();
         this.buttonsLayout = createButtonRow();
         add(buttonsLayout);
     }
@@ -59,6 +51,5 @@ public class AccessManagement extends VerticalLayout implements RouterLayout {
     private void refreshLayout(Class<? extends Component> c){
         removeAll();
         UI.getCurrent().navigate(c);
-//        add(this.buttonsLayout, c);
     }
 }

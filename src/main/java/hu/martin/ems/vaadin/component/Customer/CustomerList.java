@@ -27,6 +27,8 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.vaadin.MainView;
@@ -34,12 +36,13 @@ import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CustomerApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,10 +53,11 @@ import java.util.stream.Stream;
 @RolesAllowed("ROLE_CustomerMenuOpenPermission")
 @Route(value = "customer/list", layout = MainView.class)
 @NeedCleanCoding
-public class CustomerList extends VerticalLayout implements Creatable<Customer> {
+public class CustomerList extends EmsFilterableGridComponent implements Creatable<Customer> {
     private boolean showDeleted = false;
     private CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
     private AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
+    @Getter
     private PaginatedGrid<CustomerVO, String> grid;
     private final PaginationSetting paginationSetting;
     List<Customer> customers;
@@ -68,10 +72,10 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<CustomerVO> extraData;
 
-    private String addressFilterText = "";
-    private String emailFilterText = "";
-    private String firstNameFilterText = "";
-    private String lastNameFilterText = "";
+    private TextFilteringHeaderCell addressFilter;
+    private TextFilteringHeaderCell emailFilter;
+    private TextFilteringHeaderCell firstNameFilter;
+    private TextFilteringHeaderCell lastNameFilter;
     private Logger logger = LoggerFactory.getLogger(Customer.class);
 
     List<Address> addressList;
@@ -201,12 +205,11 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     }
 
     private Stream<CustomerVO> getFilteredStream() {
-
         return customerVOS.stream().filter(customerVO ->
-                (addressFilterText.isEmpty() || customerVO.address.toLowerCase().contains(addressFilterText.toLowerCase())) &&
-                (emailFilterText.isEmpty() || customerVO.email.toLowerCase().contains(emailFilterText.toLowerCase())) &&
-                (firstNameFilterText.isEmpty() || customerVO.firstName.toLowerCase().contains(firstNameFilterText.toLowerCase())) &&
-                (lastNameFilterText.isEmpty() || customerVO.lastName.toLowerCase().contains(lastNameFilterText.toLowerCase())) &&
+                (addressFilter.isEmpty() || customerVO.address.toLowerCase().contains(addressFilter.getFilterText().toLowerCase())) &&
+                (emailFilter.isEmpty() || customerVO.email.toLowerCase().contains(emailFilter.getFilterText().toLowerCase())) &&
+                (firstNameFilter.isEmpty() || customerVO.firstName.toLowerCase().contains(firstNameFilter.getFilterText().toLowerCase())) &&
+                (lastNameFilter.isEmpty() || customerVO.lastName.toLowerCase().contains(lastNameFilter.getFilterText().toLowerCase())) &&
                 customerVO.filterExtraData()
             );
     }
@@ -225,41 +228,10 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
     }
 
     private void setFilteringHeaderRow(){
-        TextField addressFilter = new TextField();
-        addressFilter.setPlaceholder("Search address...");
-        addressFilter.setClearButtonVisible(true);
-        addressFilter.addValueChangeListener(event -> {
-            addressFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField emailFilter = new TextField();
-        emailFilter.setPlaceholder("Search email...");
-        emailFilter.setClearButtonVisible(true);
-        emailFilter.addValueChangeListener(event -> {
-            emailFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField firstNameFilter = new TextField();
-        firstNameFilter.setPlaceholder("Search first name...");
-        firstNameFilter.setClearButtonVisible(true);
-        firstNameFilter.addValueChangeListener(event -> {
-            firstNameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField lastNameFilter = new TextField();
-        lastNameFilter.setPlaceholder("Search last name...");
-        lastNameFilter.setClearButtonVisible(true);
-        lastNameFilter.addValueChangeListener(event -> {
-            lastNameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        addressFilter = new TextFilteringHeaderCell("Search address...", this);
+        emailFilter = new TextFilteringHeaderCell("Search email...", this);
+        firstNameFilter = new TextFilteringHeaderCell("Search first name...", this);
+        lastNameFilter = new TextFilteringHeaderCell("Search last name...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -283,7 +255,7 @@ public class CustomerList extends VerticalLayout implements Creatable<Customer> 
         filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         customers = new ArrayList<>();
         setupCustomers();
         if(customers != null){

@@ -243,6 +243,7 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
         else if(grid.getTotalDeletedRowNumber(showDeletedCheckBox) == 0) {
             performDelete();
         }
+
         VaadinNotificationComponent.closeAll(getDriver());
 
         showDeletedCheckBox.setStatus(true);
@@ -870,8 +871,6 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
     @Override
     public DoDeleteFailedTestData doDatabaseNotAvailableWhenDeleteTest(DataSource spyDataSource) throws SQLException {
-//        DoDeleteTestData ret = new DoDeleteTestData();
-
         int originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
         if(originalNonDeletedRowNumber == 0){
             performCreate(null);

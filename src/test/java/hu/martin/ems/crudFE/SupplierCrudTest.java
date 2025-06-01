@@ -254,18 +254,18 @@ public class SupplierCrudTest extends BaseCrudTest {
         SoftAssert sa = new SoftAssert();
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        sa.assertEquals(notification.getText(), "EmsError happened while getting suppliers: Database error", "1");
+        sa.assertEquals(notification.getText(), "EmsError happened while getting suppliers: Database error");
         notification.close();
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
         sa.assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
         VaadinNotificationComponent notification1 = new VaadinNotificationComponent(driver);
-        sa.assertEquals(notification1.getText(), "EmsError happened while getting suppliers: Database error", "2");
+        sa.assertEquals(notification1.getText(), "EmsError happened while getting suppliers: Database error");
         notification1.close();
 
         sa.assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
         VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
-        sa.assertEquals(notification2.getText(), "EmsError happened while getting suppliers: Database error", "3"); //TODO megcsinálni
+        sa.assertEquals(notification2.getText(), "EmsError happened while getting suppliers: Database error");
         notification2.close();
 
         sa.assertAll();

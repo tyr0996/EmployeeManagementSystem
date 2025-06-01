@@ -6,10 +6,10 @@ import hu.martin.ems.base.selenium.WebDriverProvider;
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.*;
 import hu.martin.ems.core.controller.EndpointController;
-import hu.martin.ems.schedule.CurrencyScheduler;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.repository.CurrencyRepository;
+import hu.martin.ems.schedule.CurrencyScheduler;
 import hu.martin.ems.service.AdminToolsService;
 import hu.martin.ems.service.CurrencyService;
 import hu.martin.ems.service.OrderService;
@@ -27,8 +27,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.web.client.RestTemplate;
 import org.testng.ITestListener;
@@ -294,7 +292,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         dp.executeSQL("ALTER SEQUENCE roles_permissions_role_id_seq RESTART WITH 1");
 
         dp.executeSQL("BEGIN; SET session_replication_role = 'replica'; DELETE FROM role; SET session_replication_role = 'origin'; COMMIT;");
-        dp.executeSQL("ALTER SEQUENCE role_id_seq RESTART WITH 3"); //TODO Erre azért van szükség, mert van a json-ben id, így nem lépteti automatikusan a számlálót, és hibát fog írni mentésnél
+        dp.executeSQL("ALTER SEQUENCE role_id_seq RESTART WITH 3"); //Erre azért van szükség, mert van a json-ben id, így nem lépteti automatikusan a számlálót, és hibát fog írni mentésnél
 
         dp.executeSQL("DELETE FROM permission CASCADE");
         dp.executeSQL("ALTER SEQUENCE permission_id_seq RESTART WITH 1");
@@ -317,6 +315,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     protected void resetUsers() {
         dp.executeSQL("BEGIN; SET session_replication_role = 'replica'; DELETE FROM loginuser; SET session_replication_role = 'origin'; COMMIT;");
         dp.executeSQL("ALTER SEQUENCE loginuser_id_seq RESTART WITH 1");
+
         dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'admin', '$2a$12$21wsdBKKqiHILOElhmEhGe3R11QIlrXmA6xlY.CowoExz8rlxB9Bu', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), true)");
         dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'robi', '$2a$12$ENKhjamGSnSXx81f0IRPQObhyEOccAbutpkjJRai0.dshqFRyFETy', (SELECT id as role_role_id FROM Role WHERE id = 2 LIMIT 1), true)");
         dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'Erzsi', '$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), false)");
@@ -331,7 +330,6 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         dp.executeSQL("ALTER SEQUENCE customer_id_seq RESTART WITH 1");
         dp.executeSQL("INSERT INTO customer (deleted, firstName, lastName, emailAddress, address_address_id) VALUES ('0', 'Erdei', 'Róbert', 'robert.emailcime@gmail.com', '1')");
         dp.executeSQL("INSERT INTO customer (deleted, firstName, lastName, emailAddress, address_address_id) VALUES ('0', 'Gálber', 'Martin', 'martin.emailcime@gmail.com', '2')");
-//        dp.executeSQL("INSERT INTO loginuser (deleted, username, passwordHash, role_role_id, enabled) VALUES ('0', 'Erzsi', '$2a$12$4Eb.fZ748irmUDwJl1NueO6CjrVLFiP0E41qx3xsE6KAYxx00IfrG', (SELECT id as role_role_id FROM Role WHERE id = 1 LIMIT 1), false)");
         logger.info("All customer recovered");
         JPAConfig.resetCallIndex();
     }
@@ -365,7 +363,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
                     }
                 }
             }
-            Thread.sleep(padding); // Várakozás 1 másodpercig
+            Thread.sleep(padding);
         }
         return false;
     }
@@ -408,14 +406,5 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         } catch (MessagingException e) {
             e.printStackTrace();
         }
-    }
-
-    public String updateProperty(String key, String value) {
-        MutablePropertySources propertySources = environment.getPropertySources();
-        Properties props = new Properties();
-        props.put(key, value);
-        PropertiesPropertySource propertySource = new PropertiesPropertySource("dynamicProps", props);
-        propertySources.addFirst(propertySource);
-        return "Property updated: " + key + " = " + value;
     }
 }

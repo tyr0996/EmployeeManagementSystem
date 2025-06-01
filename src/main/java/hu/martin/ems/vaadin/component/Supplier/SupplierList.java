@@ -26,6 +26,8 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.Supplier;
 import hu.martin.ems.vaadin.MainView;
@@ -33,12 +35,13 @@ import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.SupplierApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,12 +50,13 @@ import java.util.stream.Stream;
 @CssImport("./styles/grid.css")
 @RolesAllowed("ROLE_SupplierMenuOpenPermission")
 @NeedCleanCoding
-public class SupplierList extends VerticalLayout implements Creatable<Supplier> {
+public class SupplierList extends EmsFilterableGridComponent implements Creatable<Supplier> {
 
     private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);
     private final AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
     private final Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
+    @Getter
     private PaginatedGrid<SupplierVO, String> grid;
     private final PaginationSetting paginationSetting;
 
@@ -63,8 +67,8 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
 
     Grid.Column<SupplierVO> addressColumn;
     Grid.Column<SupplierVO> nameColumn;
-    private static String addressFilterText = "";
-    private static String nameFilterText = "";
+    private TextFilteringHeaderCell addressFilter;
+    private TextFilteringHeaderCell nameFilter;
 
     private Logger logger = LoggerFactory.getLogger(Supplier.class);
     List<Supplier> supplierList;
@@ -73,6 +77,8 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
     private MainView mainView;
 
     @Autowired
+
+    //TODO nagyon ki kell javítani a update grid elements-et.
     public SupplierList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
@@ -80,10 +86,8 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
 
         this.grid = new PaginatedGrid<>(SupplierVO.class);
         grid.addClassName("styling");
-        setupSuppliers();
-        List<SupplierVO> data = supplierList.stream().map(SupplierVO::new).collect(Collectors.toList());
 
-        this.grid.setItems(data);
+
 
         addressColumn = grid.addColumn(v -> v.address);
         nameColumn = grid.addColumn(v -> v.name);
@@ -148,7 +152,12 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
             return actions;
         });
 
+        setupSuppliers();
+        List<SupplierVO> data = supplierList.stream().map(SupplierVO::new).collect(Collectors.toList());
+
+        this.grid.setItems(data);
         setFilteringHeaderRow();
+//        updateGridItems();
 
         //endregion
 
@@ -192,8 +201,8 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
 
     private Stream<SupplierVO> getFilteredStream() {
         return supplierVOS.stream().filter(supplierVO ->
-                        (addressFilterText.isEmpty() || supplierVO.address.toLowerCase().contains(addressFilterText.toLowerCase())) &&
-                        (nameFilterText.isEmpty() || supplierVO.name.toLowerCase().contains(nameFilterText.toLowerCase())) &&
+                        (addressFilter.isEmpty() || supplierVO.address.toLowerCase().contains(addressFilter.getFilterText().toLowerCase())) &&
+                        (nameFilter.isEmpty() || supplierVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase())) &&
                         supplierVO.filterExtraData()
         );
     }
@@ -212,23 +221,8 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
     }
 
     private void setFilteringHeaderRow(){
-        TextField addressFilter = new TextField();
-        addressFilter.setPlaceholder("Search address...");
-        addressFilter.setClearButtonVisible(true);
-        addressFilter.addValueChangeListener(event -> {
-            addressFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField nameFilter = new TextField();
-        nameFilter.setPlaceholder("Search name...");
-        nameFilter.setClearButtonVisible(true);
-        nameFilter.addValueChangeListener(event -> {
-            nameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        addressFilter = new TextFilteringHeaderCell("Search address...", this);
+        nameFilter = new TextFilteringHeaderCell("Search name...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -251,7 +245,7 @@ public class SupplierList extends VerticalLayout implements Creatable<Supplier> 
     }
 
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         EmsResponse response = supplierApi.findAllWithDeleted();
         List<Supplier> suppliers;
         switch (response.getCode()){

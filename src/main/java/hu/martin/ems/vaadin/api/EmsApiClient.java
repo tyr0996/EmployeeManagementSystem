@@ -148,9 +148,7 @@ public abstract class EmsApiClient<T> {
         }
         catch(WebClientResponseException ex){
             logger.error("WebClient error - permanently delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
-//            return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
-            //TODO
         }
     }
 

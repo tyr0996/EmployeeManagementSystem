@@ -791,8 +791,7 @@ public class OrderCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
 
-//        ElementLocation rowLocation = page.getGrid().getRandomLocation(); //TODO visszarakni
-        ElementLocation rowLocation = null; //TODO kitörölni
+        ElementLocation rowLocation = page.getGrid().getRandomLocation();
         if(rowLocation == null) {
             loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
             OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
@@ -804,7 +803,7 @@ public class OrderCrudTest extends BaseCrudTest {
         }
 
         VaadinButtonComponent sendEmailButton = page.getGrid().getOptionColumnButton(rowLocation, 3);
-        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2); //TODO Eredeti: 2
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2);
         sendEmailButton.click();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver, Duration.ofMillis(20000));
         assertEquals(notification.getText(), "Email generation failed");
@@ -890,7 +889,6 @@ public class OrderCrudTest extends BaseCrudTest {
     @Test
     public void sendEmailPDFGenerationFailedIOException() throws IOException, XDocReportException {
         Mockito.doThrow(IOException.class).when(spyRegistry).loadReport(any(InputStream.class), any(TemplateEngineKind.class));
-//        Mockito.doReturn(new EmsResponse(500, "Email sending failed")).when(spyEmailSendingApi).send(Mockito.any(EmailProperties.class));
 
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -1176,14 +1174,6 @@ public class OrderCrudTest extends BaseCrudTest {
 //        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
         page.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
-
-
-//
-//
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        int originalInvisibleRows = gridTestingUtil.countHiddenGridDataRows(gridXpath, showDeletedXpath);
-//        if(originalInvisibleRows == 0) {
     }
 
     @Test
@@ -1203,12 +1193,8 @@ public class OrderCrudTest extends BaseCrudTest {
             page.initWebElements();
             page.performDelete();
             new VaadinNotificationComponent(driver).close();
-//            originalVisibleRows = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox());
-//
-//            orderCreateTest.setup();
-//            orderCreateTest.createOrder();
-//            deleteOrderTest();
         }
+
         page.performPermanentlyDelete();
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertThat(notification.getText()).contains("Order permanently deleted: ");
@@ -1224,7 +1210,6 @@ public class OrderCrudTest extends BaseCrudTest {
         assertEquals(notificationComponent.getText(), "Clearing database was successful");
         notificationComponent.close();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
-//        crudTestingUtil.permanentlyDeleteTest();
     }
 
     @Test

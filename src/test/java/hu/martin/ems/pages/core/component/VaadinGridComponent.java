@@ -171,7 +171,6 @@ public class VaadinGridComponent extends VaadinBaseComponent {
     public List<Integer> getRandomIndexes(int count){
         List<Integer> selectedElements = new ArrayList<>();
         Random random = new Random();
-        //TODO: Itt a
 
         List<Integer> numbers = new ArrayList<>();
         for (int i = 0; i < getCurrentRowNumber(); i++) {
@@ -432,25 +431,4 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         });
         this.waitForRefresh();
     }
-
-
-
-/*
-    public void selectElements(String... elements) {
-//        JavascriptExecutor js = (JavascriptExecutor) getDriver();
-        getToggleButton().click();
-//        scrollDown(5000);
-//        waitForRefresh();
-        for(int i = 0; i < elements.length; i++){
-            if(!elements[i].equals("")){
-                element.sendKeys(elements[i]);
-                this.waitForRefresh();
-                WebElement comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("vaadin-multi-select-combo-box-item")));
-                comboBoxOptions.click();
-            }
-            getToggleButton().click();
-        }
-    }
- */
-    //TODO visszamásolnia  VaadinMultipleSelectDropdownComponent-be
 }

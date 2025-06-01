@@ -27,6 +27,8 @@ import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.City;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.vaadin.MainView;
@@ -35,6 +37,7 @@ import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +55,12 @@ import java.util.stream.Stream;
 @Route(value = "city/list", layout = MainView.class)
 @RolesAllowed("ROLE_CityMenuOpenPermission")
 @NeedCleanCoding
-public class CityList extends VerticalLayout implements Creatable<City> {
+public class CityList extends EmsFilterableGridComponent implements Creatable<City> {
 
     private final CityApiClient cityApi = BeanProvider.getBean(CityApiClient.class);
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private boolean showDeleted = false;
+    @Getter
     private PaginatedGrid<CityVO, String> grid;
     private PaginationSetting paginationSetting;
 
@@ -64,9 +68,9 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     List<City> cityList;
     List<CodeStore> countries;
 
-    private String countryCodeFilterText = "";
-    private String nameFilterText = "";
-    private String zipCodeFilterText = "";
+    private TextFilteringHeaderCell countryCodeFilter;
+    private TextFilteringHeaderCell nameFilter;
+    private TextFilteringHeaderCell zipCodeFilter;
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<CityVO> extraData;
 
@@ -91,7 +95,6 @@ public class CityList extends VerticalLayout implements Creatable<City> {
         this.grid = new PaginatedGrid<>(CityVO.class);
         setupCountries();
         setupCities();
-        updateGridItems();
 
         countryCodeColumn = grid.addColumn(v -> v.countryCode);
         nameColumn = grid.addColumn(v -> v.name);
@@ -167,9 +170,6 @@ public class CityList extends VerticalLayout implements Creatable<City> {
             }
             return actions;
         });
-
-        setFilteringHeaderRow();
-
         //endregion
 
         Button create = new Button("Create");
@@ -191,6 +191,9 @@ public class CityList extends VerticalLayout implements Creatable<City> {
         hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
         hl.setAlignSelf(Alignment.CENTER, create);
 
+
+        setFilteringHeaderRow();
+        updateGridItems();
         add(hl, grid);
     }
 
@@ -209,9 +212,9 @@ public class CityList extends VerticalLayout implements Creatable<City> {
 
     private Stream<CityVO> getFilteredStream() {
         return cityVOS.stream().filter(cityVO ->
-                (zipCodeFilterText.isEmpty() || cityVO.zipCode.toLowerCase().contains(zipCodeFilterText.toLowerCase())) &&
-                        (countryCodeFilterText.isEmpty() || cityVO.countryCode.toLowerCase().contains(countryCodeFilterText.toLowerCase())) &&
-                        (nameFilterText.isEmpty() || cityVO.name.toLowerCase().contains(nameFilterText.toLowerCase())) &&
+                (zipCodeFilter.isEmpty() || cityVO.zipCode.toLowerCase().contains(zipCodeFilter.getFilterText().toLowerCase())) &&
+                        (countryCodeFilter.isEmpty() || cityVO.countryCode.toLowerCase().contains(countryCodeFilter.getFilterText().toLowerCase())) &&
+                        (nameFilter.isEmpty() || cityVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase())) &&
                         cityVO.filterExtraData()
                         //(showDeleted ? (cityVO.deleted == 0 || cityVO.deleted == 1) : cityVO.deleted == 0)
         );
@@ -232,32 +235,9 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     }
 
     private void setFilteringHeaderRow(){
-        TextField countryCodeFilter = new TextField();
-        countryCodeFilter.setPlaceholder("Search country code...");
-        countryCodeFilter.setClearButtonVisible(true);
-        countryCodeFilter.addValueChangeListener(event -> {
-            countryCodeFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField nameFilter = new TextField();
-        nameFilter.setPlaceholder("Search name...");
-        nameFilter.setClearButtonVisible(true);
-        nameFilter.addValueChangeListener(event -> {
-            nameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField zipCodeFilter = new TextField();
-        zipCodeFilter.setPlaceholder("Search zip code...");
-        zipCodeFilter.setClearButtonVisible(true);
-        zipCodeFilter.addValueChangeListener(event -> {
-            zipCodeFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        countryCodeFilter = new TextFilteringHeaderCell("Search country code...", this);
+        nameFilter = new TextFilteringHeaderCell("Search name...", this);
+        zipCodeFilter = new TextFilteringHeaderCell("Search zip code...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -283,7 +263,7 @@ public class CityList extends VerticalLayout implements Creatable<City> {
     }
 
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         if(cityList != null){
             cityVOS = cityList.stream().map(CityVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));

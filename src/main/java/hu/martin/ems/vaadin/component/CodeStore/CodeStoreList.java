@@ -26,17 +26,20 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import jakarta.annotation.security.RolesAllowed;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,13 +52,15 @@ import java.util.stream.Stream;
 @Route(value = "codestore/list", layout = MainView.class)
 @RolesAllowed("ROLE_CodeStoreMenuOpenPermission")
 @NeedCleanCoding
-public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore> {
+public class CodeStoreList extends EmsFilterableGridComponent implements Creatable<CodeStore> {
 
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
     private boolean showOnlyDeletable = false;
-    private PaginatedGrid<CodeStoreVO, ?> grid;
+
+    @Getter
+    private PaginatedGrid<CodeStoreVO, String> grid;
     private final PaginationSetting paginationSetting;
 
     private List<CodeStore> codeStores;
@@ -65,8 +70,8 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
     Grid.Column<CodeStoreVO> parentColumn;
     Grid.Column<CodeStoreVO> extraData;
 
-    private static String nameColumnFilterText = "";
-    private static String parentColumnFilterText = "";
+    private TextFilteringHeaderCell nameFilter;
+    private TextFilteringHeaderCell parentFilter;
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Logger logger = LoggerFactory.getLogger(CodeStore.class);
     private MainView mainView;
@@ -83,7 +88,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         this.grid.setId("page-grid");
 
         setupCodeStores();
-        updateGridItems();
+
 
         nameColumn = this.grid.addColumn(v -> v.name);
         parentColumn = this.grid.addColumn(v -> v.parentName);
@@ -164,6 +169,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         });
 
         setFilteringHeaderRow();
+        updateGridItems();
 
         Button create = new Button("Create");
         create.addClickListener(event -> {
@@ -203,7 +209,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         }
     }
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         if(codeStores == null){
             Notification.show("EmsError happened while getting codestores")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -216,11 +222,10 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
 
     private Stream<CodeStoreVO> getFilteredStream() {
         return codeStoreVOS.stream().filter(codeStoreVO ->
-                (nameColumnFilterText.isEmpty() || codeStoreVO.name.toLowerCase().equals(nameColumnFilterText.toLowerCase())) && //TODO: lehet, hogy erre érdemes lenne felhívni a felhasználó figyelmét, hogy az ebben történő szűrés teljes egyezést néz
-                        (parentColumnFilterText.isEmpty() || codeStoreVO.parentName.toLowerCase().contains(parentColumnFilterText.toLowerCase())) &&
-                        //(showDeleted ? (codeStoreVO.deleted == 0 || codeStoreVO.deleted == 1) : codeStoreVO.deleted == 0) &&
-                        codeStoreVO.filterExtraData() &&
-                        (showOnlyDeletable ? codeStoreVO.deletable : true)
+                (nameFilter.isEmpty() || codeStoreVO.name.toLowerCase().equals(nameFilter.getFilterText().toLowerCase())) &&
+                (parentFilter.isEmpty() || codeStoreVO.parentName.toLowerCase().contains(parentFilter.getFilterText().toLowerCase())) &&
+                codeStoreVO.filterExtraData() &&
+                (showOnlyDeletable ? codeStoreVO.deletable : true)
         );
     }
 
@@ -240,23 +245,8 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
     }
 
     private void setFilteringHeaderRow(){
-        TextField nameFilter = new TextField();
-        nameFilter.setPlaceholder("Search name...");
-        nameFilter.setClearButtonVisible(true);
-        nameFilter.addValueChangeListener(event -> {
-            nameColumnFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField parentColumnFilter = new TextField();
-        parentColumnFilter.setPlaceholder("Search parent...");
-        parentColumnFilter.setClearButtonVisible(true);
-        parentColumnFilter.addValueChangeListener(event -> {
-            parentColumnFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        nameFilter = new TextFilteringHeaderCell("Search name...", this);
+        parentFilter = new TextFilteringHeaderCell("Search parent...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -274,7 +264,7 @@ public class CodeStoreList extends VerticalLayout implements Creatable<CodeStore
         // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
-        filterRow.getCell(parentColumn).setComponent(filterField(parentColumnFilter, "Parent"));
+        filterRow.getCell(parentColumn).setComponent(filterField(parentFilter, "Parent"));
         filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 

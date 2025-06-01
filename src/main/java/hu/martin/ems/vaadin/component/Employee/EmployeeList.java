@@ -28,6 +28,8 @@ import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Employee;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmployeeApiClient;
@@ -35,6 +37,7 @@ import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,12 +52,13 @@ import java.util.stream.Stream;
 @RolesAllowed("ROLE_EmployeeMenuOpenPermission")
 @Route(value = "employee/list", layout = MainView.class)
 @NeedCleanCoding
-public class EmployeeList extends VerticalLayout implements Creatable<Employee> {
+public class EmployeeList extends EmsFilterableGridComponent implements Creatable<Employee> {
 
     private final EmployeeApiClient employeeApi = BeanProvider.getBean(EmployeeApiClient.class);
     private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
     private final Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
+    @Getter
     private PaginatedGrid<EmployeeVO, String> grid;
     private final PaginationSetting paginationSetting;
     List<Employee> employees;
@@ -67,10 +71,10 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<EmployeeVO> extraData;
 
-    private String firstNameFilterText = "";
-    private String lastNameFilterText = "";
-    private String userFilterText = "";
-    private String salaryFilterText = "";
+    private TextFilteringHeaderCell firstNameFilter;
+    private TextFilteringHeaderCell lastNameFilter;
+    private TextFilteringHeaderCell userFilter;
+    private TextFilteringHeaderCell salaryFilter;
     private Logger logger = LoggerFactory.getLogger(Employee.class);
     List<User> userList;
     private MainView mainView;
@@ -81,7 +85,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
 
         this.grid = new PaginatedGrid<>(EmployeeVO.class);
         setupEmployees();
-        updateGridItems();
+
 
 //        this.grid.removeAllColumns(); // TODO megnézni az összesnél, hogy így nézzen ki
         firstNameColumn = this.grid.addColumn(v -> v.firstName);
@@ -170,6 +174,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         });
 
         setFilteringHeaderRow();
+        updateGridItems();
 
         //endregion
 
@@ -211,10 +216,10 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     private Stream<EmployeeVO> getFilteredStream() {
 
         return employeeVOS.stream().filter(employeeVO ->
-                (firstNameFilterText.isEmpty() || employeeVO.firstName.toLowerCase().contains(firstNameFilterText.toLowerCase())) &&
-                (lastNameFilterText.isEmpty() || employeeVO.lastName.toLowerCase().contains(lastNameFilterText.toLowerCase())) &&
-                (userFilterText.isEmpty() || employeeVO.user.toLowerCase().contains(userFilterText.toLowerCase())) &&
-                (salaryFilterText.isEmpty() || employeeVO.salary.toString().toLowerCase().contains(salaryFilterText.toLowerCase())) &&
+                (firstNameFilter.isEmpty() || employeeVO.firstName.toLowerCase().contains(firstNameFilter.getFilterText().toLowerCase())) &&
+                (lastNameFilter.isEmpty() || employeeVO.lastName.toLowerCase().contains(lastNameFilter.getFilterText().toLowerCase())) &&
+                (userFilter.isEmpty() || employeeVO.user.toLowerCase().contains(userFilter.getFilterText().toLowerCase())) &&
+                (salaryFilter.isEmpty() || employeeVO.salary.toString().toLowerCase().contains(salaryFilter.getFilterText().toLowerCase())) &&
                 employeeVO.filterExtraData()
         );
     }
@@ -233,41 +238,10 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
     }
 
     private void setFilteringHeaderRow(){
-        TextField firstNameFilter = new TextField();
-        firstNameFilter.setPlaceholder("Search first name...");
-        firstNameFilter.setClearButtonVisible(true);
-        firstNameFilter.addValueChangeListener(event -> {
-            firstNameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField lastNameFilter = new TextField();
-        lastNameFilter.setPlaceholder("Search last name...");
-        lastNameFilter.setClearButtonVisible(true);
-        lastNameFilter.addValueChangeListener(event -> {
-            lastNameFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField userFilter = new TextField();
-        userFilter.setPlaceholder("Search user...");
-        userFilter.setClearButtonVisible(true);
-        userFilter.addValueChangeListener(event -> {
-            userFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField salaryFilter = new TextField();
-        salaryFilter.setPlaceholder("Search salary...");
-        salaryFilter.setClearButtonVisible(true);
-        salaryFilter.addValueChangeListener(event -> {
-            salaryFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        firstNameFilter = new TextFilteringHeaderCell("Search first name...", this);
+        lastNameFilter = new TextFilteringHeaderCell("Search last name...", this);
+        userFilter = new TextFilteringHeaderCell("Search user...", this);
+        salaryFilter = new TextFilteringHeaderCell("Search salary...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -291,7 +265,7 @@ public class EmployeeList extends VerticalLayout implements Creatable<Employee> 
         filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
     }
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         if(employees == null){
             Notification.show("EmsError happened while getting employees")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);

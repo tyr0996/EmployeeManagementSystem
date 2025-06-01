@@ -29,6 +29,8 @@ import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
+import hu.martin.ems.core.vaadin.IEmsFilterableGridPage;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
@@ -38,6 +40,7 @@ import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.klaudeta.PaginatedGrid;
@@ -50,8 +53,9 @@ import java.util.stream.Stream;
 @NeedCleanCoding
 @RolesAllowed("ROLE_RoleMenuOpenPermission")
 @Route(value = "/accessManagement/list/role", layout = MainView.class)
-public class RoleList extends AccessManagement implements Creatable<Role> {
+public class RoleList extends AccessManagement implements Creatable<Role>, IEmsFilterableGridPage {
     private boolean showDeleted = false;
+    @Getter
     private PaginatedGrid<RoleVO, String> grid;
     private final PaginationSetting paginationSetting;
     private HorizontalLayout buttonsLayout;
@@ -71,9 +75,8 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private final UserApiClient userApiClient = BeanProvider.getBean(UserApiClient.class);
 
-    private String roleFilterText = "";
+    private TextFilteringHeaderCell roleFilter;
     private Set<Permission> permissionsFilterSet = new HashSet<>();
-    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<RoleVO> extraData;
     private Grid.Column<RoleVO> roleColumn;
     private Grid.Column<RoleVO> permissionsColumn;
@@ -81,10 +84,6 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
     private Logger logger = LoggerFactory.getLogger(RoleList.class);
     List<Permission> permissionList;
     private Gson gson = BeanProvider.getBean(Gson.class);
-
-    private MainView mainView;
-
-    EmsResponse loggedInUserResponse;
 
 
     private void appendCloseButton(Dialog d){
@@ -164,7 +163,6 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
         this.createOrModifyForm.removeAll();
         nameField = new TextField("Name");
         saveButton = new Button("Save");
-        //Button editRoleXPermissionButton = new Button("Edit permissions");
 
         permissions = new MultiSelectComboBox<>("Permission");
         ComboBox.ItemFilter<Permission> filterPermission = (permission, filterString) ->
@@ -237,14 +235,7 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
     }
 
     private void setFilteringHeaderRow(){
-        TextField roleFilter = new TextField();
-        roleFilter.setPlaceholder("Search role...");
-        roleFilter.setClearButtonVisible(true);
-        roleFilter.addValueChangeListener(event -> {
-            roleFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        roleFilter = new TextFilteringHeaderCell("Search role...", this);
 
         MultiSelectComboBox<Permission> permissionsFilter = new MultiSelectComboBox();
         ComboBox.ItemFilter<Permission> filterPermission = (permission, filterString) ->
@@ -392,7 +383,7 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
         }
     }
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         if(roles != null){
             roleVOS = roles.stream().map(RoleVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
@@ -406,7 +397,7 @@ public class RoleList extends AccessManagement implements Creatable<Role> {
     }
 
     private boolean filterPredicate(RoleVO groupedRoleXPermissionVO) {
-        boolean roleFilterResult = roleFilterText.isEmpty() || groupedRoleXPermissionVO.role.toLowerCase().contains(roleFilterText.toLowerCase());
+        boolean roleFilterResult = roleFilter.isEmpty() || groupedRoleXPermissionVO.role.toLowerCase().contains(roleFilter.getFilterText().toLowerCase());
         HashSet<String> rowPermissions = new HashSet<>(groupedRoleXPermissionVO.permissionSet.stream().map(Permission::getName).toList());
         boolean permissionFilterResult = permissionsFilterSet.isEmpty() || rowPermissions.containsAll(permissionsFilterSet.stream().map(Permission::getName).toList());
         return roleFilterResult && permissionFilterResult && groupedRoleXPermissionVO.filterExtraData();

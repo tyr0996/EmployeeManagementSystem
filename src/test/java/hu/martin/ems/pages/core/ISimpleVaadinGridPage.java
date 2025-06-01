@@ -31,7 +31,9 @@ public interface ISimpleVaadinGridPage<T> extends ILoggedInPage<T> {
     PerformRestoreFailedResult performRestoreFailed(DataSource spyDataSource) throws SQLException;
 
     PerformRestoreResult performRestore();
+
     PerformPermanentlyDeleteResult performPermanentlyDelete();
+
     PerformUpdateResult performUpdate(LinkedHashMap<String, Object> withData, ElementLocation rowLocation);
 
     PerformUpdateFailedResult performUpdate(LinkedHashMap<String, Object> withData, @NotNull ElementLocation rowLocation, DataSource spyDatasource, Integer preSuccess) throws SQLException;

@@ -66,9 +66,6 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
 
     public void fillWith(int index){
         assert this.isEnabled() : "The combo box is not enabled: " + element.getText();
-//        JavascriptExecutor js = (JavascriptExecutor) driver;
-//        js.executeScript("arguments[0].selectedItem=Array.from(arguments[0])[0].__data.filteredItems[" + index + "]", element); //TODO ez nem jó, mert nem tudja a __data-t kiolvasni.
-
 
         element.click();
         try {
@@ -82,11 +79,9 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
             System.err.println("Nincs elem a combo boxban! " + getTitle());
             element.click();
             fillWith(index);
-//            printToConsole(comboBox);
         }
         if(comboBoxOptions.size() == 1){
             comboBoxOptions.get(0).click();
-//            return comboBoxOptions.get(0).getText();
         }
         else {
             JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
@@ -99,7 +94,7 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
         assertEquals(true, this.isEnabled(), "The combo box is not enabled: " + element.getText());
         element.click();
         try {
-            Thread.sleep(1000); //Az eredeti az 50 volt
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -115,7 +110,6 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
             comboBoxOptions.get(0).click();
             this.waitForRefresh();
             return this;
-//            return comboBoxOptions.get(0).getText();
         }
         else {
             Random rnd = new Random();
@@ -123,47 +117,22 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
             JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
             jsExecutor.executeScript("arguments[0].click();", comboBoxOptions.get(selectedIndex));
             this.waitForRefresh();
-//            return comboBoxOptions.get(selectedIndex).getText();
             return this;
         }
     }
 
     @Override
     public void clear(){
-
-//        System.out.println(provider);
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].selectedItem=''", element);
         element.sendKeys(Keys.ENTER);
         waitForRefresh();
-//        String selected = getSelectedElement();
-//
-//        assertTrue(this.isEnabled(), "The combo box is not enabled: " + element.getText());
-//        element.click();
-//        try {
-//            Thread.sleep(50);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-//        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
-//        List<WebElement> filtered = comboBoxOptions.stream().filter(v -> v.getText().equals(selected)).toList();
-//        if(filtered.size() == 0){
-//            String elements = String.join(", ", comboBoxOptions.stream().map(v -> v.getText()).toString());
-//            throw new NoSuchElementException("Element " + selected + " not found in " + element.getText() + ". Elements: " + elements);
-//        }
-//        filtered.get(0).click();
-//        waitForRefresh();
     }
 
 
     public void scrollDown(int pixels) {
-//        WebElement overlay = (WebElement) ((JavascriptExecutor) driver)
-//                .executeScript("return arguments[0].shadowRoot.querySelector('vaadin-combo-box-overlay')", this.element);
         JavascriptExecutor js = (JavascriptExecutor) driver;
-        // 3. Lista scroll container kinyerése
         WebElement scroller = (WebElement) js.executeScript("return arguments[0].shadowRoot.querySelector('vaadin-combo-box-overlay').shadowRoot.querySelector('vaadin-combo-box-dropdown-wrapper').shadowRoot.querySelector('vaadin-combo-box-scroller')", this.element);
-
-                        // 4. Görgetés – például lefelé 1000 pixelt
         js.executeScript("arguments[0].scrollTop = arguments[1];", scroller, pixels);
     }
 
@@ -180,7 +149,6 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
             throw new RuntimeException(e);
         }
         List<WebElement> comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector("vaadin-combo-box-item")));
-//        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
         List<WebElement> filtered = comboBoxOptions.stream().filter(v -> v.getText().equals(value)).toList();
         if(filtered.size() == 0){
             String elements = String.join(", ", comboBoxOptions.stream().map(v -> v.getText()).toList()).toString();

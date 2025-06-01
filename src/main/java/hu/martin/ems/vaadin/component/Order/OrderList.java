@@ -10,9 +10,7 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.NativeLabel;
-import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -21,7 +19,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.StreamResource;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.IconProvider;
@@ -29,12 +26,16 @@ import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.DownloadButton;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
 import hu.martin.ems.vaadin.api.OrderApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import jakarta.annotation.security.RolesAllowed;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,6 @@ import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,12 +54,13 @@ import java.util.stream.Stream;
 @Route(value = "order/list", layout = MainView.class)
 @RolesAllowed("ROLE_OrderMenuOpenPermission")
 @NeedCleanCoding
-public class OrderList extends VerticalLayout {
+public class OrderList extends EmsFilterableGridComponent {
 
     private OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
 
     private EmailSendingApi emailSendingApi = BeanProvider.getBean(EmailSendingApi.class);
     private boolean showDeleted = false;
+    @Getter
     private PaginatedGrid<OrderVO, String> grid;
 
     private Gson gson = BeanProvider.getBean(Gson.class);
@@ -73,11 +74,11 @@ public class OrderList extends VerticalLayout {
     Grid.Column<OrderVO> idColumn;
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<OrderVO> extraData;
-    private String idFilterText = "";
-    private String customerOrSupplierFilterText = "";
-    private String paymentTypeColumnFilterText = "";
-    private String stateFilterText = "";
-    private String timeOfOrderFilterText = "";
+    private TextFilteringHeaderCell idFilter;
+    private TextFilteringHeaderCell customerOrSupplierFilter;
+    private TextFilteringHeaderCell paymentTypeFilter;
+    private TextFilteringHeaderCell stateFilter;
+    private TextFilteringHeaderCell timeOfOrderFilter;
 
     private final PaginationSetting paginationSetting;
     Logger logger = LoggerFactory.getLogger(Order.class);
@@ -92,7 +93,6 @@ public class OrderList extends VerticalLayout {
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
         setupOrderList();
-        updateGridItems();
 
         DatePicker from = new DatePicker("from");
         DatePicker to = new DatePicker("to");
@@ -130,13 +130,14 @@ public class OrderList extends VerticalLayout {
         HorizontalLayout sftpLayout = new HorizontalLayout();
         sftpLayout.add(sendSftp, from, to);
 
-        updateGridItems();
+
 
         idColumn = grid.addColumn(v -> v.id);
         customerOrSupplierColumn = grid.addColumn(v -> v.customerOrSupplier);
         paymentTypeColumn = grid.addColumn(v -> v.paymentType);
         stateColumn = grid.addColumn(v -> v.state);
         timeOfOrderColumn = grid.addColumn(v -> v.timeOfOrder);
+
 
         grid.addClassName("styling");
         grid.setPartNameGenerator(orderVo -> orderVo.deleted != 0 ? "deleted" : null);
@@ -151,8 +152,8 @@ public class OrderList extends VerticalLayout {
             Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
-            Anchor odtDownload = createDownloadAnchor(order, BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).ODT_FILE_ICON), () -> orderApi.createDocumentAsODT(order.original), "odt");
-            Anchor pdfDownload = createDownloadAnchor(order, BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PDF_FILE_ICON_ICON), () -> orderApi.createDocumentAsPDF(order.original), "pdf");
+            DownloadButton odtDownload = new DownloadButton(BeanProvider.getBean(IconProvider.class).create(IconProvider.ODT_FILE_ICON), "order_" + order.id + ".odt", () -> orderApi.createDocumentAsODT(order.original));
+            DownloadButton pdfDownload = new DownloadButton(BeanProvider.getBean(IconProvider.class).create(IconProvider.PDF_FILE_ICON_ICON), "order_" + order.id + ".pdf", () -> orderApi.createDocumentAsPDF(order.original));
 
             Button sendEmail = new Button("Send email");
             sendEmail.addClickListener(event -> {
@@ -244,7 +245,7 @@ public class OrderList extends VerticalLayout {
             return actions;
         }).setAutoWidth(true).setFlexGrow(0);
 
-        setFilteringHeaderRow();
+
 
         //endregion
 
@@ -257,6 +258,9 @@ public class OrderList extends VerticalLayout {
             setupOrderList();
             updateGridItems();
         });
+
+        setFilteringHeaderRow();
+        updateGridItems();
 
         add(sftpLayout, sendSftp, showDeletedCheckbox, grid);
     }
@@ -286,11 +290,11 @@ public class OrderList extends VerticalLayout {
 
     private Stream<OrderVO> getFilteredStream() {
         return orderVOS.stream().filter(orderVO ->
-                (idFilterText.isEmpty() || orderVO.id.toString().equals(idFilterText)) &&
-                (customerOrSupplierFilterText.isEmpty() || orderVO.customerOrSupplier.toLowerCase().contains(customerOrSupplierFilterText.toLowerCase())) &&
-                (paymentTypeColumnFilterText.isEmpty() || orderVO.paymentType.toLowerCase().contains(paymentTypeColumnFilterText.toLowerCase())) &&
-                (stateFilterText.isEmpty() || orderVO.state.toLowerCase().contains(stateFilterText.toLowerCase())) &&
-                (timeOfOrderFilterText.isEmpty() || orderVO.timeOfOrder.toLowerCase().contains(timeOfOrderFilterText.toLowerCase())) &&
+                (idFilter.isEmpty() || orderVO.id.toString().equals(idFilter.getFilterText())) &&
+                (customerOrSupplierFilter.isEmpty() || orderVO.customerOrSupplier.toLowerCase().contains(customerOrSupplierFilter.getFilterText().toLowerCase())) &&
+                (paymentTypeFilter.isEmpty() || orderVO.paymentType.toLowerCase().contains(paymentTypeFilter.getFilterText().toLowerCase())) &&
+                (stateFilter.isEmpty() || orderVO.state.toLowerCase().contains(stateFilter.getFilterText().toLowerCase())) &&
+                (timeOfOrderFilter.isEmpty() || orderVO.timeOfOrder.toLowerCase().contains(timeOfOrderFilter.getFilterText().toLowerCase())) &&
                 orderVO.filterExtraData()
         );
     }
@@ -310,50 +314,11 @@ public class OrderList extends VerticalLayout {
     }
 
     private void setFilteringHeaderRow(){
-        TextField idFilter = new TextField();
-        idFilter.setPlaceholder("Search id...");
-        idFilter.setClearButtonVisible(true);
-        idFilter.addValueChangeListener(event -> {
-            idFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField customerOrSupplierFilter = new TextField();
-        customerOrSupplierFilter.setPlaceholder("Search customerOrSupplier...");
-        customerOrSupplierFilter.setClearButtonVisible(true);
-        customerOrSupplierFilter.addValueChangeListener(event -> {
-            customerOrSupplierFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField paymentTypeFilter = new TextField();
-        paymentTypeFilter.setPlaceholder("Search payment type...");
-        paymentTypeFilter.setClearButtonVisible(true);
-        paymentTypeFilter.addValueChangeListener(event -> {
-            paymentTypeColumnFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField stateFilter = new TextField();
-        stateFilter.setPlaceholder("Search state...");
-        stateFilter.setClearButtonVisible(true);
-        stateFilter.addValueChangeListener(event -> {
-            stateFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
-        TextField timeOfOrderFilter = new TextField();
-        timeOfOrderFilter.setPlaceholder("Search name...");
-        timeOfOrderFilter.setClearButtonVisible(true);
-        timeOfOrderFilter.addValueChangeListener(event -> {
-            timeOfOrderFilterText = event.getValue().trim();
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        idFilter = new TextFilteringHeaderCell("Search id...", this);
+        customerOrSupplierFilter = new TextFilteringHeaderCell("Search customerOrSupplier...", this);
+        paymentTypeFilter = new TextFilteringHeaderCell("Search payment type...", this);
+        stateFilter = new TextFilteringHeaderCell("Search state...", this);
+        timeOfOrderFilter = new TextFilteringHeaderCell("Search time of order...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -379,7 +344,7 @@ public class OrderList extends VerticalLayout {
     }
 
 
-    private void updateGridItems() {
+    public void updateGridItems() {
         if(orderList == null){
             Notification.show("EmsError happened while getting orders")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -389,30 +354,7 @@ public class OrderList extends VerticalLayout {
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
-    //TODO ez benne van az AdminTools-ban is.
-    private Anchor createDownloadAnchor(OrderVO order, SvgIcon icon, Supplier<EmsResponse> apiCall, String extension){
-        Button downloadButton = new Button(icon);
-        Anchor downloadAnchor = new Anchor();
-        downloadAnchor.add(downloadButton);
-
-        downloadButton.addClickListener(event -> {
-            EmsResponse response = apiCall.get();
-            if (response.getCode() == 200) {
-                StreamResource resource = new StreamResource("order_" + order.id + "." + extension, () -> (ByteArrayInputStream) response.getResponseData());
-                downloadAnchor.setHref(resource);
-                downloadAnchor.getElement().callJsFunction("click");
-            } else {
-                downloadAnchor.setHref("");
-                Notification.show(response.getDescription())
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-        });
-        return downloadAnchor;
-    }
-
-
-    @NeedCleanCoding
-public class OrderVO extends BaseVO {
+    public class OrderVO extends BaseVO {
         private Order original;
         private String state;
         private String customerOrSupplier;

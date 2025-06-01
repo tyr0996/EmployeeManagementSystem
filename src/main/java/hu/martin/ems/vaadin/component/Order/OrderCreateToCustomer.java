@@ -9,7 +9,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
@@ -18,6 +17,7 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.Order;
@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 @Route(value = "order/create/customer", layout = MainView.class)
 @RolesAllowed("ROLE_OrderCreateMenuOpenPermission")
 @NeedCleanCoding
-public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnterObserver {
+public class OrderCreateToCustomer extends EmsFilterableGridComponent implements BeforeEnterObserver {
 
     public Order editObject;
     private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
@@ -56,6 +56,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
     private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);
 
     private List<OrderElementVO> orderElementVOS;
+    @Getter
     private PaginatedGrid<OrderElementVO, String> grid;
 
     private Boolean showPreviously = false;
@@ -364,52 +365,6 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
                 break;
         }
     }
-
-//    private void undoUpdate(Order originalOrder, List<OrderElement> originalOrderElements) {
-//        orderApi.update(originalOrder);
-//        List<OrderElement> orderElements = null;
-//        EmsResponse response = orderApi.getOrderElements(editObject.getId());
-//        switch (response.getCode()){
-//            case 200:
-//                orderElements = (List<OrderElement>) response.getResponseData();
-//                break;
-//            default:
-//                logger.error("UndoUpdate failed in OrderCreateToCustomer [Getting orderElements]. OrderId: " + originalOrder.getId());
-//                return;
-//        }
-//
-//        orderElements.forEach(v -> {
-//            v.setOrder(null);
-//            orderElementApi.update(v);
-//        });
-//        originalOrderElements.forEach(v -> {
-//            v.setOrder(originalOrder);
-//            orderElementApi.update(v);
-//        });
-//        logger.info("Undo order update successful");
-//        updateGridItems();
-//    }
-//
-//    private void undoSave(Order order){
-//        List<OrderElement> orderElements;
-//        EmsResponse response = orderApi.getOrderElements(order.getId());
-//        switch (response.getCode()){
-//            case 200:
-//                orderElements = (List<OrderElement>) response.getResponseData();
-//                break;
-//            default:
-//                logger.error("UndoSave failed in OrderCreateToCustomer. OrderId: " + order.getId());
-//                return;
-//        }
-//        orderElements.forEach(v -> {
-//            v.setOrder(null);
-//            orderElementApi.update(v);
-//        });
-//        orderApi.forcePermanentlyDelete(order.getId());
-//        logger.info("Undo order create successful");
-//        updateGridItems();
-//    }
-
 
     //endregion
 
