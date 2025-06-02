@@ -48,6 +48,7 @@ public class RoleXPermissionCreate extends AccessManagement {
     @Autowired
     public RoleXPermissionCreate(PaginationSetting paginationSetting) {
         super(paginationSetting);
+        this.currentView = this.getClass();
         add(buildFormLayout());
     }
 

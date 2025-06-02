@@ -95,6 +95,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
 
     public RoleList(PaginationSetting paginationSetting) {
         super(paginationSetting);
+        this.currentView = this.getClass();
         setLoggedInUserRole();
         this.paginationSetting = paginationSetting;
 //        this.mainView = mainView;

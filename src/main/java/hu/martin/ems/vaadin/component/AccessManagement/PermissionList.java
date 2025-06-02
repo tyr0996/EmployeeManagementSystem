@@ -91,6 +91,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
     @Autowired
     public PermissionList(PaginationSetting paginationSetting) {
         super(paginationSetting);
+        this.currentView = this.getClass();
         this.paginationSetting = paginationSetting;
 
         PermissionVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));

@@ -9,6 +9,7 @@
     </test>
     <test name="Crud testing">
         <classes>
+            <class name="hu.martin.ems.crudFE.AccessManagementTest"/>
             <class name="hu.martin.ems.crudFE.EmsErrorPageTest"/>
             <class name="hu.martin.ems.crudFE.AdminToolsTest"/>
             <class name="hu.martin.ems.crudFE.AddressTest"/>

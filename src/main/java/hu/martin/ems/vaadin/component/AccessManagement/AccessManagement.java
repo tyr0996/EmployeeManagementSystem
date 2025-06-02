@@ -15,18 +15,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Route(value = "accessManagement/list", layout = MainView.class)
 @RolesAllowed("ROLE_AccessManagementMenuOpenPermission")
-//@Secured("ROLE_AccessManagementMenuOpenPermission")
 @NeedCleanCoding
 public class AccessManagement extends VerticalLayout implements RouterLayout {
 
     private final PaginationSetting paginationSetting;
     private HorizontalLayout buttonsLayout;
-//    private MainView mainView;
+
+    protected Class<? extends AccessManagement> currentView;
 
     @Autowired
     public AccessManagement(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
         this.buttonsLayout = createButtonRow();
+        this.currentView = null;
         add(buttonsLayout);
     }
 
@@ -48,8 +49,12 @@ public class AccessManagement extends VerticalLayout implements RouterLayout {
         return hl;
     }
 
-    private void refreshLayout(Class<? extends Component> c){
-        removeAll();
-        UI.getCurrent().navigate(c);
+    private void refreshLayout(Class<? extends Component> targetView) {
+        if (targetView.equals(currentView)) {
+            UI.getCurrent().navigate(AccessManagement.class);
+            currentView = null;
+        } else {
+            UI.getCurrent().navigate(targetView);
+        }
     }
 }
