@@ -293,6 +293,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
         if (entity != null) {
             nameTextField.setValue(entity.getName());
             parentCodeStore.setValue(entity.getParentCodeStore());
+            deletable.setValue(entity.getDeletable());
         }
 
         Button saveButton = new Button("Save");
