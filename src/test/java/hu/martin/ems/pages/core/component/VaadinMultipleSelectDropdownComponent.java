@@ -24,13 +24,32 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
 
     @Override
     public void initWebElements(){
+        initToggleButton();
+        initClearButton();
+    }
+
+    private void initClearButton(){
+        JavascriptExecutor js = (JavascriptExecutor) getDriver();
+        if(!element.getTagName().equals("input")){
+            this.clearButton = (WebElement) js.executeScript("return arguments[0].querySelector('div').querySelector('vaadin-multi-select-combo-box-internal').querySelector('vaadin-multi-select-combo-box-container').querySelectorAll('div')[1]", element.getShadowRoot());
+        }
+        else{
+            this.clearButton = (WebElement) js.executeScript(
+                    "return document.evaluate('/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[2]/vaadin-vertical-layout/vaadin-multi-select-combo-box', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue"
+                            + ".shadowRoot.querySelector('div')"
+                            + ".querySelector('vaadin-multi-select-combo-box-internal vaadin-multi-select-combo-box-container')"
+                            + ".querySelectorAll('div')[1];"
+            );
+        }
+    }
+
+    private void initToggleButton(){
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
 
 //        printToConsole(element);
 //        System.out.println(element.getTagName());
         if(!element.getTagName().equals("input")){
             this.toggleButton = (WebElement) js.executeScript("return arguments[0].querySelector('div').querySelector('vaadin-multi-select-combo-box-internal').querySelector('vaadin-multi-select-combo-box-container').querySelectorAll('div')[2]", element.getShadowRoot());
-            this.clearButton = (WebElement) js.executeScript("return arguments[0].querySelector('div').querySelector('vaadin-multi-select-combo-box-internal').querySelector('vaadin-multi-select-combo-box-container').querySelectorAll('div')[1]", element.getShadowRoot());
         }
         else{
             this.toggleButton = (WebElement) js.executeScript(
@@ -39,15 +58,6 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
                             + ".querySelector('vaadin-multi-select-combo-box-internal vaadin-multi-select-combo-box-container')"
                             + ".querySelectorAll('div')[2];"
             );
-            this.clearButton = (WebElement) js.executeScript(
-                    "return document.evaluate('/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[2]/vaadin-vertical-layout/vaadin-multi-select-combo-box', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue"
-                            + ".shadowRoot.querySelector('div')"
-                            + ".querySelector('vaadin-multi-select-combo-box-internal vaadin-multi-select-combo-box-container')"
-                            + ".querySelectorAll('div')[1];"
-            );
-
-
-
         }
 
         assert toggleButton != null;
@@ -63,31 +73,35 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
 
     public void deselectAll(){
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
-        getToggleButton().click();
-//        List<WebElement> comboBoxOptions;
-//        List<WebElement> comboBoxOptions = getDriver().findElements(By.cssSelector("vaadin-multi-select-combo-box-item"));
-//        if(element.getTagName().equals("input")){
-//            printToConsole(element);
-        List<WebElement> comboBoxOptions = (List<WebElement>) getWait().until(ExpectedConditions.jsReturnsValue("return document.querySelectorAll('vaadin-multi-select-combo-box-item')"));
-//            comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(element, By.cssSelector("vaadin-multi-select-combo-box-item")));
+        js.executeScript("arguments[0].click()", clearButton);
+//        initClearButton();
+//        clearButton.click();
+//        JavascriptExecutor js = (JavascriptExecutor) getDriver();
+//        getToggleButton().click();
+////        List<WebElement> comboBoxOptions;
+////        List<WebElement> comboBoxOptions = getDriver().findElements(By.cssSelector("vaadin-multi-select-combo-box-item"));
+////        if(element.getTagName().equals("input")){
+////            printToConsole(element);
+//        List<WebElement> comboBoxOptions = (List<WebElement>) getWait().until(ExpectedConditions.jsReturnsValue("return document.querySelectorAll('vaadin-multi-select-combo-box-item')"));
+////            comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(element, By.cssSelector("vaadin-multi-select-combo-box-item")));
+////        }
+////        else{
+////            printToConsole(element);
+////            comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector("vaadin-multi-select-combo-box-item")));
+////        }
+//
+//        if(comboBoxOptions.size() == 0){
+//            System.err.println("Nincs elem a multiselect combo boxban!");
+//            getToggleButton().click();
 //        }
-//        else{
-//            printToConsole(element);
-//            comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector("vaadin-multi-select-combo-box-item")));
+//        else {
+//            for(WebElement comboBoxElement : comboBoxOptions){
+//                if(comboBoxElement.getDomAttribute("selected") != null){
+//                    js.executeScript("arguments[0].click()", comboBoxElement);
+//                }
+//            }
+//            getToggleButton().click();
 //        }
-
-        if(comboBoxOptions.size() == 0){
-            System.err.println("Nincs elem a multiselect combo boxban!");
-            getToggleButton().click();
-        }
-        else {
-            for(WebElement comboBoxElement : comboBoxOptions){
-                if(comboBoxElement.getDomAttribute("selected") != null){
-                    js.executeScript("arguments[0].click()", comboBoxElement);
-                }
-            }
-            getToggleButton().click();
-        }
     }
 
     @Override

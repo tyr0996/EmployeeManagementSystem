@@ -240,6 +240,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         MultiSelectComboBox<Permission> permissionsFilter = new MultiSelectComboBox();
         ComboBox.ItemFilter<Permission> filterPermission = (permission, filterString) ->
                 permission.getName().toLowerCase().contains(filterString.toLowerCase());
+        permissionsFilter.setClearButtonVisible(true);
         setupPermissions();
         if(permissionList == null){
             permissionsFilter.setInvalid(true);
