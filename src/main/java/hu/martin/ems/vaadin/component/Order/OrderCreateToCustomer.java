@@ -9,6 +9,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
@@ -17,7 +18,6 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.Order;
@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 @Route(value = "order/create/customer", layout = MainView.class)
 @RolesAllowed("ROLE_OrderCreateMenuOpenPermission")
 @NeedCleanCoding
-public class OrderCreateToCustomer extends EmsFilterableGridComponent implements BeforeEnterObserver {
+public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnterObserver {
 
     public Order editObject;
     private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
@@ -56,7 +56,7 @@ public class OrderCreateToCustomer extends EmsFilterableGridComponent implements
     private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);
 
     private List<OrderElementVO> orderElementVOS;
-    @Getter
+
     private PaginatedGrid<OrderElementVO, String> grid;
 
     private Boolean showPreviously = false;
