@@ -42,29 +42,24 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
     private Gson gson;
 
     public Currency fetchAndSaveRates() throws ParsingCurrenciesException, FetchingCurrenciesException {
-//        Currency curr = repo.findByDate(LocalDate.now());
-//        if(curr != null){
-//            throw new CurrenciesAlreadyFetchedException();
-//        }
         try {
             LinkedHashMap<String, Object> response = restTemplate.getForObject(apiUrl + baseCurrency, LinkedHashMap.class);
             LinkedHashMap<String, Object> rates = (LinkedHashMap<String, Object>) response.get("rates");
             rates.forEach((k, v) -> {
                 rates.replace(k, Double.parseDouble(v.toString()));
             });
-            String fixedRates = response.get("rates").toString().replaceAll("\\b[A-Z]+\\b", "\"$0\"") //Belerakja idézőjelbe
+            String fixedRates = response.get("rates").toString().replaceAll("\\b[A-Z]+\\b", "\"$0\"")
                     .replaceAll("=", ":");
             Currency currency = new Currency();
 
             currency.setBaseCurrency(codeStoreRepository.findByName(response.get("base").toString()));
-            //CurrencyResponse cr = om.readValue(fixedRates, CurrencyResponse.class);
             currency.setRateJson(fixedRates);
             currency.setDeleted(0L);
             Currency saved = this.repo.customSave(currency);
             return saved;
-        } catch (ClassCastException e){
+        } catch (ClassCastException e) {
             throw new ParsingCurrenciesException();
-        } catch (RestClientException e){
+        } catch (RestClientException e) {
             throw new FetchingCurrenciesException();
         }
     }
@@ -81,32 +76,6 @@ public class CurrencyService extends BaseService<Currency, CurrencyRepository> {
             return convert(from, to, amount);
         }
     }
-
-//    @Deprecated
-//    public Double convert(LocalDate date, String from, String to, Double amount) throws CurrencyException {
-//        Currency c = this.repo.findByDate(date);
-//        if (c != null) {
-//            LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
-//            Double f = map.get(from.toUpperCase());
-//            Double t = map.get(to.toUpperCase());
-//            return (f * amount) / t;
-//        } else if (date.equals(LocalDate.now())) {
-//            fetchAndSaveRates();
-//            return convert(date, from, to, amount);
-//        } else {
-//            throw new NullPointerException("Nincs árfolyam az adott dátumhoz elmentve, és annak lekérdezése csak a mai napra lehetséges!");
-//        }
-//    }
-//
-//    public Double get(LocalDate date, String currency) {
-//        Currency c = this.repo.findByDate(date);
-//        if (c != null) {
-//            LinkedTreeMap<String, Double> map = gson.fromJson(c.getRateJson(), LinkedTreeMap.class);
-//            return map.get(currency);
-//        } else {
-//            throw new NullPointerException("Nincs árfolyam az adott dátumhoz elmentve!");
-//        }
-//    }
 
     public Currency findByDate(LocalDate date) {
         return this.repo.findByDate(date);

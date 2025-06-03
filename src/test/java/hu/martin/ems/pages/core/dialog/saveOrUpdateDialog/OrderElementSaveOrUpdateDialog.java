@@ -12,17 +12,21 @@ public class OrderElementSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     private static final String supplierComboBoxXpath = dialogXpath + "/vaadin-form-layout/vaadin-combo-box[2]";
     private static final String customerComboBoxXpath = dialogXpath + "/vaadin-form-layout/vaadin-combo-box[3]";
 
-    @Getter private VaadinDropdownComponent productComboBox;
-    @Getter private VaadinNumberInputComponent unitNumberInputField;
-    @Getter private VaadinDropdownComponent supplierComboBox;
-    @Getter private VaadinDropdownComponent customerComboBox;
+    @Getter
+    private VaadinDropdownComponent productComboBox;
+    @Getter
+    private VaadinNumberInputComponent unitNumberInputField;
+    @Getter
+    private VaadinDropdownComponent supplierComboBox;
+    @Getter
+    private VaadinDropdownComponent customerComboBox;
 
 
     public OrderElementSaveOrUpdateDialog(WebDriver driver) {
         super(driver);
     }
 
-    public void initWebElements(){
+    public void initWebElements() {
         super.initWebElements();
 
         productComboBox = new VaadinDropdownComponent(getDriver(), By.xpath(productComboBoxXpath));
@@ -34,7 +38,7 @@ public class OrderElementSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     }
 
     @Override
-    public void setAllComponents(){
+    public void setAllComponents() {
         this.allComponent.clear();
         this.allComponent.add(productComboBox);
         this.allComponent.add(unitNumberInputField);

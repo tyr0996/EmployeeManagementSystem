@@ -39,18 +39,10 @@ public class SecurityService {
         c.post()
                 .uri("logout")
                 .contentType(MediaType.APPLICATION_JSON)
-//                .bodyValue(writeValueAsString(entity))
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-
-//        WrappedSession session = VaadinSession.getCurrent().getSession().invalidate();
-//        VaadinSession.getCurrent().getSession().invalidate();
-//        if(session != null){
-//            session.invalidate();
-//        }
         VaadinSession.getCurrent().close();
-
         VaadinService.reinitializeSession(VaadinService.getCurrentRequest());
     }
 

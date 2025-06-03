@@ -7,7 +7,7 @@ import org.openqa.selenium.WebDriver;
 public interface IVaadinBaseComponent {
     WebDriver driver = BeanProvider.getBean(WebDriverProvider.class).get();
 
-    default WebDriver getDriver(){
+    default WebDriver getDriver() {
         return driver;
     }
 }

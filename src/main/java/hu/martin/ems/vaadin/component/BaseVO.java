@@ -11,13 +11,13 @@ public abstract class BaseVO {
     public static LinkedHashMap<String, List<String>> showDeletedCheckboxFilter = new LinkedHashMap<>();
     public static LinkedHashMap<String, List<String>> extraDataFilterMap = new LinkedHashMap<>();
 
-    public BaseVO(Long id, Long deleted){
+    public BaseVO(Long id, Long deleted) {
         this.id = id;
         this.deleted = deleted;
     }
 
     @Override
-    public boolean equals(Object o){
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BaseVO that = (BaseVO) o;
@@ -29,16 +29,13 @@ public abstract class BaseVO {
 
         Boolean filteredResult = true;
         String[] keys = merged.keySet().toArray(new String[0]);
-        for(int i = 0; i < merged.size(); i++){
+        for (int i = 0; i < merged.size(); i++) {
 //            Ki kellett kommentelnem az if-t. Az lenne a lényeg, hogyha majd új filterek jönnek be, akkor
 //            if(keys[i].equals("deleted")){
-                Boolean matchingDeleted = merged.get(keys[i]).contains(this.deleted.toString());
-                if(!matchingDeleted){
-                    return false;
-                }
-                else{}
-//            }
-//            else{}
+            Boolean matchingDeleted = merged.get(keys[i]).contains(this.deleted.toString());
+            if (!matchingDeleted) {
+                return false;
+            } else {}
         }
         return filteredResult;
     }
@@ -57,11 +54,9 @@ public abstract class BaseVO {
                 List<String> list1 = map1.get(key);
                 List<String> list2 = map2.get(key);
                 mergedValues.addAll(getIntersection(list1, list2));
-            }
-            else if (map1.containsKey(key)) {
+            } else if (map1.containsKey(key)) {
                 mergedValues.addAll(map1.get(key));
-            }
-            else {
+            } else {
                 mergedValues.addAll(map2.get(key));
             }
 

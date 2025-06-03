@@ -48,8 +48,7 @@ public class EndpointController {
         return new ResponseEntity<>(gson.toJson(eps).getBytes(StandardCharsets.UTF_8), HttpStatus.OK);
     }
 
-    private RestEndPoint processKey(String input){
-        // Regular expression minta
+    private RestEndPoint processKey(String input) {
         String regex = "(\\w+)\\s\\[(\\/[^\\s]+)\\]";
 
         Pattern pattern = Pattern.compile(regex);
@@ -58,10 +57,9 @@ public class EndpointController {
         if (matcher.find()) {
             String method = matcher.group(1);
             String url = matcher.group(2);
-            if(!url.equals("/api/eps/exportApis")){
+            if (!url.equals("/api/eps/exportApis")) {
                 return new RestEndPoint(method, url);
-            }
-            else{
+            } else {
                 return null;
             }
         } else {
@@ -71,7 +69,7 @@ public class EndpointController {
     }
 
     @AllArgsConstructor
-    public class RestEndPoint{
+    public class RestEndPoint {
 
         @Expose
         public String method;

@@ -1,20 +1,18 @@
 package hu.martin.ems.base;
 
-import reactor.core.publisher.Flux;
-
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
 public class RandomGenerator {
     private static final Random random = new Random();
     private static final int leftLimit = 97; // letter 'a'
     private static final int rightLimit = 122; // letter 'z'
-    public static String generateRandomOnlyLetterString(){
+
+    public static String generateRandomOnlyLetterString() {
         return generateRandomOnlyLetterString(10);
     }
 
-    private static String generateRandomOnlyLetterString(int targetStringLength){
+    private static String generateRandomOnlyLetterString(int targetStringLength) {
         StringBuilder buffer = new StringBuilder(targetStringLength);
         for (int i = 0; i < targetStringLength; i++) {
             int randomLimitedInt = leftLimit + (int)
@@ -24,7 +22,7 @@ public class RandomGenerator {
         return buffer.toString();
     }
 
-    public static Integer generateRandomInteger(){
+    public static Integer generateRandomInteger() {
         return random.nextInt(0, 100000);
     }
 
@@ -35,7 +33,7 @@ public class RandomGenerator {
         return r;
     }
 
-    public static LocalDate generateRandomDate(){
+    public static LocalDate generateRandomDate() {
         return LocalDate.now().minusDays(random.nextInt(1, 365));
     }
 }

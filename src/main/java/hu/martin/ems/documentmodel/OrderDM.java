@@ -4,7 +4,6 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.model.Order;
 import lombok.Getter;
 
-import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
 @Getter
@@ -19,7 +18,7 @@ public class OrderDM extends AbstractDM {
         this.timeOfOrder = o.getTimeOfOrder().format(DateTimeFormatter.ofPattern("yyyy. MM. dd. HH:mm:ss"));
     }
 
-    public void addToTotalGross(Double amount){
+    public void addToTotalGross(Double amount) {
         String[] price = this.total.split(" ");
         this.total = Double.valueOf(amount + Double.parseDouble(price[0])) + " " + price[1];
     }

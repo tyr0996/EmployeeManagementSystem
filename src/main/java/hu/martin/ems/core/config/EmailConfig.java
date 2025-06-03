@@ -1,12 +1,9 @@
 package hu.martin.ems.core.config;
 
 import hu.martin.ems.core.model.EmailData;
-import hu.martin.ems.core.service.EmailSendingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @Configuration
 public class EmailConfig {
@@ -33,7 +30,7 @@ public class EmailConfig {
     private String sendingPassword;
 
     @Bean
-    public EmailData getEmailData(){
+    public EmailData getEmailData() {
         return new EmailData(host, startTlsEnable, auth, port, sslTrust, sendingAddress, sendingPassword);
     }
 }

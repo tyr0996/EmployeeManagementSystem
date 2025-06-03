@@ -8,4 +8,5 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Transactional
-public interface RoleRepository extends BaseRepository<Role, Long> { }
+public interface RoleRepository extends BaseRepository<Role, Long> {
+}

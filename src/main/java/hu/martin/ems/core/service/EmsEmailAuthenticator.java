@@ -1,7 +1,6 @@
 package hu.martin.ems.core.service;
 
 import jakarta.mail.Authenticator;
-import jakarta.mail.PasswordAuthentication;
 
 public class EmsEmailAuthenticator extends Authenticator {
     private final String sendingAddress;
@@ -11,9 +10,4 @@ public class EmsEmailAuthenticator extends Authenticator {
         this.sendingAddress = sendingAddress;
         this.sendingPassword = sendingPassword;
     }
-//
-//    @Override
-//    protected PasswordAuthentication getPasswordAuthentication() {
-//        return new PasswordAuthentication(sendingAddress, sendingPassword);
-//    }
 }

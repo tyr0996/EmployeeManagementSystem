@@ -74,7 +74,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
     Checkbox showPreviouslyOrderedElements;
 
     @Autowired
-    public OrderFromSupplier(PaginationSetting paginationSetting){
+    public OrderFromSupplier(PaginationSetting paginationSetting) {
         init(paginationSetting);
     }
 
@@ -82,7 +82,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
     public void beforeEnter(BeforeEnterEvent event) {
         Map<String, List<String>> params = event.getLocation().getQueryParameters().getParameters();
         List<String> paramOrderId = params.get("orderId");
-        if(paramOrderId != null) {
+        if (paramOrderId != null) {
             setupSuppliers();
             suppliers.setItems(supplierList);
             setupCurrencies();
@@ -91,7 +91,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
             paymentTypes.setItems(paymentTypeList);
             Long orderId = Long.parseLong(paramOrderId.getFirst());
             EmsResponse response = orderApi.findById(orderId);
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200: {
                     this.editObject = (Order) orderApi.findById(orderId).getResponseData();
                     loadEditObject();
@@ -105,7 +105,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         }
     }
 
-    private void loadEditObject(){
+    private void loadEditObject() {
         suppliers.setEnabled(false);
         suppliers.setValue(editObject.getSupplier());
         showPreviouslyOrderedElements.setValue(true);
@@ -117,7 +117,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
     }
 
-    private void init(PaginationSetting paginationSetting){
+    private void init(PaginationSetting paginationSetting) {
         FormLayout formLayout = new FormLayout();
 
         Button saveButton = new Button("Create order");
@@ -137,13 +137,12 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         ComboBox.ItemFilter<Supplier> supplierFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         setupSuppliers();
-        if(supplierList == null){
+        if (supplierList == null) {
             suppliers.setEnabled(false);
             suppliers.setInvalid(true);
             suppliers.setErrorMessage("EmsError happened while getting suppliers");
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             suppliers.setItems(supplierFilter, supplierList);
             suppliers.setItemLabelGenerator(Supplier::getName);
         }
@@ -151,10 +150,6 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         suppliers.addValueChangeListener(event -> {
             if (event.getValue() != null) {
                 orderElementVOS = getOrderElementsBySupplier(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList());
-//                if(orderElementVOS == null){
-//                    Notification.show("EmsError happened while getting order elements to the supplier").addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                    orderElementVOS = new ArrayList<>();
-//                }
             } else {
                 orderElementVOS = new ArrayList<>();
             }
@@ -168,42 +163,29 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
                     new ArrayList<>() :
                     getOrderElementsBySupplier(suppliers.getValue()).stream().map(OrderElementVO::new).toList();
 
-            if(showPreviously){
+            if (showPreviously) {
                 grid.setSelectionMode(Grid.SelectionMode.NONE);
                 grid.setItems(getFilteredStream().filter(v -> v.original.getOrderId() != null).toList());
-//                grid.setItems(getFilteredStream().filter(v -> {
-//                    boolean ressss = v.original.getOrderId() != null;
-//                    System.out.println("orderrId: " + v.original.getOrderId() + "   resss: " + ressss);
-//                    return ressss;
-//                }).toList());
-            }
-            else { //Ide akkor megyünk be, hogyha kikapcsoljuk a showPreviously-t
+            } else {
                 grid.setSelectionMode(Grid.SelectionMode.MULTI);
-
-//                grid.setItems(getFilteredStream().toList());
                 grid.setItems(getFilteredStream().toList());
             }
 
-            if(editObject != null){
+            if (editObject != null) {
                 grid.setSelectionMode(Grid.SelectionMode.MULTI);
             }
-//            updateGridItems();
         });
-//        HorizontalLayout hl = new HorizontalLayout();
-//        hl.add(showPreviouslyOrderedElements);
-//        hl.setAlignSelf(Alignment.CENTER, showPreviouslyOrderedElements);
 
         setupPaymentTypes();
         paymentTypes = new ComboBox<>("Payment type");
         ComboBox.ItemFilter<CodeStore> paymentTypeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(paymentTypeList == null){
+        if (paymentTypeList == null) {
             paymentTypes.setErrorMessage("EmsError happened while getting payment methods");
             paymentTypes.setEnabled(false);
             paymentTypes.setInvalid(true);
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             paymentTypes.setItems(paymentTypeFilter, paymentTypeList);
             paymentTypes.setItemLabelGenerator(CodeStore::getName);
         }
@@ -212,20 +194,19 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         currencies = new ComboBox<>("Currency");
         ComboBox.ItemFilter<CodeStore> currencyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(currencyList == null){
+        if (currencyList == null) {
             currencies.setEnabled(false);
             currencies.setInvalid(true);
             currencies.setErrorMessage("EmsError happened while getting currencies");
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             currencies.setItems(currencyFilter, currencyList);
             currencies.setItemLabelGenerator(CodeStore::getName);
         }
 
         saveButton.addClickListener(event -> {
             CodeStore pending = getPendingCodeStore();
-            if(pending == null){
+            if (pending == null) {
                 Notification.show("EmsError happened while getting \"Pending\" status").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
             }
@@ -237,46 +218,26 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
             order.setPaymentType(paymentTypes.getValue());
             order.setDeleted(0L);
             order.setCurrency(currencies.getValue());
-//            Long orderId = order.getId();
-//            if(orderId == null){
-//                EmsResponse response = orderApi.save(order);
-//                switch (response.getCode()){
-//                    case 200:
-//                        order = (Order) response.getResponseData();
-//                        orderId = order.getId();
-//                        break;
-//                    case 500:
-//                        Notification.show("Order saving failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                        updateGridItems();
-//                        return;
-//                    default:
-//                        Notification.show("Not expected status-code in saving").addThemeVariants(NotificationVariant.LUMO_WARNING);
-//                        updateGridItems();
-//                        return;
-//                }
-//            }
 
             List<OrderElement> orderElements = new ArrayList<>();
             List<OrderElementVO> selected = grid.getSelectedItems().stream().toList();
 
-            for(int i = 0; i < selected.size(); i++){
+            for (int i = 0; i < selected.size(); i++) {
                 OrderElement oe = selected.get(i).original;
                 orderElements.add(oe);
             }
             order.setOrderElements(orderElements);
 
-            if(orderElements.isEmpty()){
+            if (orderElements.isEmpty()) {
                 Notification.show("Order must contains at least one order element!").addThemeVariants(NotificationVariant.LUMO_WARNING);
-            }
-            else{
+            } else {
                 EmsResponse response;
-                if(editObject == null){
+                if (editObject == null) {
                     response = orderApi.save(order);
-                }
-                else{
+                } else {
                     response = orderApi.update(order);
                 }
-                switch (response.getCode()){
+                switch (response.getCode()) {
                     case 200:
                         order = (Order) response.getResponseData();
                         Notification.show("Order " + (editObject == null ? "saved: " : "updated: ") + order)
@@ -303,7 +264,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
 
     private void setupSuppliers() {
         EmsResponse response = supplierApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 supplierList = (List<Supplier>) response.getResponseData();
                 break;
@@ -316,7 +277,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
 
     private CodeStore getPendingCodeStore() {
         EmsResponse response = codeStoreApi.getAllByName("Pending");
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 return ((List<CodeStore>) response.getResponseData()).get(0);
             default:
@@ -327,7 +288,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
 
     private List<OrderElement> getOrderElementsBySupplier(Supplier supplier) {
         EmsResponse response = orderElementApi.getBySupplier(supplier);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 return (List<OrderElement>) response.getResponseData();
             default:
@@ -341,7 +302,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
 
     private void setupPaymentTypes() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.PAYMENT_TYPES_CODESTORE_ID);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 paymentTypeList = (List<CodeStore>) response.getResponseData();
                 break;
@@ -354,7 +315,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
 
     private void setupCurrencies() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.CURRENCIES_CODESTORE_ID);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 currencyList = (List<CodeStore>) response.getResponseData();
                 break;
@@ -365,57 +326,11 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         }
     }
 
-//    private void undoUpdate(Order originalOrder, List<OrderElement> originalOrderElements) {
-//        orderApi.update(originalOrder);
-//        List<OrderElement> orderElements = null;
-//        EmsResponse response = orderApi.getOrderElements(editObject.getId());
-//        switch (response.getCode()){
-//            case 200:
-//                orderElements = (List<OrderElement>) response.getResponseData();
-//                break;
-//            default:
-//                logger.error("UndoUpdate failed in OrderCreateToSupplier [Getting orderElements]. OrderId: " + originalOrder.getId());
-//                return;
-//        }
-//
-//        orderElements.forEach(v -> {
-//            v.setOrder(null);
-//            orderElementApi.update(v);
-//        });
-//        originalOrderElements.forEach(v -> {
-//            v.setOrder(originalOrder);
-//            orderElementApi.update(v);
-//        });
-//        logger.info("Undo order update successful");
-//        updateGridItems();
-//    }
-//
-//    private void undoSave(Order order){
-//        List<OrderElement> orderElements;
-//        EmsResponse response = orderApi.getOrderElements(order.getId());
-//        switch (response.getCode()){
-//            case 200:
-//                orderElements = (List<OrderElement>) response.getResponseData();
-//                break;
-//            default:
-//                logger.error("UndoSave failed in OrderCreateToSupplier. OrderId: " + order.getId());
-//                return;
-//        }
-//        orderElements.forEach(v -> {
-//            v.setOrder(null);
-//            orderElementApi.update(v);
-//        });
-//        orderApi.forcePermanentlyDelete(order.getId());
-//        logger.info("Undo order create successful");
-//        updateGridItems();
-//    }
-
-
     //endregion
 
 
     private Stream<OrderElementVO> getFilteredStream() {
-        if(editObject != null){
+        if (editObject != null) {
             orderElementVOS = getOrderElementsBySupplier(editObject.getSupplier()).stream().filter(v ->
                     (v.getOrderId() == null) || v.getOrderId().equals(editObject.getId())
             ).map(OrderElementVO::new).collect(Collectors.toList());
@@ -426,39 +341,29 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
             OrderElement oe = orderElementVO.getOriginal();
             boolean res = showPreviously || oe.getOrderId() == null;
             Boolean filter = orderElementVO.filterExtraData();
-//                System.out.println("Res: " + res + "  Filter: " + filter);
             return res && filter;
         });
     }
 
 
-    public void updateGridItems(){
+    public void updateGridItems() {
         orderElementVOS = getFilteredStream().toList();
         grid.setItems(orderElementVOS);
-        if(editObject != null){
+        if (editObject != null) {
             List<OrderElementVO> selected = orderElementVOS.stream()
                     .filter(v -> {
-                        if(v.getOriginal().getOrderId() != null){
+                        if (v.getOriginal().getOrderId() != null) {
                             return v.original.getOrderId().equals(editObject.getId());
-                        }
-                        else{
+                        } else {
                             return false;
                         }
                     }).toList();
             UI.getCurrent().access(() -> {
                 grid.deselectAll();
                 selected.stream()
-                        .distinct() // Biztosítsd, hogy ne legyen duplikáció
+                        .distinct()
                         .forEach(v -> grid.getSelectionModel().select(v));
             });
-//            UI.getCurrent().access(() -> {
-//                selected.forEach(v -> {
-//                    grid.getSelectionModel().select(v);
-//                });
-//            });
-
-
-            //UI.getCurrent().push(); // Kliens-szerver szinkronizálás kényszerítése
         }
     }
 

@@ -11,11 +11,11 @@ public class VaadinPasswordInputComponent extends VaadinFillableComponent implem
         super(driver, provider);
     }
 
-    public void setText(String text){
+    public void setText(String text) {
 
     }
 
-    public void getTest(){
+    public void getTest() {
         element.getText();
     }
 

@@ -191,7 +191,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     public void gettingEmployeesFailed() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+
         MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
@@ -209,7 +209,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(notification3.getText(), "EmsError happened while getting employees");
         notification3.close();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
-        
+
     }
 
     @Test
@@ -275,7 +275,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void dialogClosingTest(){
+    public void dialogClosingTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);

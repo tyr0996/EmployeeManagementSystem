@@ -24,9 +24,7 @@ import jakarta.annotation.security.RolesAllowed;
 @CssImport("./styles/grid.css")
 @Route(value = "adminTools", layout = MainView.class)
 @NeedCleanCoding
-//@SpringComponent
 @RolesAllowed("ROLE_AdminToolsMenuOpenPermission")
-//@PostAuthorize("hasAuthority('ROLE_AdminToolsMenuOpenPermission')")
 public class AdminTools extends VerticalLayout {
     private final AdminToolsApiClient adminToolsApiClient = BeanProvider.getBean(AdminToolsApiClient.class);
     private final Gson gson = BeanProvider.getBean(Gson.class);
@@ -39,7 +37,7 @@ public class AdminTools extends VerticalLayout {
         add(clearDatabaseButton, exportEndpoints, actuator);
     }
 
-    private Div createActuatorDiv(){
+    private Div createActuatorDiv() {
         EmsResponse status = adminToolsApiClient.healthStatus();
         Div actuator = new Div();
         HorizontalLayout health = new HorizontalLayout();
@@ -52,7 +50,7 @@ public class AdminTools extends VerticalLayout {
         return actuator;
     }
 
-    private Button createClearDatabaseButton(){
+    private Button createClearDatabaseButton() {
         Button clearDatabaseButton = new Button("Clear database");
 
         clearDatabaseButton.addClickListener(v -> {

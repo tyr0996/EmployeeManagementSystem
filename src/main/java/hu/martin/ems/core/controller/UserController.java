@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-//@AnonymousAllowed
 @RequestMapping("/api/user")
 public class UserController extends BaseController<User, UserService, UserRepository> {
     public UserController(UserService service) {

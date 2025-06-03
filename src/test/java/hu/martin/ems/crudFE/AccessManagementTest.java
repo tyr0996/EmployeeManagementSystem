@@ -14,7 +14,7 @@ import static org.testng.Assert.assertThrows;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AccessManagementTest extends BaseCrudTest {
     @Test
-    public void navigationButtonsTest_RoleButton(){
+    public void navigationButtonsTest_RoleButton() {
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -40,7 +40,7 @@ public class AccessManagementTest extends BaseCrudTest {
     }
 
     @Test
-    public void navigationButtonsTest_PermissionButton(){
+    public void navigationButtonsTest_PermissionButton() {
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -65,7 +65,7 @@ public class AccessManagementTest extends BaseCrudTest {
     }
 
     @Test
-    public void navigationButtonsTest_RoleXPermiossionButton(){
+    public void navigationButtonsTest_RoleXPermiossionButton() {
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();

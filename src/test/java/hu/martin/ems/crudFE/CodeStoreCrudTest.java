@@ -222,7 +222,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void dialogClosingTest(){
+    public void dialogClosingTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
@@ -239,7 +239,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
     public void datahbaseNotAvailableWhenGettingAllCodeStore() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
+
         MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 

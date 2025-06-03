@@ -140,7 +140,6 @@ public class ProductCrudTest extends BaseCrudTest {
 
     @Test
     public void productPermanentlyDeleteTest() {
-        //Azért nem lehet törölni, mert vannak olyan megrendelések, amikben benne van.
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
@@ -395,7 +394,7 @@ public class ProductCrudTest extends BaseCrudTest {
 
 
     @Test
-    public void closeCreateDialogTest(){
+    public void closeCreateDialogTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
@@ -409,7 +408,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void closeSellingDialogTest(){
+    public void closeSellingDialogTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
@@ -424,7 +423,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void closeOrderingDialogTest(){
+    public void closeOrderingDialogTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);

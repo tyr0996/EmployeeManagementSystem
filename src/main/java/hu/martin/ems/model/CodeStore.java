@@ -31,18 +31,4 @@ public class CodeStore extends BaseEntity {
     @Column(nullable = false)
     @Expose
     private Boolean deletable;
-
-//    public CodeStore(String name, CodeStore parent) {
-//        this.name = name;
-//        this.linkName = name;
-//        this.parentCodeStore = parent;
-//        this.deletable = true;
-//    }
-//
-//    public CodeStore(String name, CodeStore parent, Boolean deletable) {
-//        this.name = name;
-//        this.linkName = name;
-//        this.parentCodeStore = parent;
-//        this.deletable = deletable;
-//    }
 }

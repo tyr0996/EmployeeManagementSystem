@@ -8,16 +8,18 @@ import hu.martin.ems.pages.core.component.VaadinMultipleSelectDropdownComponent;
 import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class RoleXPermissionPage extends EmptyLoggedInVaadinPage implements ILoggedInPage {
     private static final String roleComboBoxXpath = contentLayoutXpath + "/vaadin-form-layout/vaadin-combo-box";
     private static final String permissionsComboBoxXpath = contentLayoutXpath + "/vaadin-form-layout/vaadin-multi-select-combo-box";
     private static final String saveButtonXpath = contentLayoutXpath + "/vaadin-form-layout/vaadin-button";
 
-    @Getter private VaadinDropdownComponent roleComboBox;
-    @Getter private VaadinMultipleSelectDropdownComponent permissionsComboBox;
-    @Getter private VaadinButtonComponent saveButton;
+    @Getter
+    private VaadinDropdownComponent roleComboBox;
+    @Getter
+    private VaadinMultipleSelectDropdownComponent permissionsComboBox;
+    @Getter
+    private VaadinButtonComponent saveButton;
 
     public RoleXPermissionPage(WebDriver driver, int port) {
         super(driver, port);

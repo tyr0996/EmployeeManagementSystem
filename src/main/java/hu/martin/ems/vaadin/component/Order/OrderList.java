@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.Order;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -10,12 +9,10 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
@@ -80,7 +77,6 @@ public class OrderList extends EmsFilterableGridComponent {
     private TextFilteringHeaderCell stateFilter;
     private TextFilteringHeaderCell timeOfOrderFilter;
 
-    private final PaginationSetting paginationSetting;
     Logger logger = LoggerFactory.getLogger(Order.class);
 
 
@@ -88,7 +84,6 @@ public class OrderList extends EmsFilterableGridComponent {
     public OrderList(PaginationSetting paginationSetting) {
         OrderVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
         this.grid = new PaginatedGrid<>(OrderVO.class);
-        this.paginationSetting = paginationSetting;
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
@@ -102,22 +97,23 @@ public class OrderList extends EmsFilterableGridComponent {
         to.setMin(from.getValue());
         from.setMax(to.getValue());
         to.addValueChangeListener(event -> {
-           from.setMax(event.getValue());
+            from.setMax(event.getValue());
         });
         from.addValueChangeListener(event -> {
             to.setMin(event.getValue());
         });
 
         from.addValueChangeListener(v -> {
-            if(v.getValue() != null && to.getValue() != null && v.getValue().toEpochDay() > to.getValue().toEpochDay()){
+            if (v.getValue() != null && to.getValue() != null && v.getValue().toEpochDay() > to.getValue().toEpochDay()) {
                 from.setValue(to.getValue());
-            } else{}
+            } else {
+            }
         });
         to.addValueChangeListener(v -> {
-//            if(v.getValue() != null && from.getValue() != null && v.getValue().toEpochDay() < from.getValue().toEpochDay()){
-            if(v.getValue() != null && from.getValue() != null && v.getValue().toEpochDay() < from.getValue().toEpochDay()){
+            if (v.getValue() != null && from.getValue() != null && v.getValue().toEpochDay() < from.getValue().toEpochDay()) {
                 to.setValue(from.getValue());
-            } else{}
+            } else {
+            }
         });
 
         Button sendSftp = new Button("Send report to accountant via SFTP");
@@ -129,7 +125,6 @@ public class OrderList extends EmsFilterableGridComponent {
         });
         HorizontalLayout sftpLayout = new HorizontalLayout();
         sftpLayout.add(sendSftp, from, to);
-
 
 
         idColumn = grid.addColumn(v -> v.id);
@@ -158,7 +153,7 @@ public class OrderList extends EmsFilterableGridComponent {
             Button sendEmail = new Button("Send email");
             sendEmail.addClickListener(event -> {
                 EmsResponse pdfDocumentResponse = orderApi.createDocumentAsPDF(order.original);
-                switch (pdfDocumentResponse.getCode()){
+                switch (pdfDocumentResponse.getCode()) {
                     case 200:
                         break;
                     default:
@@ -167,7 +162,7 @@ public class OrderList extends EmsFilterableGridComponent {
                 }
                 EmsResponse emailGenerationResponse = orderApi.generateEmail(order.original);
                 String email;
-                switch (emailGenerationResponse.getCode()){
+                switch (emailGenerationResponse.getCode()) {
                     case 200:
                         email = new String(((String) emailGenerationResponse.getResponseData()));
                         break;
@@ -195,10 +190,6 @@ public class OrderList extends EmsFilterableGridComponent {
                 Map<String, List<String>> params = new HashMap<>();
                 params.put("orderId", List.of(String.valueOf(order.id)));
                 getUI().ifPresent(v -> v.navigate(order.customerOrSupplier.contains("(C) ") ? OrderCreateToCustomer.class : OrderFromSupplier.class, new QueryParameters(params)));
-//                mainView.getContentLayout().removeAll();
-//                mainView.getContentLayout().add(oc);
-//                MainView.contentLayout.removeAll();
-//                MainView.contentLayout.add(oc);
             });
 
             restoreButton.addClickListener(event -> {
@@ -211,7 +202,7 @@ public class OrderList extends EmsFilterableGridComponent {
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.orderApi.delete(order.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("Order deleted: " + order.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -246,7 +237,6 @@ public class OrderList extends EmsFilterableGridComponent {
         }).setAutoWidth(true).setFlexGrow(0);
 
 
-
         //endregion
 
         Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
@@ -265,18 +255,17 @@ public class OrderList extends EmsFilterableGridComponent {
         add(sftpLayout, sendSftp, showDeletedCheckbox, grid);
     }
 
-    private void processEmailSendingResponse(EmsResponse emailSendingResponse){
-        if(emailSendingResponse.getCode() == 200){
+    private void processEmailSendingResponse(EmsResponse emailSendingResponse) {
+        if (emailSendingResponse.getCode() == 200) {
             Notification.show(emailSendingResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-        }
-        else{
+        } else {
             Notification.show(emailSendingResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
 
     private void setupOrderList() {
         EmsResponse response = orderApi.findAllWithDeleted();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 orderList = (List<Order>) response.getResponseData();
                 break;
@@ -290,30 +279,22 @@ public class OrderList extends EmsFilterableGridComponent {
 
     private Stream<OrderVO> getFilteredStream() {
         return orderVOS.stream().filter(orderVO ->
-                (idFilter.isEmpty() || orderVO.id.toString().equals(idFilter.getFilterText())) &&
-                (customerOrSupplierFilter.isEmpty() || orderVO.customerOrSupplier.toLowerCase().contains(customerOrSupplierFilter.getFilterText().toLowerCase())) &&
-                (paymentTypeFilter.isEmpty() || orderVO.paymentType.toLowerCase().contains(paymentTypeFilter.getFilterText().toLowerCase())) &&
-                (stateFilter.isEmpty() || orderVO.state.toLowerCase().contains(stateFilter.getFilterText().toLowerCase())) &&
-                (timeOfOrderFilter.isEmpty() || orderVO.timeOfOrder.toLowerCase().contains(timeOfOrderFilter.getFilterText().toLowerCase())) &&
-                orderVO.filterExtraData()
-        );
+                filterField(idFilter, orderVO.id.toString()) &&
+                        filterField(customerOrSupplierFilter, orderVO.customerOrSupplier) &&
+                        filterField(paymentTypeFilter, orderVO.paymentType) &&
+                        filterField(stateFilter, orderVO.state) &&
+                        filterField(timeOfOrderFilter, orderVO.timeOfOrder) &&
+                        orderVO.filterExtraData());
+//                (idFilter.isEmpty() || orderVO.id.toString().equals(idFilter.getFilterText())) &&
+//                (customerOrSupplierFilter.isEmpty() || orderVO.customerOrSupplier.toLowerCase().contains(customerOrSupplierFilter.getFilterText().toLowerCase())) &&
+//                (paymentTypeFilter.isEmpty() || orderVO.paymentType.toLowerCase().contains(paymentTypeFilter.getFilterText().toLowerCase())) &&
+//                (stateFilter.isEmpty() || orderVO.state.toLowerCase().contains(stateFilter.getFilterText().toLowerCase())) &&
+//                (timeOfOrderFilter.isEmpty() || orderVO.timeOfOrder.toLowerCase().contains(timeOfOrderFilter.getFilterText().toLowerCase())) &&
+//                        orderVO.filterExtraData()
+//        );
     }
 
-
-    private Component filterField(TextField filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
-
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         idFilter = new TextFilteringHeaderCell("Search id...", this);
         customerOrSupplierFilter = new TextFilteringHeaderCell("Search customerOrSupplier...", this);
         paymentTypeFilter = new TextFilteringHeaderCell("Search payment type...", this);
@@ -322,30 +303,28 @@ public class OrderList extends EmsFilterableGridComponent {
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 OrderVO.extraDataFilterMap.clear();
-            }
-            else{
-                 OrderVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
+            } else {
+                OrderVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
             grid.getDataProvider().refreshAll();
             updateGridItems();
         });
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
-        filterRow.getCell(idColumn).setComponent(filterField(idFilter, "ID"));
-        filterRow.getCell(customerOrSupplierColumn).setComponent(filterField(customerOrSupplierFilter, "Customer"));
-        filterRow.getCell(paymentTypeColumn).setComponent(filterField(paymentTypeFilter, "Payment type"));
-        filterRow.getCell(stateColumn).setComponent(filterField(stateFilter, "State"));
-        filterRow.getCell(timeOfOrderColumn).setComponent(filterField(timeOfOrderFilter, "Time of order"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
+        filterRow.getCell(idColumn).setComponent(styleFilterField(idFilter, "ID"));
+        filterRow.getCell(customerOrSupplierColumn).setComponent(styleFilterField(customerOrSupplierFilter, "Customer"));
+        filterRow.getCell(paymentTypeColumn).setComponent(styleFilterField(paymentTypeFilter, "Payment type"));
+        filterRow.getCell(stateColumn).setComponent(styleFilterField(stateFilter, "State"));
+        filterRow.getCell(timeOfOrderColumn).setComponent(styleFilterField(timeOfOrderFilter, "Time of order"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
 
     public void updateGridItems() {
-        if(orderList == null){
+        if (orderList == null) {
             Notification.show("EmsError happened while getting orders")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             orderList = new ArrayList<>();

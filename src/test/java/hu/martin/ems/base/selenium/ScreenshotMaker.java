@@ -19,7 +19,7 @@ public class ScreenshotMaker {
 
     public void takeScreenshot(WebDriver driver) {
         File f = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-        try{
+        try {
             String path = screenshotFolder + "/" + screenshotId + ".png";
             FileUtils.copyFile(f, new File(path));
             screenshotId++;

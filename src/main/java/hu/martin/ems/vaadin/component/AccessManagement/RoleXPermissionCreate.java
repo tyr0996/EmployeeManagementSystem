@@ -43,7 +43,7 @@ public class RoleXPermissionCreate extends AccessManagement {
     List<Permission> permissionList;
     Button saveButton;
     Logger logger = LoggerFactory.getLogger(RoleXPermissionCreate.class);
-//    private MainView mainView;
+
 
     @Autowired
     public RoleXPermissionCreate(PaginationSetting paginationSetting) {
@@ -57,11 +57,10 @@ public class RoleXPermissionCreate extends AccessManagement {
         ComboBox<Role> roleComboBox = null;
         MultiSelectComboBox<Permission> permissionComboBox = null;
         loggedInUser = getLoggedInUser();
-        if(loggedInUser != null){
+        if (loggedInUser != null) {
             roleComboBox = createRoleComboBox();
             permissionComboBox = createPermissionComboBox(roleComboBox);
-        }
-        else{
+        } else {
             roleComboBox = new ComboBox<>("Role");
             permissionComboBox = new MultiSelectComboBox<>("Permission");
             roleComboBox.setEnabled(false);
@@ -77,11 +76,10 @@ public class RoleXPermissionCreate extends AccessManagement {
     private ComboBox<Role> createRoleComboBox() {
         setupRoles();
         ComboBox<Role> roleComboBox = new ComboBox<>("Role");
-        if(roleList != null){
+        if (roleList != null) {
             roleComboBox.setItems((role, filter) -> role.getName().toLowerCase().contains(filter.toLowerCase()), roleList);
             roleComboBox.setItemLabelGenerator(Role::getName);
-        }
-        else{
+        } else {
             roleComboBox.setErrorMessage("EmsError happened while getting roles");
             roleComboBox.setEnabled(false);
             roleComboBox.setInvalid(true);
@@ -92,7 +90,7 @@ public class RoleXPermissionCreate extends AccessManagement {
 
     private void setupRoles() {
         EmsResponse response = roleApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 roleList = (List<Role>) response.getResponseData();
                 break;
@@ -103,9 +101,9 @@ public class RoleXPermissionCreate extends AccessManagement {
         }
     }
 
-    private User getLoggedInUser(){
+    private User getLoggedInUser() {
         EmsResponse e = userApiClient.findByUsername(securityService.getAuthenticatedUser().getUsername());
-        switch (e.getCode()){
+        switch (e.getCode()) {
             case 200: {
                 return (User) e.getResponseData();
             }
@@ -120,7 +118,7 @@ public class RoleXPermissionCreate extends AccessManagement {
     private MultiSelectComboBox<Permission> createPermissionComboBox(ComboBox<Role> roleComboBox) {
         setupPermissions();
         MultiSelectComboBox<Permission> permissionComboBox = new MultiSelectComboBox<>("Permission");
-        if(permissionList != null){
+        if (permissionList != null) {
             permissionComboBox.setItems((permission, filter) -> permission.getName().toLowerCase().contains(filter.toLowerCase()), permissionList);
             permissionComboBox.setItemLabelGenerator(Permission::getName);
 
@@ -129,8 +127,7 @@ public class RoleXPermissionCreate extends AccessManagement {
                 List<Permission> permissions = selectedRole.getPermissions().stream().toList();
                 permissionComboBox.setValue(permissions);
             });
-        }
-        else{
+        } else {
             permissionComboBox.setInvalid(true);
             permissionComboBox.setEnabled(false);
             permissionComboBox.setErrorMessage("EmsError happened while getting permissions");
@@ -141,7 +138,7 @@ public class RoleXPermissionCreate extends AccessManagement {
 
     private void setupPermissions() {
         EmsResponse response = permissionApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 permissionList = (List<Permission>) response.getResponseData();
                 break;
@@ -154,7 +151,7 @@ public class RoleXPermissionCreate extends AccessManagement {
 
     private Button createSaveButton(ComboBox<Role> roleComboBox, MultiSelectComboBox<Permission> permissionComboBox) {
         Button saveButton = new Button("Save");
-        if(!roleComboBox.isEnabled() || !permissionComboBox.isEnabled()){
+        if (!roleComboBox.isEnabled() || !permissionComboBox.isEnabled()) {
             saveButton.setEnabled(false);
         }
 
@@ -168,23 +165,8 @@ public class RoleXPermissionCreate extends AccessManagement {
         Set<Permission> selectedPermissions = permissionComboBox.getValue();
         selectedRole.setPermissions(selectedPermissions);
         EmsResponse response = roleApi.update(selectedRole);
-//
-//        roleXPermissionApi.removeAllPermissionsFrom(selectedRole);
-//
-//        Boolean success = true;
-//        for(int i = 0; i < selectedPermissions.size(); i++){
-//            Permission permission = selectedPermissions.get(i);
-//            RoleXPermission roleXPermission = new RoleXPermission(selectedRole, permission);
-//            roleXPermission.setDeleted(0L);
-//            EmsResponse response = roleXPermissionApi.save(roleXPermission);
-//            switch (response.getCode()){
-//                case 200: break;
-//                case 500: Notification.show("Role-permission pairing failed").addThemeVariants(NotificationVariant.LUMO_ERROR); return;
-//            }
-//        }
-//        clearForm(roleComboBox, permissionComboBox);
-        switch (response.getCode()){
-            case 200:{
+        switch (response.getCode()) {
+            case 200: {
                 Notification.show("Role successfully paired!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 break;
             }

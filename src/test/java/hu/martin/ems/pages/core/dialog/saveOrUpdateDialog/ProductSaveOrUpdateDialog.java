@@ -18,21 +18,29 @@ public class ProductSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     private static final String amountXpath = "/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-number-field[3]";
     private static final String taxKeyXpath = "/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-combo-box[4]";
 
-    @Getter private VaadinTextInputComponent nameComponent;
-    @Getter private VaadinNumberInputComponent buyingPriceNetComponent;
-    @Getter private VaadinDropdownComponent buyingPriceCurrencyComponent;
-    @Getter private VaadinNumberInputComponent sellingPriceNetComponent;
-    @Getter private VaadinDropdownComponent sellingPriceCurrencyComponent;
-    @Getter private VaadinDropdownComponent amountUnitComponent;
-    @Getter private VaadinNumberInputComponent amountComponent;
-    @Getter private VaadinDropdownComponent taxKeyComponent;
+    @Getter
+    private VaadinTextInputComponent nameComponent;
+    @Getter
+    private VaadinNumberInputComponent buyingPriceNetComponent;
+    @Getter
+    private VaadinDropdownComponent buyingPriceCurrencyComponent;
+    @Getter
+    private VaadinNumberInputComponent sellingPriceNetComponent;
+    @Getter
+    private VaadinDropdownComponent sellingPriceCurrencyComponent;
+    @Getter
+    private VaadinDropdownComponent amountUnitComponent;
+    @Getter
+    private VaadinNumberInputComponent amountComponent;
+    @Getter
+    private VaadinDropdownComponent taxKeyComponent;
 
     public ProductSaveOrUpdateDialog(WebDriver driver) {
         super(driver);
     }
 
     @Override
-    public void initWebElements(){
+    public void initWebElements() {
         super.initWebElements();
         nameComponent = new VaadinTextInputComponent(getDriver(), By.xpath(nameFieldXpath));
         buyingPriceNetComponent = new VaadinNumberInputComponent(getDriver(), By.xpath(buyingPriceNetXpath));
@@ -47,7 +55,7 @@ public class ProductSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     }
 
     @Override
-    public void setAllComponents(){
+    public void setAllComponents() {
         this.allComponent.add(nameComponent);
         this.allComponent.add(buyingPriceNetComponent);
         this.allComponent.add(buyingPriceCurrencyComponent);

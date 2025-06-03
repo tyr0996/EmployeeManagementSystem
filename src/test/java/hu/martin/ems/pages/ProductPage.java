@@ -10,7 +10,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
 public class ProductPage extends SimpleVaadinGridPage<ProductPage> implements ISimpleVaadinGridPage<ProductPage> {
-    public ProductPage(WebDriver driver, int port){
+    public ProductPage(WebDriver driver, int port) {
         super(driver, port, "Product", null);
         initWebElements();
     }

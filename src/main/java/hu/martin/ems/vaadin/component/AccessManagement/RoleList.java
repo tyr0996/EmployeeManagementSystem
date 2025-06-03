@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.AccessManagement;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -13,13 +12,11 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
@@ -86,7 +83,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
     private Gson gson = BeanProvider.getBean(Gson.class);
 
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -98,7 +95,6 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         this.currentView = this.getClass();
         setLoggedInUserRole();
         this.paginationSetting = paginationSetting;
-//        this.mainView = mainView;
 
         RoleVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
@@ -109,7 +105,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         createLayout();
     }
 
-    private void createRoleXPermissionGrid(){
+    private void createRoleXPermissionGrid() {
         setRoles();
 
         this.grid = new PaginatedGrid<>(RoleVO.class);
@@ -123,7 +119,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         updateGridItems();
     }
 
-    private void createLayout(){
+    private void createLayout() {
         Button create = new Button("Create");
         create.addClickListener(event -> {
             generateSaveOrUpdateDialog();
@@ -160,7 +156,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         createOrModifyDialog.add(this.createOrModifyForm);
     }
 
-    private void createSaveOrUpdateForm(){
+    private void createSaveOrUpdateForm() {
         this.createOrModifyForm.removeAll();
         nameField = new TextField("Name");
         saveButton = new Button("Save");
@@ -169,13 +165,12 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         ComboBox.ItemFilter<Permission> filterPermission = (permission, filterString) ->
                 permission.getName().toLowerCase().contains(filterString.toLowerCase());
         setupPermissions();
-        if(permissionList == null){
+        if (permissionList == null) {
             permissions.setInvalid(true);
             permissions.setErrorMessage("EmsError happened while getting permissions");
             permissions.setEnabled(false);
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             saveButton.setEnabled(true);
             permissions.setInvalid(false);
             permissions.setEnabled(true);
@@ -194,7 +189,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
 
     private void setupPermissions() {
         EmsResponse response = permissionApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 permissionList = (List<Permission>) response.getResponseData();
                 break;
@@ -213,15 +208,14 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
             r.setName(nameField.getValue());
             r.setDeleted(0L);
             resp = roleApi.save(r);
-        }
-        else{
+        } else {
             editableRole.setPermissions(permissions.getSelectedItems());
             editableRole.setName(nameField.getValue());
             resp = roleApi.update(editableRole);
         }
 
         updateGridItems();
-        switch (resp.getCode()){
+        switch (resp.getCode()) {
             case 200: {
                 Notification.show("Role " + (editableRole == null ? "saved: " : "updated: ") + nameField.getValue())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -235,7 +229,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         }
     }
 
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         roleFilter = new TextFilteringHeaderCell("Search role...", this);
 
         MultiSelectComboBox<Permission> permissionsFilter = new MultiSelectComboBox();
@@ -243,12 +237,11 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
                 permission.getName().toLowerCase().contains(filterString.toLowerCase());
         permissionsFilter.setClearButtonVisible(true);
         setupPermissions();
-        if(permissionList == null){
+        if (permissionList == null) {
             permissionsFilter.setInvalid(true);
             permissionsFilter.setErrorMessage("EmsError happened while getting permissions");
             permissionsFilter.setEnabled(false);
-        }
-        else{
+        } else {
             permissionsFilter.setInvalid(false);
             permissionsFilter.setEnabled(true);
             permissionsFilter.setItems(filterPermission, permissionList);
@@ -263,10 +256,9 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 RoleVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 RoleVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -275,31 +267,18 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         });
 
         HeaderRow filterRow = grid.appendHeaderRow();
-        filterRow.getCell(roleColumn).setComponent(filterField(roleFilter, "Role"));
-        filterRow.getCell(permissionsColumn).setComponent(filterField(permissionsFilter, "Permissions"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
+        filterRow.getCell(roleColumn).setComponent(styleFilterField(roleFilter, "Role"));
+        filterRow.getCell(permissionsColumn).setComponent(styleFilterField(permissionsFilter, "Permissions"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
-    private void setGridColumns(){
+    private void setGridColumns() {
         roleColumn = this.grid.addColumn(v -> v.role);
         permissionsColumn = this.grid.addColumn(v -> v.permissions);
         addOptionsColumn();
     }
 
-    private Component filterField(Component filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
-
-    private void addOptionsColumn(){
+    private void addOptionsColumn() {
         extraData = this.grid.addComponentColumn(roleVO -> {
             Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
@@ -327,7 +306,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.roleApi.delete(roleVO.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("Role deleted: " + roleVO.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -344,10 +323,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
 
             permanentDeleteButton.addClickListener(event -> {
                 roleApi.permanentlyDelete(roleVO.id);
-//                List<RoleXPermission> rxps = getAlRoleXPermissionByRole(roleVO.original.role);
-//                for(RoleXPermission rxp : rxps){
-//                    roleXPermissionApi.permanentlyDelete(rxp.id);
-//                }
+
                 Notification.show("Role permanently deleted: " + roleVO.role)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 setRoles();
@@ -364,9 +340,9 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         });
     }
 
-    private void setLoggedInUserRole(){
+    private void setLoggedInUserRole() {
         EmsResponse response = userApiClient.findByUsername(CustomUserDetailsService.getLoggedInUsername());
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200: {
                 loggedInUserRole = ((User) response.getResponseData()).getRoleRole();
                 break;
@@ -379,18 +355,17 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
     }
 
     private void disableDeletingAndEditingForLoggedInUser(RoleVO roleVO, Button deleteButton, Button editButton) {
-        if(loggedInUserRole == null || roleVO.original.equals(loggedInUserRole)){
+        if (loggedInUserRole == null || roleVO.original.equals(loggedInUserRole)) {
             deleteButton.setEnabled(false);
             editButton.setEnabled(false);
         }
     }
 
     public void updateGridItems() {
-        if(roles != null){
+        if (roles != null) {
             roleVOS = roles.stream().map(RoleVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
-        }
-        else{
+        } else {
         }
     }
 
@@ -399,34 +374,26 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
     }
 
     private boolean filterPredicate(RoleVO groupedRoleXPermissionVO) {
-        boolean roleFilterResult = roleFilter.isEmpty() || groupedRoleXPermissionVO.role.toLowerCase().contains(roleFilter.getFilterText().toLowerCase());
+        boolean roleFilterResult = filterField(roleFilter, groupedRoleXPermissionVO.role);
         HashSet<String> rowPermissions = new HashSet<>(groupedRoleXPermissionVO.permissionSet.stream().map(Permission::getName).toList());
         boolean permissionFilterResult = permissionsFilterSet.isEmpty() || rowPermissions.containsAll(permissionsFilterSet.stream().map(Permission::getName).toList());
         return roleFilterResult && permissionFilterResult && groupedRoleXPermissionVO.filterExtraData();
     }
 
-    private void setRoles(){
+    private void setRoles() {
         List<Role> roles;
         EmsResponse response;
-        if(showDeleted){
+        if (showDeleted) {
             response = roleApi.findAllWithDeleted();
-        }
-        else{
+        } else {
             response = roleApi.findAll();
         }
-//        if(showDeleted) {
-//            response = roleApi.findAllWithGraphWithDeleted();
-//        }
-//        else{
-//            response = roleApi.findAllWithGraph();
-//        }
-        switch (response.getCode()){
-            case 200 : {
+        switch (response.getCode()) {
+            case 200: {
                 roles = (List<Role>) response.getResponseData();
-//                roles.removeIf(v -> v.getId() < 0);
                 break;
             }
-            default : {
+            default: {
                 Notification.show("EmsError happened while getting roles").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 this.roles = null;
                 return;
@@ -443,7 +410,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
 
         private Set<Permission> permissionSet;
 
-        public RoleVO(Role original){
+        public RoleVO(Role original) {
             super(original.getId(), original.getDeleted());
             this.original = original;
             this.role = original.getName();

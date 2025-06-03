@@ -19,7 +19,7 @@ public class VaadinConfig {
     private String paginationPosition;
 
     @Bean
-    public PaginationSetting paginationSetting(){
+    public PaginationSetting paginationSetting() {
         return new PaginationSetting(PaginationLocation.valueOf(paginationPosition), pageSize);
     }
 }

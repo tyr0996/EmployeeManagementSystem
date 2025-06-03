@@ -18,7 +18,6 @@ import com.vaadin.flow.server.VaadinServletService;
 import com.vaadin.flow.server.VaadinSession;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.auth.SecurityService;
-import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.vaadin.component.AccessManagement.AccessManagement;
 import hu.martin.ems.vaadin.component.Address.AddressList;
 import hu.martin.ems.vaadin.component.AdminTools.AdminTools;
@@ -55,12 +54,6 @@ public class MainView extends HorizontalLayout implements RouterLayout {
     private VerticalLayout menuLayout;
     private Logger logger = LoggerFactory.getLogger(MainView.class);
 
-    @Autowired
-    private PaginationSetting paginationSetting;
-
-//    @Autowired
-//    private ComponentManager componentManager;
-
     private Div contentLayout;
 
     @Autowired
@@ -91,9 +84,7 @@ public class MainView extends HorizontalLayout implements RouterLayout {
 
         addLogoutButton();
 
-//        addClassName("main-view");
         add(menuLayout, contentLayout);
-//        add(menuLayout);
         setSizeFull();
     }
 
@@ -135,17 +126,9 @@ public class MainView extends HorizontalLayout implements RouterLayout {
 
         listLink.addClickListener(event -> {
             listLink.getUI().ifPresent(ui -> ui.navigate(viewClass));
-//            UI.getCurrent().navigate(viewClass);
         });
-//        listLink.addClickListener(event -> {
-//
-//        });
-//
-//        listLink.addClickListener(event -> UI.getCurrent().navigate(viewClass));
-
         listMenu.setVisible(false);
 
-        // Főmenü elem kattintásakor a listák megjelenítése/rejtése
         mainMenu.getElement().addEventListener("click", e -> {
             listMenu.setVisible(!listMenu.isVisible());
         });

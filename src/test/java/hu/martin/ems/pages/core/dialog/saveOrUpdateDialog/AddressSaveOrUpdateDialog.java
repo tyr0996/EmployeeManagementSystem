@@ -8,7 +8,7 @@ import org.openqa.selenium.WebDriver;
 
 public class AddressSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     private static final String countryCodeDropdownXpath = dialogXpath + "/vaadin-form-layout/vaadin-combo-box[1]";
-    private static final String cityDropdownXpath = dialogXpath + "/vaadin-form-layout/vaadin-combo-box[2]" ;
+    private static final String cityDropdownXpath = dialogXpath + "/vaadin-form-layout/vaadin-combo-box[2]";
     private static final String streetNameTextXpath = dialogXpath + "/vaadin-form-layout/vaadin-text-field[1]";
     private static final String streetTypeDropdownXpath = dialogXpath + "/vaadin-form-layout/vaadin-combo-box[3]";
     private static final String houseNumberXpath = dialogXpath + "/vaadin-form-layout/vaadin-text-field[2]";
@@ -29,6 +29,7 @@ public class AddressSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
         super(driver);
 //        initWebElements();
     }
+
     //*[@id="vaadin-combo-box-item-1"]
     public void initWebElements() {
         super.initWebElements();

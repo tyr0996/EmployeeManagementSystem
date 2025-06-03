@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.User;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -12,13 +11,11 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
@@ -47,6 +44,7 @@ import org.vaadin.klaudeta.PaginatedGrid;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 @CssImport("./styles/grid.css")
 @Route(value = "user/list", layout = MainView.class)
 @RolesAllowed("ROLE_UserMenuOpenPermission")
@@ -87,7 +85,6 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
     private final SecurityService securityService = BeanProvider.getBean(SecurityService.class);
 
-//    private String usernameFilterText = "";
     private TextFilteringHeaderCell usernameFilter;
     private TextFilteringHeaderCell passwordHashFilter;
     private TextFilteringHeaderCell enabledFilter;
@@ -106,7 +103,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         createLayout();
     }
 
-    private void createUsersGrid(){
+    private void createUsersGrid() {
         this.grid = new PaginatedGrid<>(UserVO.class);
         grid.addClassName("styling");
         grid.setPartNameGenerator(user -> user.deleted != 0 ? "deleted" : null);
@@ -127,12 +124,11 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         ComboBox.ItemFilter<Role> filterPermission = (permission, filterString) ->
                 permission.getName().toLowerCase().contains(filterString.toLowerCase());
         setupRoles();
-        if(roleList == null){
+        if (roleList == null) {
             rolesFilter.setInvalid(true);
             rolesFilter.setErrorMessage("EmsError happened while getting permissions");
             rolesFilter.setEnabled(false);
-        }
-        else{
+        } else {
             rolesFilter.setInvalid(false);
             rolesFilter.setEnabled(true);
             rolesFilter.setItems(filterPermission, roleList);
@@ -148,10 +144,9 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         TextField extraDataFilter = new TextField();
 
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 UserVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 UserVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -159,29 +154,15 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
             updateGridItems();
         });
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
-        filterRow.getCell(userNameColumn).setComponent(filterField(usernameFilter, "Username"));
-        filterRow.getCell(passwordHashColumn).setComponent(filterField(passwordHashFilter, "Password hash"));
-        filterRow.getCell(roleColumn).setComponent(filterField(rolesFilter, "Role"));
-        filterRow.getCell(enabledColumn).setComponent(filterField(enabledFilter, "Enabled"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
+        filterRow.getCell(userNameColumn).setComponent(styleFilterField(usernameFilter, "Username"));
+        filterRow.getCell(passwordHashColumn).setComponent(styleFilterField(passwordHashFilter, "Password hash"));
+        filterRow.getCell(roleColumn).setComponent(styleFilterField(rolesFilter, "Role"));
+        filterRow.getCell(enabledColumn).setComponent(styleFilterField(enabledFilter, "Enabled"));
     }
 
-    private Component filterField(Component filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
-
-    private void createLayout(){
+    private void createLayout() {
         Button create = new Button("Create");
         create.addClickListener(event -> {
             generateSaveOrUpdateDialog();
@@ -205,7 +186,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         add(buttonsLayout, grid);
     }
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -218,7 +199,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         createSaveOrUpdateForm();
         saveButton.addClickListener(event -> {
             EmsResponse response = saveUser();
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200:
                     Notification.show("User " + (editableUser == null ? "saved: " : "updated: ") + ((User) response.getResponseData()).getUsername())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -233,7 +214,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
                     break;
                 }
                 default: {
-                    Notification.show("User " + (editableUser == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    Notification.show("User " + (editableUser == null ? "saving " : "modifying ") + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createOrModifyDialog.close();
                     break;
                 }
@@ -243,7 +224,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         createOrModifyDialog.add(this.createOrModifyForm);
     }
 
-    private void createSaveOrUpdateForm(){
+    private void createSaveOrUpdateForm() {
         this.createOrModifyForm.removeAll();
         saveButton = new Button("Save");
         usernameField = new TextField("Username");
@@ -253,11 +234,10 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         ComboBox.ItemFilter<Role> filterUser = (role, filterString) ->
                 role.getName().toLowerCase().contains(filterString.toLowerCase());
         setupRoles();
-        if(roleList != null){
+        if (roleList != null) {
             roles.setItems(filterUser, roleList);
             roles.setItemLabelGenerator(Role::getName);
-        }
-        else{
+        } else {
             roles.setEnabled(false);
             roles.setInvalid(true);
             saveButton.setEnabled(false);
@@ -275,7 +255,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
 
     private void setupRoles() {
         EmsResponse response = roleApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 roleList = (List<Role>) response.getResponseData();
                 break;
@@ -286,30 +266,25 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         }
     }
 
-    private EmsResponse saveUser(){
+    private EmsResponse saveUser() {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         User user = Objects.requireNonNullElseGet(editableUser, User::new);
 //        if((editableUser == null || ) && usernameCheck(usernameField.getValue())){
-        if(!usernameCheck(usernameField.getValue())){
+        if (!usernameCheck(usernameField.getValue())) {
             createOrModifyDialog.close();
             editableUser = null;
             return new EmsResponse(400, "Username already exists!");
         }
 
-        if(!passwordField.getValue().equals(passwordAgainField.getValue())){
-            //Notification.show("Passwords doesn't match!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+        if (!passwordField.getValue().equals(passwordAgainField.getValue())) {
             createOrModifyDialog.close();
             editableUser = null;
             return new EmsResponse(400, "Passwords doesn't match!");
-        }
-        else if(passwordField.getValue() == "") {
-            String passwordValue = passwordField.getValue();
-            //Notification.show("Password is required!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } else if (passwordField.getValue() == "") {
             createOrModifyDialog.close();
             editableUser = null;
             return new EmsResponse(400, "Password is required!");
-        }
-        else{
+        } else {
             user.setPasswordHash(encoder.encode(passwordField.getValue()));
         }
         user.setDeleted(0L);
@@ -317,26 +292,24 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         user.setRoleRole(roles.getValue());
         user.setEnabled(true);
         EmsResponse response = null;
-        if(editableUser != null){
+        if (editableUser != null) {
             response = userApi.update(user);
-        }
-        else{
+        } else {
             response = userApi.save(user);
         }
         return response;
     }
 
-    private Boolean usernameCheck(String username){
+    private Boolean usernameCheck(String username) {
         EmsResponse response = userApi.findByUsername(username); //TODO: mi történik, ha nem érhető el az adatbázis?
-        if(editableUser != null && editableUser.getUsername().equals(username)) {
+        if (editableUser != null && editableUser.getUsername().equals(username)) {
             return true;
-        }
-        else{
+        } else {
             return response.getResponseData() == null;
         }
     }
 
-    private void setGridColumns(){
+    private void setGridColumns() {
         userNameColumn = this.grid.addColumn(v -> v.username);
         passwordHashColumn = this.grid.addColumn(v -> v.passwordHash);
         enabledColumn = this.grid.addColumn(v -> v.enabled);
@@ -345,11 +318,11 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         addOptionsColumn();
     }
 
-    private void addOptionsColumn(){
+    private void addOptionsColumn() {
         EmsResponse response = userApi.findByUsername(securityService.getAuthenticatedUser().getUsername());
         final UserVO loggedInUserVO;
-        switch (response.getCode()){
-            case 200:{
+        switch (response.getCode()) {
+            case 200: {
                 loggedInUserVO = new UserVO((User) response.getResponseData());
                 break;
             }
@@ -370,9 +343,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
             Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
-//            System.out.println("loggedInUserVo null: " + (loggedInUserVO == null) + "   megegyezik: " + loggedInUserVO.equals(entry));
-
-            if(loggedInUserVO == null || loggedInUserVO.equals(entry)){
+            if (loggedInUserVO == null || loggedInUserVO.equals(entry)) {
                 editButton.setEnabled(false);
                 deleteButton.setEnabled(false);
             }
@@ -392,7 +363,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.userApi.delete(entry.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("User deleted: " + entry.original.getUsername())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -426,18 +397,17 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
 
     public void updateGridItems() {
         setupUsers();
-        if(users != null){
+        if (users != null) {
             userVOS = users.stream().map(UserVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
-        }
-        else{
+        } else {
             Notification.show("Getting users failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
 
-    private void setupUsers(){
+    private void setupUsers() {
         EmsResponse response = userApi.findAllWithDeleted();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 users = (List<User>) response.getResponseData();
                 break;
@@ -451,10 +421,10 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
     private Stream<UserVO> getFilteredStream() {
         return userVOS.stream().filter(userVO ->
                 (usernameFilter.isEmpty() || userVO.username.toLowerCase().contains(usernameFilter.getFilterText().toLowerCase())) &&
-                (passwordHashFilter.isEmpty() || userVO.passwordHash.toLowerCase().contains(passwordHashFilter.getFilterText().toLowerCase())) &&
-                (enabledFilter.isEmpty() || userVO.enabled.toLowerCase().equals(enabledFilter.getFilterText().toLowerCase())) &&
-                (roleFilter.isEmpty() || userVO.role.toLowerCase().equals(roleFilter.toLowerCase())) &&
-                userVO.filterExtraData()
+                        (passwordHashFilter.isEmpty() || userVO.passwordHash.toLowerCase().contains(passwordHashFilter.getFilterText().toLowerCase())) &&
+                        (enabledFilter.isEmpty() || userVO.enabled.toLowerCase().equals(enabledFilter.getFilterText().toLowerCase())) &&
+                        (roleFilter.isEmpty() || userVO.role.toLowerCase().equals(roleFilter.toLowerCase())) &&
+                        userVO.filterExtraData()
         );
     }
 
@@ -465,7 +435,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         private String enabled;
         private String role;
 
-        public UserVO(User user){
+        public UserVO(User user) {
             super(user.id, user.getDeleted());
             this.original = user;
             this.id = user.getId();

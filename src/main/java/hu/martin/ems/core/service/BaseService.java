@@ -35,7 +35,9 @@ public class BaseService<T, R extends BaseRepository<T, Long>> {
         return repo.customFindAll(withDeleted);
     }
 
-    public void clearDatabaseTable(boolean onlyPermanentlyDeleted){ repo.customClearDatabaseTable(onlyPermanentlyDeleted); }
+    public void clearDatabaseTable(boolean onlyPermanentlyDeleted) {
+        repo.customClearDatabaseTable(onlyPermanentlyDeleted);
+    }
 
     public T findById(Long id) {
         return repo.customFindById(id);

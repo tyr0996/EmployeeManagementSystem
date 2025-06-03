@@ -16,7 +16,7 @@ public class EmsResponse {
     @Expose
     private String description;
 
-    public EmsResponse(int code, String description){
+    public EmsResponse(int code, String description) {
         this(code, null, description);
     }
 

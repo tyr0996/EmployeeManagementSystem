@@ -10,19 +10,19 @@ public class VaadinButtonComponent extends VaadinBaseComponent {
         super(driver, provider);
     }
 
-    public VaadinButtonComponent(WebDriver driver, WebElement parent, By provider, int index){
+    public VaadinButtonComponent(WebDriver driver, WebElement parent, By provider, int index) {
         super(driver, parent, provider, index);
     }
 
-    public VaadinButtonComponent(WebDriver driver, String elementXpath){
+    public VaadinButtonComponent(WebDriver driver, String elementXpath) {
         super(driver, By.xpath(elementXpath));
     }
 
-    public void click(){
+    public void click() {
         element.click();
     }
 
-    public void forceClick(){
+    public void forceClick() {
         ((JavascriptExecutor) getDriver()).executeScript("arguments[0].click()", element);
     }
 }

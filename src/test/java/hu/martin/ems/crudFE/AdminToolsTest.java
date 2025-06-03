@@ -46,8 +46,8 @@ public class AdminToolsTest extends BaseCrudTest {
     @Test
     public void clearDatabaseExceptionsTestThanSuccess() throws Exception {
         Mockito.doThrow(new ClassNotFoundException())
-               .doCallRealMethod()
-        .when(spyAdminToolsService).clearAllDatabaseTable(anyBoolean());
+                .doCallRealMethod()
+                .when(spyAdminToolsService).clearAllDatabaseTable(anyBoolean());
 
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -98,7 +98,7 @@ public class AdminToolsTest extends BaseCrudTest {
     }
 
     @Test
-    public void healthStatusResponseUPTest(){
+    public void healthStatusResponseUPTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -110,7 +110,7 @@ public class AdminToolsTest extends BaseCrudTest {
     }
 
     @Test
-    public void healthStatusResponseDOWNTest(){
+    public void healthStatusResponseDOWNTest() {
         String mockResponse = BeanProvider.getBean(Gson.class).toJson(new HealthStatusResponse("DOWN"));
         MockingUtil.mockBaseUrlWebClientResponse(spyWebClientProvider, "actuator/health", mockResponse, String.class);
         EmptyLoggedInVaadinPage loggedInPage =
@@ -123,7 +123,7 @@ public class AdminToolsTest extends BaseCrudTest {
     }
 
     @Test
-    public void healthStatusResponse500Test(){
+    public void healthStatusResponse500Test() {
         WebClient mockClient = spy(WebClient.class);
         WebClient.RequestHeadersUriSpec mockUriSpec = spy(WebClient.RequestHeadersUriSpec.class);
         EmsError bodyEntity = new EmsError(Instant.now().toEpochMilli(), 500, "Internal Server Error", "/actuator/health");

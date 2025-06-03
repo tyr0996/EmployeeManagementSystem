@@ -54,4 +54,5 @@ INSERT INTO Permission (name, deleted) VALUES
 	('SupplierDeletePermission', '0'),
 	('UserCreatePermission', '0'),
 	('UserUpdatePermission', '0'),
-	('UserDeletePermission', '0')
+	('UserDeletePermission', '0'),
+	('This permission not used - only for testing', '0')

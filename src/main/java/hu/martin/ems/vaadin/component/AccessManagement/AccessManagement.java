@@ -31,7 +31,7 @@ public class AccessManagement extends VerticalLayout implements RouterLayout {
         add(buttonsLayout);
     }
 
-    public HorizontalLayout createButtonRow(){
+    public HorizontalLayout createButtonRow() {
         HorizontalLayout hl = new HorizontalLayout();
 
         Button listRoles = new Button("Roles");

@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Transactional
-public interface UserRepository extends BaseRepository<User, Long>{
+public interface UserRepository extends BaseRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.username = :userName AND u.deleted = 0")
     User findByUserName(@Param("userName") String userName);
 }

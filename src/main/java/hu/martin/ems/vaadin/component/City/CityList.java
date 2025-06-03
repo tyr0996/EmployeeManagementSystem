@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.City;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -12,13 +11,11 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
@@ -87,7 +84,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
     }
 
 
-    private void createCityList(PaginationSetting paginationSetting){
+    private void createCityList(PaginationSetting paginationSetting) {
         this.paginationSetting = paginationSetting;
 
         CityVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
@@ -130,7 +127,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.cityApi.delete(city.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("City deleted: " + city.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -147,7 +144,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
 
             permanentDeleteButton.addClickListener(event -> {
                 EmsResponse response = this.cityApi.permanentlyDelete(city.original.getId());
-                switch (response.getCode()){
+                switch (response.getCode()) {
                     case 200: {
                         Notification.show("City permanently deleted: " + city.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -199,7 +196,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
 
     private void setupCities() {
         EmsResponse response = cityApi.findAllWithDeleted();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 cityList = (List<City>) response.getResponseData();
                 break;
@@ -212,39 +209,27 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
 
     private Stream<CityVO> getFilteredStream() {
         return cityVOS.stream().filter(cityVO ->
-                (zipCodeFilter.isEmpty() || cityVO.zipCode.toLowerCase().contains(zipCodeFilter.getFilterText().toLowerCase())) &&
-                        (countryCodeFilter.isEmpty() || cityVO.countryCode.toLowerCase().contains(countryCodeFilter.getFilterText().toLowerCase())) &&
-                        (nameFilter.isEmpty() || cityVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase())) &&
-                        cityVO.filterExtraData()
-                        //(showDeleted ? (cityVO.deleted == 0 || cityVO.deleted == 1) : cityVO.deleted == 0)
-        );
+                filterField(zipCodeFilter, cityVO.zipCode) &&
+                filterField(countryCodeFilter, cityVO.countryCode) &&
+                filterField(nameFilter, cityVO.name) &&
+                cityVO.filterExtraData());
+//                        (zipCodeFilter.isEmpty() || cityVO.zipCode.toLowerCase().contains(zipCodeFilter.getFilterText().toLowerCase())) &&
+//                        (countryCodeFilter.isEmpty() || cityVO.countryCode.toLowerCase().contains(countryCodeFilter.getFilterText().toLowerCase())) &&
+//                        (nameFilter.isEmpty() || cityVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase())) &&
+//                        cityVO.filterExtraData()
+//        );
     }
 
-
-    private Component filterField(TextField filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
-
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         countryCodeFilter = new TextFilteringHeaderCell("Search country code...", this);
         nameFilter = new TextFilteringHeaderCell("Search name...", this);
         zipCodeFilter = new TextFilteringHeaderCell("Search zip code...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 CityVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 CityVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -252,35 +237,31 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
             updateGridItems();
         });
 
-        //extraDataFilter.setVisible(false);
-
-
         HeaderRow filterRow = grid.appendHeaderRow();
-        filterRow.getCell(countryCodeColumn).setComponent(filterField(countryCodeFilter, "Country code"));
-        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
-        filterRow.getCell(zipCodeColumn).setComponent(filterField(zipCodeFilter, "ZipCode"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
+        filterRow.getCell(countryCodeColumn).setComponent(styleFilterField(countryCodeFilter, "Country code"));
+        filterRow.getCell(nameColumn).setComponent(styleFilterField(nameFilter, "Name"));
+        filterRow.getCell(zipCodeColumn).setComponent(styleFilterField(zipCodeFilter, "ZipCode"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
 
     public void updateGridItems() {
-        if(cityList != null){
+        if (cityList != null) {
             cityVOS = cityList.stream().map(CityVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
-        }
-        else {
+        } else {
             Notification.show("Getting cities failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         d.getHeader().add(closeButton);
     }
 
-    public Dialog getSaveOrUpdateDialog(City entity){
+    public Dialog getSaveOrUpdateDialog(City entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " city");
         appendCloseButton(createDialog);
 
@@ -292,13 +273,12 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
         ComboBox.ItemFilter<CodeStore> countryCodeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         setupCountries();
-        if(countries == null){
+        if (countries == null) {
             countryCodes.setErrorMessage("EmsError happened while getting countries");
             countryCodes.setEnabled(false);
             countryCodes.setInvalid(true);
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             countryCodes.setItems(countryCodeFilter, countries);
             countryCodes.setItemLabelGenerator(CodeStore::getName);
         }
@@ -321,21 +301,20 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
             city.setZipCode(zipCodeField.getValue());
             city.setDeleted(0L);
             EmsResponse response = null;
-            if(entity != null){
+            if (entity != null) {
                 response = cityApi.update(city);
-            }
-            else{
+            } else {
                 response = cityApi.save(city);
             }
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200:
                     Notification.show("City " + (entity == null ? "saved: " : "updated: ") + city.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     setupCities();
                     updateGridItems();
                     break;
                 default: {
-                    Notification.show("City " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    Notification.show("City " + (entity == null ? "saving " : "modifying ") + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     setupCities();
                     updateGridItems();
@@ -356,7 +335,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
 
     private void setupCountries() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.COUNTRIES_CODESTORE_ID);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 countries = (List<CodeStore>) response.getResponseData();
                 break;
@@ -368,7 +347,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
     }
 
     @NeedCleanCoding
-public class CityVO extends BaseVO {
+    public class CityVO extends BaseVO {
         private City original;
         private String countryCode;
         private String name;

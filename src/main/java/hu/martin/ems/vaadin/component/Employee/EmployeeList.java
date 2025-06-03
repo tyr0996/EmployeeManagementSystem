@@ -60,7 +60,6 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
     private boolean showDeleted = false;
     @Getter
     private PaginatedGrid<EmployeeVO, String> grid;
-    private final PaginationSetting paginationSetting;
     List<Employee> employees;
     List<EmployeeVO> employeeVOS;
 
@@ -77,17 +76,14 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
     private TextFilteringHeaderCell salaryFilter;
     private Logger logger = LoggerFactory.getLogger(Employee.class);
     List<User> userList;
-    private MainView mainView;
+
     @Autowired
     public EmployeeList(PaginationSetting paginationSetting) {
-        this.paginationSetting = paginationSetting;
         EmployeeVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(EmployeeVO.class);
         setupEmployees();
 
-
-//        this.grid.removeAllColumns(); // TODO megnézni az összesnél, hogy így nézzen ki
         firstNameColumn = this.grid.addColumn(v -> v.firstName);
         lastNameColumn = this.grid.addColumn(v -> v.lastName);
         userColumn = this.grid.addColumn(v -> v.user);
@@ -132,7 +128,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.employeeApi.delete(employee.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("Employee deleted: " + employee.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -149,7 +145,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
 
             permanentDeleteButton.addClickListener(event -> {
                 EmsResponse response = this.employeeApi.permanentlyDelete(employee.original.getId());
-                switch (response.getCode()){
+                switch (response.getCode()) {
                     case 200:
                         Notification.show("Employee permanently deleted: " + employee.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -202,7 +198,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
 
     private void setupEmployees() {
         EmsResponse response = employeeApi.findAllWithDeleted();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 employees = (List<Employee>) response.getResponseData();
                 break;
@@ -216,15 +212,19 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
     private Stream<EmployeeVO> getFilteredStream() {
 
         return employeeVOS.stream().filter(employeeVO ->
-                (firstNameFilter.isEmpty() || employeeVO.firstName.toLowerCase().contains(firstNameFilter.getFilterText().toLowerCase())) &&
-                (lastNameFilter.isEmpty() || employeeVO.lastName.toLowerCase().contains(lastNameFilter.getFilterText().toLowerCase())) &&
-                (userFilter.isEmpty() || employeeVO.user.toLowerCase().contains(userFilter.getFilterText().toLowerCase())) &&
-                (salaryFilter.isEmpty() || employeeVO.salary.toString().toLowerCase().contains(salaryFilter.getFilterText().toLowerCase())) &&
-                employeeVO.filterExtraData()
-        );
+                filterField(firstNameFilter, employeeVO.firstName) &&
+                filterField(lastNameFilter, employeeVO.lastName) &&
+                filterField(userFilter, employeeVO.user) &&
+                filterField(salaryFilter, employeeVO.salary.toString()) &&
+                employeeVO.filterExtraData());
+//                (firstNameFilter.isEmpty() || employeeVO.firstName.toLowerCase().contains(firstNameFilter.getFilterText().toLowerCase())) &&
+//                        (lastNameFilter.isEmpty() || employeeVO.lastName.toLowerCase().contains(lastNameFilter.getFilterText().toLowerCase())) &&
+//                        (userFilter.isEmpty() || employeeVO.user.toLowerCase().contains(userFilter.getFilterText().toLowerCase())) &&
+//                        (salaryFilter.isEmpty() || employeeVO.salary.toString().toLowerCase().contains(salaryFilter.getFilterText().toLowerCase())) &&
+//                        employeeVO.filterExtraData()
     }
 
-    private Component filterField(TextField filterField, String title){
+    private Component styleFilterField(TextField filterField, String title) {
         VerticalLayout res = new VerticalLayout();
         res.getStyle().set("padding", "0px")
                 .set("display", "flex")
@@ -237,7 +237,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         return res;
     }
 
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         firstNameFilter = new TextFilteringHeaderCell("Search first name...", this);
         lastNameFilter = new TextFilteringHeaderCell("Search last name...", this);
         userFilter = new TextFilteringHeaderCell("Search user...", this);
@@ -245,10 +245,9 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 EmployeeVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 EmployeeVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -256,17 +255,16 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
             updateGridItems();
         });
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
         HeaderRow filterRow = grid.appendHeaderRow();
-        filterRow.getCell(firstNameColumn).setComponent(filterField(firstNameFilter, "First name"));
-        filterRow.getCell(lastNameColumn).setComponent(filterField(lastNameFilter, "Last name"));
-        filterRow.getCell(userColumn).setComponent(filterField(userFilter, "User"));
-        filterRow.getCell(salaryColumn).setComponent(filterField(salaryFilter, "Salary"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
+        filterRow.getCell(firstNameColumn).setComponent(styleFilterField(firstNameFilter, "First name"));
+        filterRow.getCell(lastNameColumn).setComponent(styleFilterField(lastNameFilter, "Last name"));
+        filterRow.getCell(userColumn).setComponent(styleFilterField(userFilter, "User"));
+        filterRow.getCell(salaryColumn).setComponent(styleFilterField(salaryFilter, "Salary"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
     public void updateGridItems() {
-        if(employees == null){
+        if (employees == null) {
             Notification.show("EmsError happened while getting employees")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             employees = new ArrayList<>();
@@ -275,7 +273,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -297,13 +295,12 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         ComboBox<User> users = new ComboBox<>("User");
         ComboBox.ItemFilter<User> filter = (user, filterString) ->
                 user.getUsername().toLowerCase().contains(filterString.toLowerCase());
-        if(userList == null){
+        if (userList == null) {
             users.setEnabled(false);
             users.setErrorMessage("EmsError happened while getting users");
             users.setInvalid(true);
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             users.setItems(filter, userList);
             users.setItemLabelGenerator(User::getUsername);
         }
@@ -323,13 +320,12 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
             employee.setSalary(salaryField.getValue().intValue());
             employee.setUser(users.getValue());
             EmsResponse response = null;
-            if(entity != null){
+            if (entity != null) {
                 response = employeeApi.update(employee);
-            }
-            else{
+            } else {
                 response = employeeApi.save(employee);
             }
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200: {
                     Notification.show("Employee " + (entity == null ? "saved: " : "updated: ") + employee)
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -362,7 +358,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
 
     private void setupUsers() {
         EmsResponse emsResponse = userApi.findAll();
-        switch (emsResponse.getCode()){
+        switch (emsResponse.getCode()) {
             case 200:
                 userList = (List<User>) emsResponse.getResponseData();
                 break;
@@ -374,7 +370,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
     }
 
     @NeedCleanCoding
-public class EmployeeVO extends BaseVO {
+    public class EmployeeVO extends BaseVO {
         private Employee original;
         private String firstName;
         private String lastName;

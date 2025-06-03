@@ -21,10 +21,9 @@ public class CurrencyScheduler {
 
     @Scheduled(cron = "${schedule.fetch.currencies.cron}")
     public void fetchRates() {
-        try{
+        try {
             currencyService.fetchAndSaveRates();
-        }
-        catch (CurrencyException e){
+        } catch (CurrencyException e) {
             logger.error("Scheduled currency fetching method failed: " + e.getType().getText() + ". It needs to fetch manually.");
         }
     }

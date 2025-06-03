@@ -18,7 +18,7 @@ public class EmployeePage extends SimpleVaadinGridPage<EmployeePage> implements 
     }
 
     @Override
-    public EmployeePage initWebElements(){
+    public EmployeePage initWebElements() {
 
         this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
         this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));

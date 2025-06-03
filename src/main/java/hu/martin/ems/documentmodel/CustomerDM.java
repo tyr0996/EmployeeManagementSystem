@@ -4,8 +4,6 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.model.Customer;
 import lombok.Getter;
 
-import java.io.IOException;
-
 @Getter
 @NeedCleanCoding
 public class CustomerDM extends AbstractDM {

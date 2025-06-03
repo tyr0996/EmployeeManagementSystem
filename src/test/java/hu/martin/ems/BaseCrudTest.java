@@ -42,28 +42,28 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- <table border="1">
-     <thead>
-         <tr>
-             <th>Felhasználónév</th>
-             <th>Jelszó</th>
-         </tr>
-     </thead>
-     <tbody>
-         <tr>
-             <td>admin</td>
-             <td>29b{}'f<0V>Z</td>
-         </tr>
-         <tr>
-             <td>robi</td>
-             <td>3W-@s2|0^x&Y</td>
-         </tr>
-         <tr>
-             <td>Erzsi</td>
-             <td>&B0sEh3U5m;L</td>
-         </tr>
-     </tbody>
- </table>
+ * <table border="1">
+ * <thead>
+ * <tr>
+ * <th>Felhasználónév</th>
+ * <th>Jelszó</th>
+ * </tr>
+ * </thead>
+ * <tbody>
+ * <tr>
+ * <td>admin</td>
+ * <td>29b{}'f<0V>Z</td>
+ * </tr>
+ * <tr>
+ * <td>robi</td>
+ * <td>3W-@s2|0^x&Y</td>
+ * </tr>
+ * <tr>
+ * <td>Erzsi</td>
+ * <td>&B0sEh3U5m;L</td>
+ * </tr>
+ * </tbody>
+ * </table>
  */
 @Listeners(BaseCrudTest.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -86,7 +86,6 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     //TODO megcsinálni, hogy ha módosítottunk egy elemet vagy valamit, akkor ellenőrizzük a létrehozás gombot! fontos, hogy üres legyen a form és létrehozás legyen a címben!
 
     public static final String contentXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]";
-//    protected static WebDriver driver;
 
     @Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
@@ -129,7 +128,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     @SpyBean
     protected static DataSource spyDataSource;
 
-    @SpyBean //Ide mindenképp kell a SpyBean, mert különben nem működik a dokumentum-generálól mock!
+    @SpyBean
     public static OrderService spyOrderService;
 
     @SpyBean
@@ -142,7 +141,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     protected static EmailSendingService spyEmailSendingService;
 
     @SpyBean
-    protected static  CurrencyScheduler spyCurrencyScheduler;
+    protected static CurrencyScheduler spyCurrencyScheduler;
 
     @SpyBean
     protected static WebClientProvider spyWebClientProvider;
@@ -156,7 +155,6 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
     @SpyBean
     public static JschConfig spyJschConfig;
 
-//    @InjectMocks
     @SpyBean
     public static SftpSender spySftpSender;
 
@@ -184,64 +182,49 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         baseCurrency = env.getProperty("api.currency.baseCurrency");
         databaseLogPath = env.getProperty("database.logpath");
 
-        clearDownloadFolder();
-        clearScreenshotFolder();
-        
+        clearFolder(BeanProvider.getBean(WebDriverProvider.class).getDownloadFolder());
+        clearFolder(screenshotPath);
+
         port = webServerAppCtxt.getWebServer().getPort();
         dp = dataProvider;
         screenshotMaker = screenshotMakerP;
         environment = env;
         currencyRepository = currencyRepositoryP;
         context = webServerAppCtxt;
-        
+
         driver = BeanProvider.getBean(WebDriverProvider.class).get();
     }
 
-    private void clearFolder(String folderPath){
+    private void clearFolder(String folderPath) {
         File dir = new File(folderPath);
         File[] files = dir.listFiles();
 
         if (files != null) {
             for (File file : files) {
-                if(!file.delete()){
+                if (!file.delete()) {
                     System.err.println("The file deletion failed: " + file.getName());
                 }
             }
         }
     }
 
-    private void clearDownloadFolder(){
-        clearFolder(BeanProvider.getBean(WebDriverProvider.class).getDownloadFolder());
-    }
-
-    private void clearScreenshotFolder(){
-        clearFolder(screenshotPath);
-    }
-
-    private void clearEnvironment(){
-        JPAConfig.resetCallIndex();
-//        resetServicesMock();
-//        clearInvocationsInServices();
-//        logger.debug("Mockito reset and clear happened");
-    }
-
     @AfterMethod(alwaysRun = true)
-    public void afterMethod(ITestResult result){
-        clearEnvironment();
+    public void afterMethod(ITestResult result) {
+        JPAConfig.resetCallIndex();
         resetMock();
     }
 
-    protected void resetMock(){
+    protected void resetMock() {
         clearInvocationsInServices();
         resetServicesMock();
     }
 
     @BeforeMethod(alwaysRun = true)
     public void beforeMethod() throws IOException {
-        clearEnvironment();
+        JPAConfig.resetCallIndex();
     }
 
-    private void resetServicesMock(){
+    private void resetServicesMock() {
         Mockito.reset(spyCurrencyService);
         Mockito.reset(spyDataSource);
         Mockito.reset(spyRestTemplate);
@@ -254,10 +237,10 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.reset(spyCurrencyScheduler);
         Mockito.reset(spyWebClientProvider);
         Mockito.reset(spySftpSender);
-        System.out.println("Mockito reseting done!");
+        logger.info("Mockito reseting done!");
     }
 
-    private void clearInvocationsInServices(){
+    private void clearInvocationsInServices() {
         Mockito.clearInvocations(spyCurrencyService);
         Mockito.clearInvocations(spyDataSource);
         Mockito.clearInvocations(spyRestTemplate);
@@ -270,7 +253,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.clearInvocations(spyCurrencyScheduler);
         Mockito.clearInvocations(spyWebClientProvider);
         Mockito.clearInvocations(spySftpSender);
-        System.out.println("Mockito invocation clearing done!");
+        logger.info("Mockito invocation clearing done!");
 
     }
 
@@ -281,7 +264,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
     @AfterSuite
     protected void destroy() {
-        if(driver != null){
+        if (driver != null) {
             driver.quit();
         }
     }
@@ -323,7 +306,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         JPAConfig.resetCallIndex();
     }
 
-    protected void resetCustomers(){
+    protected void resetCustomers() {
         //TODO: meg kellene csinálni, hogy a JSON-ből vegye ki az SQL-t, és ne így egyesével kelljen megírni
 
         dp.executeSQL("BEGIN; SET session_replication_role = 'replica'; DELETE FROM customer; SET session_replication_role = 'origin'; COMMIT;");
@@ -342,7 +325,7 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         sendEmail();
     }
 
-    protected void clearCurrencyDatabaseTable(){
+    protected void clearCurrencyDatabaseTable() {
         spyCurrencyService.clearDatabaseTable(false);
         assert spyCurrencyService.findAll(true).size() == 0 : "clear currency table failed.";
     }

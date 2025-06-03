@@ -19,32 +19,14 @@ public class MockingUtil {
         mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(preSuccess));
     }
 
-    public void mockDatabaseNotAvailableAfter(DataSource spyDataSource, int preSuccess) throws SQLException {
-        AtomicInteger callCount = new AtomicInteger(0);
-
-        doAnswer(invocation -> {
-            int currentCall = callCount.incrementAndGet();
-            if (currentCall <= preSuccess) {
-                return invocation.callRealMethod();
-            }
-            else if (currentCall == preSuccess + 1) {
-                throw new SQLException("Connection refused: getsockopt");
-            }
-            else {
-                throw new SQLException("Connection refused: getsockopt");
-            }
-        }).when(spyDataSource).getConnection();
-    }
-
     public void mockDatabaseNotAvailableWhen(DataSource spyDataSource, List<Integer> failedCallIndexes) throws SQLException {
         AtomicInteger callCount = new AtomicInteger(0);
 
         doAnswer(invocation -> {
             int currentCall = callCount.incrementAndGet();
-            if(failedCallIndexes.contains(currentCall - 1)) {
+            if (failedCallIndexes.contains(currentCall - 1)) {
                 throw new SQLException("Connection refused: getsockopt [Mocking exception]");
-            }
-            else {
+            } else {
                 return invocation.callRealMethod();
             }
         }).when(spyDataSource).getConnection();
@@ -91,7 +73,7 @@ public class MockingUtil {
         doReturn(mockWebClient).when(spyWebClientProvider).initCsrfWebClient(entityName);
     }
 
-    private <T> WebClient prepareWebClientResponseMock(String uri, T mockResponse, Class<T> responseType){
+    private <T> WebClient prepareWebClientResponseMock(String uri, T mockResponse, Class<T> responseType) {
         WebClient mockWebClient = mock(WebClient.class);
         WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
         WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);

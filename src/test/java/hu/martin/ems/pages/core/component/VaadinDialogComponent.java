@@ -27,7 +27,7 @@ public abstract class VaadinDialogComponent extends VaadinBaseComponent implemen
     protected static final String dialogXpath = "/html/body/vaadin-dialog-overlay";
     private static final String closeButtonXpath = dialogXpath + "/div/div/vaadin-button";
 
-    public VaadinDialogComponent(WebDriver driver, By provider){
+    public VaadinDialogComponent(WebDriver driver, By provider) {
         super(driver, provider);
     }
 
@@ -44,12 +44,12 @@ public abstract class VaadinDialogComponent extends VaadinBaseComponent implemen
         super(driver);
     }
 
-    public void close(){
+    public void close() {
         getCloseButton().click();
         getWait().until(ExpectedConditions.invisibilityOf(element));
     }
 
-    public void initWebElements(){
+    public void initWebElements() {
         element = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(dialogXpath)));
         closeButton = new VaadinButtonComponent(getDriver(), By.xpath(dialogXpath + "/div/div/vaadin-button"));
         saveButton = new VaadinButtonComponent(getDriver(), By.xpath(dialogXpath + "/vaadin-form-layout/vaadin-button"));
@@ -66,28 +66,26 @@ public abstract class VaadinDialogComponent extends VaadinBaseComponent implemen
         });
     }
 
-    public List<FailedVaadinFillableComponent> getFailedComponents(){
+    public List<FailedVaadinFillableComponent> getFailedComponents() {
         return allComponent.stream().filter(v -> !v.isEnabled()).map(v -> new FailedVaadinFillableComponent(v)).toList();
     }
 
 
-    private void fillWithData(Fillable fillable, Object withData){
-        if(fillable instanceof SingleFillable<?,?>){
+    private void fillWithData(Fillable fillable, Object withData) {
+        if (fillable instanceof SingleFillable<?, ?>) {
             SingleFillable sf = (SingleFillable) fillable;
             sf.fillWith(withData);
-        }
-        else{
+        } else {
             MultiFillable mf = (MultiFillable) fillable;
             mf.fillWith(withData);
         }
     }
 
-    private void fillWithRandomData(Fillable fillable, @Nullable Integer numberOfData){
-        if(fillable instanceof SingleFillable<?,?>){
+    private void fillWithRandomData(Fillable fillable, @Nullable Integer numberOfData) {
+        if (fillable instanceof SingleFillable<?, ?>) {
             SingleFillable sf = (SingleFillable) fillable;
             sf.fillWithRandom();
-        }
-        else{
+        } else {
             MultiFillable mf = (MultiFillable) fillable;
             mf.fillWithRandom(numberOfData);
         }

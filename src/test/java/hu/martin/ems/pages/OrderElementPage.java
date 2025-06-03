@@ -17,7 +17,7 @@ public class OrderElementPage extends SimpleVaadinGridPage<OrderElementPage> imp
     }
 
     @Override
-    public OrderElementPage initWebElements(){
+    public OrderElementPage initWebElements() {
         this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
         this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));
         this.grid = new VaadinGridComponent(getDriver(), By.xpath(gridXpath));

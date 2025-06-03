@@ -33,59 +33,50 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
 
     @PostMapping(path = "/createDocumentAsODT")
     public ResponseEntity<byte[]> createDocumentAsODT(@RequestBody Order order) {
-        try{
+        try {
             return new ResponseEntity<>(service.createDocumentAsODT(order, new ByteArrayOutputStream()), HttpStatus.OK);
-        }
-        catch(IOException e){
+        } catch (IOException e) {
             return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        catch (XDocReportException e){
+        } catch (XDocReportException e) {
             return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        catch (CurrencyException e){
+        } catch (CurrencyException e) {
             return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED.getBytes(), HttpStatus.BAD_GATEWAY);
         }
     }
 
     @PostMapping(path = "/createDocumentAsPDF")
     public ResponseEntity<byte[]> createDocumentAsPDF(@RequestBody Order order) {
-        try{
+        try {
             byte[] res = service.createDocumentAsPDF(order, new ByteArrayOutputStream());
             return new ResponseEntity<>(res, HttpStatus.OK);
-        }
-        catch(IOException e){
+        } catch (IOException e) {
             return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_MISSING_TEMPLATE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        catch (XDocReportException e){
+        } catch (XDocReportException e) {
             return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_NOT_SUPPORTED_FILE_TYPE.getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        catch (CurrencyException e){
+        } catch (CurrencyException e) {
             return new ResponseEntity<>(EmsResponse.Description.DOCUMENT_GENERATION_FAILED_CURRENCY_CONVERT_FAILED.getBytes(), HttpStatus.BAD_GATEWAY);
         }
     }
 
     @GetMapping(path = "/generateHTMLEmail")
-    public ResponseEntity<String> generateHTMLEmail(@RequestParam Long orderId){
-        try{
+    public ResponseEntity<String> generateHTMLEmail(@RequestParam Long orderId) {
+        try {
             return new ResponseEntity<>(service.generateHTMLEmail(orderId), HttpStatus.OK);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping(path = "/sendReportSFTPToAccountant")
     public ResponseEntity<String> sendReportSFTPToAccountant(@RequestBody LinkedHashMap<String, LocalDate> data) {
-        try{
+        try {
             boolean res = service.sendReportSFTPToAccountant(data.get("from"), data.get("to"));
-            if(res){
+            if (res) {
                 return new ResponseEntity<>(EmsResponse.Description.SFTP_SENDING_SUCCESS, HttpStatus.OK);
-            }
-            else{
+            } else {
                 return new ResponseEntity<>(gson.toJson(new EmsError(Instant.now().toEpochMilli(), 500, EmsResponse.Description.SFTP_SENDING_ERROR, "/api/order/sendReportSFTPToAccountant")), HttpStatus.INTERNAL_SERVER_ERROR);
             }
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             return new ResponseEntity<>(gson.toJson(new EmsError(Instant.now().toEpochMilli(), 500, "XLS generation failed", "/api/order/sendReportSFTPToAccountant")), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -97,9 +88,4 @@ public class OrderController extends BaseController<Order, OrderService, OrderRe
         service.permanentlyDelete(entityId);
         return new ResponseEntity<>("{\"response\":\"ok\"}", HttpStatus.OK);
     }
-
-//    @GetMapping(path = "getOrderElements", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<String> getOrderElements(@RequestParam(value = "orderId") Long orderId) throws JsonProcessingException {
-//        return new ResponseEntity<>(gson.toJson(service.getOrderElements(orderId)), HttpStatus.OK);
-//    }
 }

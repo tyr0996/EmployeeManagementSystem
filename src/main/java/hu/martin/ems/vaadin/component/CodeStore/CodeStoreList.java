@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.CodeStore;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -12,13 +11,11 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
@@ -122,7 +119,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.codeStoreApi.delete(codeStoreVO.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("Codestore deleted: " + codeStoreVO.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -147,7 +144,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
                         updateGridItems();
                         break;
                     }
-                    default:{
+                    default: {
                         Notification.show("CodeStore permanently deletion failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 }
@@ -198,7 +195,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
 
     private void setupCodeStores() {
         EmsResponse response = codeStoreApi.findAllWithDeleted();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 codeStores = (List<CodeStore>) response.getResponseData();
                 break;
@@ -210,11 +207,10 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
     }
 
     public void updateGridItems() {
-        if(codeStores == null){
+        if (codeStores == null) {
             Notification.show("EmsError happened while getting codestores")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-        }
-        else{
+        } else {
             codeStoreVOS = codeStores.stream().map(CodeStoreVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
         }
@@ -222,38 +218,21 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
 
     private Stream<CodeStoreVO> getFilteredStream() {
         return codeStoreVOS.stream().filter(codeStoreVO ->
-                (nameFilter.isEmpty() || codeStoreVO.name.toLowerCase().equals(nameFilter.getFilterText().toLowerCase())) &&
-                (parentFilter.isEmpty() || codeStoreVO.parentName.toLowerCase().contains(parentFilter.getFilterText().toLowerCase())) &&
-                codeStoreVO.filterExtraData() &&
-                (showOnlyDeletable ? codeStoreVO.deletable : true)
+                filterField(nameFilter, codeStoreVO.name) &&
+                filterField(parentFilter, codeStoreVO.parentName) &&
+                codeStoreVO.filterExtraData() && (showOnlyDeletable ? codeStoreVO.deletable : true)
         );
     }
 
-
-
-    private Component filterField(TextField filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
-
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         nameFilter = new TextFilteringHeaderCell("Search name...", this);
         parentFilter = new TextFilteringHeaderCell("Search parent...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 CodeStoreVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 CodeStoreVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -261,14 +240,14 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
             updateGridItems();
         });
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
+
         HeaderRow filterRow = grid.appendHeaderRow();
-        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
-        filterRow.getCell(parentColumn).setComponent(filterField(parentFilter, "Parent"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
+        filterRow.getCell(nameColumn).setComponent(styleFilterField(nameFilter, "Name"));
+        filterRow.getCell(parentColumn).setComponent(styleFilterField(parentFilter, "Parent"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -301,7 +280,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
         saveButton.addClickListener(event -> {
             CodeStore codeStore = new CodeStore();
             codeStore.id = entity == null ? null : entity.getId();
-            if(entity != null){
+            if (entity != null) {
                 codeStore.id = entity.getId();
             }
             codeStore.setLinkName(entity == null ? nameTextField.getValue() : entity.getLinkName());
@@ -310,15 +289,14 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
             codeStore.setDeleted(0L);
             codeStore.setParentCodeStore(parentCodeStore.getValue());
             EmsResponse response = null;
-            if(entity == null){
+            if (entity == null) {
                 response = codeStoreApi.save(codeStore);
-            }
-            else{
+            } else {
                 response = codeStoreApi.update(codeStore);
             }
 
-            switch (response.getCode()){
-                case 200:{
+            switch (response.getCode()) {
+                case 200: {
                     Notification.show("CodeStore " + (entity == null ? "saved: " : "updated: ") + ((CodeStore) response.getResponseData()).getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     createDialog.close();
@@ -326,7 +304,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
                     break;
                 }
                 default: {
-                    Notification.show("CodeStore " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).
+                    Notification.show("CodeStore " + (entity == null ? "saving " : "modifying ") + "failed: " + response.getDescription()).
                             addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
@@ -355,7 +333,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
         private String parentName;
         private Boolean deletable;
 
-        public CodeStoreVO(CodeStore codeStore){
+        public CodeStoreVO(CodeStore codeStore) {
             super(codeStore.id, codeStore.getDeleted());
             this.original = codeStore;
             this.name = codeStore.getName();

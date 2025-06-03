@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.Supplier;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -12,13 +11,11 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
@@ -58,7 +55,6 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
     private boolean showDeleted = false;
     @Getter
     private PaginatedGrid<SupplierVO, String> grid;
-    private final PaginationSetting paginationSetting;
 
     private List<Supplier> suppliers;
     private List<SupplierVO> supplierVOS;
@@ -72,21 +68,17 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
 
     private Logger logger = LoggerFactory.getLogger(Supplier.class);
     List<Supplier> supplierList;
-
     List<Address> addressList;
-    private MainView mainView;
 
     @Autowired
 
     //TODO nagyon ki kell javítani a update grid elements-et.
     public SupplierList(PaginationSetting paginationSetting) {
-        this.paginationSetting = paginationSetting;
 
         SupplierVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(SupplierVO.class);
         grid.addClassName("styling");
-
 
 
         addressColumn = grid.addColumn(v -> v.address);
@@ -104,7 +96,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
             Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
             restoreButton.addClassNames("info_button_variant");
-                        Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
+            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
             editButton.addClickListener(event -> {
@@ -121,7 +113,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.supplierApi.delete(supplier.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("Supplier deleted: " + supplier.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -157,7 +149,6 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
 
         this.grid.setItems(data);
         setFilteringHeaderRow();
-//        updateGridItems();
 
         //endregion
 
@@ -186,7 +177,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
 
     private void setupSuppliers() {
         EmsResponse response = supplierApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 supplierList = (List<Supplier>) response.getResponseData();
                 break;
@@ -201,35 +192,21 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
 
     private Stream<SupplierVO> getFilteredStream() {
         return supplierVOS.stream().filter(supplierVO ->
-                        (addressFilter.isEmpty() || supplierVO.address.toLowerCase().contains(addressFilter.getFilterText().toLowerCase())) &&
-                        (nameFilter.isEmpty() || supplierVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase())) &&
-                        supplierVO.filterExtraData()
+                filterField(addressFilter, supplierVO.address) &&
+                filterField(nameFilter, supplierVO.name) &&
+                supplierVO.filterExtraData()
         );
     }
 
-    private Component filterField(TextField filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
-
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         addressFilter = new TextFilteringHeaderCell("Search address...", this);
         nameFilter = new TextFilteringHeaderCell("Search name...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 SupplierVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 SupplierVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -237,18 +214,19 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
             updateGridItems();
         });
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
-        HeaderRow filterRow = grid.appendHeaderRow();;
-        filterRow.getCell(addressColumn).setComponent(filterField(addressFilter, "Address"));
-        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
+
+        HeaderRow filterRow = grid.appendHeaderRow();
+
+        filterRow.getCell(addressColumn).setComponent(styleFilterField(addressFilter, "Address"));
+        filterRow.getCell(nameColumn).setComponent(styleFilterField(nameFilter, "Name"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
 
     public void updateGridItems() {
         EmsResponse response = supplierApi.findAllWithDeleted();
         List<Supplier> suppliers;
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 suppliers = (List<Supplier>) response.getResponseData();
                 break;
@@ -261,7 +239,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -281,13 +259,12 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
         ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         setupAddresses();
-        if(addressList == null){
+        if (addressList == null) {
             addresses.setInvalid(true);
             addresses.setErrorMessage("EmsError happened while getting addresses");
             addresses.setEnabled(false);
             saveButton.setEnabled(false);
-        }
-        else {
+        } else {
             addresses.setInvalid(false);
             addresses.setEnabled(true);
             addresses.setItems(addressFilter, addressList);
@@ -306,21 +283,20 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
             supplier.setDeleted(0L);
 
             EmsResponse response = null;
-            if(entity != null){
+            if (entity != null) {
                 response = supplierApi.update(supplier);
-            }
-            else{
+            } else {
                 response = supplierApi.save(supplier);
             }
 
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200: {
                     Notification.show("Supplier " + (entity == null ? "saved: " : "updated: ") + ((Supplier) response.getResponseData()).getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
                 }
                 default: {
-                    Notification.show("Supplier " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    Notification.show("Supplier " + (entity == null ? "saving " : "modifying ") + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
                     return;
@@ -340,7 +316,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
 
     private void setupAddresses() {
         EmsResponse response = addressApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 addressList = (List<Address>) response.getResponseData();
                 break;
@@ -352,7 +328,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
     }
 
     @NeedCleanCoding
-public class SupplierVO extends BaseVO {
+    public class SupplierVO extends BaseVO {
         private Supplier original;
         private String address;
         private String name;

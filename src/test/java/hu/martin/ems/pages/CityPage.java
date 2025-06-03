@@ -16,7 +16,7 @@ public class CityPage extends SimpleVaadinGridPage<CityPage> implements ISimpleV
     }
 
     @Override
-    public CityPage initWebElements(){
+    public CityPage initWebElements() {
 
         this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
         this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));

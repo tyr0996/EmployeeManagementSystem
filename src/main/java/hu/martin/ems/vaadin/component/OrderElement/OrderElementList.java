@@ -2,7 +2,6 @@ package hu.martin.ems.vaadin.component.OrderElement;
 
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -13,13 +12,11 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
@@ -66,7 +63,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
     @Getter
     private PaginatedGrid<OrderElementVO, String> grid;
-    
+
     private List<OrderElementVO> orderElementVOS;
 
     private final PaginationSetting paginationSetting;
@@ -107,7 +104,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
         this.grid = new PaginatedGrid<>(OrderElementVO.class);
 
         setupOrderElements();
-        if(orderElementList == null){
+        if (orderElementList == null) {
             Notification.show("Getting order elements failed")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             orderElementList = new ArrayList<>();
@@ -154,7 +151,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.orderElementApi.delete(orderElement.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("OrderElement deleted: " + orderElement.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -214,7 +211,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
     private void setupOrderElements() {
         EmsResponse response = orderElementApi.findAllWithDeleted();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 orderElementList = (List<OrderElement>) response.getResponseData();
                 break;
@@ -236,41 +233,10 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
                 filterField(unitFilter, orderElementVO.unit.toString()) &&
                 filterField(unitNetPriceFilter, orderElementVO.unitNetPrice.toString()) &&
                 orderElementVO.filterExtraData()
-
         );
     }
 
-
-    //TODO megcsinálni a többinél is
-    private boolean filterFieldWithNullFilter(TextFilteringHeaderCell filterField, String fieldValue){
-        if(filterField.getFilterText().toLowerCase().equals("null")){
-            return fieldValue.isEmpty();
-        }
-        else{
-            return filterField(filterField, fieldValue);
-        }
-    }
-
-    private boolean filterField(TextFilteringHeaderCell filterField, String fieldValue){
-//        if(taxKeyFilterText.equals(filterFieldText))
-//        System.out.println("Itt az első: " + filterFieldText.isEmpty() + "   és a második " + fieldValue.toLowerCase().contains(filterFieldText.toLowerCase()));
-        return filterField.isEmpty() || fieldValue.toLowerCase().contains(filterField.getFilterText().toLowerCase());
-    }
-    
-    private Component createFilterField(TextField filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
-
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         grossPriceFilter = new TextFilteringHeaderCell("Search gross price...", this);
         netPriceFilter = new TextFilteringHeaderCell("Search net price...", this);
         orderFilter = new TextFilteringHeaderCell("Search order...", this);
@@ -282,10 +248,9 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 OrderElementVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 OrderElementVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -293,31 +258,29 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
             updateGridItems();
         });
 
+        HeaderRow filterRow = grid.appendHeaderRow();
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
-        HeaderRow filterRow = grid.appendHeaderRow();;
-        filterRow.getCell(grossPriceColumn).setComponent(createFilterField(grossPriceFilter, "Gross price"));
-        filterRow.getCell(netPriceColumn).setComponent(createFilterField(netPriceFilter, "Net price"));
-        filterRow.getCell(orderColumn).setComponent(createFilterField(orderFilter, "Order"));
-        filterRow.getCell(productColumn).setComponent(createFilterField(productFilter, "Product"));
-        filterRow.getCell(taxKeyColumn).setComponent(createFilterField(taxKeyFilter, "Tax key"));
-        filterRow.getCell(unitColumn).setComponent(createFilterField(unitFilter, "Unit"));
-        filterRow.getCell(unitNetPriceColumn).setComponent(createFilterField(unitNetPriceFilter, "Unit net price"));
-        filterRow.getCell(customerOrSupplierName).setComponent(createFilterField(customerOrSupplierNameFilter, "Customer/Supplier"));
-        filterRow.getCell(extraData).setComponent(createFilterField(extraDataFilter, ""));
+        filterRow.getCell(grossPriceColumn).setComponent(styleFilterField(grossPriceFilter, "Gross price"));
+        filterRow.getCell(netPriceColumn).setComponent(styleFilterField(netPriceFilter, "Net price"));
+        filterRow.getCell(orderColumn).setComponent(styleFilterField(orderFilter, "Order"));
+        filterRow.getCell(productColumn).setComponent(styleFilterField(productFilter, "Product"));
+        filterRow.getCell(taxKeyColumn).setComponent(styleFilterField(taxKeyFilter, "Tax key"));
+        filterRow.getCell(unitColumn).setComponent(styleFilterField(unitFilter, "Unit"));
+        filterRow.getCell(unitNetPriceColumn).setComponent(styleFilterField(unitNetPriceFilter, "Unit net price"));
+        filterRow.getCell(customerOrSupplierName).setComponent(styleFilterField(customerOrSupplierNameFilter, "Customer/Supplier"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
     public void updateGridItems() {
-        if(orderElementList == null){
+        if (orderElementList == null) {
             Notification.show("Getting order elements failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
-        }
-        else{
+        } else {
             orderElementVOS = orderElementList.stream().map(OrderElementVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
         }
     }
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -336,13 +299,12 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
         ComboBox<Product> products = new ComboBox<>("Product");
         ComboBox.ItemFilter<Product> productFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(productList == null){
+        if (productList == null) {
             products.setInvalid(true);
             products.setEnabled(false);
             products.setErrorMessage("EmsError happened while getting products");
             saveButton.setEnabled(false);
-        }
-        else {
+        } else {
             products.setItems(productFilter, productList);
             products.setItemLabelGenerator(Product::getName);
         }
@@ -352,13 +314,12 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
         ComboBox.ItemFilter<Customer> customerFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
 
-        if(customerList == null){
+        if (customerList == null) {
             customer.setInvalid(true);
             customer.setEnabled(false);
             customer.setErrorMessage("EmsError happened while getting customers");
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             customer.setItems(customerFilter, customerList);
             customer.setItemLabelGenerator(Customer::getName);
         }
@@ -367,13 +328,12 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
         ComboBox<Supplier> supplier = new ComboBox<>("Supplier");
         ComboBox.ItemFilter<Supplier> supplierFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(supplierList == null){
+        if (supplierList == null) {
             supplier.setInvalid(true);
             supplier.setEnabled(false);
             supplier.setErrorMessage("EmsError happened while getting suppliers");
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             supplier.setItems(supplierFilter, supplierList);
             supplier.setItemLabelGenerator(Supplier::getName);
         }
@@ -390,7 +350,6 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
         saveButton.addClickListener(event -> {
             OrderElement orderElement = Objects.requireNonNullElseGet(entity, OrderElement::new);
             orderElement.setProduct(products.getValue());
-            //orderElement.setOrder(orders.getValue());
             orderElement.setUnit(unitField.getValue().intValue());
             orderElement.setUnitNetPrice(products.getValue().getSellingPriceNet().intValue());
             orderElement.setTaxKey(products.getValue().getTaxKey());
@@ -403,21 +362,20 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
             orderElement.setName(products.getValue().getName());
             orderElement.setTaxPrice(orderElement.getGrossPrice().doubleValue() - orderElement.getNetPrice().doubleValue());
             EmsResponse response = null;
-            if(entity != null){
+            if (entity != null) {
                 response = orderElementApi.update(orderElement);
-            }
-            else{
+            } else {
                 response = orderElementApi.save(orderElement);
             }
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200: {
                     Notification.show("OrderElement " + (entity == null ? "saved: " : "updated: ") + orderElement)
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
                 }
 
-                default:{
-                    Notification.show("OrderElement " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                default: {
+                    Notification.show("OrderElement " + (entity == null ? "saving " : "modifying ") + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     break;
                 }
             }
@@ -437,7 +395,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
     private void setupSuppliers() {
         EmsResponse response = supplierApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 supplierList = (List<Supplier>) response.getResponseData();
                 break;
@@ -452,7 +410,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
     private void setupCustomers() {
         EmsResponse response = customerApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 customerList = (List<Customer>) response.getResponseData();
                 break;
@@ -465,7 +423,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
     private void setupProducts() {
         EmsResponse response = productApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 productList = (List<Product>) response.getResponseData();
                 break;
@@ -477,7 +435,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
     }
 
     @NeedCleanCoding
-public class OrderElementVO extends BaseVO {
+    public class OrderElementVO extends BaseVO {
         private OrderElement original;
         private String product;
         private String order;
@@ -501,14 +459,12 @@ public class OrderElementVO extends BaseVO {
             this.customerOrSupplierName = generateCustomerOrSupplierName(orderElement);
         }
 
-        private String generateCustomerOrSupplierName(OrderElement orderElement){
-            if(orderElement.getCustomer() != null && orderElement.getSupplier() != null){
+        private String generateCustomerOrSupplierName(OrderElement orderElement) {
+            if (orderElement.getCustomer() != null && orderElement.getSupplier() != null) {
                 return "(S) " + orderElement.getSupplier().getName() + ", (C) " + orderElement.getCustomer().getName();
-            }
-            else if(orderElement.getCustomer() == null){
+            } else if (orderElement.getCustomer() == null) {
                 return "(S) " + orderElement.getSupplier().getName();
-            }
-            else{
+            } else {
                 return "(C) " + orderElement.getCustomer().getName();
             }
         }

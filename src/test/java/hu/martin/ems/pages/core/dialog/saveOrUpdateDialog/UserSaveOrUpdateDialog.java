@@ -13,17 +13,21 @@ public class UserSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     private static final String passwordAgainXpath = "/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-password-field[2]";
     private static final String roleXpath = "/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-combo-box";
 
-    @Getter private VaadinTextInputComponent usernameComponent;
-    @Getter private VaadinPasswordInputComponent passwordComponent;
-    @Getter private VaadinPasswordInputComponent passwordAgainComponent;
-    @Getter private VaadinDropdownComponent roleComponent;
+    @Getter
+    private VaadinTextInputComponent usernameComponent;
+    @Getter
+    private VaadinPasswordInputComponent passwordComponent;
+    @Getter
+    private VaadinPasswordInputComponent passwordAgainComponent;
+    @Getter
+    private VaadinDropdownComponent roleComponent;
 
     public UserSaveOrUpdateDialog(WebDriver driver) {
         super(driver);
     }
 
     @Override
-    public void initWebElements(){
+    public void initWebElements() {
         super.initWebElements();
 
         usernameComponent = new VaadinTextInputComponent(getDriver(), By.xpath(usernameXpath));
@@ -34,7 +38,7 @@ public class UserSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     }
 
     @Override
-    public void setAllComponents(){
+    public void setAllComponents() {
         this.allComponent.add(usernameComponent);
         this.allComponent.add(passwordComponent);
         this.allComponent.add(passwordAgainComponent);

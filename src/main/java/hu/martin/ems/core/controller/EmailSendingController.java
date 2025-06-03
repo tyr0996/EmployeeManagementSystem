@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EmailSendingController {
     private EmailSendingService service;
 
-    public EmailSendingController(EmailSendingService service){
+    public EmailSendingController(EmailSendingService service) {
         this.service = service;
     }
 

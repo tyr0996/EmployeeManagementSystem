@@ -63,9 +63,6 @@ public class JPAConfig {
 
     @Value("${spring.datasource.hikari.max-lifetime}")
     private Integer hibernateMaxLifetime;
-//
-//    @Value("${spring.jpa.hibernate.ddl-auto}")
-//    private String dllAuto;
 
     @Value("${spring.jpa.properties.hibernate.format_sql}")
     private String formatSql;
@@ -81,19 +78,12 @@ public class JPAConfig {
 
     private static EntityManager entityManager;
 
-    public static void resetCallIndex(){
+    public static void resetCallIndex() {
         callIndex = 0;
     }
 
     @Bean
     public DataSource dataSource() {
-//        return DataSourceBuilder.create()
-//                .url(jdbcUrl)
-//                .username(jdbcUsername)
-//                .password(jdbcPassword)
-//                .driverClassName(driverClassName)
-//                .build();
-
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(jdbcUrl);
         hikariConfig.setUsername(jdbcUsername);
@@ -109,7 +99,6 @@ public class JPAConfig {
         return new HikariDataSource(hikariConfig) {
             @Override
             public Connection getConnection() throws SQLException {
-//                logger.info("{}: Get connection called", callIndex);
                 callIndex++;
                 return super.getConnection();
             }
@@ -131,11 +120,8 @@ public class JPAConfig {
 
         Properties jpaProperties = new Properties();
         jpaProperties.setProperty("hibernate.dialect", hibernateDialect);
-//        jpaProperties.setProperty("hibernate.hbm2ddl.auto", dllAuto);
         jpaProperties.setProperty("hibernate.show_sql", hibernateShowSql);
         jpaProperties.setProperty("hibernate.format_sql", formatSql);
-//        jpaProperties.setProperty("hibernate.use_sql_comments", useSqlComments);
-//        jpaProperties.setProperty("spring.jpa.properties.hibernate.format_sql", formatSql);
         jpaProperties.setProperty("spring.jpa.properties.hibernate.use_sql_comments", useSqlComments);
         em.setJpaProperties(jpaProperties);
 

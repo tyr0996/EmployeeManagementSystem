@@ -10,8 +10,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinServletRequest;
@@ -29,7 +27,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,10 +37,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Route(value = "login")
 @AnonymousAllowed
 @NeedCleanCoding
-public class LoginView extends VerticalLayout implements BeforeEnterObserver {
+public class LoginView extends VerticalLayout {
 
     private LoginI18n login = LoginI18n.createDefault();
-//    private LoginForm login = new LoginForm();
 
     private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
@@ -54,17 +50,10 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Value("${rememberme.key}")
-    private String key;
-
     Logger logger = LoggerFactory.getLogger(User.class);
 
 
     public LoginView() {
-//        addAttachListener(event -> {
-//            VaadinSession.getCurrent().setAttribute("csrfToken", getCsrfTokenFromCookie());
-//        });
-
         NO_ROLE_USER.setTitle("Permission error");
         NO_ROLE_USER.setMessage("You have no permission to log in. Contact the administrator about your roles, and try again.");
         BAD_CREDIDENTALS.setTitle("Incorrect username or password");
@@ -75,7 +64,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
         register.addClickListener(event -> {
             EmsResponse response = roleApi.findById(-1L);
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200: {
                     Dialog registerDialog = getRegistrationDialog((Role) response.getResponseData());
                     registerDialog.open();
@@ -111,13 +100,12 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
             String userName = e.getUsername();
             String password = e.getPassword();
             User user = getByUserName(userName);
-            if(user != null && user.getRoleRole().getName().equals("NO_ROLE")){
+            if (user != null && user.getRoleRole().getName().equals("NO_ROLE")) {
                 login.setErrorMessage(NO_ROLE_USER);
                 loginOverlay.setI18n(login);
                 loginOverlay.setError(true);
                 loginOverlay.setEnabled(true);
-            }
-            else if(user != null){
+            } else if (user != null) {
                 try {
                     UsernamePasswordAuthenticationToken authRequest =
                             new UsernamePasswordAuthenticationToken(userName, password);
@@ -129,19 +117,16 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     HttpServletRequest request = vaadinRequest.getHttpServletRequest();
                     request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 
-//                    HttpServletResponse response = VaadinServletResponse.getCurrent().getHttpServletResponse();
                     CustomUserDetailsService.getLoggedInUsername();
                     loginOverlay.close();
                     getUI().ifPresent(ui -> ui.navigate("/"));
-                }
-                catch (AuthenticationException ex) {
+                } catch (AuthenticationException ex) {
                     login.setErrorMessage(BAD_CREDIDENTALS);
                     loginOverlay.setI18n(login);
                     loginOverlay.setError(true);
                     loginOverlay.setEnabled(true);
                 }
-            }
-            else{
+            } else {
                 login.setErrorMessage(BAD_CREDIDENTALS);
                 loginOverlay.setI18n(login);
                 loginOverlay.setError(true);
@@ -154,9 +139,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         });
     }
 
-    private User getByUserName(String username){
+    private User getByUserName(String username) {
         EmsResponse emsResponse = userApi.findByUsername(username);
-        switch (emsResponse.getCode()){
+        switch (emsResponse.getCode()) {
             case 200:
                 return (User) emsResponse.getResponseData();
             default:
@@ -171,11 +156,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         EmsDialog d = new EmsDialog("Registration");
         d.addCloseButton();
 
-//        Button closeButton = new Button(new Icon("lumo", "cross"),
-//                (e) -> d.close());
-//        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-//        d.getHeader().add(closeButton);
-
         FormLayout form = new FormLayout();
         TextField userName = new TextField("Username");
         PasswordField password = new PasswordField("Password");
@@ -187,14 +167,12 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
         register.addClickListener(event -> {
             User allreadyUser = getByUserName(userName.getValue());
-            if(allreadyUser != null){
+            if (allreadyUser != null) {
                 Notification.show("Username already exists!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-            else{
-                if(!password.getValue().equals(passwordAgain.getValue())){
+            } else {
+                if (!password.getValue().equals(passwordAgain.getValue())) {
                     Notification.show("The passwords doesn't match!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
-                else{
+                } else {
                     BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
                     User newUser = new User();
                     newUser.setPasswordHash(encoder.encode(password.getValue()));
@@ -211,7 +189,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         return d;
     }
 
-    private Dialog getForgotPasswordDialog(){
+    private Dialog getForgotPasswordDialog() {
         Dialog d = new Dialog("Forgot password");
         FormLayout form = new FormLayout();
         TextField userName = new TextField("Username");
@@ -235,39 +213,21 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         form.add(pw1, pw2, submit);
         d.add(form);
         submit.addClickListener(event -> {
-            if(pw1.getValue().equals(pw2.getValue())){
+            if (pw1.getValue().equals(pw2.getValue())) {
                 User user = getByUserName(userName);
-                if(user == null){
+                if (user == null) {
                     Notification.show("User not found!").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
-                else{
+                } else {
                     user.setPasswordHash(encoder.encode(pw1.getValue()));
                     userApi.update(user);
                     Notification.show("Password changed successfully!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     d.close();
                     parent.close();
                 }
-            }
-            else{
+            } else {
                 Notification.show("The passwords doesn't match!").addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         });
         return d;
     }
-
-    @Override
-    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {}
-
-//
-//    private String getCsrfTokenFromCookie() {
-//        VaadinServletRequest vaadinRequest = (VaadinServletRequest) VaadinRequest.getCurrent();
-//        Cookie[] cookies = vaadinRequest.getHttpServletRequest().getCookies();
-//
-//        for (Cookie cookie : cookies) {
-//            if ("XSRF-TOKEN".equals(cookie.getName())) {
-//                return cookie.getValue();
-//            }
-//        }
-//        return null;
-//    }
 }

@@ -19,7 +19,6 @@ import java.time.Instant;
 @Controller
 @RequestMapping("/api/adminTools")
 @PermitAll
-//@AnonymousAllowed
 @Slf4j
 public class AdminToolsController {
     private AdminToolsService adminToolsService;
@@ -28,14 +27,14 @@ public class AdminToolsController {
 
     @Autowired
     public AdminToolsController(AdminToolsService adminToolsService,
-                                Gson gson){
+                                Gson gson) {
         this.adminToolsService = adminToolsService;
         this.gson = gson;
     }
 
     @DeleteMapping(path = "/clearDatabase", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> clearDatabase() {
-        try{
+        try {
             adminToolsService.clearAllDatabaseTable(true);
             return new ResponseEntity<>(EmsResponse.Description.CLEAR_DATABASE_SUCCESS, HttpStatus.OK);
         } catch (ClassNotFoundException e) {

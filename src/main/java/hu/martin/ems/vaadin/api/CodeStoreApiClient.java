@@ -15,33 +15,31 @@ public class CodeStoreApiClient extends EmsApiClient<CodeStore> {
         super(CodeStore.class);
     }
 
-    public EmsResponse getChildren(Long parentCodeStoreId){
+    public EmsResponse getChildren(Long parentCodeStoreId) {
         WebClient webClient = webClientProvider.initWebClient(entityName);
-        try{
+        try {
             String jsonResponse = webClient.get()
                     .uri("getChildren?parentCodeStoreId=" + parentCodeStoreId)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
             return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-        }
-        catch (WebClientResponseException ex){
+        } catch (WebClientResponseException ex) {
             logger.error("WebClient error - getChildren - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
-    public EmsResponse getAllByName(String name){
+    public EmsResponse getAllByName(String name) {
         WebClient webClient = webClientProvider.initWebClient(entityName);
-        try{
+        try {
             String jsonResponse = webClient.get()
                     .uri("getByName?name=" + name)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
             return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-        }
-        catch(WebClientResponseException ex) {
+        } catch (WebClientResponseException ex) {
             logger.error("WebClient error getAllByName - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }

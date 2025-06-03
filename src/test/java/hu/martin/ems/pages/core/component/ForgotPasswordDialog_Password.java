@@ -9,9 +9,12 @@ public class ForgotPasswordDialog_Password extends VaadinDialogComponent {
     private static final String passwordAgainFieldXpath = dialogXpath + "[2]/vaadin-form-layout/vaadin-password-field[2]";
     private static final String submitButtonXpath = dialogXpath + "[2]/vaadin-form-layout/vaadin-button";
 
-    @Getter private VaadinPasswordInputComponent passwordField;
-    @Getter private VaadinPasswordInputComponent passwordAgainField;
-    @Getter private VaadinButtonComponent submitButton;
+    @Getter
+    private VaadinPasswordInputComponent passwordField;
+    @Getter
+    private VaadinPasswordInputComponent passwordAgainField;
+    @Getter
+    private VaadinButtonComponent submitButton;
 
 
     public ForgotPasswordDialog_Password(WebDriver driver) {
@@ -21,7 +24,7 @@ public class ForgotPasswordDialog_Password extends VaadinDialogComponent {
     }
 
     @Override
-    public void initWebElements(){
+    public void initWebElements() {
         passwordField = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordFieldXpath));
         passwordAgainField = new VaadinPasswordInputComponent(getDriver(), By.xpath(passwordAgainFieldXpath));
         submitButton = new VaadinButtonComponent(getDriver(), By.xpath(submitButtonXpath));

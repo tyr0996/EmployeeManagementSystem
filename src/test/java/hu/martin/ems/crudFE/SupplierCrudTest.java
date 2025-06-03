@@ -23,33 +23,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class SupplierCrudTest extends BaseCrudTest {
-//    private static CrudTestingUtil crudTestingUtil;
-//    private static WebDriverWait notificationDisappearWait;
-//
-//    private static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
-//    private static final String gridXpath = contentXpath + "/vaadin-grid";
-//    private static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
-//    
-//    private static final String mainMenu = UIXpaths.ADMIN_MENU;
-//    private static final String subMenu = UIXpaths.SUPPLIER_SUBMENU;
-//
-//    private GridTestingUtil gridTestingUtil;
-//
-//    
-//
-//    @BeforeClass
-//    public void setup() {
-//        gridTestingUtil = new GridTestingUtil(driver);
-//        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "Supplier", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-//        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
-//    }
-
     @Test
-    public void closeCreateDialogTest(){
+    public void closeCreateDialogTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
@@ -148,7 +125,6 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
-    //@Sql(scripts = {"file:src/test/java/hu/martin/ems/sql/addresses.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     public void supplierRestoreTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -199,19 +175,9 @@ public class SupplierCrudTest extends BaseCrudTest {
         notificationComponent.close();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
-//
-//    //@Test
-//    public void extraFilterInvalidValue() {
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//         gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        NotificationCheck nc = new NotificationCheck();
-//        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-//        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
-//    }
+
     @Test
-    
     public void databaseNotAvailableWhenModify() throws SQLException {
-//        Mockito.doReturn(null).when(spySupplierService).update(any(Supplier.class));
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
@@ -227,9 +193,8 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
-    
+
     public void nullResponseFromServiceWhenCreate() throws SQLException {
-//        Mockito.doReturn(null).when(spySupplierService).save(any(Supplier.class));
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
@@ -273,7 +238,7 @@ public class SupplierCrudTest extends BaseCrudTest {
     }
 
     @Test
-    
+
     public void unexpectedResponseCodeWhenGettingAddresses() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);

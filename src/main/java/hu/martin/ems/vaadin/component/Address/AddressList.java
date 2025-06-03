@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.Address;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -12,13 +11,11 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
@@ -52,7 +49,6 @@ import java.util.stream.Stream;
 @Route(value = "address/list", layout = MainView.class)
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
-//@PreAuthorize("hasRole('AddressesMenuOpenPermission')")
 @RolesAllowed("ROLE_AddressesMenuOpenPermission")
 @NeedCleanCoding
 public class AddressList extends EmsFilterableGridComponent implements Creatable<Address> {
@@ -83,12 +79,6 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
     private TextFilteringHeaderCell streetNameFilter;
     private TextFilteringHeaderCell streetTypeFilter;
 
-//    private static String cityFilterText = "";
-//    private static String countryCodeFilterText = "";
-//    private static String houseNumberFilterText = "";
-//    private static String streetNameFilterText = "";
-//    private static String streetTypeFilterText = "";
-
     private Button createOrModifySaveButton = new Button("Save");
 
     private Logger logger = LoggerFactory.getLogger(Address.class);
@@ -97,7 +87,6 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
     List<CodeStore> countryList;
 
     private Button saveButton;
-//    private MainView mainView;
 
     @Autowired
     public AddressList(PaginationSetting paginationSetting) {
@@ -147,7 +136,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.addressApi.delete(address.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("Address deleted: " + address.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -164,8 +153,8 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
 
             permanentDeleteButton.addClickListener(event -> {
                 EmsResponse response = this.addressApi.permanentlyDelete(address.original.getId());
-                switch (response.getCode()){
-                    case 200:{
+                switch (response.getCode()) {
+                    case 200: {
                         Notification.show("Address permanently deleted: " + address.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                         updateGridItems();
@@ -215,7 +204,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
 
     private void setupAddresses() {
         EmsResponse emsResponse = addressApi.findAll();
-        switch (emsResponse.getCode()){
+        switch (emsResponse.getCode()) {
             case 200:
                 addresses = (List<Address>) emsResponse.getResponseData();
                 break;
@@ -230,29 +219,22 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
 
     private Stream<AddressVO> getFilteredStream() {
         return addressVOS.stream().filter(addressVO ->
-                (cityFilter.isEmpty() || addressVO.city.toLowerCase().contains(cityFilter.getFilterText().toLowerCase())) &&
-                        (countryCodeFilter.isEmpty() || addressVO.countryCode.toLowerCase().contains(countryCodeFilter.getFilterText().toLowerCase())) &&
-                        (houseNumberFilter.isEmpty() || addressVO.houseNumber.toLowerCase().contains(houseNumberFilter.getFilterText().toLowerCase())) &&
-                        (streetTypeFilter.isEmpty() || addressVO.streetType.toLowerCase().contains(streetTypeFilter.getFilterText().toLowerCase())) &&
-                        (streetNameFilter.isEmpty() || addressVO.streetName.toLowerCase().contains(streetNameFilter.getFilterText().toLowerCase())) &&
-                        addressVO.filterExtraData()
+                filterField(cityFilter, addressVO.city) &&
+                filterField(countryCodeFilter, addressVO.countryCode) &&
+                filterField(houseNumberFilter, addressVO.houseNumber) &&
+                filterField(streetTypeFilter, addressVO.streetType) &&
+                filterField(streetNameFilter, addressVO.streetName) &&
+                addressVO.filterExtraData()
+//                (cityFilter.isEmpty() || addressVO.city.toLowerCase().contains(cityFilter.getFilterText().toLowerCase())) &&
+//                (countryCodeFilter.isEmpty() || addressVO.countryCode.toLowerCase().contains(countryCodeFilter.getFilterText().toLowerCase())) &&
+//                (houseNumberFilter.isEmpty() || addressVO.houseNumber.toLowerCase().contains(houseNumberFilter.getFilterText().toLowerCase())) &&
+//                (streetTypeFilter.isEmpty() || addressVO.streetType.toLowerCase().contains(streetTypeFilter.getFilterText().toLowerCase())) &&
+//                (streetNameFilter.isEmpty() || addressVO.streetName.toLowerCase().contains(streetNameFilter.getFilterText().toLowerCase())) &&
+//                 addressVO.filterExtraData()
         );
     }
-
-    private Component filterField(TextField filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
-
-    private void setFilteringHeaderRow(){
+    
+    private void setFilteringHeaderRow() {
         cityFilter = new TextFilteringHeaderCell("Search city...", this);
         countryCodeFilter = new TextFilteringHeaderCell("Search country code...", this);
         streetNameFilter = new TextFilteringHeaderCell("Search street name...", this);
@@ -261,10 +243,9 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 AddressVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 AddressVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -273,19 +254,19 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         });
 
         HeaderRow filterRow = grid.appendHeaderRow();
-        filterRow.getCell(cityColumn).setComponent(filterField(cityFilter, "City"));
-        filterRow.getCell(countryCodeColumn).setComponent(filterField(countryCodeFilter, "Country code"));
-        filterRow.getCell(houseNumberColumn).setComponent(filterField(houseNumberFilter, "House number"));
-        filterRow.getCell(streetNameColumn).setComponent(filterField(streetNameFilter, "Street name"));
-        filterRow.getCell(streetTypeColumn).setComponent(filterField(streetTypeFilter, "Street type"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
+        filterRow.getCell(cityColumn).setComponent(styleFilterField(cityFilter, "City"));
+        filterRow.getCell(countryCodeColumn).setComponent(styleFilterField(countryCodeFilter, "Country code"));
+        filterRow.getCell(houseNumberColumn).setComponent(styleFilterField(houseNumberFilter, "House number"));
+        filterRow.getCell(streetNameColumn).setComponent(styleFilterField(streetNameFilter, "Street name"));
+        filterRow.getCell(streetTypeColumn).setComponent(styleFilterField(streetTypeFilter, "Street type"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
 
     public void updateGridItems() {
         EmsResponse response = addressApi.findAllWithDeleted();
         List<Address> addresses;
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 addresses = (List<Address>) response.getResponseData();
                 break;
@@ -299,7 +280,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         this.grid.setItems(data);
     }
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -337,19 +318,18 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
             address.setDeleted(0L);
             address.setHouseNumber(houseNumberField.getValue());
             EmsResponse response = null;
-            if(entity != null){
+            if (entity != null) {
                 response = addressApi.update(entity);
-            }
-            else{
+            } else {
                 response = addressApi.save(address);
             }
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200:
                     Notification.show("Address " + (entity == null ? "saved: " : "updated: ") + address.getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
                 default: {
-                    Notification.show("Address " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    Notification.show("Address " + (entity == null ? "saving " : "modifying ") + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
                     break;
@@ -374,13 +354,12 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         ComboBox<CodeStore> streetTypes = new ComboBox<>("Street type");
         ComboBox.ItemFilter<CodeStore> streetTypeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(streetTypeList == null){
+        if (streetTypeList == null) {
             streetTypes.setInvalid(true);
             streetTypes.setErrorMessage("EmsError happened while getting street types");
             streetTypes.setEnabled(false);
             saveButton.setEnabled(false);
-        }
-        else {
+        } else {
             streetTypes.setInvalid(false);
             streetTypes.setEnabled(true);
             streetTypes.setItems(streetTypeFilter, streetTypeList);
@@ -395,13 +374,12 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         ComboBox<City> cities = new ComboBox<>("City");
         ComboBox.ItemFilter<City> cityFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(cityList == null){
+        if (cityList == null) {
             cities.setInvalid(true);
             cities.setErrorMessage("EmsError happened while getting cities");
             cities.setEnabled(false);
             saveButton.setEnabled(false);
-        }
-        else {
+        } else {
             cities.setInvalid(false);
             cities.setEnabled(true);
             cities.setItems(cityFilter, cityList);
@@ -410,18 +388,17 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         return cities;
     }
 
-    private ComboBox<CodeStore> createCountryCodesComboBox(){
+    private ComboBox<CodeStore> createCountryCodesComboBox() {
         setupCountries();
         ComboBox<CodeStore> countryCodes = new ComboBox<>("Country code");
         ComboBox.ItemFilter<CodeStore> countryCodeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(countryList == null){
+        if (countryList == null) {
             countryCodes.setInvalid(true);
             countryCodes.setErrorMessage("EmsError happened while getting countries");
             countryCodes.setEnabled(false);
             saveButton.setEnabled(false);
-        }
-        else {
+        } else {
             countryCodes.setInvalid(false);
             countryCodes.setEnabled(true);
             countryCodes.setItems(countryCodeFilter, countryList);
@@ -432,7 +409,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
 
     private void setupCities() {
         EmsResponse response = cityApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 cityList = (List<City>) response.getResponseData();
                 break;
@@ -445,7 +422,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
 
     private void setupCountries() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.COUNTRIES_CODESTORE_ID);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 countryList = (List<CodeStore>) response.getResponseData();
                 break;
@@ -458,7 +435,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
 
     private void setupStreetTypes() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.STREET_TYPES_CODESTORE_ID);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 streetTypeList = (List<CodeStore>) response.getResponseData();
                 break;
@@ -470,7 +447,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
     }
 
     @NeedCleanCoding
-public class AddressVO extends BaseVO {
+    public class AddressVO extends BaseVO {
         private Address original;
         private String countryCode;
         private String city;

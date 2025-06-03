@@ -38,9 +38,8 @@ public class AdminToolsService {
     }
 
     private void clearDatabaseTables(List<BeanDefinition> services, boolean onlyPermanentlyDelete) throws ClassNotFoundException {
-        for(int i = 0; i < services.size(); i++){
+        for (int i = 0; i < services.size(); i++) {
             BaseService service = (BaseService) BeanProvider.getBean(Class.forName(services.get(i).getBeanClassName()));
-//            System.out.println("Kiskutya");
             service.clearDatabaseTable(onlyPermanentlyDelete);
         }
     }

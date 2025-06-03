@@ -10,8 +10,6 @@ import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
-
 @Entity
 @Getter
 @Setter
@@ -25,15 +23,4 @@ public class Currency extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     @Expose
     private String rateJson;
-
-//    @Expose
-//    private LocalDate validDate;
-
-//    @Transient
-//    @Expose
-//    private String name;
-
-//    public String getName() {
-//        return baseCurrency.getName() + " (" + validDate + ")";
-//    }
 }

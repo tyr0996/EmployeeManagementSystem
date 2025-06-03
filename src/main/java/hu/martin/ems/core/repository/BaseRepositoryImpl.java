@@ -4,7 +4,10 @@ import com.google.gson.Gson;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.JsonConfig;
 import hu.martin.ems.core.model.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -46,14 +49,12 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         String jpql = "SELECT e FROM " + type.getSimpleName() + " e";
         if (!includeDeleted) {
             jpql += " WHERE e.deleted = 0";
-        }
-        else{
+        } else {
             jpql += " WHERE e.deleted = 1 OR e.deleted = 0";
         }
         List<T> result = entityManager.createQuery(jpql, type).getResultList();
         return result;
     }
-
 
 
     @Transactional
@@ -104,7 +105,7 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
         EntityTransaction transaction = tempEm.getTransaction();
-        try{
+        try {
             transaction.begin();
             T merged = tempEm.merge(entity);
             tempEm.persist(merged);
@@ -112,14 +113,9 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
             logger.info("Entity " + entity.getClass().getSimpleName() + " saved successfully: " + gson.toJson(entity));
             return merged;
         } catch (Exception e) {
-//            if (transaction.isActive()) {
-//                transaction.rollback();
-//            }
             throw e;
         } finally {
-//            if (tempEm.isOpen()) {
-                tempEm.close();
-//            }
+            tempEm.close();
         }
 
     }
@@ -131,10 +127,9 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
         EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
         EntityTransaction transaction = tempEm.getTransaction();
-        try{
+        try {
             T managedEntity = tempEm.find(type, entity.getId());
             transaction.begin();
-//            tempEm.merge(managedEntity);
 
             copyEntity(managedEntity, entity, type);
 
@@ -151,8 +146,6 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     }
 
 
-
-
     private <T> T copyEntity(T managedEntity, T newEntity, Class<T> entityType) throws IllegalAccessException {
         for (Field field : entityType.getDeclaredFields()) {
             field.setAccessible(true);
@@ -164,11 +157,12 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
 
     @Transactional
     @Override
-    public T customFindById(Long entityId){
+    public T customFindById(Long entityId) {
         EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
         String jpql = "SELECT e FROM " + type.getSimpleName() + " e WHERE e.id = " + entityId;
-        T result = tempEm.createQuery(jpql, type).getSingleResult();;
+        T result = tempEm.createQuery(jpql, type).getSingleResult();
+
         tempEm.close();
         return result;
     }
@@ -195,22 +189,16 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID extends Serializable> e
     private int deleteEntity(EntityManager tempEm, T entity) {
         int affected = 0;
         EntityTransaction transaction = tempEm.getTransaction();
-        try{
+        try {
             transaction.begin();
             T en = tempEm.find(type, entity.getId());
             tempEm.remove(en);
             transaction.commit();
             affected = 1;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             logger.info("Entity with ID " + entity.getId() + " is not deletable due to it has reference(s) in other table(s)");
         }
-//        finally{
-////            if(tempEm.isOpen()){
-////                tempEm.clear();
-//                tempEm.close();
-////            }
-//        }
+
         return affected;
     }
 }

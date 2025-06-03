@@ -18,7 +18,7 @@ public class AddressPage extends SimpleVaadinGridPage<AddressPage> implements IS
     }
 
     @Override
-    public AddressPage initWebElements(){
+    public AddressPage initWebElements() {
 
         this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
         this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));

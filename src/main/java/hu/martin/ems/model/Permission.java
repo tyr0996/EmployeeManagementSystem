@@ -30,7 +30,7 @@ public class Permission extends BaseEntity {
     private Set<Role> roles;
 
     @PostLoad
-    public void initAfterLoad(){
+    public void initAfterLoad() {
         roles.forEach(v -> v.setPermissions(null));
     }
 

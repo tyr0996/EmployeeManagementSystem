@@ -18,7 +18,7 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     @Autowired
     protected Gson gson;
 
-    public BaseController(S service){
+    public BaseController(S service) {
         this.service = service;
     }
 
@@ -28,7 +28,7 @@ public abstract class BaseController<T extends BaseEntity, S extends BaseService
     }
 
     @GetMapping(path = "/findById", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> findById(@RequestParam(required = true) Long id){
+    public ResponseEntity<String> findById(@RequestParam(required = true) Long id) {
         return new ResponseEntity<>(gson.toJson(service.findById(id)), HttpStatus.OK);
     }
 

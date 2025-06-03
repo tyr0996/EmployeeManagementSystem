@@ -4,7 +4,9 @@ import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Objects;
 import java.util.Set;
@@ -22,18 +24,14 @@ public class Role extends BaseEntity {
 
     @ManyToMany
     @JoinTable(name = "roles_permissions",
-            joinColumns = { @JoinColumn(name = "role_id") },
-            inverseJoinColumns = { @JoinColumn(name = "permission_id") }
+            joinColumns = {@JoinColumn(name = "role_id")},
+            inverseJoinColumns = {@JoinColumn(name = "permission_id")}
     )
     @Expose
     private Set<Permission> permissions;
 
-//    @Transient
-//    @Expose
-//    private List<Long> permissionIds;
-
     @PostLoad
-    public void initAfterLoad(){
+    public void initAfterLoad() {
         permissions.forEach(v -> v.setRoles(null));
     }
 
@@ -44,7 +42,7 @@ public class Role extends BaseEntity {
 
     @Override
     public boolean equals(Object o) {
-        if(o != null){
+        if (o != null) {
             return hashCode() == o.hashCode();
         }
         return false;

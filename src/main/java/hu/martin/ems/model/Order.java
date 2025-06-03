@@ -47,7 +47,6 @@ public class Order extends BaseEntity {
 
     @OneToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.EAGER)
     @Expose
-//    @JoinColumn(name = "order_order_id")
     private List<OrderElement> orderElements;
 
     @Transient

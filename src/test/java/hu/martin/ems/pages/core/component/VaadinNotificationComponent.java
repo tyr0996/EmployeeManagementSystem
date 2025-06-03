@@ -1,6 +1,9 @@
 package hu.martin.ems.pages.core.component;
 
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -12,7 +15,8 @@ public class VaadinNotificationComponent extends VaadinBaseComponent {
     public VaadinNotificationComponent(WebDriver driver) {
         super(driver, By.xpath(notificationXpath));
     }
-    public VaadinNotificationComponent(WebDriver driver, Duration duration){
+
+    public VaadinNotificationComponent(WebDriver driver, Duration duration) {
         super(driver);
         this.provider = By.xpath(notificationXpath);
         this.scope = driver.findElement(By.xpath("/html")); //TODO: lehet, hogy ide kell a /body a html után.
@@ -20,37 +24,35 @@ public class VaadinNotificationComponent extends VaadinBaseComponent {
         this.element = wait.until(ExpectedConditions.visibilityOfElementLocated(provider));
     }
 
-    public String getText(){
+    public String getText() {
         return element.getText();
     }
 
-    public void close(){
+    public void close() {
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
         js.executeScript("arguments[0].remove();", this.element);
     }
 
-    public static String hasNotification(WebDriver driver){
-        try{
+    public static String hasNotification(WebDriver driver) {
+        try {
             VaadinNotificationComponent notification = new VaadinNotificationComponent(driver, Duration.ofMillis(1000));
             return notification.getText();
-        }
-        catch(TimeoutException ex){
+        } catch (TimeoutException ex) {
             return null;
         }
     }
 
-    public static void closeAll(WebDriver driver){
+    public static void closeAll(WebDriver driver) {
         closeAll(driver, new WebDriverWait(driver, Duration.ofMillis(100), Duration.ofMillis(10)));
     }
 
-    public static void closeAll(WebDriver driver, WebDriverWait waitForClose){
-        try{
+    public static void closeAll(WebDriver driver, WebDriverWait waitForClose) {
+        try {
             VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
             notification.close();
             waitForClose.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(notificationXpath)));
             closeAll(driver);
-        }
-        catch (TimeoutException ex){
+        } catch (TimeoutException ex) {
             System.out.println("nem találtam új notification-t");
         }
     }

@@ -16,11 +16,13 @@ public class DoTestData {
     private Integer originalDeletedRowNumber;
     @Nullable
     private Integer originalNonDeletedOnlyDeletable;
-    @Nullable private Integer originalDeletedOnlyDeletable;
+    @Nullable
+    private Integer originalDeletedOnlyDeletable;
     private String notificationWhenPerform;
     private Integer nonDeletedRowNumberAfterMethod;
     private Integer deletedRowNumberAfterMethod;
-    @Nullable private Integer nonDeletedRowNumberOnlyDeletableAfterMethod;
+    @Nullable
+    private Integer nonDeletedRowNumberOnlyDeletableAfterMethod;
     private Integer deletedRowNumberOnlyDeletableAfterMethod;
 
     public DoTestData(Integer originalNonDeletedRowNumber, Integer originalDeletedRowNumber, @Nullable Integer originalNonDeletedOnlyDeletable, @Nullable Integer originalDeletedOnlyDeletable, String notificationWhenPerform, Integer nonDeletedRowNumberAfterMethod, Integer deletedRowNumberAfterMethod, @Nullable Integer nonDeletedRowNumberOnlyDeletableAfterMethod, Integer deletedRowNumberOnlyDeletableAfterMethod) {

@@ -13,13 +13,13 @@ public class CodeStorePage extends SimpleVaadinGridPage<CodeStorePage> implement
 
     private static final String showOnlyDeletableXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-checkbox";
 
-    public CodeStorePage(WebDriver driver, int port){
+    public CodeStorePage(WebDriver driver, int port) {
         super(driver, port, "CodeStore", showOnlyDeletableXpath);
         initWebElements();
     }
 
     @Override
-    public CodeStorePage initWebElements(){
+    public CodeStorePage initWebElements() {
         this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
         this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));
         this.grid = new VaadinGridComponent(getDriver(), By.xpath(gridXpath));

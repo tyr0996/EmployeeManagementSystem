@@ -19,15 +19,14 @@ public class UserApiClient extends EmsApiClient<User> {
     @AnonymousAllowed
     public EmsResponse findByUsername(String userName) {
         WebClient webClient = webClientProvider.initWebClient(entityName);
-        try{
+        try {
             String jsonResponse = webClient.get()
                     .uri("getByUsername?username=" + userName)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
             return new EmsResponse(200, convertResponseToEntity(jsonResponse), "");
-        }
-        catch (WebClientResponseException ex){
+        } catch (WebClientResponseException ex) {
             logger.error("WebClient error - findByUserName - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAsString(), "");
         }

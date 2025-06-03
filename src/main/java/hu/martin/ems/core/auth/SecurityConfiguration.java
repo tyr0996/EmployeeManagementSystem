@@ -5,8 +5,8 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.service.UserService;
 import hu.martin.ems.vaadin.component.Login.LoginView;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,13 +35,8 @@ import java.util.Arrays;
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true, jsr250Enabled = true, securedEnabled = true)
 @NeedCleanCoding
+@NoArgsConstructor
 public class SecurityConfiguration extends VaadinWebSecurity {
-    private final SecurityService securityService;
-
-
-    public SecurityConfiguration(SecurityService securityService){
-        this.securityService = securityService;
-    }
 
     @Autowired
     public CustomUserDetailsService userDetailsService;
@@ -49,13 +44,9 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     @Autowired
     public UserService userService;
 
-    @Value("${rememberme.key}")
-    private String key;
-
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-//        configure(http);
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> {
                     cors.configurationSource(corsConfigurationSource());
@@ -69,11 +60,6 @@ public class SecurityConfiguration extends VaadinWebSecurity {
                     csrf.ignoringRequestMatchers(HttpServletRequest::isRequestedSessionIdFromCookie);
                     csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
                 })
-
-//                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-//                .csrf(csrf -> csrf.disable())
-//                .csrf(csrf -> csrf.ignoringRequestMatchers("/vaadinServlet/**")
-//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers(new AntPathRequestMatcher("/public/**")).permitAll()
                         .requestMatchers("/csrf").permitAll()
@@ -99,17 +85,6 @@ public class SecurityConfiguration extends VaadinWebSecurity {
         return http.build();
     }
 
-//    @Bean
-//    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-//        return authenticationConfiguration.getAuthenticationManager();
-//    }
-
-//    @Bean
-//    public AccessDeniedHandler accessDeniedHandler() {
-//        return (request, response, accessDeniedException) ->
-//                response.sendRedirect("/access-denied");
-//    }
-
     @Bean
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -122,13 +97,6 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-//        http.rememberMe(me -> {
-//            me.alwaysRemember(true);
-//            me.key(key);
-//            me.rememberMeCookieName("rememberMe");
-//            me.tokenValiditySeconds(86400);
-//            me.userDetailsService(userDetailsService);
-//        });
         setLoginView(http, LoginView.class);
     }
 
@@ -152,13 +120,9 @@ public class SecurityConfiguration extends VaadinWebSecurity {
         configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH"));
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
-        // setAllowCredentials(true) is important, otherwise:
-        // The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the request's credentials mode is 'include'.
         configuration.setAllowCredentials(true);
-        // setAllowedHeaders is important! Without it, OPTIONS preflight request
-        // will fail with 403 Invalid CORS request
-        configuration.setAllowedHeaders(Arrays.asList("Accept","Access-Control-Request-Method","Access-Control-Request-Headers",
-                "Accept-Language","Authorization","Content-Type","Request-Name","Request-Surname","Origin","X-Request-AppVersion",
+        configuration.setAllowedHeaders(Arrays.asList("Accept", "Access-Control-Request-Method", "Access-Control-Request-Headers",
+                "Accept-Language", "Authorization", "Content-Type", "Request-Name", "Request-Surname", "Origin", "X-Request-AppVersion",
                 "X-Request-OsVersion", "X-Request-Device", "X-Requested-With"));
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

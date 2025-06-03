@@ -11,7 +11,7 @@ public class EmsDialog extends Dialog {
         super(title);
     }
 
-    public void addCloseButton(){
+    public void addCloseButton() {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> this.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);

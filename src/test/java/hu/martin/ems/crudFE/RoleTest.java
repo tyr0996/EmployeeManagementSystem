@@ -36,7 +36,7 @@ public class RoleTest extends BaseCrudTest {
     }
 
     @Test
-    public void NotUsedPermissionFilterTest(){
+    public void NotUsedPermissionFilterTest() {
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -176,8 +176,8 @@ public class RoleTest extends BaseCrudTest {
         sa.assertTrue(testResult.getNotificationWhenPerform().contains("Role permanently deleted: "), "performing notification message not contains");
 
 
-        sa.assertEquals((int)testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1, "Total deleted row number (after perform) not decressed");
-        sa.assertEquals((int)testResult.getNonDeletedRowNumberAfterMethod(), (int)testResult.getOriginalNonDeletedRowNumber(), "Total non deleted row number (after perform) changed");
+        sa.assertEquals((int) testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1, "Total deleted row number (after perform) not decressed");
+        sa.assertEquals((int) testResult.getNonDeletedRowNumberAfterMethod(), (int) testResult.getOriginalNonDeletedRowNumber(), "Total non deleted row number (after perform) changed");
         page.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
         sa.assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), "Total deleted row number is not 0 (filtered)");
         sa.assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), "Total non deleted row number is not 0 (filtered)");
@@ -248,7 +248,7 @@ public class RoleTest extends BaseCrudTest {
         int count = page.getGrid().getPaginationData().getTotalElements();
         int pageSize = page.getGrid().getPaginationData().getPageSize();
         SoftAssert sa = new SoftAssert();
-        for(int i = 0; i < count && i < pageSize; i++){
+        for (int i = 0; i < count && i < pageSize; i++) {
             sa.assertFalse(page.getGrid().getModifyButton(i).isEnabled());
             sa.assertFalse(page.getGrid().getDeleteButton(i).isEnabled());
         }
@@ -329,7 +329,7 @@ public class RoleTest extends BaseCrudTest {
         sa.assertEquals(notification.getText(), "EmsError happened while getting roles");
         notification.close();
 
-        sa.assertEquals((int)page.getGrid().getPaginationData().getTotalElements(), countElements);
+        sa.assertEquals((int) page.getGrid().getPaginationData().getTotalElements(), countElements);
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
@@ -348,14 +348,6 @@ public class RoleTest extends BaseCrudTest {
         assertThat(testResult.getResult().getNotificationText()).contains("Role modifying failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
         assertNull(VaadinNotificationComponent.hasNotification(driver));
-
-
-
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(rolesButtonXPath).click();
-//        Thread.sleep(500);
-//        crudTestingUtil.databaseUnavailableWhenUpdateEntity(spyDataSource, null, null, 0);
     }
 
 

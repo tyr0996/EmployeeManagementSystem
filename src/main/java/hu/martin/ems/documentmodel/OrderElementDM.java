@@ -4,8 +4,6 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.model.OrderElement;
 import lombok.Getter;
 
-import java.io.IOException;
-
 @Getter
 @NeedCleanCoding
 public class OrderElementDM extends AbstractDM {
@@ -30,7 +28,7 @@ public class OrderElementDM extends AbstractDM {
         this.grossPrice = null;
     }
 
-    public OrderElementDM extend(Double unitNetPrice, Double netPrice, Double tax, Double grossPrice, String currency){
+    public OrderElementDM extend(Double unitNetPrice, Double netPrice, Double tax, Double grossPrice, String currency) {
         this.unitNetPrice = unitNetPrice.toString() + " " + currency;
         this.netPrice = netPrice.toString() + " " + currency;
         this.tax = tax.toString() + " " + currency;

@@ -7,16 +7,17 @@ import java.util.List;
 
 
 public class DateUtil {
-    private DateUtil() {}
+    private DateUtil() {
+    }
 
     private static String[] monthsFormat = new String[]{"MM", "M"};
-    private static String[]  daysFormat = new String[]{"dd", "d"};
-    private static String[]  separators = new String[]{"/", "-", "."};
+    private static String[] daysFormat = new String[]{"dd", "d"};
+    private static String[] separators = new String[]{"/", "-", "."};
 
-    public static List<String> generateAllFormatDate(LocalDate date){
+    public static List<String> generateAllFormatDate(LocalDate date) {
         List<String> generated = new ArrayList<>();
         List<String> allFormat = generateAllFormats();
-        for(int i = 0; i < allFormat.size(); i++){
+        for (int i = 0; i < allFormat.size(); i++) {
             generated.add(date.format(DateTimeFormatter.ofPattern(allFormat.get(i))));
         }
         return generated;
@@ -36,9 +37,6 @@ public class DateUtil {
                 }
             }
         }
-//        System.out.println("allFormat szűrés nélkül: " + allFormat.size());
-//        System.out.println("allFormat szűréssel: " + (allFormat.stream().filter(v -> !v.contains("MMdd") && !v.contains("yyyyMM")).toList()).size());
-//        return allFormat.stream().filter(v -> !v.contains("MMdd") && !v.contains("yyyyMM")).toList();
         return allFormat;
     }
 

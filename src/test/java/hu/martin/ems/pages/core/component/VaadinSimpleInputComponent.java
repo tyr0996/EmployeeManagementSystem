@@ -10,7 +10,7 @@ public abstract class VaadinSimpleInputComponent<T, S> extends VaadinFillableCom
         super(driver, provider);
     }
 
-    public void clear(){
+    public void clear() {
         element.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
     }
 }

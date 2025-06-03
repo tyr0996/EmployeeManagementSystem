@@ -17,14 +17,17 @@ public class WebDriverProvider {
     private String downloadFolder;
     private WebDriver driver;
 
+    @Value("${selenium.webdriver.headless}")
+    private boolean headless;
+
     @PostConstruct
-    private void init(){
+    private void init() {
         String temp = downloadFolder.replaceAll("/", "\\\\");
         downloadFolder = temp;
     }
 
-    public WebDriver get(){
-        if(driver == null){
+    public WebDriver get() {
+        if (driver == null) {
             ChromeOptions options = new ChromeOptions();
             HashMap<String, Object> chromePref = new HashMap<>();
 
@@ -34,11 +37,11 @@ public class WebDriverProvider {
             chromePref.put("plugins.always_open_pdf_externally", true);
 
             options.setExperimentalOption("prefs", chromePref);
-
-//            options.addArguments("--headless");
+            if (headless) {
+                options.addArguments("--headless");
+            }
 
             WebDriver d = new ChromeDriver(options);
-//            d.manage().window().setPosition(new Point(1280, -760));
             d.manage().window().maximize();
             driver = d;
         }

@@ -9,21 +9,21 @@ import java.util.Random;
 
 public class VaadinCheckboxComponent extends VaadinFillableComponent implements SingleFillable<VaadinCheckboxComponent, Boolean> {
 
-    public VaadinCheckboxComponent(WebDriver driver, By provider){
+    public VaadinCheckboxComponent(WebDriver driver, By provider) {
         super(driver, provider);
     }
 
-    public VaadinCheckboxComponent(WebDriver driver, WebElement scope, By provider, int index){
+    public VaadinCheckboxComponent(WebDriver driver, WebElement scope, By provider, int index) {
         super(driver, scope, provider, index);
     }
 
-    public boolean getStatus(){
+    public boolean getStatus() {
         return element.getDomAttribute("checked") != null;
     }
 
-    public void setStatus(boolean newStatus){
+    public void setStatus(boolean newStatus) {
         Boolean status = getStatus();
-        if(status != newStatus){
+        if (status != newStatus) {
             element.click();
         }
     }

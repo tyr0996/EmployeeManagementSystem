@@ -19,11 +19,13 @@ public class LoginPage extends VaadinPage {
     private final VaadinTextInputComponent userNameField;
     private final VaadinPasswordInputComponent passwordField;
 
-    @Getter private final VaadinButtonComponent loginButton;
+    @Getter
+    private final VaadinButtonComponent loginButton;
     private final VaadinButtonComponent registerButton;
-    @Getter private VaadinButtonComponent forgotPasswordButton;
+    @Getter
+    private VaadinButtonComponent forgotPasswordButton;
 
-    private LoginPage(WebDriver driver, int port){
+    private LoginPage(WebDriver driver, int port) {
         super(driver, port);
 
         userNameField = new VaadinTextInputComponent(getDriver(), By.xpath(userNameFieldXpath));
@@ -33,7 +35,7 @@ public class LoginPage extends VaadinPage {
         registerButton = new VaadinButtonComponent(getDriver(), By.xpath(registerButtonXpath));
     }
 
-    public void forgotPassword(String userName, String password, String passwordAgain){
+    public void forgotPassword(String userName, String password, String passwordAgain) {
         this.getForgotPasswordButton().click();
         ForgotPasswordDialog_Username fpd_1 = new ForgotPasswordDialog_Username(getDriver());
         fpd_1.getUsernameField().fillWith(userName);
@@ -44,18 +46,18 @@ public class LoginPage extends VaadinPage {
         fpd_2.getSubmitButton().click();
     }
 
-    public static LoginPage goToLoginPage(WebDriver driver, int port){
+    public static LoginPage goToLoginPage(WebDriver driver, int port) {
         driver.get("http://localhost:" + port + "/login");
         return new LoginPage(driver, port);
     }
 
     /**
-     * @param userName Az a felhasználónév, amivel szeretnénk bejelentkezni
-     * @param password A felhasználónévhez tartozó jelszó
+     * @param userName        Az a felhasználónév, amivel szeretnénk bejelentkezni
+     * @param password        A felhasználónévhez tartozó jelszó
      * @param requiredSuccess true, ha sikeres bejelentkezést várunk. False, ha nem.
      * @return ha sikeres a bejelentkezés, akkor egy EmptyLoggedInPage-t ad vissza, ha viszont sikertelen, akkor LoginPage-t.
      */
-    public VaadinPage logIntoApplication(String userName, String password, Boolean requiredSuccess){
+    public VaadinPage logIntoApplication(String userName, String password, Boolean requiredSuccess) {
         userNameField.getElement().sendKeys(userName);
         passwordField.getElement().sendKeys(password);
         loginButton.click();
@@ -64,23 +66,23 @@ public class LoginPage extends VaadinPage {
         return requiredSuccess ? new EmptyLoggedInVaadinPage(getDriver(), getPort()) : this;
     }
 
-    public void register(String username, String password, String passwordAgain, Boolean requiredOpening, Boolean requiredClosing){
+    public void register(String username, String password, String passwordAgain, Boolean requiredOpening, Boolean requiredClosing) {
         registerButton.click();
 
-        if(requiredOpening) {
+        if (requiredOpening) {
             RegistrationDialog registrationDialog = new RegistrationDialog(getDriver());
             registrationDialog.initWebElements();
             registrationDialog.getUsernameField().fillWith(username);
             registrationDialog.getPasswordField().fillWith(password);
             registrationDialog.getPasswordAgainField().fillWith(passwordAgain);
             registrationDialog.getRegisterButton().click();
-            if(requiredClosing){
+            if (requiredClosing) {
                 registrationDialog.close();
             }
         }
     }
 
-    public LoginErrorMessage getErrorMessage(){
+    public LoginErrorMessage getErrorMessage() {
         WebElement login = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath("/html/body/vaadin-login-overlay-wrapper/vaadin-login-form/vaadin-login-form-wrapper")));
         SearchContext shadow = login.getShadowRoot();
         JavascriptExecutor js = (JavascriptExecutor) getDriver();

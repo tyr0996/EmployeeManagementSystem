@@ -18,9 +18,12 @@ public class OrderPage extends SimpleVaadinGridPage<OrderPage> implements ISimpl
     private static final String sendToAccountantSFTPButtonXpath = "/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-button";
 
 
-    @Getter private VaadinDatePickerComponent fromDatePicker;
-    @Getter private VaadinDatePickerComponent toDatePicker;
-    @Getter private VaadinButtonComponent sendToAccountantSftpButton;
+    @Getter
+    private VaadinDatePickerComponent fromDatePicker;
+    @Getter
+    private VaadinDatePickerComponent toDatePicker;
+    @Getter
+    private VaadinButtonComponent sendToAccountantSftpButton;
 //    @Getter private VaadinCheckboxComponent showDeletedCheckBox;
 //    @Getter private VaadinGridComponent grid;
 

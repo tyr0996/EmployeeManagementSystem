@@ -12,27 +12,25 @@ public class VaadinDatePickerComponent extends VaadinBaseComponent {
         super(driver, provider);
     }
 
-    public LocalDate getDate(){
+    public LocalDate getDate() {
 //        return LocalDate.parse(element.getAttribute("value"), DateTimeFormatter.ofPattern("yyyy. MM. dd"));
         String value = element.getAttribute("value");
         boolean isEmpty = value == null || value.equals("");
         LocalDate date = null;
-        if(!isEmpty && value.contains("-")){
+        if (!isEmpty && value.contains("-")) {
             date = LocalDate.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        }
-        else if(!isEmpty && value.contains(".")){
+        } else if (!isEmpty && value.contains(".")) {
             date = LocalDate.parse(value, DateTimeFormatter.ofPattern("yyyy. MM. dd"));
-        }
-        else {
+        } else {
             System.err.println("Unsupported date format: " + value);
         }
 
         return value == null || value.equals("") ? null : date;
     }
 
-    public void selectDate(LocalDate date){
+    public void selectDate(LocalDate date) {
         element.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
-        if(date != null){
+        if (date != null) {
             String todayString = date.format(DateTimeFormatter.ofPattern("yyyy. MM. dd."));
             element.sendKeys(todayString);
         }
@@ -40,7 +38,7 @@ public class VaadinDatePickerComponent extends VaadinBaseComponent {
         waitForRefresh();
     }
 
-    public void selectDate(String dateString){
+    public void selectDate(String dateString) {
         element.sendKeys(dateString, Keys.ENTER);
     }
 

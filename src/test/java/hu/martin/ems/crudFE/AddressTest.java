@@ -25,7 +25,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AddressTest extends BaseCrudTest {
@@ -304,7 +305,6 @@ public class AddressTest extends BaseCrudTest {
     public void databaseNotAvailableWhenOpenPage() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
         MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADDRESS_SUBMENU);
 
@@ -328,7 +328,7 @@ public class AddressTest extends BaseCrudTest {
     }
 
     @Test
-    public void oneOfTheIconsIOExceptionTest() throws IOException{
+    public void oneOfTheIconsIOExceptionTest() throws IOException {
         doThrow(IOException.class).when(spyIconProvider).readAllBytes(any(Path.class));
         EmptyLoggedInVaadinPage loggedInPage = (EmptyLoggedInVaadinPage)
                 LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);

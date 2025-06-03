@@ -17,7 +17,7 @@ import java.util.List;
 @NeedCleanCoding
 @NoArgsConstructor
 @Setter
-public class User extends BaseEntity{
+public class User extends BaseEntity {
     @Expose
     private String username;
 
@@ -25,7 +25,6 @@ public class User extends BaseEntity{
     private String passwordHash;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
-//    @JoinColumn(name = "role_role_id", columnDefinition = "BIGINT")
     @JoinColumn(name = "role_role_id")
     @Expose
     private Role roleRole;
@@ -34,12 +33,12 @@ public class User extends BaseEntity{
     @Expose
     private String roles;
 
-    public String getRoles(){
+    public String getRoles() {
         List<Permission> permissions = this.roleRole.getPermissions().stream().toList();
         String[] ret = new String[permissions.size() + 1];
         ret[0] = this.roleRole.getName();
-        for(int i = 1; i < permissions.size() + 1; i++){
-            ret[i] = permissions.get(i-1).getName();
+        for (int i = 1; i < permissions.size() + 1; i++) {
+            ret[i] = permissions.get(i - 1).getName();
         }
         return String.join(",", ret);
     }

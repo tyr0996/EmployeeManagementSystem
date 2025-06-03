@@ -2,17 +2,13 @@ package hu.martin.ems.vaadin.component.Currency;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
@@ -39,10 +35,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Route(value = "currency/list", layout = MainView.class)
-//@AnonymousAllowed
 @RolesAllowed("ROLE_CurrencyMenuOpenPermission")
 @NeedCleanCoding
-//@RolesAllowed("CurrencyMenuOpenPermission")
 public class CurrencyList extends EmsFilterableGridComponent {
 
     private final CurrencyApiClient currencyApiClient = BeanProvider.getBean(CurrencyApiClient.class);
@@ -51,9 +45,7 @@ public class CurrencyList extends EmsFilterableGridComponent {
     private PaginatedGrid<CurrencyVO, String> grid;
 
     private Gson gson = BeanProvider.getBean(Gson.class);
-    private final PaginationSetting paginationSetting;
 
-    List<Currency> currencies;
     List<CurrencyVO> currencyVOS;
 
     Grid.Column<CurrencyVO> nameColumn;
@@ -68,7 +60,6 @@ public class CurrencyList extends EmsFilterableGridComponent {
     @Autowired
     public CurrencyList(PaginationSetting paginationSetting) {
         this.mainView = mainView;
-        this.paginationSetting = paginationSetting;
 
         this.grid = new PaginatedGrid<>(CurrencyVO.class);
         grid.setPageSize(paginationSetting.getPageSize());
@@ -99,7 +90,7 @@ public class CurrencyList extends EmsFilterableGridComponent {
         add(fetch, datePicker, grid, currencyApiAnchor);
     }
 
-    public void updateGridItems(){
+    public void updateGridItems() {
         updateGrid(false);
     }
 
@@ -107,7 +98,7 @@ public class CurrencyList extends EmsFilterableGridComponent {
         LocalDate date = datePicker.getValue();
         EmsResponse response = currencyApiClient.findByDate(date);
         Currency currency;
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 currency = (Currency) response.getResponseData();
                 break;
@@ -118,7 +109,7 @@ public class CurrencyList extends EmsFilterableGridComponent {
                 return;
         }
         Boolean needFetch = currency == null;
-        if(!needFetch && fetchButtonClicked){
+        if (!needFetch && fetchButtonClicked) {
             Notification.show("Currencies already fetched").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
         }
 
@@ -150,7 +141,7 @@ public class CurrencyList extends EmsFilterableGridComponent {
         map.forEach((k, v) -> currencyVOS.add(new CurrencyVO(k, v, baseCurrency)));
 
         List<CurrencyVO> curr = getFilteredStream().collect(Collectors.toList());
-        if(needFetch){
+        if (needFetch) {
             Notification.show("Fetching exchange rates was successful!").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         }
         this.grid.setItems(curr);
@@ -158,31 +149,18 @@ public class CurrencyList extends EmsFilterableGridComponent {
 
     private Stream<CurrencyVO> getFilteredStream() {
         return currencyVOS.stream().filter(currencyVO ->
-                (valFilter.isEmpty() || currencyVO.val.toLowerCase().contains(valFilter.getFilterText().toLowerCase())) &&
-                (nameFilter.isEmpty() || currencyVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase()))
-        );
+                filterField(valFilter, currencyVO.val) &&
+                filterField(nameFilter, currencyVO.name));
     }
 
-    private Component filterField(TextField filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
 
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         nameFilter = new TextFilteringHeaderCell("Search name...", this);
         valFilter = new TextFilteringHeaderCell("Search val...", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
-        filterRow.getCell(valColumn).setComponent(filterField(valFilter, "Val"));
-        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
+        filterRow.getCell(valColumn).setComponent(styleFilterField(valFilter, "Val"));
+        filterRow.getCell(nameColumn).setComponent(styleFilterField(nameFilter, "Name"));
     }
 
     @NeedCleanCoding

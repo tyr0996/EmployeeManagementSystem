@@ -10,7 +10,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
 public class UserPage extends SimpleVaadinGridPage<UserPage> implements ISimpleVaadinGridPage<UserPage> {
-    public UserPage(WebDriver driver, int port){
+    public UserPage(WebDriver driver, int port) {
         super(driver, port, "User", null);
         initWebElements();
     }

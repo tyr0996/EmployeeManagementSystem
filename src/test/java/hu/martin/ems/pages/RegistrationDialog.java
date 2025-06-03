@@ -17,13 +17,18 @@ public class RegistrationDialog extends VaadinBaseComponent {
     private static final String reisterButtonXpath = dialogXpath + "/vaadin-form-layout/vaadin-button";
     private static final String closeButtonXpath = dialogXpath + "/div/div/vaadin-button";
 
-    @Getter private VaadinTextInputComponent usernameField;
-    @Getter private VaadinPasswordInputComponent passwordField;
-    @Getter private VaadinPasswordInputComponent passwordAgainField;
-    @Getter private VaadinButtonComponent registerButton;
-    @Getter private VaadinButtonComponent closeButton;
+    @Getter
+    private VaadinTextInputComponent usernameField;
+    @Getter
+    private VaadinPasswordInputComponent passwordField;
+    @Getter
+    private VaadinPasswordInputComponent passwordAgainField;
+    @Getter
+    private VaadinButtonComponent registerButton;
+    @Getter
+    private VaadinButtonComponent closeButton;
 
-    public RegistrationDialog(WebDriver driver){
+    public RegistrationDialog(WebDriver driver) {
         super(driver);
 
 //        initWebElements();
@@ -38,7 +43,7 @@ public class RegistrationDialog extends VaadinBaseComponent {
         registerButton = new VaadinButtonComponent(getDriver(), By.xpath(reisterButtonXpath));
     }
 
-    public void close(){
+    public void close() {
         closeButton.click();
     }
 }

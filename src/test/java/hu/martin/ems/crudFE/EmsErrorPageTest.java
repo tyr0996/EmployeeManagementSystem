@@ -16,7 +16,7 @@ import static org.testng.Assert.assertNull;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class EmsErrorPageTest extends BaseCrudTest {
     @Test
-    public void pageLoadFailedIllegalAccessException()  {
+    public void pageLoadFailedIllegalAccessException() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("robi", "3W-@s2|0^x&Y", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);

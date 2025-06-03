@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class DoDeleteFailedTestData extends DoFailedTestData {
     private PerformDeleteResult result;
+
     public DoDeleteFailedTestData(Integer originalNonDeletedRowNumber,
                                   Integer originalDeletedRowNumber,
                                   @Nullable Integer originalNonDeletedOnlyDeletable,

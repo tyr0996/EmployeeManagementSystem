@@ -43,7 +43,7 @@ public class EmailSendingService {
         String sendingAddress = emailData.getSendingAddress();
         String sendingPassword = emailData.getSendingPassword();
 
-        Session session = Session.getDefaultInstance(props, new EmsEmailAuthenticator(sendingAddress,  sendingPassword));
+        Session session = Session.getDefaultInstance(props, new EmsEmailAuthenticator(sendingAddress, sendingPassword));
         try {
             MimeMessage message = createMimeMessage(session, emailProperties);
 
@@ -54,7 +54,7 @@ public class EmailSendingService {
             multipart.addBodyPart(mainMessage);
 
             try {
-                for(EmailAttachment emailAttachment : emailProperties.getAttachments()){
+                for (EmailAttachment emailAttachment : emailProperties.getAttachments()) {
                     multipart.addBodyPart(createAttachmentBodyPart(emailAttachment));
                 }
             } catch (MessagingException e) {
@@ -63,10 +63,9 @@ public class EmailSendingService {
             }
 
             message.setContent(multipart);
-            try{
+            try {
                 transportSend(message);
-            }
-            catch (MailConnectException e) {
+            } catch (MailConnectException e) {
                 logger.error("Email connect refused.");
                 return false;
             }

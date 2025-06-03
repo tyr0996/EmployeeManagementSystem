@@ -35,7 +35,7 @@ public class PermissionTest extends BaseCrudTest {
     }
 
     @Test
-    public void permissionEqualsTest(){
+    public void permissionEqualsTest() {
         Permission p1 = new Permission();
         p1.setName("test1");
         p1.setDeleted(0L);
@@ -252,7 +252,6 @@ public class PermissionTest extends BaseCrudTest {
 
     @Test
     public void gettingPermissionsFailed() throws SQLException {
-//        Mockito.doReturn(null).when(spyPermissionService).findAll(true); //ApiClientben.findAllWithDeleted();
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
@@ -286,37 +285,8 @@ public class PermissionTest extends BaseCrudTest {
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
-
-//    @Test
-//    public void findAllPermissionFailed() throws SQLException {
-//        EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
-//        loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
-//        AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
-//        header.getPermissionButton().click();
-//
-//        PermissionPage page = new PermissionPage(driver, port);
-//        int countElements = page.getGrid().getPaginationData().getTotalElements();
-//        assertEquals(countElements, 0);
-//
-//        VaadinNotificationComponent notificationBeforeShowDeleted = new VaadinNotificationComponent(driver);
-//        assertEquals(notificationBeforeShowDeleted.getText(), "EmsError happened while getting permissions");
-//        notificationBeforeShowDeleted.close();
-//
-//        page.getShowDeletedCheckBox().setStatus(true);
-//        page.getGrid().waitForRefresh();
-//        assertEquals(countElements, 0);
-//
-//        VaadinNotificationComponent notificationAfterShowDeleted = new VaadinNotificationComponent(driver);
-//        assertEquals(notificationAfterShowDeleted.getText(), "EmsError happened while getting permissions");
-//        notificationAfterShowDeleted.close();
-//
-//        assertEquals(page.getGrid().getPaginationData().getTotalElements(), countElements);
-//    }
-
-
     @Test
     public void databaseUnavailableWhenSaving() throws SQLException {
-//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 3);
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();

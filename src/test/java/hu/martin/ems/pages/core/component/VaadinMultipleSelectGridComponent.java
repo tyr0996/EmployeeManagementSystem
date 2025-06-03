@@ -17,7 +17,7 @@ public class VaadinMultipleSelectGridComponent extends VaadinGridComponent {
         super(driver, provider);
     }
 
-    public VaadinGridComponent selectElements(int selectElementNumber){
+    public VaadinGridComponent selectElements(int selectElementNumber) {
 //        int gridRows = countVisibleDataRows();
 //        System.out.println("Elemek, amiket kiválasztok: " + selectElementNumber);
         deselectAll();
@@ -29,7 +29,7 @@ public class VaadinMultipleSelectGridComponent extends VaadinGridComponent {
         return this;
     }
 
-    private VaadinGridComponent selectElements(List<ElementLocation> locations){
+    private VaadinGridComponent selectElements(List<ElementLocation> locations) {
 //        locations.sort(Comparator.comparing(ElementLocation::getPageNumber));
 
 //        List<ElementLocation> list = ... // a bemeneti lista
@@ -48,14 +48,14 @@ public class VaadinMultipleSelectGridComponent extends VaadinGridComponent {
         return this;
     }
 
-    private VaadinGridComponent selectIndexes(List<Integer> indexesToBeSelected){
+    private VaadinGridComponent selectIndexes(List<Integer> indexesToBeSelected) {
         int rows = countVisibleDataRows();
-        if(rows == 0){
+        if (rows == 0) {
             //TODO kivételt dobni!
 //            return this;
         }
-        for(int rowIndex = 0; rowIndex < rows; rowIndex++){
-            if(indexesToBeSelected.contains(rowIndex)){
+        for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
+            if (indexesToBeSelected.contains(rowIndex)) {
                 int gridCellIndex = (3 + rowIndex) * getColumnNumber() + 0 + 1;
 //                WebElement e = getWait().until(ExpectedConditions.visibilityOfElementLocated(this.element))
                 WebElement e = this.element.findElement(By.xpath(".//vaadin-grid-cell-content[" + gridCellIndex + "]"));
@@ -65,17 +65,17 @@ public class VaadinMultipleSelectGridComponent extends VaadinGridComponent {
         return this;
     }
 
-    private VaadinCheckboxComponent getSelectAllCheckbox(){
+    private VaadinCheckboxComponent getSelectAllCheckbox() {
         return new VaadinCheckboxComponent(getDriver(), element, By.xpath("./vaadin-grid-cell-content[1]/vaadin-checkbox"), 0);
     }
 
-    public VaadinGridComponent deselectAll(){
+    public VaadinGridComponent deselectAll() {
 //        WebElement selectAllCheckBoxWebElement = getSelectAllCheckbox().element;
         WebElement parent = getSelectAllCheckbox().element;
 //        WebElement parent = getParentWebElement(selectAllCheckBoxWebElement);
 //        printToConsole(parent);
-        if(parent.getDomAttribute("checked") != null){
-            if(parent.getDomAttribute("indeterminate") != null){
+        if (parent.getDomAttribute("checked") != null) {
+            if (parent.getDomAttribute("indeterminate") != null) {
                 getSelectAllCheckbox().element.click();
             }
             getSelectAllCheckbox().element.click();
@@ -85,7 +85,7 @@ public class VaadinMultipleSelectGridComponent extends VaadinGridComponent {
     }
 
     @Override
-    public PaginationData getPaginationData(){
+    public PaginationData getPaginationData() {
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
         String jsScript = "return document.querySelector('flow-container-root-2521314 vaadin-horizontal-layout vaadin-vertical-layout:nth-of-type(2) span lit-pagination')";
         Integer total = Integer.parseInt(js.executeScript(jsScript + ".total;").toString());

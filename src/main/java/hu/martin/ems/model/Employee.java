@@ -22,15 +22,6 @@ public class Employee extends BaseEntity {
     @Expose
     private String lastName;
 
-//    @ManyToOne
-//    @JoinColumn(name = "role_role_id")
-//    @Expose
-//    private Role role;
-
-//    @Transient
-//    @Expose
-//    private Role role;
-
     @ManyToOne
     @JoinColumn(name = "user_loginuser_id")
     @Expose

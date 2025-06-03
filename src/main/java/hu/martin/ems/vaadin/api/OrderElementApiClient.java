@@ -15,32 +15,30 @@ public class OrderElementApiClient extends EmsApiClient<OrderElement> {
         super(OrderElement.class);
     }
 
-    public EmsResponse getByCustomer(Customer customer){
+    public EmsResponse getByCustomer(Customer customer) {
         WebClient webClient = webClientProvider.initWebClient(entityName);
-        try{
+        try {
             String jsonResponse = webClient.get()
                     .uri("getByCustomer?customerId=" + customer.getId())
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
             return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-        }
-        catch (WebClientResponseException ex){
+        } catch (WebClientResponseException ex) {
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
-    public EmsResponse getBySupplier(Supplier supplier){
+    public EmsResponse getBySupplier(Supplier supplier) {
         WebClient webClient = webClientProvider.initWebClient(entityName);
-        try{
+        try {
             String jsonResponse = webClient.get()
                     .uri("getBySupplier?supplierId=" + supplier.getId())
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
             return new EmsResponse(200, convertResponseToEntityList(jsonResponse), "");
-        }
-        catch (WebClientResponseException ex){
+        } catch (WebClientResponseException ex) {
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }

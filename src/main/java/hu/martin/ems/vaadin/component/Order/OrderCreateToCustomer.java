@@ -74,7 +74,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
     Checkbox showPreviouslyOrderedElements;
 
     @Autowired
-    public OrderCreateToCustomer(PaginationSetting paginationSetting){
+    public OrderCreateToCustomer(PaginationSetting paginationSetting) {
         init(paginationSetting);
     }
 
@@ -82,7 +82,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
     public void beforeEnter(BeforeEnterEvent event) {
         Map<String, List<String>> params = event.getLocation().getQueryParameters().getParameters();
         List<String> paramOrderId = params.get("orderId");
-        if(paramOrderId != null) {
+        if (paramOrderId != null) {
             setupCustomers();
             customers.setItems(customerList);
             setupCurrencies();
@@ -91,7 +91,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
             paymentTypes.setItems(paymentTypeList);
             Long orderId = Long.parseLong(paramOrderId.getFirst());
             EmsResponse response = orderApi.findById(orderId);
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200: {
                     this.editObject = (Order) orderApi.findById(orderId).getResponseData();
                     loadEditObject();
@@ -105,7 +105,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
         }
     }
 
-    private void loadEditObject(){
+    private void loadEditObject() {
         customers.setEnabled(false);
         customers.setValue(editObject.getCustomer());
         showPreviouslyOrderedElements.setValue(true);
@@ -117,7 +117,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
     }
 
-    private void init(PaginationSetting paginationSetting){
+    private void init(PaginationSetting paginationSetting) {
         FormLayout formLayout = new FormLayout();
 
         Button saveButton = new Button("Create order");
@@ -137,13 +137,12 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
         ComboBox.ItemFilter<Customer> customerFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         setupCustomers();
-        if(customerList == null){
+        if (customerList == null) {
             customers.setEnabled(false);
             customers.setInvalid(true);
             customers.setErrorMessage("EmsError happened while getting customers");
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             customers.setItems(customerFilter, customerList);
             customers.setItemLabelGenerator(Customer::getName);
         }
@@ -151,10 +150,6 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
         customers.addValueChangeListener(event -> {
             if (event.getValue() != null) {
                 orderElementVOS = getOrderElementsByCustomer(event.getValue()).stream().map(OrderElementVO::new).collect(Collectors.toList());
-//                if(orderElementVOS == null){
-//                    Notification.show("EmsError happened while getting order elements to the customer").addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                    orderElementVOS = new ArrayList<>();
-//                }
             } else {
                 orderElementVOS = new ArrayList<>();
             }
@@ -168,42 +163,29 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
                     new ArrayList<>() :
                     getOrderElementsByCustomer(customers.getValue()).stream().map(OrderElementVO::new).toList();
 
-            if(showPreviously){
+            if (showPreviously) {
                 grid.setSelectionMode(Grid.SelectionMode.NONE);
                 grid.setItems(getFilteredStream().filter(v -> v.original.getOrderId() != null).toList());
-//                grid.setItems(getFilteredStream().filter(v -> {
-//                    boolean ressss = v.original.getOrderId() != null;
-//                    System.out.println("orderrId: " + v.original.getOrderId() + "   resss: " + ressss);
-//                    return ressss;
-//                }).toList());
-            }
-            else { //Ide akkor megyünk be, hogyha kikapcsoljuk a showPreviously-t
+            } else {
                 grid.setSelectionMode(Grid.SelectionMode.MULTI);
-
-//                grid.setItems(getFilteredStream().toList());
                 grid.setItems(getFilteredStream().toList());
             }
 
-            if(editObject != null){
+            if (editObject != null) {
                 grid.setSelectionMode(Grid.SelectionMode.MULTI);
             }
-//            updateGridItems();
         });
-//        HorizontalLayout hl = new HorizontalLayout();
-//        hl.add(showPreviouslyOrderedElements);
-//        hl.setAlignSelf(Alignment.CENTER, showPreviouslyOrderedElements);
 
         setupPaymentTypes();
         paymentTypes = new ComboBox<>("Payment type");
         ComboBox.ItemFilter<CodeStore> paymentTypeFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(paymentTypeList == null){
+        if (paymentTypeList == null) {
             paymentTypes.setErrorMessage("EmsError happened while getting payment methods");
             paymentTypes.setEnabled(false);
             paymentTypes.setInvalid(true);
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             paymentTypes.setItems(paymentTypeFilter, paymentTypeList);
             paymentTypes.setItemLabelGenerator(CodeStore::getName);
         }
@@ -212,20 +194,19 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
         currencies = new ComboBox<>("Currency");
         ComboBox.ItemFilter<CodeStore> currencyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(currencyList == null){
+        if (currencyList == null) {
             currencies.setEnabled(false);
             currencies.setInvalid(true);
             currencies.setErrorMessage("EmsError happened while getting currencies");
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             currencies.setItems(currencyFilter, currencyList);
             currencies.setItemLabelGenerator(CodeStore::getName);
         }
 
         saveButton.addClickListener(event -> {
             CodeStore pending = getPendingCodeStore();
-            if(pending == null){
+            if (pending == null) {
                 Notification.show("EmsError happened while getting \"Pending\" status").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
             }
@@ -237,46 +218,26 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
             order.setPaymentType(paymentTypes.getValue());
             order.setDeleted(0L);
             order.setCurrency(currencies.getValue());
-//            Long orderId = order.getId();
-//            if(orderId == null){
-//                EmsResponse response = orderApi.save(order);
-//                switch (response.getCode()){
-//                    case 200:
-//                        order = (Order) response.getResponseData();
-//                        orderId = order.getId();
-//                        break;
-//                    case 500:
-//                        Notification.show("Order saving failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
-//                        updateGridItems();
-//                        return;
-//                    default:
-//                        Notification.show("Not expected status-code in saving").addThemeVariants(NotificationVariant.LUMO_WARNING);
-//                        updateGridItems();
-//                        return;
-//                }
-//            }
 
             List<OrderElement> orderElements = new ArrayList<>();
             List<OrderElementVO> selected = grid.getSelectedItems().stream().toList();
 
-            for(int i = 0; i < selected.size(); i++){
+            for (int i = 0; i < selected.size(); i++) {
                 OrderElement oe = selected.get(i).original;
                 orderElements.add(oe);
             }
             order.setOrderElements(orderElements);
 
-            if(orderElements.isEmpty()){
+            if (orderElements.isEmpty()) {
                 Notification.show("Order must contains at least one order element!").addThemeVariants(NotificationVariant.LUMO_WARNING);
-            }
-            else{
+            } else {
                 EmsResponse response;
-                if(editObject == null){
+                if (editObject == null) {
                     response = orderApi.save(order);
-                }
-                else{
+                } else {
                     response = orderApi.update(order);
                 }
-                switch (response.getCode()){
+                switch (response.getCode()) {
                     case 200:
                         order = (Order) response.getResponseData();
                         Notification.show("Order " + (editObject == null ? "saved: " : "updated: ") + order)
@@ -296,7 +257,6 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
         FormLayout formLayout1 = new FormLayout();
         formLayout1.add(currencies, paymentTypes);
         formLayout1.add(saveButton);
-//        add(formLayout, hl, grid, formLayout1);ű
         add(formLayout, grid, formLayout1);
     }
 
@@ -304,7 +264,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
 
     private void setupCustomers() {
         EmsResponse response = customerApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 customerList = (List<Customer>) response.getResponseData();
                 break;
@@ -317,7 +277,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
 
     private CodeStore getPendingCodeStore() {
         EmsResponse response = codeStoreApi.getAllByName("Pending");
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 return ((List<CodeStore>) response.getResponseData()).get(0);
             default:
@@ -328,7 +288,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
 
     private List<OrderElement> getOrderElementsByCustomer(Customer customer) {
         EmsResponse response = orderElementApi.getByCustomer(customer);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 return (List<OrderElement>) response.getResponseData();
             default:
@@ -342,7 +302,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
 
     private void setupPaymentTypes() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.PAYMENT_TYPES_CODESTORE_ID);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 paymentTypeList = (List<CodeStore>) response.getResponseData();
                 break;
@@ -355,7 +315,7 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
 
     private void setupCurrencies() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.CURRENCIES_CODESTORE_ID);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 currencyList = (List<CodeStore>) response.getResponseData();
                 break;
@@ -370,56 +330,46 @@ public class OrderCreateToCustomer extends VerticalLayout implements BeforeEnter
 
 
     private Stream<OrderElementVO> getFilteredStream() {
-        if(editObject != null){
+        if (editObject != null) {
             orderElementVOS = getOrderElementsByCustomer(editObject.getCustomer()).stream().filter(v ->
-                (v.getOrderId() == null) || v.getOrderId().equals(editObject.getId())
+                    (v.getOrderId() == null) || v.getOrderId().equals(editObject.getId())
             ).map(OrderElementVO::new).collect(Collectors.toList());
         }
 
         return orderElementVOS.stream().filter(orderElementVO ->
-            {
-                OrderElement oe = orderElementVO.getOriginal();
-                boolean res = showPreviously || oe.getOrderId() == null;
-                Boolean filter = orderElementVO.filterExtraData();
-//                System.out.println("Res: " + res + "  Filter: " + filter);
-                return res && filter;
-            });
+        {
+            OrderElement oe = orderElementVO.getOriginal();
+            boolean res = showPreviously || oe.getOrderId() == null;
+            Boolean filter = orderElementVO.filterExtraData();
+            return res && filter;
+        });
     }
 
 
-    public void updateGridItems(){
+    public void updateGridItems() {
         orderElementVOS = getFilteredStream().toList();
         grid.setItems(orderElementVOS);
-        if(editObject != null){
+        if (editObject != null) {
             List<OrderElementVO> selected = orderElementVOS.stream()
                     .filter(v -> {
-                        if(v.getOriginal().getOrderId() != null){
+                        if (v.getOriginal().getOrderId() != null) {
                             return v.original.getOrderId().equals(editObject.getId());
-                        }
-                        else{
+                        } else {
                             return false;
                         }
                     }).toList();
             UI.getCurrent().access(() -> {
                 grid.deselectAll();
                 selected.stream()
-                        .distinct() // Biztosítsd, hogy ne legyen duplikáció
+                        .distinct()
                         .forEach(v -> grid.getSelectionModel().select(v));
             });
-//            UI.getCurrent().access(() -> {
-//                selected.forEach(v -> {
-//                    grid.getSelectionModel().select(v);
-//                });
-//            });
-
-
-            //UI.getCurrent().push(); // Kliens-szerver szinkronizálás kényszerítése
         }
     }
 
     @Getter
     @NeedCleanCoding
-public class OrderElementVO extends BaseVO {
+    public class OrderElementVO extends BaseVO {
 
         @NotNull
         private OrderElement original;

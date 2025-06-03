@@ -16,7 +16,8 @@ import java.time.LocalDateTime;
 @Configuration
 @NeedCleanCoding
 public class JsonConfig {
-    public JsonConfig(){}
+    public JsonConfig() {
+    }
 
     @Bean
     @Primary

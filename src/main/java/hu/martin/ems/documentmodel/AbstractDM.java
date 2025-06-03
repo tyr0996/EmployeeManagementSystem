@@ -1,9 +1,7 @@
 package hu.martin.ems.documentmodel;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import oshi.util.FileUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -16,6 +14,7 @@ public abstract class AbstractDM {
     public static final String TEMPLATE_DIRECTORY = "src/main/resources/templates/";
 
     private Path templatePath;
+
     public ByteArrayInputStream getTemplate() throws IOException {
         return new ByteArrayInputStream(Files.readAllBytes(templatePath));
     }

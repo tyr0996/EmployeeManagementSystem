@@ -11,10 +11,12 @@ public class InternalErrorNotification extends VaadinBaseComponent {
     private static final String captionXpath = "./div[1]";
     private static final String messageXpath = "./div[2]";
 
-    @Getter private WebElement caption;
-    @Getter private WebElement message;
+    @Getter
+    private WebElement caption;
+    @Getter
+    private WebElement message;
 
-    public InternalErrorNotification(WebDriver driver){
+    public InternalErrorNotification(WebDriver driver) {
         super(driver, By.xpath("/html/body/div[3]"));
         caption = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(this.element, By.xpath(captionXpath))).get(0);
         message = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(this.element, By.xpath(messageXpath))).get(0);

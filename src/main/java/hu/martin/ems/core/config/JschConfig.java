@@ -57,43 +57,37 @@ public class JschConfig {
                 log.info("Connected to session");
                 openSftpChannel();
                 log.info("SFTP channel opened");
-                log.info("The SFTP connection to the host has been successfully established ("+sftpHost+")");
-            }
-            else{
+                log.info("The SFTP connection to the host has been successfully established (" + sftpHost + ")");
+            } else {
                 log.info("The SFTP connection already existed");
             }
-        }
-        catch (JSchException e){
+        } catch (JSchException e) {
             log.warn("The SFTP connection failed for some reason! Please check the log for errors.");
             throw e;
         }
     }
 
-    private Session createSession() throws JSchException{
-        try{
+    private Session createSession() throws JSchException {
+        try {
             Session session = jsch.getSession(sftpUser, sftpHost, sftpPort);
             return session;
-        }
-        catch(JSchException e){
+        } catch (JSchException e) {
             log.error("An unknown error occurred while opening the session!");
             throw new JSchException("An unknown error occurred while opening the session!");
         }
     }
 
     private void connectToSession() throws JSchException {
-        try{
+        try {
             session.connect();
-        }
-        catch(JSchException e){
-            if(e.getCause() instanceof ConnectException){
-                log.error("Failed to connect to the host! It may not be running or it could be outside the domain. ("+sftpHost+")");
-                throw new JSchException("Failed to connect to the host! It may not be running or it could be outside the domain. ("+sftpHost+")");
-            }
-            else if(e.getMessage().equals("Auth fail")){
+        } catch (JSchException e) {
+            if (e.getCause() instanceof ConnectException) {
+                log.error("Failed to connect to the host! It may not be running or it could be outside the domain. (" + sftpHost + ")");
+                throw new JSchException("Failed to connect to the host! It may not be running or it could be outside the domain. (" + sftpHost + ")");
+            } else if (e.getMessage().equals("Auth fail")) {
                 log.error("Connection to the host failed because the login credentials are incorrect! (" + sftpHost + ")");
                 throw new JSchException("Connection to the host failed because the login credentials are incorrect! (" + sftpHost + ")");
-            }
-            else{
+            } else {
                 log.error("An unknown error occurred while connecting to the host! " + e.getMessage());
                 throw new JSchException("An unknown error occurred while connecting to the host! " + e.getMessage());
             }
@@ -101,11 +95,10 @@ public class JschConfig {
     }
 
     private void openSftpChannel() throws JSchException {
-        try{
+        try {
             channelSftp = (ChannelSftp) session.openChannel("sftp");
             channelSftp.connect();
-        }
-        catch (JSchException e){
+        } catch (JSchException e) {
             log.error("An error occurred while opening the channel! Please check that the session's isConnected() property is true.");
             throw new JSchException("An error occurred while opening the channel! Please check that the session's isConnected() property is true.");
         }
@@ -115,7 +108,7 @@ public class JschConfig {
         init();
     }
 
-    public void disconnect(){
+    public void disconnect() {
         log.info("Attempting to disconnect SFTP connection...");
         destroySftpChannel();
         destroyJSchSession();
@@ -128,13 +121,12 @@ public class JschConfig {
             channelSftp.disconnect();
             log.info("SFTP channel disconnected successfully.");
             channelSftp = null;
-        }
-        else {
+        } else {
             log.info("SFTP channel was already null, no action needed.");
         }
     }
 
-    private void destroyJSchSession(){
+    private void destroyJSchSession() {
         if (session != null) {
             session.disconnect();
             log.info("SFTP session disconnected successfully.");

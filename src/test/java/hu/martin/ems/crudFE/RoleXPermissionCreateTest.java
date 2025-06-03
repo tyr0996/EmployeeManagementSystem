@@ -47,9 +47,8 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
     }
 
     @Test
-    
+
     public void databaseNotAvailableWhenCreateRoleXPermissionFailedTest() throws SQLException {
-//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 6);
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 6);
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
@@ -67,26 +66,8 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
-//    @Test
-//    public void notExpectedStatusCodeWhileGettingPariedPermissionsTo() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyRoleXPermissionApiClient).findAllPairedPermissionsTo(any(Role.class));
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
-//        Thread.sleep(100);
-//        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), true);
-//        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "");
-//        gridTestingUtil.fillElementWith(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath), false, "");
-//        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), false);
-//        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(saveButtonXpath)), false);
-//        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "EmsError happened while getting paired permissions");
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-
     @Test
     public void databaseNotAvailableWhileGettingAllPermissions() throws SQLException {
-//        Mockito.doReturn(null).when(spyPermissionService).findAll(false);
-//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 4);
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -101,25 +82,8 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
-//    @Test
-//    public void notExpectedStatusCodeWhileGettingAllPermissions() throws InterruptedException {
-//        Mockito.doReturn(new EmsResponse(522, "")).when(spyPermissionApiClient).findAll();
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        gridTestingUtil.findClickableElementWithXpathWithWaiting(roleXPermisisonPairingButtonXPath).click();
-//        Thread.sleep(100);
-//        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), false);
-//        assertEquals(gridTestingUtil.isEnabled(gridTestingUtil.findVisibleElementWithXpath(saveButtonXpath)), false);
-//        assertEquals(gridTestingUtil.getFieldErrorMessage(gridTestingUtil.findVisibleElementWithXpath(permissionsMultiselectComboBoxXpath)), "EmsError happened while getting permissions");
-//        gridTestingUtil.fillElementWith(gridTestingUtil.findVisibleElementWithXpath(roleDropboxXpath), false, "");
-//        gridTestingUtil.checkNoMoreNotificationsVisible();
-//    }
-
     @Test
     public void databaseNotAvailableWhileGettingAllRoles() throws SQLException {
-//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-
-
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();
@@ -143,8 +107,6 @@ public class RoleXPermissionCreateTest extends BaseCrudTest {
 
     @Test
     public void databaseNotAvailableWhileReturnWhileGettingLoggedInUser() throws SQLException {
-//        Mockito.doReturn(null).when(spyRoleService).findAll(false);
-//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 3);
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ACESS_MANAGEMENT_SUBMENU);
         AccessManagementHeader header = new AccessManagementHeader(driver, port).initWebElements();

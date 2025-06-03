@@ -62,7 +62,7 @@ public class DataProvider {
         loaded = new ArrayList<>();
     }
 
-    public long countElementsInTable(String table, String where){
+    public long countElementsInTable(String table, String where) {
         EntityManagerFactory factory = em.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
 
@@ -72,31 +72,22 @@ public class DataProvider {
         return res;
     }
 
-    private void clearAllDatabaseTable(){
-        try{
-            deleteAllRecordsFromAllTable();
-            resetIDSequences();
-            loaded.clear();
-            em.clear();
-        }
-        catch (Exception e){}
+    private void clearAllDatabaseTable() {
+        deleteAllRecordsFromAllTable();
+        resetIDSequences();
+        loaded.clear();
+        em.clear();
     }
 
     private LinkedHashMap<String, String> generateAllSqlsFromJsons() throws IOException {
         LinkedHashMap<String, String> result = new LinkedHashMap<>();
-//        try{
-            List<File> files = Files.walk(jsonsDirectory)
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().toLowerCase().endsWith(".json"))
-                    .map(Path::toFile).toList();
-            for(int i = 0; i < files.size(); i++){
-                result.put(files.get(i).getName().substring(0, files.get(i).getName().length() - 5) + ".sql", generateSqlFromJson(files.get(i)));
-            }
-//        }
-//        catch (IOException e){
-//            log.error("IOException happened while creating sqls from the json files for database");
-//            e.printStackTrace();
-//        }
+        List<File> files = Files.walk(jsonsDirectory)
+                .filter(Files::isRegularFile)
+                .filter(path -> path.toString().toLowerCase().endsWith(".json"))
+                .map(Path::toFile).toList();
+        for (int i = 0; i < files.size(); i++) {
+            result.put(files.get(i).getName().substring(0, files.get(i).getName().length() - 5) + ".sql", generateSqlFromJson(files.get(i)));
+        }
         return result;
     }
 
@@ -123,7 +114,7 @@ public class DataProvider {
     }
 
     public String generateSqlFromJson(File jsonFile) throws IOException {
-        try (FileReader reader = new FileReader(jsonFile)){
+        try (FileReader reader = new FileReader(jsonFile)) {
             JsonFile json = gson.fromJson(reader, JsonFile.class);
             return json.toSQL();
         }
@@ -153,7 +144,7 @@ public class DataProvider {
 
             List<File> requiredFiles = allFiles.stream()
                     .filter(file -> required.contains(file.getName())).toList();
-            for(int i = 0; i < requiredFiles.size(); i++){
+            for (int i = 0; i < requiredFiles.size(); i++) {
                 loadRequiredJsonAndSave(allFiles, requiredFiles.get(i));
             }
             saveJsonToDatabase(jsonFile);
@@ -164,7 +155,7 @@ public class DataProvider {
         EntityManagerFactory factory = em.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
         EntityTransaction entityTransaction = tempEm.getTransaction();
-        try (FileReader reader = new FileReader(jsonFile)){
+        try (FileReader reader = new FileReader(jsonFile)) {
             JsonFile json = gson.fromJson(reader, JsonFile.class);
             json.init();
             String sql = json.toSQL();
@@ -180,7 +171,7 @@ public class DataProvider {
         }
     }
 
-    private void resetIDSequences(){
+    private void resetIDSequences() {
         EntityManagerFactory factory = em.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
 
@@ -189,8 +180,8 @@ public class DataProvider {
         emt.begin();
         List<String> allSeq = tempEm.createNativeQuery("SELECT relname sequence_name FROM pg_class WHERE relkind = 'S'").getResultList();
 
-        for(String seq : allSeq) {
-            if(seq.split("_").length == 3){
+        for (String seq : allSeq) {
+            if (seq.split("_").length == 3) {
                 tempEm.createNativeQuery("ALTER SEQUENCE " + seq + " RESTART WITH 1").executeUpdate();
             }
         }
@@ -205,12 +196,11 @@ public class DataProvider {
         loaded.clear();
         em.clear();
         loadAllJsonAndSave();
-//        loaded = new ArrayList<>();
     }
 
-    private void deleteAllRecordsFromAllTable(){
+    private void deleteAllRecordsFromAllTable() {
         StringBuilder sql = new StringBuilder();
-        for(int i = 0; i < getTableNames().size(); i++){
+        for (int i = 0; i < getTableNames().size(); i++) {
             sql.append("TRUNCATE \"").append(getTableNames().get(i)).append("\" CASCADE; ");
         }
         executeSQL(sql.toString());
@@ -219,7 +209,7 @@ public class DataProvider {
     public void resetTable(File sql) throws IOException {
         String line;
         try (BufferedReader reader = new BufferedReader(new FileReader(sql))) {
-             line = reader.readLine();
+            line = reader.readLine();
         }
         System.out.println("line: " + line);
         String deleteSQL = "TRUNCATE " + JsonFile.fixObjectName(getTableNameFromInsert(line)).toLowerCase() + " CASCADE;";
@@ -235,7 +225,7 @@ public class DataProvider {
         return matcher.group(1);
     }
 
-    private List<String> getTableNames(){
+    private List<String> getTableNames() {
         EntityManagerFactory factory = em.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
         List<Object[]> tables = tempEm.createNativeQuery("SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'").getResultList();
@@ -247,7 +237,7 @@ public class DataProvider {
         return tableNames;
     }
 
-    public void executeSQL(String sql){
+    public void executeSQL(String sql) {
         EntityManagerFactory factory = em.getEntityManagerFactory();
         EntityManager tempEm = factory.createEntityManager();
         EntityTransaction entityTransaction = tempEm.getTransaction();
@@ -262,23 +252,28 @@ public class DataProvider {
     }
 
     @NoArgsConstructor
-//    @Getter
     public static class JsonFile {
         List<Map<String, Object>> data;
         String objectName;
         ArrayList<String> required;
 
         @PostConstruct
-        public void init(){
+        public void init() {
             this.objectName = fixObjectName(objectName);
         }
 
-        public static String fixObjectName(String objectName){
+        public static String fixObjectName(String objectName) {
             String fixedObjectName = "";
             switch (objectName) {
-                case "Order": fixedObjectName = "orders"; break;
-                case "User": fixedObjectName = "loginuser"; break;
-                default: fixedObjectName = objectName; break;
+                case "Order":
+                    fixedObjectName = "orders";
+                    break;
+                case "User":
+                    fixedObjectName = "loginuser";
+                    break;
+                default:
+                    fixedObjectName = objectName;
+                    break;
             }
             return fixedObjectName;
         }
@@ -290,8 +285,6 @@ public class DataProvider {
             List<String> valueRows = data.stream()
                     .map(obj -> buildValuesRow(obj, keys))
                     .collect(Collectors.toList());
-
-//            return (baseSql + String.join(",\n", valueRows)).replaceAll("'(\\d+)\\.0'", "'$1'");
             return (baseSql + String.join(",\n", valueRows)).replaceAll("'(-?\\d+)\\.0'", "'$1'");
         }
 
@@ -304,17 +297,14 @@ public class DataProvider {
         }
 
         private String formatValue(Object value, String key) {
-//            if (value instanceof LinkedTreeMap && ((LinkedTreeMap<?, ?>) value).containsKey("refClass")) {
-            if(value instanceof LinkedTreeMap) { //Az EMS-es JSON kötöttebb formátuma miatt mindig van benne refClass vagy date, hogyha LinkedTreeMap
-                LinkedTreeMap valueTreeMap = (LinkedTreeMap<?,?>) value;
-                if(valueTreeMap.containsKey("refClass")){
+            if (value instanceof LinkedTreeMap) { //Az EMS-es JSON kötöttebb formátuma miatt mindig van benne refClass vagy date, hogyha LinkedTreeMap
+                LinkedTreeMap valueTreeMap = (LinkedTreeMap<?, ?>) value;
+                if (valueTreeMap.containsKey("refClass")) {
                     return generateSelectSQLQuery((LinkedTreeMap<String, Object>) value, key);
-                }
-                else { //original: valueTreeMap.containsKey("date")
+                } else { //original: valueTreeMap.containsKey("date")
                     return "date('" + ((LinkedTreeMap<?, ?>) value).get("date") + "')";
                 }
-            }
-            else{
+            } else {
                 return value == null ? "NULL" : "'" + value.toString().replace("'", "\\u0027") + "'";
             }
         }
@@ -335,8 +325,8 @@ public class DataProvider {
         }
 
 
-        protected void setPrimaryKeyStartIfRequired(EntityManager em){
-            if(data.get(0).keySet().contains("id")){
+        protected void setPrimaryKeyStartIfRequired(EntityManager em) {
+            if (data.get(0).keySet().contains("id")) {
                 List<Long> allIds = data.stream().map(v -> ((Double) Double.parseDouble(v.get("id").toString())).longValue()).toList();
                 Long lastId = allIds.stream()
                         .mapToLong(v -> v)

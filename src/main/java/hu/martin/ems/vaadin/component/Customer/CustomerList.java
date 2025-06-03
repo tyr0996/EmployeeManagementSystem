@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.Customer;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -12,13 +11,11 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
@@ -49,7 +46,6 @@ import java.util.stream.Stream;
 
 @CssImport("./styles/ButtonVariant.css")
 @CssImport("./styles/grid.css")
-//@AnonymousAllowed
 @RolesAllowed("ROLE_CustomerMenuOpenPermission")
 @Route(value = "customer/list", layout = MainView.class)
 @NeedCleanCoding
@@ -59,7 +55,6 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
     private AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
     @Getter
     private PaginatedGrid<CustomerVO, String> grid;
-    private final PaginationSetting paginationSetting;
     List<Customer> customers;
     List<CustomerVO> customerVOS;
 
@@ -79,24 +74,17 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
     private Logger logger = LoggerFactory.getLogger(Customer.class);
 
     List<Address> addressList;
-    private MainView mainView;
 
     @Autowired
     public CustomerList(PaginationSetting paginationSetting) {
-        this.paginationSetting = paginationSetting;
         CustomerVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(CustomerVO.class);
-//        setupCustomers();
-
-//        List<CustomerVO> data = customers.stream().map(CustomerVO::new).collect(Collectors.toList());
 
         addressColumn = this.grid.addColumn(v -> v.address);
         emailColumn = this.grid.addColumn(v -> v.email);
         firstNameColumn = this.grid.addColumn(v -> v.firstName);
         lastNameColumn = this.grid.addColumn(v -> v.lastName);
-
-//        this.grid.setItems(data);
 
         grid.addClassName("styling");
         grid.setPartNameGenerator(customerVO -> customerVO.deleted != 0 ? "deleted" : null);
@@ -127,7 +115,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.customerApi.delete(customerVO.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("Customer deleted: " + customerVO.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -152,9 +140,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
             HorizontalLayout actions = new HorizontalLayout();
             if (customerVO.deleted == 0) {
                 actions.add(editButton, deleteButton);
-            }
-            else{
-                //} else if (customerVO.deleted == 1) {
+            } else {
                 actions.add(permanentDeleteButton, restoreButton);
             }
             return actions;
@@ -176,9 +162,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             CustomerVO.showDeletedCheckboxFilter.replace("deleted", newValue);
 
-//            setupCustomers();
-//            customerVOS = customers.stream().map(CustomerVO::new).collect(Collectors.toList());
-            if(customers == null){
+            if (customers == null) {
                 customers = new ArrayList<>();
             }
             updateGridItems();
@@ -193,7 +177,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
 
     private void setupCustomers() {
         EmsResponse response = customerApi.findAllWithDeleted();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 customers = (List<Customer>) response.getResponseData();
                 break;
@@ -206,28 +190,19 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
 
     private Stream<CustomerVO> getFilteredStream() {
         return customerVOS.stream().filter(customerVO ->
-                (addressFilter.isEmpty() || customerVO.address.toLowerCase().contains(addressFilter.getFilterText().toLowerCase())) &&
-                (emailFilter.isEmpty() || customerVO.email.toLowerCase().contains(emailFilter.getFilterText().toLowerCase())) &&
-                (firstNameFilter.isEmpty() || customerVO.firstName.toLowerCase().contains(firstNameFilter.getFilterText().toLowerCase())) &&
-                (lastNameFilter.isEmpty() || customerVO.lastName.toLowerCase().contains(lastNameFilter.getFilterText().toLowerCase())) &&
-                customerVO.filterExtraData()
-            );
+                filterField(addressFilter, customerVO.address) &&
+                filterField(emailFilter, customerVO.email) &&
+                filterField(firstNameFilter, customerVO.firstName) &&
+                filterField(lastNameFilter, customerVO.lastName) &&
+                customerVO.filterExtraData());
+//                (addressFilter.isEmpty() || customerVO.address.toLowerCase().contains(addressFilter.getFilterText().toLowerCase())) &&
+//                (emailFilter.isEmpty() || customerVO.email.toLowerCase().contains(emailFilter.getFilterText().toLowerCase())) &&
+//                (firstNameFilter.isEmpty() || customerVO.firstName.toLowerCase().contains(firstNameFilter.getFilterText().toLowerCase())) &&
+//                (lastNameFilter.isEmpty() || customerVO.lastName.toLowerCase().contains(lastNameFilter.getFilterText().toLowerCase())) &&
+//                customerVO.filterExtraData()
     }
 
-    private Component filterField(TextField filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
-
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         addressFilter = new TextFilteringHeaderCell("Search address...", this);
         emailFilter = new TextFilteringHeaderCell("Search email...", this);
         firstNameFilter = new TextFilteringHeaderCell("Search first name...", this);
@@ -235,10 +210,9 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 CustomerVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 CustomerVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -246,28 +220,26 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
             updateGridItems();
         });
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
-        HeaderRow filterRow = grid.appendHeaderRow();;
-        filterRow.getCell(addressColumn).setComponent(filterField(addressFilter, "Address"));
-        filterRow.getCell(emailColumn).setComponent(filterField(emailFilter, "Email"));
-        filterRow.getCell(firstNameColumn).setComponent(filterField(firstNameFilter, "First name"));
-        filterRow.getCell(lastNameColumn).setComponent(filterField(lastNameFilter, "Last name"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
+        HeaderRow filterRow = grid.appendHeaderRow();
+        filterRow.getCell(addressColumn).setComponent(styleFilterField(addressFilter, "Address"));
+        filterRow.getCell(emailColumn).setComponent(styleFilterField(emailFilter, "Email"));
+        filterRow.getCell(firstNameColumn).setComponent(styleFilterField(firstNameFilter, "First name"));
+        filterRow.getCell(lastNameColumn).setComponent(styleFilterField(lastNameFilter, "Last name"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
     public void updateGridItems() {
         customers = new ArrayList<>();
         setupCustomers();
-        if(customers != null){
+        if (customers != null) {
             customerVOS = customers.stream().map(CustomerVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
-        }
-        else{
+        } else {
             Notification.show("EmsError happened while getting customers").addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -290,11 +262,10 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
         ComboBox<Address> addresses = new ComboBox<>("Address");
         ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(addressList != null){
+        if (addressList != null) {
             addresses.setItems(addressFilter, addressList);
             addresses.setItemLabelGenerator(Address::getName);
-        }
-        else{
+        } else {
             addresses.setEnabled(false);
             addresses.setInvalid(true);
             addresses.setErrorMessage("EmsError happened while getting addresses");
@@ -307,7 +278,6 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
         emailField.setManualValidation(true);
         emailField.setErrorMessage("Enter a valid email address");
         emailField.setClearButtonVisible(true);
-
 
 
         if (entity != null) {
@@ -325,20 +295,19 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
             customer.setEmailAddress(emailField.getValue());
             customer.setDeleted(0L);
             EmsResponse response;
-            if(entity != null){
+            if (entity != null) {
                 response = customerApi.update(customer);
-            }
-            else{
+            } else {
                 response = customerApi.save(customer);
             }
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200: {
                     Notification.show("Customer " + (entity == null ? "saved: " : "updated: ") + ((Customer) response.getResponseData()).getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
                 }
                 default: {
-                    Notification.show("Customer " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    Notification.show("Customer " + (entity == null ? "saving " : "modifying ") + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
                     return;
@@ -360,7 +329,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
 
     private void setupAddresses() {
         EmsResponse emsResponse = addressApi.findAll();
-        switch (emsResponse.getCode()){
+        switch (emsResponse.getCode()) {
             case 200:
                 addressList = (List<Address>) emsResponse.getResponseData();
                 break;

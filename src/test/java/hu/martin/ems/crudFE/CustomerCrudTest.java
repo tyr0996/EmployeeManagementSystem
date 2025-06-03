@@ -20,7 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -197,7 +198,6 @@ public class CustomerCrudTest extends BaseCrudTest {
     public void unexpectedResponseCodeWhenFindAllCustomer() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
         MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
@@ -240,7 +240,7 @@ public class CustomerCrudTest extends BaseCrudTest {
     }
 
     @AfterMethod
-    public void afterMethod(){
+    public void afterMethod() {
         resetMock();
         resetCustomers();
     }

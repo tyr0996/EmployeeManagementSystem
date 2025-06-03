@@ -20,7 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CityCrudTest extends BaseCrudTest {
@@ -65,7 +66,6 @@ public class CityCrudTest extends BaseCrudTest {
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
-//        assertThat(testResult.getNotificationWhenPerform()).contains("City deleted: ");
 
         cityPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
         assertEquals(1, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
@@ -126,7 +126,6 @@ public class CityCrudTest extends BaseCrudTest {
         CityPage cityPage = new CityPage(driver, port);
         DoPermanentlyDeleteTestData testResult = cityPage.doPermanentlyDeleteTest();
         assertThat(testResult.getNotificationWhenPerform()).contains("City permanently deleted: ");
-
 
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
@@ -232,7 +231,6 @@ public class CityCrudTest extends BaseCrudTest {
     public void databaseNotAvailableWhenSetupCities() throws SQLException {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 0);
         MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(0, 1, 2));
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 

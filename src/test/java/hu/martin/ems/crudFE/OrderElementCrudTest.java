@@ -3,9 +3,6 @@ package hu.martin.ems.crudFE;
 import com.automation.remarks.testng.UniversalVideoListener;
 import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
-import hu.martin.ems.UITests.UIXpaths;
-import hu.martin.ems.base.CrudTestingUtil;
-import hu.martin.ems.base.GridTestingUtil;
 import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.pages.AdminToolsPage;
 import hu.martin.ems.pages.LoginPage;
@@ -16,15 +13,12 @@ import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.OrderElementSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 import java.sql.SQLException;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -37,30 +31,13 @@ import static org.testng.Assert.assertNull;
 @Listeners(UniversalVideoListener.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderElementCrudTest extends BaseCrudTest {
-    private static CrudTestingUtil crudTestingUtil;
-    private static WebDriverWait notificationDisappearWait;
 
     public static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
     public static final String gridXpath = contentXpath + "/vaadin-grid";
     public static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
 
-    private static final String mainMenu = UIXpaths.ORDERS_MENU;
-    private static final String subMenu = UIXpaths.ORDER_ELEMENT_SUBMENU;
-
-    private GridTestingUtil gridTestingUtil;
-
-    private OrderCreateToCustomerTest orderCreateTest;
-
-    @BeforeClass
-    public void setup() {
-        gridTestingUtil = new GridTestingUtil(driver);
-        crudTestingUtil = new CrudTestingUtil(gridTestingUtil, driver, "OrderElement", showDeletedCheckBoxXpath, gridXpath, createButtonXpath);
-        notificationDisappearWait = new WebDriverWait(driver, Duration.ofMillis(5000));
-        orderCreateTest = new OrderCreateToCustomerTest();
-    }
-
     @Test
-    public void createOrderElementForBothCustomerAndSupplier(){
+    public void createOrderElementForBothCustomerAndSupplier() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
@@ -125,27 +102,17 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         OrderElementPage page = new OrderElementPage(driver, port);
 
-
-
-
-
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
         List<String[]> allFullLines = page.getGrid().getAllFullLines(true);
         List<String[]> allNonOrderedLines = page.getGrid().getAllLackingLines(true);
-        while(allFullLines.size() == 0){
+        while (allFullLines.size() == 0) {
             loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
             OrderCreateToCustomerPage orderCreateToCustomerPage = new OrderCreateToCustomerPage(driver, port);
             orderCreateToCustomerPage.performCreate(null);
             loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
             allFullLines = page.getGrid().getAllFullLines(true);
-
-//            orderCreateTest.createOrder();
-//            gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//            allFullLines = crudTestingUtil.getAllDataLinesFull();
         }
 
-        while(allNonOrderedLines.size() == 0) {
+        while (allNonOrderedLines.size() == 0) {
             page.performCreate(null);
             allNonOrderedLines = page.getGrid().getAllLackingLines(true);
         }
@@ -167,11 +134,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         sa.assertAll();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
-
-//        assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
-//        assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
-//        assertNull(testResult.getNotificationWhenPerform());
-//        crudTestingUtil.readTest(allNonOrderedLines.get(0), null, false, null);
     }
 
     @Test
@@ -187,8 +149,8 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         SoftAssert sa = new SoftAssert();
 
-        sa.assertEquals((int)testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
-        sa.assertEquals((int)testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
+        sa.assertEquals((int) testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
+        sa.assertEquals((int) testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
         sa.assertTrue(testResult.getNotificationWhenPerform().contains("OrderElement deleted: "));
 
         page.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
@@ -198,12 +160,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
         sa.assertNull(VaadinNotificationComponent.hasNotification(driver));
 
         sa.assertAll();
-
-//
-//
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        crudTestingUtil.deleteTest();
     }
 
 
@@ -267,13 +223,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         sa.assertAll();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
-//
-//
-//
-//
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        crudTestingUtil.restoreTest();
     }
 
     @Test
@@ -291,8 +240,8 @@ public class OrderElementCrudTest extends BaseCrudTest {
         sa.assertTrue(testResult.getNotificationWhenPerform().contains("OrderElement permanently deleted: "));
 
 
-        sa.assertEquals((int)testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
-        sa.assertEquals((int)testResult.getNonDeletedRowNumberAfterMethod(), (int)testResult.getOriginalNonDeletedRowNumber());
+        sa.assertEquals((int) testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
+        sa.assertEquals((int) testResult.getNonDeletedRowNumberAfterMethod(), (int) testResult.getOriginalNonDeletedRowNumber());
         page.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
         sa.assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
         sa.assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
@@ -311,21 +260,10 @@ public class OrderElementCrudTest extends BaseCrudTest {
         sa.assertAll();
     }
 
-//    //@Test
-//    public void extraFilterInvalidValue() throws InterruptedException {
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        NotificationCheck nc = new NotificationCheck();
-//        nc.setAfterFillExtraDataFilter("Invalid json in extra data filter field!");
-//        crudTestingUtil.readTest(new String[0], "{invalid json}", true, nc);
-//    }
-
-
     @Test
     public void findAllOrderElementWithDeletedFailedButWithoutIsSuccess() throws SQLException {
         SoftAssert sa = new SoftAssert();
-//        MockingUtil.mockDatabaseNotAvailableAfter(spyDataSource, 3);
-        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(3,4));
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(3, 4));
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
@@ -396,14 +334,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(notification.getText(), "EmsError happened while getting suppliers");
         notification.close();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
-
-////        Mockito.doReturn(null).when(spySupplierService).findAll(false);//Controllerben alapértelmezett
-//        gridTestingUtil.mockDatabaseNotAvailableOnlyOnce(getClass(), spyDataSource, 5);
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        LinkedHashMap<String, String> failedFieldData = new LinkedHashMap<>();
-//        failedFieldData.put("Supplier", "");
-//        crudTestingUtil.createUnexpectedResponseCodeWhileGettingData(null, failedFieldData);
     }
 
     @Test
@@ -434,7 +364,8 @@ public class OrderElementCrudTest extends BaseCrudTest {
         OrderElementPage page = new OrderElementPage(driver, port);
         page.getCreateButton().click();
         OrderElementSaveOrUpdateDialog dialog = new OrderElementSaveOrUpdateDialog(driver);
-        dialog.initWebElements();assertEquals(dialog.getFailedComponents().size(), 1);
+        dialog.initWebElements();
+        assertEquals(dialog.getFailedComponents().size(), 1);
         assertEquals(dialog.getFailedComponents().get(0).getErrorMessage(), "EmsError happened while getting products");
         assertEquals(dialog.getFailedComponents().get(0).getFieldTitle(), "Product");
         dialog.close();
@@ -455,12 +386,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saving failed: Database error");
         assertEquals(0, testResult.getResult().getFailedFields().size());
         assertNull(VaadinNotificationComponent.hasNotification(driver));
-
-
-
-//        gridTestingUtil.loginWith(driver, port, "admin", "29b{}'f<0V>Z");
-//        gridTestingUtil.navigateMenu(mainMenu, subMenu);
-//        crudTestingUtil.databaseUnavailableWhenSaveEntity(this, spyDataSource, null, null, 0);
     }
 
     @Test

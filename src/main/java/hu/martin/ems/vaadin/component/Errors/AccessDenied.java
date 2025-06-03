@@ -23,7 +23,7 @@ public class AccessDenied extends VerticalLayout implements HasErrorParameter<Ac
         setJustifyContentMode(JustifyContentMode.CENTER);
     }
 
-    private Div getNormalMessage(){
+    private Div getNormalMessage() {
         Div normalMessage = new Div();
         normalMessage.setText("You don't have permission to perform this action!");
         normalMessage.getStyle().set("color", "red")
@@ -35,14 +35,14 @@ public class AccessDenied extends VerticalLayout implements HasErrorParameter<Ac
         return normalMessage;
     }
 
-    private Div getPermissionMessage(){
+    private Div getPermissionMessage() {
         Div permissionMessage = new Div();
         permissionMessage.setText("Try to get permission from your boss!");
         permissionMessage.getStyle().set("color", "blue").set("font-size", "35px").set("font-style", "italic");
         return permissionMessage;
     }
 
-    private Div getCoffeMessage(){
+    private Div getCoffeMessage() {
         Div coffeeMessage = new Div();
         coffeeMessage.setText("While you wait, take a coffee break.");
         coffeeMessage.getStyle().set("color", "blue").set("font-size", "35px").set("font-style", "italic");
@@ -54,7 +54,7 @@ public class AccessDenied extends VerticalLayout implements HasErrorParameter<Ac
         return HttpServletResponse.SC_FORBIDDEN;
     }
 
-    private Image getCatImage(){
+    private Image getCatImage() {
         Image catImage = new Image("https://i.pinimg.com/236x/b5/15/95/b51595de229aaa7712279a7653c307f0.jpg", "Angry cat");
         return catImage;
     }

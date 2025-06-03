@@ -46,7 +46,7 @@ public class EmployeeSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     }
 
     @Override
-    public void setAllComponents(){
+    public void setAllComponents() {
         allComponent.add(firstNameInputComponent);
         allComponent.add(lastNameInputComponent);
         allComponent.add(salaryInputComponent);

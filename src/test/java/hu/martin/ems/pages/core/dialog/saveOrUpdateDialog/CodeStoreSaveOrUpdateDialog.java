@@ -16,12 +16,12 @@ public class CodeStoreSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     private VaadinDropdownComponent parentDropdown;
     private VaadinCheckboxComponent deletableCheckbox;
 
-    public CodeStoreSaveOrUpdateDialog(WebDriver driver){
+    public CodeStoreSaveOrUpdateDialog(WebDriver driver) {
         super(driver);
     }
 
     @Override
-    public void initWebElements(){
+    public void initWebElements() {
         super.initWebElements();
         nameTextField = new VaadinTextInputComponent(getDriver(), By.xpath(nameTextFieldXpath));
         parentDropdown = new VaadinDropdownComponent(getDriver(), By.xpath(parentDropdownXpath));
@@ -31,7 +31,7 @@ public class CodeStoreSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     }
 
     @Override
-    public void setAllComponents(){
+    public void setAllComponents() {
         this.allComponent.clear();
 
         this.allComponent.add(nameTextField);

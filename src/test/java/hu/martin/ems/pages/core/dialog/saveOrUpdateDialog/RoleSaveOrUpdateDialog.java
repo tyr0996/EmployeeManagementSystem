@@ -12,14 +12,16 @@ public class RoleSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
 
     private static final String permissionsComboBoxXpath = dialogXpath + "/vaadin-form-layout/vaadin-multi-select-combo-box";
 
-    @Getter private VaadinTextInputComponent nameField;
-    @Getter private VaadinMultipleSelectDropdownComponent permissionsComboBox;
+    @Getter
+    private VaadinTextInputComponent nameField;
+    @Getter
+    private VaadinMultipleSelectDropdownComponent permissionsComboBox;
 
     public RoleSaveOrUpdateDialog(WebDriver driver) {
         super(driver);
     }
 
-    public void initWebElements(){
+    public void initWebElements() {
         super.initWebElements();
 
         nameField = new VaadinTextInputComponent(getDriver(), By.xpath(nameTextFieldXpath));

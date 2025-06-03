@@ -16,7 +16,7 @@ public class CustomerPage extends SimpleVaadinGridPage<CustomerPage> implements 
     }
 
     @Override
-    public CustomerPage initWebElements(){
+    public CustomerPage initWebElements() {
 
         this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
         this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));

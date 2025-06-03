@@ -13,16 +13,19 @@ public class Product_SellingDialog extends VaadinDialogComponent {
     private static final String quantityNumberFieldXpath = dialogXpath + "/vaadin-form-layout/vaadin-number-field";
     private static final String sellButtonXpath = dialogXpath + "/vaadin-form-layout/vaadin-button";
 
-    @Getter private VaadinDropdownComponent customerComboBox;
-    @Getter private VaadinNumberInputComponent quantity;
-    @Getter private VaadinButtonComponent sellButton;
+    @Getter
+    private VaadinDropdownComponent customerComboBox;
+    @Getter
+    private VaadinNumberInputComponent quantity;
+    @Getter
+    private VaadinButtonComponent sellButton;
 
     public Product_SellingDialog(WebDriver driver) {
         super(driver, By.xpath(dialogXpath));
     }
 
     @Override
-    public void initWebElements(){
+    public void initWebElements() {
         super.initWebElements();
 
         customerComboBox = new VaadinDropdownComponent(getDriver(), By.xpath(customerComboBoxXpath));

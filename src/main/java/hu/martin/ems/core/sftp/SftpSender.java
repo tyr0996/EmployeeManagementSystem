@@ -19,15 +19,14 @@ public class SftpSender {
     private JschConfig jschConfig;
     private final Logger logger = LoggerFactory.getLogger(SftpSender.class);
 
-    public boolean send(byte[] data, String fileName){
+    public boolean send(byte[] data, String fileName) {
         try {
             ByteArrayInputStream inputStream = createInputStreamFromByteArray(data);
             jschConfig.connect();
             jschConfig.getChannelSftp().put(inputStream, fileName);
             jschConfig.disconnect();
             return true;
-        } catch (SftpException e){
-//            jschConfig.getChannelSftp().disconnect();
+        } catch (SftpException e) {
             logger.error("EmsError occurred while uploading file!");
             jschConfig.disconnect();
             return false;
@@ -42,11 +41,3 @@ public class SftpSender {
         return new ByteArrayInputStream(data);
     }
 }
-
-//        finally{
-////            if(jschConfig.getChannelSftp() != null && jschConfig.getChannelSftp().isConnected()){
-//            System.out.println("SFTP sender finally: " + (jschConfig.getChannelSftp() != null));
-//            if(jschConfig.getChannelSftp() != null) {
-//                jschConfig.getChannelSftp().disconnect();
-//            }
-//        }

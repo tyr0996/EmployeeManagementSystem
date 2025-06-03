@@ -15,32 +15,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class VaadinDropdownComponent extends VaadinFillableComponent implements SingleFillable<VaadinDropdownComponent, String> {
 
-    @Getter protected WebElement toggleButton;
-    @Getter private Boolean isHeaderField;
+    @Getter
+    protected WebElement toggleButton;
+    @Getter
+    private Boolean isHeaderField;
 
     public VaadinDropdownComponent(WebDriver driver, By provider) {
         this(driver, provider, false);
     }
 
-    public VaadinDropdownComponent(WebDriver driver, By provider, boolean isHeaderField){
+    public VaadinDropdownComponent(WebDriver driver, By provider, boolean isHeaderField) {
         super(driver, provider);
         this.isHeaderField = isHeaderField;
         initWebElements();
     }
 
-    public VaadinDropdownComponent(WebDriver driver, WebElement parent, By provider, int index){
+    public VaadinDropdownComponent(WebDriver driver, WebElement parent, By provider, int index) {
         super(driver, parent, provider, index);
         initWebElements();
     }
 
-    public String getSelectedElement(){
+    public String getSelectedElement() {
         Object selectedElement = ((JavascriptExecutor) getDriver()).executeScript("return arguments[0].selectedItem ? arguments[0].selectedItem.label : null", element);
         return selectedElement.toString();
     }
 
-    public void initWebElements(){
+    public void initWebElements() {
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
-        if(!element.getTagName().equals("vaadin-combo-box")){
+        if (!element.getTagName().equals("vaadin-combo-box")) {
 //            printToConsole();
             throw new IllegalArgumentException("Can't create ComboBox from an " + element.getTagName() + "!");
         }
@@ -49,7 +51,7 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
         assert toggleButton != null;
     }
 
-    public int getElementNumber(){
+    public int getElementNumber() {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         var a = js.executeScript("return Array.from(arguments)[0].__data.filteredItems.length", element);
 //        System.out.println("sanyi");
@@ -64,7 +66,7 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
 //        return driver.findElements(By.cssSelector("vaadin-combo-box-item")).size();
     }
 
-    public void fillWith(int index){
+    public void fillWith(int index) {
         assert this.isEnabled() : "The combo box is not enabled: " + element.getText();
 
         element.click();
@@ -75,15 +77,14 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
         }
         List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
         int i = 0;
-        if(comboBoxOptions.size() == 0){
+        if (comboBoxOptions.size() == 0) {
             System.err.println("Nincs elem a combo boxban! " + getTitle());
             element.click();
             fillWith(index);
         }
-        if(comboBoxOptions.size() == 1){
+        if (comboBoxOptions.size() == 1) {
             comboBoxOptions.get(0).click();
-        }
-        else {
+        } else {
             JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
             jsExecutor.executeScript("arguments[0].click();", comboBoxOptions.get(index));
         }
@@ -101,17 +102,16 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
         List<WebElement> comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(getScope(), By.cssSelector("vaadin-combo-box-item")));
 //        List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-combo-box-item"));
         int i = 0;
-        if(comboBoxOptions.size() == 0){
+        if (comboBoxOptions.size() == 0) {
             System.err.println("Nincs elem a combo boxban! " + getTitle());
             element.click();
 //            printToConsole(comboBox);
         }
-        if(comboBoxOptions.size() == 1){
+        if (comboBoxOptions.size() == 1) {
             comboBoxOptions.get(0).click();
             this.waitForRefresh();
             return this;
-        }
-        else {
+        } else {
             Random rnd = new Random();
             Integer selectedIndex = rnd.nextInt(0, comboBoxOptions.size() - 1);
             JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
@@ -122,7 +122,7 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
     }
 
     @Override
-    public void clear(){
+    public void clear() {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].selectedItem=''", element);
         element.sendKeys(Keys.ENTER);
@@ -139,7 +139,7 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
     @Override
     public VaadinDropdownComponent fillWith(@Nullable String value) {
         assertTrue(this.isEnabled(), "The combo box is not enabled: " + element.getText());
-        if(value == null || value.equals("")){
+        if (value == null || value.equals("")) {
             return this;
         }
         element.click();
@@ -150,7 +150,7 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
         }
         List<WebElement> comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector("vaadin-combo-box-item")));
         List<WebElement> filtered = comboBoxOptions.stream().filter(v -> v.getText().equals(value)).toList();
-        if(filtered.size() == 0){
+        if (filtered.size() == 0) {
             String elements = String.join(", ", comboBoxOptions.stream().map(v -> v.getText()).toList()).toString();
             throw new NoSuchElementException("Element " + value + " not found in " + element.getText() + ". Elements: " + elements);
         }
@@ -160,10 +160,9 @@ public class VaadinDropdownComponent extends VaadinFillableComponent implements 
 
     @Override
     public String getTitle() {
-        if(isHeaderField){
+        if (isHeaderField) {
             return getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(getParentWebElement(element), By.xpath("./label"))).get(0).getText();
-        }
-        else {
+        } else {
             return super.getTitle();
         }
     }

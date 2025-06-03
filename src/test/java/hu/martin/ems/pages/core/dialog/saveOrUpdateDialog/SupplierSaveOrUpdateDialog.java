@@ -10,14 +10,17 @@ public class SupplierSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     private static final String nameFieldXpath = "/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-text-field";
     private static final String addressXpath = "/html/body/vaadin-dialog-overlay/vaadin-form-layout/vaadin-combo-box[1]";
 
-    @Getter private VaadinTextInputComponent nameComponent;
-    @Getter private VaadinDropdownComponent addressComponent;
+    @Getter
+    private VaadinTextInputComponent nameComponent;
+    @Getter
+    private VaadinDropdownComponent addressComponent;
+
     public SupplierSaveOrUpdateDialog(WebDriver driver) {
         super(driver);
     }
 
     @Override
-    public void initWebElements(){
+    public void initWebElements() {
         super.initWebElements();
         nameComponent = new VaadinTextInputComponent(getDriver(), By.xpath(nameFieldXpath));
         addressComponent = new VaadinDropdownComponent(getDriver(), By.xpath(addressXpath));
@@ -26,7 +29,7 @@ public class SupplierSaveOrUpdateDialog extends VaadinSaveOrUpdateDialog {
     }
 
     @Override
-    public void setAllComponents(){
+    public void setAllComponents() {
         this.allComponent.add(nameComponent);
         this.allComponent.add(addressComponent);
     }

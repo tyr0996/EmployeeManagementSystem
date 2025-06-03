@@ -20,13 +20,13 @@ public class AdminToolsPage extends EmptyLoggedInVaadinPage implements ILoggedIn
     @Getter
     private VaadinParagraphComponent healthStatus;
 
-    public AdminToolsPage(WebDriver driver, int port){
+    public AdminToolsPage(WebDriver driver, int port) {
         super(driver, port);
         initWebElements();
     }
 
     @Override
-    public AdminToolsPage initWebElements(){
+    public AdminToolsPage initWebElements() {
         clearDatabaseButton = new VaadinButtonComponent(getDriver(), By.xpath(clearDatabaseButtonXpath));
         exportApisButton = new VaadinButtonComponent(getDriver(), By.xpath(exportApisButtonXpath));
         healthStatus = new VaadinParagraphComponent(getDriver(), By.xpath(healthStatusXpath));

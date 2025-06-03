@@ -21,8 +21,8 @@ public interface OrderElementRepository extends BaseRepository<OrderElement, Lon
 
     @Modifying
     @Query("UPDATE OrderElement oe " +
-           "SET oe.deleted = 2 " +
-           "WHERE oe.orderObject.id = :orderId")
+            "SET oe.deleted = 2 " +
+            "WHERE oe.orderObject.id = :orderId")
     void customPermanentlyDeleteByOrder(@Param("orderId") Long orderId);
 
     @Query("SELECT oe FROM OrderElement oe " +

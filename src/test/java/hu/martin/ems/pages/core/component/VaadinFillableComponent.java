@@ -15,17 +15,17 @@ public abstract class VaadinFillableComponent extends VaadinBaseComponent implem
         super(driver, scope, provider, index);
     }
 
-    public String getTitle(){
+    public String getTitle() {
         return element.findElement(By.tagName("label")).getText();
     }
 
 
-    public String getErrorMessage(){
+    public String getErrorMessage() {
 //        printToConsole(element.findElement(By.tagName("div")));
         return element.findElement(By.tagName("div")).getText();
     }
 
-    public void clear(){
+    public void clear() {
         element.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
     }
 }

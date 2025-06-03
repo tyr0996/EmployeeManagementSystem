@@ -16,24 +16,23 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
         super(driver, provider);
     }
 
-    public VaadinMultipleSelectDropdownComponent(WebDriver driver, WebElement scope, By provider, int index){
+    public VaadinMultipleSelectDropdownComponent(WebDriver driver, WebElement scope, By provider, int index) {
         super(driver, scope, provider, index);
     }
 
     private WebElement clearButton;
 
     @Override
-    public void initWebElements(){
+    public void initWebElements() {
         initToggleButton();
         initClearButton();
     }
 
-    private void initClearButton(){
+    private void initClearButton() {
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
-        if(!element.getTagName().equals("input")){
+        if (!element.getTagName().equals("input")) {
             this.clearButton = (WebElement) js.executeScript("return arguments[0].querySelector('div').querySelector('vaadin-multi-select-combo-box-internal').querySelector('vaadin-multi-select-combo-box-container').querySelectorAll('div')[1]", element.getShadowRoot());
-        }
-        else{
+        } else {
             this.clearButton = (WebElement) js.executeScript(
                     "return document.evaluate('/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[2]/vaadin-vertical-layout/vaadin-multi-select-combo-box', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue"
                             + ".shadowRoot.querySelector('div')"
@@ -43,15 +42,14 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
         }
     }
 
-    private void initToggleButton(){
+    private void initToggleButton() {
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
 
 //        printToConsole(element);
 //        System.out.println(element.getTagName());
-        if(!element.getTagName().equals("input")){
+        if (!element.getTagName().equals("input")) {
             this.toggleButton = (WebElement) js.executeScript("return arguments[0].querySelector('div').querySelector('vaadin-multi-select-combo-box-internal').querySelector('vaadin-multi-select-combo-box-container').querySelectorAll('div')[2]", element.getShadowRoot());
-        }
-        else{
+        } else {
             this.toggleButton = (WebElement) js.executeScript(
                     "return document.evaluate('/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[2]/vaadin-vertical-layout/vaadin-multi-select-combo-box', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue"
                             + ".shadowRoot.querySelector('div')"
@@ -71,7 +69,7 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
     }
 
 
-    public void deselectAll(){
+    public void deselectAll() {
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
         js.executeScript("arguments[0].click()", clearButton);
 //        initClearButton();
@@ -115,20 +113,19 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
         }
         List<WebElement> comboBoxOptions = driver.findElements(By.cssSelector("vaadin-multi-select-combo-box-item"));
         int i = 0;
-        if(comboBoxOptions.size() == 0){
+        if (comboBoxOptions.size() == 0) {
             System.err.println("Nincs elem a multiple select combo boxban! ");
             toggleButton.click();
             return this;
 //            printToConsole(comboBox);
         }
 
-        if(comboBoxOptions.size() == 1){
+        if (comboBoxOptions.size() == 1) {
             comboBoxOptions.get(0).click();
             toggleButton.click();
             return this;
 //            return comboBoxOptions.get(0).getText();
-        }
-        else {
+        } else {
             Random rnd = new Random();
             Integer selectedIndex = rnd.nextInt(0, comboBoxOptions.size() - 1);
             JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
@@ -145,8 +142,8 @@ public class VaadinMultipleSelectDropdownComponent extends VaadinDropdownCompone
         getToggleButton().click();
 //        scrollDown(5000);
 //        waitForRefresh();
-        for(int i = 0; i < elements.length; i++){
-            if(!elements[i].equals("")){
+        for (int i = 0; i < elements.length; i++) {
+            if (!elements[i].equals("")) {
                 element.sendKeys(elements[i]);
                 this.waitForRefresh();
                 WebElement comboBoxOptions = getWait().until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("vaadin-multi-select-combo-box-item")));

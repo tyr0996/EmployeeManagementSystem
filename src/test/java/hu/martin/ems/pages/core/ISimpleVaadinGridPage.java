@@ -21,11 +21,14 @@ public interface ISimpleVaadinGridPage<T> extends ILoggedInPage<T> {
     T initWebElements();
 
     VaadinCheckboxComponent getShowDeletedCheckBox();
+
     VaadinButtonComponent getCreateButton();
+
     VaadinGridComponent getGrid();
 
 
     PerformCreateResult performCreate(LinkedHashMap<String, Object> withData);
+
     PerformDeleteResult performDelete();
 
     PerformRestoreFailedResult performRestoreFailed(DataSource spyDataSource) throws SQLException;
@@ -49,16 +52,20 @@ public interface ISimpleVaadinGridPage<T> extends ILoggedInPage<T> {
     DoUpdateTestData doUpdateTest(LinkedHashMap<String, Object> withData1, LinkedHashMap<String, Object> withData2);
 
     DoDeleteTestData doDeleteTest();
+
     DoDeleteTestData doDeleteTest(LinkedHashMap<String, Object> withDataCreate);
 
     DoRestoreFailedTestData doRestoreFailedTest(DataSource spyDataSource) throws SQLException;
 
     DoRestoreTestData doRestoreTest();
+
     DoPermanentlyDeleteTestData doPermanentlyDeleteTest();
+
     DoReadTestData doReadTest(String extraDataFilter, boolean withInDeleted);
 
 
     DoFailedTestData doDatabaseNotAvailableWhenCreateTest(DataSource spyDatasource) throws SQLException;
+
     DoDeleteFailedTestData doDatabaseNotAvailableWhenDeleteTest(DataSource spyDatasource) throws SQLException;
 
     DoCreateFailedTestData doDatabaseNotAvailableWhenCreateTest(LinkedHashMap<String, Object> withData, DataSource spyDatasource) throws SQLException;
@@ -66,6 +73,7 @@ public interface ISimpleVaadinGridPage<T> extends ILoggedInPage<T> {
     DoUpdateFailedTestData doDatabaseNotAvailableWhenUpdateTest(LinkedHashMap<String, Object> withDataCreate, LinkedHashMap<String, Object> withDataModify, DataSource spyDatasource, Integer preSuccess) throws SQLException;
 
     DoRestoreTestData doDatabaseNotAvailableWhenRestoreTest(DataSource spyDatasource) throws SQLException;
+
     DoPermanentlyDeleteFailedTestData doDatabaseNotAvailableWhenPermanentlyDeleteTest(DataSource spyDatasource) throws SQLException;
 
 

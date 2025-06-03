@@ -10,7 +10,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
 public class SupplierPage extends SimpleVaadinGridPage<SupplierPage> implements ISimpleVaadinGridPage<SupplierPage> {
-    public SupplierPage(WebDriver driver, int port){
+    public SupplierPage(WebDriver driver, int port) {
         super(driver, port, "Supplier", null);
         initWebElements();
     }

@@ -21,7 +21,8 @@ public class RolePage extends SimpleVaadinGridPage<RolePage> implements ISimpleV
     private static final String createButtonXpath = contentLayoutXpath + "/vaadin-horizontal-layout[2]/vaadin-button";
     private static final String gridXpath = contentLayoutXpath + "/vaadin-grid";
 
-    @Getter private AccessManagementHeader header;
+    @Getter
+    private AccessManagementHeader header;
 
     @Override
     public RolePage initWebElements() {

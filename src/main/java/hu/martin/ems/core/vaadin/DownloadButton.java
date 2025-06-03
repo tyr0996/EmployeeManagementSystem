@@ -12,7 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.util.function.Supplier;
 
 public class DownloadButton extends Anchor {
-    public DownloadButton(SvgIcon icon, String fileName, Supplier<EmsResponse> apiCall){
+    public DownloadButton(SvgIcon icon, String fileName, Supplier<EmsResponse> apiCall) {
         Button downloadButton = new Button(icon);
         this.add(downloadButton);
 
@@ -21,7 +21,7 @@ public class DownloadButton extends Anchor {
         });
     }
 
-    public DownloadButton(String text, String fileName, Supplier<EmsResponse> apiCall){
+    public DownloadButton(String text, String fileName, Supplier<EmsResponse> apiCall) {
         Button downloadButton = new Button(text);
         this.add(downloadButton);
 
@@ -30,7 +30,7 @@ public class DownloadButton extends Anchor {
         });
     }
 
-    private void clickListenerEvent(String fileName, Supplier<EmsResponse> apiCall){
+    private void clickListenerEvent(String fileName, Supplier<EmsResponse> apiCall) {
         EmsResponse response = apiCall.get();
         if (response.getCode() == 200) {
             StreamResource resource = new StreamResource(fileName, () -> (ByteArrayInputStream) response.getResponseData());

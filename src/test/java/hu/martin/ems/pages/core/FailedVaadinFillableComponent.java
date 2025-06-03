@@ -9,7 +9,7 @@ public class FailedVaadinFillableComponent<T extends Fillable> {
     private String errorMessage;
     private String fieldTitle;
 
-    public FailedVaadinFillableComponent(T component){
+    public FailedVaadinFillableComponent(T component) {
         assert !component.isEnabled() : "Cannot create FailedVaadinBaseComponent: component " + component.getTitle() + " isn't disabled!";
         this.failedComponent = component;
         this.errorMessage = component.getErrorMessage();

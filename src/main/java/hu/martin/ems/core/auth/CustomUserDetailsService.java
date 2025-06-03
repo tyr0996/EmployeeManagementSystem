@@ -16,14 +16,12 @@ import org.springframework.stereotype.Service;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserService userService;
-//    private final RoleXPermissionService roleXPermissionService;
 
     public static String getLoggedInUsername() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if(principal instanceof UserDetails){
+        if (principal instanceof UserDetails) {
             return ((UserDetails) principal).getUsername();
-        }
-        else{
+        } else {
             return null;
         }
     }
@@ -34,7 +32,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return convert(userService.findByUsername(username));
     }
 
-    public UserDetails convert(hu.martin.ems.core.model.User user){
+    public UserDetails convert(hu.martin.ems.core.model.User user) {
         return User.withUsername(user.getUsername())
                 .password(user.getPasswordHash())
                 .roles(user.getRoles().split(","))
@@ -42,16 +40,4 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .disabled(!user.isEnabled())
                 .build();
     }
-
-
-//    private String[] getRolesAsString(Role r){
-////        List<Permission> permissions = roleXPermissionService.findAllPermission(r.getId());
-//        List<Permission> permissions = r.getPermissions().stream().toList();
-//        String[] ret = new String[permissions.size() + 1];
-//        ret[0] = r.getName();
-//        for(int i = 1; i < permissions.size() + 1; i++){
-//            ret[i] = permissions.get(i-1).getName();
-//        }
-//        return ret;
-//    }
 }

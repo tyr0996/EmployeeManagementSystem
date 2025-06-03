@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.Product;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -12,13 +11,11 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
@@ -85,10 +82,6 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
     private Grid.Column<ProductVO> nameColumn;
     private Grid.Column<ProductVO> sellingPriceCurrencyColumn;
     private Grid.Column<ProductVO> sellingPriceNetColumn;
-    
-    
-    
-    private final PaginationSetting paginationSetting;
 
     private Logger logger = LoggerFactory.getLogger(Product.class);
 
@@ -104,7 +97,6 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
     @Autowired
     public ProductList(PaginationSetting paginationSetting) {
-        this.paginationSetting = paginationSetting;
         this.mainView = mainView;
 
         ProductVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
@@ -120,12 +112,11 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         nameColumn = grid.addColumn(v -> v.name);
         sellingPriceCurrencyColumn = grid.addColumn(v -> v.sellingPriceCurrency);
         sellingPriceNetColumn = grid.addColumn(v -> v.sellingPriceNet);
-        
+
         grid.addClassName("styling");
         grid.setPartNameGenerator(productVO -> productVO.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
-        
 
 
         //region Options column
@@ -160,7 +151,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.productApi.delete(productVo.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("Product deleted: " + productVo.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -190,9 +181,6 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
             }
             return actions;
         }).setAutoWidth(true).setFlexGrow(0);
-
-
-
         //endregion
 
         Button create = new Button("Create");
@@ -223,7 +211,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
     private void setupProducts() {
         EmsResponse response = productApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 productList = (List<Product>) response.getResponseData();
                 break;
@@ -236,7 +224,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         }
     }
 
-    public Dialog getSellToCustomerDialog(ProductVO productVO){
+    public Dialog getSellToCustomerDialog(ProductVO productVO) {
         Dialog sellDialog = new Dialog("Sell to customer");
         appendCloseButton(sellDialog);
         FormLayout formLayout = new FormLayout();
@@ -247,13 +235,12 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         ComboBox.ItemFilter<Customer> filterCustomer = (customer, filterString) ->
                 customer.getName().toLowerCase().contains(filterString.toLowerCase());
         setupCustomers();
-        if(customerList == null){
+        if (customerList == null) {
             customers.setInvalid(true);
             customers.setErrorMessage("EmsError happened while getting customers");
             customers.setEnabled(false);
             sellToCustomerButton.setEnabled(false);
-        }
-        else{
+        } else {
             sellToCustomerButton.setEnabled(true);
             customers.setInvalid(false);
             customers.setEnabled(true);
@@ -286,27 +273,25 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
     private void setupCustomers() {
         EmsResponse response = customerApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 customerList = (List<Customer>) response.getResponseData();
                 break;
             default:
                 customerList = null;
                 logger.error("Customer findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-//                Notification.show("")
-//                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }
     }
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         d.getHeader().add(closeButton);
     }
 
-    public Dialog getOrderFromSupplierDialog(ProductVO productVO){
+    public Dialog getOrderFromSupplierDialog(ProductVO productVO) {
         Dialog orderDialog = new Dialog("Order from Supplier");
         appendCloseButton(orderDialog);
         FormLayout formLayout = new FormLayout();
@@ -316,13 +301,12 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         ComboBox.ItemFilter<Supplier> filterSupplier = (supplier, filterString) ->
                 supplier.getName().toLowerCase().contains(filterString.toLowerCase());
         setupSuppliers();
-        if(supplierList == null){
+        if (supplierList == null) {
             suppliers.setInvalid(true);
             suppliers.setErrorMessage("EmsError happened while getting suppliers");
             suppliers.setEnabled(false);
             buyFromSupplierButton.setEnabled(false);
-        }
-        else{
+        } else {
             buyFromSupplierButton.setEnabled(true);
             suppliers.setInvalid(false);
             suppliers.setEnabled(true);
@@ -355,46 +339,30 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
     private void setupSuppliers() {
         EmsResponse response = supplierApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 supplierList = (List<Supplier>) response.getResponseData();
                 break;
             default:
                 supplierList = null;
                 logger.error("Supplier findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
-//                Notification.show("EmsError happened while getting suppliers")
-//                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }
     }
 
     private Stream<ProductVO> getFilteredStream() {
         return productVOS.stream().filter(productVO ->
-                (amountFilter.isEmpty() || productVO.amount.toString().toLowerCase().contains(amountFilter.getFilterText().toLowerCase())) &&
-                (amountUnitFilter.isEmpty() || productVO.amountUnit.toLowerCase().contains(amountUnitFilter.getFilterText().toLowerCase())) &&
-                (buyingPriceCurrencyFilter.isEmpty() || productVO.buyingPriceCurrency.toLowerCase().contains(buyingPriceCurrencyFilter.getFilterText().toLowerCase())) &&
-                (buyingPriceNetFilter.isEmpty() || productVO.buyingPriceNet.toString().toLowerCase().contains(buyingPriceNetFilter.getFilterText().toLowerCase())) &&
-                (nameFilter.isEmpty() || productVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase())) &&
-                (sellingPriceCurrencyFilter.isEmpty() || productVO.sellingPriceCurrency.toLowerCase().contains(sellingPriceCurrencyFilter.getFilterText().toLowerCase())) &&
-                (sellingPriceNetFilter.isEmpty() || productVO.sellingPriceNet.toString().toLowerCase().contains(sellingPriceNetFilter.getFilterText().toLowerCase())) &&
-                productVO.filterExtraData()
-        );
+                filterField(amountFilter, productVO.amount.toString()) &&
+                filterField(amountUnitFilter, productVO.amountUnit.toString()) &&
+                filterField(buyingPriceCurrencyFilter, productVO.buyingPriceCurrency.toString()) &&
+                filterField(buyingPriceNetFilter, productVO.buyingPriceNet.toString()) &&
+                filterField(nameFilter, productVO.name.toString()) &&
+                filterField(sellingPriceCurrencyFilter, productVO.sellingPriceCurrency.toString()) &&
+                filterField(sellingPriceNetFilter, productVO.sellingPriceNet.toString()) &&
+                productVO.filterExtraData());
     }
 
-    private Component filterField(TextField filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
-    }
-
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         amountFilter = new TextFilteringHeaderCell("Search amount", this);
         amountUnitFilter = new TextFilteringHeaderCell("Search amount unit...", this);
         buyingPriceCurrencyFilter = new TextFilteringHeaderCell("Search buying price currency...", this);
@@ -405,10 +373,9 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 ProductVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 ProductVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -416,23 +383,22 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
             updateGridItems();
         });
 
+        HeaderRow filterRow = grid.appendHeaderRow();
 
-        // Header-row hozzáadása a Grid-hez és a szűrők elhelyezése
-        HeaderRow filterRow = grid.appendHeaderRow();;
-        filterRow.getCell(amountColumn).setComponent(filterField(amountFilter, "Amount"));
-        filterRow.getCell(amountUnitColumn).setComponent(filterField(amountUnitFilter, "Amount unit"));
-        filterRow.getCell(buyingPriceCurrencyColumn).setComponent(filterField(buyingPriceCurrencyFilter, "Buying price currency"));
-        filterRow.getCell(buyingPriceNetColumn).setComponent(filterField(buyingPriceNetFilter, "Buying price net"));
-        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
-        filterRow.getCell(sellingPriceCurrencyColumn).setComponent(filterField(sellingPriceCurrencyFilter, "Selling price currency"));
-        filterRow.getCell(sellingPriceNetColumn).setComponent(filterField(sellingPriceNetFilter, "Selling price net"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
+        filterRow.getCell(amountColumn).setComponent(styleFilterField(amountFilter, "Amount"));
+        filterRow.getCell(amountUnitColumn).setComponent(styleFilterField(amountUnitFilter, "Amount unit"));
+        filterRow.getCell(buyingPriceCurrencyColumn).setComponent(styleFilterField(buyingPriceCurrencyFilter, "Buying price currency"));
+        filterRow.getCell(buyingPriceNetColumn).setComponent(styleFilterField(buyingPriceNetFilter, "Buying price net"));
+        filterRow.getCell(nameColumn).setComponent(styleFilterField(nameFilter, "Name"));
+        filterRow.getCell(sellingPriceCurrencyColumn).setComponent(styleFilterField(sellingPriceCurrencyFilter, "Selling price currency"));
+        filterRow.getCell(sellingPriceNetColumn).setComponent(styleFilterField(sellingPriceNetFilter, "Selling price net"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
     public void updateGridItems() {
         EmsResponse response = productApi.findAllWithDeleted();
         List<Product> products;
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 products = (List<Product>) response.getResponseData();
                 break;
@@ -461,13 +427,12 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         ComboBox.ItemFilter<CodeStore> buyingPriceCurrencyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         setupCurrencies();
-        if(currencyList == null){
+        if (currencyList == null) {
             buyingPriceCurrencys.setInvalid(true);
             buyingPriceCurrencys.setErrorMessage("EmsError happened while getting currencies");
             buyingPriceCurrencys.setEnabled(false);
             saveButton.setEnabled(false);
-        }
-        else {
+        } else {
             buyingPriceCurrencys.setInvalid(false);
             buyingPriceCurrencys.setEnabled(true);
             buyingPriceCurrencys.setItems(buyingPriceCurrencyFilter, currencyList);
@@ -479,13 +444,12 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         ComboBox<CodeStore> sellingPriceCurrencies = new ComboBox<>("Selling price currency");
         ComboBox.ItemFilter<CodeStore> sellingPriceCurrencyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if(currencyList == null){
+        if (currencyList == null) {
             sellingPriceCurrencies.setInvalid(true);
             sellingPriceCurrencies.setErrorMessage("EmsError happened while getting currencies");
             sellingPriceCurrencies.setEnabled(false);
             saveButton.setEnabled(false);
-        }
-        else {
+        } else {
             sellingPriceCurrencies.setInvalid(false);
             sellingPriceCurrencies.setEnabled(true);
             sellingPriceCurrencies.setItems(sellingPriceCurrencyFilter, currencyList);
@@ -496,13 +460,12 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         ComboBox.ItemFilter<CodeStore> taxKeyFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         setupTaxKeys();
-        if(taxKeyList == null){
+        if (taxKeyList == null) {
             taxKeys.setInvalid(true);
             taxKeys.setErrorMessage("EmsError happened while getting tax keys");
             taxKeys.setEnabled(false);
             saveButton.setEnabled(false);
-        }
-        else {
+        } else {
             taxKeys.setInvalid(false);
             taxKeys.setEnabled(true);
             taxKeys.setItems(taxKeyFilter, taxKeyList);
@@ -513,13 +476,12 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         ComboBox.ItemFilter<CodeStore> amountUnitFilter = (element, filterString) ->
                 element.getName().toLowerCase().contains(filterString.toLowerCase());
         setupAmountUnits();
-        if(amountUnitList == null){
+        if (amountUnitList == null) {
             amountUnits.setInvalid(true);
             amountUnits.setErrorMessage("EmsError happened while getting amount units");
             amountUnits.setEnabled(false);
             saveButton.setEnabled(false);
-        }
-        else {
+        } else {
             amountUnits.setInvalid(false);
             amountUnits.setEnabled(true);
             amountUnits.setItems(amountUnitFilter, amountUnitList);
@@ -551,20 +513,19 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
             product.setDeleted(0L);
             product.setTaxKey(taxKeys.getValue());
             EmsResponse response = null;
-            if(entity != null){
+            if (entity != null) {
                 response = productApi.update(product);
-            }
-            else{
+            } else {
                 response = productApi.save(product);
             }
-            switch (response.getCode()){
+            switch (response.getCode()) {
                 case 200: {
                     Notification.show("Product  " + (entity == null ? "saved: " : "updated: ") + ((Product) response.getResponseData()).getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     break;
                 }
                 default: {
-                    Notification.show("Product " + (entity == null ? "saving " : "modifying " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    Notification.show("Product " + (entity == null ? "saving " : "modifying ") + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
                     updateGridItems();
                     return;
@@ -592,7 +553,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
     private void setupAmountUnits() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.AMOUNTUNITS_CODESTORE_ID);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 amountUnitList = (List<CodeStore>) response.getResponseData();
                 break;
@@ -605,7 +566,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
     private void setupTaxKeys() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.TAXKEYS_CODESTORE_ID);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 taxKeyList = (List<CodeStore>) response.getResponseData();
                 break;
@@ -618,7 +579,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
     private void setupCurrencies() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.CURRENCIES_CODESTORE_ID);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 currencyList = (List<CodeStore>) response.getResponseData();
                 break;
@@ -630,7 +591,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
     }
 
     @NeedCleanCoding
-public class ProductVO extends BaseVO {
+    public class ProductVO extends BaseVO {
         private Product original;
         private String buyingPriceCurrency;
         private String sellingPriceCurrency;

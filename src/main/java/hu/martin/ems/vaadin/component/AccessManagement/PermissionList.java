@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.AccessManagement;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -13,13 +12,11 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
@@ -62,7 +59,6 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
     private final PaginationSetting paginationSetting;
     private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
-//    private final RoleXPermissionApiClient roleXPermissionApi = BeanProvider.getBean(RoleXPermissionApiClient.class);
 
     private Grid.Column<PermissionVO> idColumn;
     private Grid.Column<PermissionVO> nameColumn;
@@ -86,7 +82,6 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 
     private Gson gson = BeanProvider.getBean(Gson.class);
 
-//    private MainView mainView;
 
     @Autowired
     public PermissionList(PaginationSetting paginationSetting) {
@@ -102,7 +97,6 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         idColumn = grid.addColumn(v -> v.id);
         nameColumn = grid.addColumn(v -> v.name);
 
-        //this.grid.setColumns("id", "name");
         grid.addClassName("styling");
         grid.setPartNameGenerator(permissionVO -> permissionVO.deleted != 0 ? "deleted" : null);
         grid.setPageSize(paginationSetting.getPageSize());
@@ -132,7 +126,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 
             deleteButton.addClickListener(event -> {
                 EmsResponse resp = this.permissionApi.delete(permission.original);
-                switch (resp.getCode()){
+                switch (resp.getCode()) {
                     case 200: {
                         Notification.show("Permission deleted: " + permission.original.getName())
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -164,7 +158,6 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         });
 
 
-
         Button create = new Button("Create");
         create.addClickListener(event -> {
             Dialog d = getSaveOrUpdateDialog(null);
@@ -192,7 +185,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 
     private void setupPermissions() {
         EmsResponse response = permissionApi.findAllWithDeleted();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 permissionList = (List<Permission>) response.getResponseData();
                 break;
@@ -205,17 +198,16 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 
     public void updateGridItems() {
         setupPermissions();
-        if(permissionList != null){
+        if (permissionList != null) {
             permissionVOS = permissionList.stream().map(PermissionVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
-        }
-        else{
+        } else {
             Notification.show("EmsError happened while getting permissions")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
 
-    private void appendCloseButton(Dialog d){
+    private void appendCloseButton(Dialog d) {
         Button closeButton = new Button(new Icon("lumo", "cross"),
                 (e) -> d.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -234,13 +226,12 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         ComboBox.ItemFilter<Role> filterRole = (role, filterString) ->
                 role.getName().toLowerCase().contains(filterString.toLowerCase());
         setupRoles();
-        if(roleList == null){
+        if (roleList == null) {
             roles.setInvalid(true);
             roles.setEnabled(false);
             roles.setErrorMessage("EmsError happened while getting roles");
             saveButton.setEnabled(false);
-        }
-        else{
+        } else {
             roles.setItems(filterRole, roleList);
             roles.setItemLabelGenerator(Role::getName);
         }
@@ -263,7 +254,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 
     private void setupRoles() {
         EmsResponse response = roleApi.findAll();
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 roleList = (List<Role>) response.getResponseData();
                 break;
@@ -274,9 +265,9 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         }
     }
 
-    private void saveRolesWithPermission(Permission entity){
+    private void saveRolesWithPermission(Permission entity) {
         Boolean isUpdate = true;
-        if(entity == null){
+        if (entity == null) {
             entity = new Permission();
             entity.setDeleted(0L);
             isUpdate = false;
@@ -285,13 +276,13 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 
 
         EmsResponse response = isUpdate ? permissionApi.update(entity) : permissionApi.save(entity);
-        switch (response.getCode()){
+        switch (response.getCode()) {
             case 200:
                 Notification.show("Permission " + (isUpdate ? "updated: " : "saved: ") + entity.getName())
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 break;
             default:
-                Notification.show("Permission " + (isUpdate ? "modifying " : "saving " ) + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                Notification.show("Permission " + (isUpdate ? "modifying " : "saving ") + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                 createDialog.close();
                 updateGridItems();
                 break;
@@ -302,22 +293,23 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 
     private Stream<PermissionVO> getFilteredStream() {
         return permissionVOS.stream().filter(permissionVO ->
-                (idFilter.isEmpty() || permissionVO.id.toString().toLowerCase().contains(idFilter.getFilterText().toLowerCase())) &&
-                        (nameFilter.isEmpty() || permissionVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase())) &&
+                filterField(idFilter, permissionVO.id.toString()) &&
+                filterField(nameFilter, permissionVO.name) &&
+//                (idFilter.isEmpty() || permissionVO.id.toString().toLowerCase().contains(idFilter.getFilterText().toLowerCase())) &&
+//                (nameFilter.isEmpty() || permissionVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase())) &&
                         permissionVO.filterExtraData()
         );
     }
 
-    private void setFilteringHeaderRow(){
+    private void setFilteringHeaderRow() {
         idFilter = new TextFilteringHeaderCell("Search id...", this);
         nameFilter = new TextFilteringHeaderCell("Search name...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if(extraDataFilter.getValue().isEmpty()){
+            if (extraDataFilter.getValue().isEmpty()) {
                 PermissionVO.extraDataFilterMap.clear();
-            }
-            else{
+            } else {
                 PermissionVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
             }
 
@@ -325,32 +317,19 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
             updateGridItems();
         });
 
-        HeaderRow filterRow = grid.appendHeaderRow();;
-        filterRow.getCell(idColumn).setComponent(filterField(idFilter, "ID"));
-        filterRow.getCell(nameColumn).setComponent(filterField(nameFilter, "Name"));
-        filterRow.getCell(extraData).setComponent(filterField(extraDataFilter, ""));
-    }
+        HeaderRow filterRow = grid.appendHeaderRow();
 
-    private Component filterField(TextField filterField, String title){
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
+        filterRow.getCell(idColumn).setComponent(styleFilterField(idFilter, "ID"));
+        filterRow.getCell(nameColumn).setComponent(styleFilterField(nameFilter, "Name"));
+        filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
-
 
     public class PermissionVO extends BaseVO {
         @NotNull
         private Permission original;
         private String name;
 
-        public PermissionVO(Permission permission){
+        public PermissionVO(Permission permission) {
             super(permission.id, permission.getDeleted());
             this.original = permission;
             this.deleted = permission.getDeleted();

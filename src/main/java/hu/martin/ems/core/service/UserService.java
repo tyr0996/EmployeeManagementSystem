@@ -8,7 +8,11 @@ import org.springframework.stereotype.Service;
 @Service
 @NeedCleanCoding
 public class UserService extends BaseService<User, UserRepository> {
-    public UserService(UserRepository repo) { super(repo); }
+    public UserService(UserRepository repo) {
+        super(repo);
+    }
 
-    public User findByUsername(String userName) { return this.repo.findByUserName(userName); }
+    public User findByUsername(String userName) {
+        return this.repo.findByUserName(userName);
+    }
 }

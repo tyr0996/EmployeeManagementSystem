@@ -28,57 +28,54 @@ public class AdminToolsApiClient {
     @Autowired
     private WebClientProvider webClientProvider;
 
-    public AdminToolsApiClient(){
+    public AdminToolsApiClient() {
         this.webClientBuilder = WebClient.builder();
     }
 
     private static final String entityName = "adminTools";
 
-    public EmsResponse healthStatus(){
+    public EmsResponse healthStatus() {
         WebClient webClient = webClientProvider.initBaseUrlWebClient();
-        try{
+        try {
             String repsonse = webClient.get()
                     .uri("actuator/health")
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
             return new EmsResponse(200, repsonse, "");
-        }
-        catch(WebClientResponseException ex){
+        } catch (WebClientResponseException ex) {
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(),
-                                   gson.toJson(new HealthStatusResponse("Inaccessible")),
-                                   null);
+                    gson.toJson(new HealthStatusResponse("Inaccessible")),
+                    null);
         }
     }
 
-    public EmsResponse clearDatabase(){
+    public EmsResponse clearDatabase() {
         WebClient csrfWebClient = webClientProvider.initCsrfWebClient(entityName);
-        try{
+        try {
             String repsonse = csrfWebClient.delete()
                     .uri("clearDatabase")
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
             return new EmsResponse(200, repsonse);
-        }
-        catch(WebClientResponseException ex){
+        } catch (WebClientResponseException ex) {
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
 
-    public EmsResponse exportApis(){
+    public EmsResponse exportApis() {
         WebClient webClient = webClientProvider.initWebClient("eps");
-        try{
-            byte[] response =  webClient.get()
+        try {
+            byte[] response = webClient.get()
                     .uri("exportApis")
                     .retrieve()
                     .bodyToMono(byte[].class)
                     .block();
             return new EmsResponse(200, new ByteArrayInputStream(response), "");
-        }
-        catch (WebClientResponseException ex){
+        } catch (WebClientResponseException ex) {
             logger.error("WebClient error - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAsString());
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }

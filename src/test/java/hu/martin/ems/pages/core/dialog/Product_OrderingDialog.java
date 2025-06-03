@@ -13,16 +13,19 @@ public class Product_OrderingDialog extends VaadinDialogComponent {
     private static final String quantityNumberFieldXpath = dialogXpath + "/vaadin-form-layout/vaadin-number-field";
     private static final String orderButtonXpath = dialogXpath + "/vaadin-form-layout/vaadin-button";
 
-    @Getter private VaadinDropdownComponent supplierComboBox;
-    @Getter private VaadinNumberInputComponent quantity;
-    @Getter private VaadinButtonComponent orderButton;
+    @Getter
+    private VaadinDropdownComponent supplierComboBox;
+    @Getter
+    private VaadinNumberInputComponent quantity;
+    @Getter
+    private VaadinButtonComponent orderButton;
 
     public Product_OrderingDialog(WebDriver driver) {
         super(driver);
     }
 
     @Override
-    public void initWebElements(){
+    public void initWebElements() {
         super.initWebElements();
 
         supplierComboBox = new VaadinDropdownComponent(getDriver(), By.xpath(supplierComboBoxXpath));
@@ -33,7 +36,7 @@ public class Product_OrderingDialog extends VaadinDialogComponent {
     }
 
     @Override
-    public void setAllComponents(){
+    public void setAllComponents() {
         this.allComponent.clear();
         allComponent.add(supplierComboBox);
         allComponent.add(quantity);

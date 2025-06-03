@@ -12,9 +12,12 @@ public class AccessManagementHeader extends EmptyLoggedInVaadinPage implements I
     private static final String permissionButtonXpath = contentLayoutXpath + "/vaadin-horizontal-layout/vaadin-button[2]";
     private static final String roleXPermissionButtonXpath = contentLayoutXpath + "/vaadin-horizontal-layout/vaadin-button[3]";
 
-    @Getter private VaadinButtonComponent roleButton;
-    @Getter private VaadinButtonComponent permissionButton;
-    @Getter private VaadinButtonComponent roleXPermissionButton;
+    @Getter
+    private VaadinButtonComponent roleButton;
+    @Getter
+    private VaadinButtonComponent permissionButton;
+    @Getter
+    private VaadinButtonComponent roleXPermissionButton;
 
 
     public AccessManagementHeader(WebDriver driver, int port) {

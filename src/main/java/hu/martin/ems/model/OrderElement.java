@@ -19,10 +19,9 @@ public class OrderElement extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinTable(name = "orders_orderelement",
-        joinColumns = @JoinColumn(name = "orderelements_id"),
-        inverseJoinColumns = @JoinColumn(name = "order_id")
+            joinColumns = @JoinColumn(name = "orderelements_id"),
+            inverseJoinColumns = @JoinColumn(name = "order_id")
     )
-//    @JoinColumn(name = "order_id", columnDefinition = "BIGINT")
     private Order orderObject;
 
 
@@ -70,8 +69,8 @@ public class OrderElement extends BaseEntity {
     private Long orderId;
 
     @PostLoad
-    public void initAfterLoad(){
-        if(getOrderObject() != null){
+    public void initAfterLoad() {
+        if (getOrderObject() != null) {
             this.orderId = getOrderObject().getId();
         }
     }
@@ -82,7 +81,7 @@ public class OrderElement extends BaseEntity {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return this.getName() + " (" + this.unit + " " + this.product.getAmountUnit().getName() + ")";
     }
 }

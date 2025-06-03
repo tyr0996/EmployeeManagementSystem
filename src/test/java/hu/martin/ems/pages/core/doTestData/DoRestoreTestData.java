@@ -5,15 +5,15 @@ import lombok.Getter;
 
 public class DoRestoreTestData extends DoTestData {
     public DoRestoreTestData(Integer originalNonDeletedRowNumber,
-                            Integer originalDeletedRowNumber,
-                            Integer originalNonDeletedOnlyDeletable,
-                            Integer originalDeletedOnlyDeletable,
-                            String notificationWhenPerform,
-                            PerformRestoreResult result,
-                            Integer nonDeletedRowNumberAfterMethod,
-                            Integer deletedRowNumberAfterMethod,
-                            Integer nonDeletedRowNumberOnlyDeletableAfterMethod,
-                            Integer deletedRowNumberOnlyDeletableAfterMethod) {
+                             Integer originalDeletedRowNumber,
+                             Integer originalNonDeletedOnlyDeletable,
+                             Integer originalDeletedOnlyDeletable,
+                             String notificationWhenPerform,
+                             PerformRestoreResult result,
+                             Integer nonDeletedRowNumberAfterMethod,
+                             Integer deletedRowNumberAfterMethod,
+                             Integer nonDeletedRowNumberOnlyDeletableAfterMethod,
+                             Integer deletedRowNumberOnlyDeletableAfterMethod) {
         super(originalNonDeletedRowNumber, originalDeletedRowNumber, originalNonDeletedOnlyDeletable, originalDeletedOnlyDeletable, notificationWhenPerform, nonDeletedRowNumberAfterMethod, deletedRowNumberAfterMethod, nonDeletedRowNumberOnlyDeletableAfterMethod, deletedRowNumberOnlyDeletableAfterMethod);
         this.result = result;
     }

@@ -24,7 +24,6 @@ public class ScheduledTests extends BaseCrudTest {
         dp.executeSQL("DELETE FROM Currency");
         assertNull(currencyRepository.findByDate(LocalDate.now()));
         context.getBean(CurrencyScheduler.class).fetchRates();
-//        updateProperty("schedule.fetch.currencies.cron", "*/5 * * * * *");
 
         Awaitility.await()
                 .atMost(1, TimeUnit.SECONDS)

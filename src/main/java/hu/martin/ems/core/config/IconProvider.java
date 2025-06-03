@@ -2,8 +2,6 @@ package hu.martin.ems.core.config;
 
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.server.StreamResource;
-import lombok.Getter;
-import lombok.experimental.UtilityClass;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
@@ -14,10 +12,10 @@ import java.nio.file.Paths;
 
 @Component
 public class IconProvider {
-    public final static  String PDF_FILE_ICON_ICON = "pdf-file";
-    public final static  String ODT_FILE_ICON = "odt-file";
-    public final static  String PERMANENTLY_DELETE_ICON = "clear";
-    public final static  String EDIT_ICON = "edit";
+    public final static String PDF_FILE_ICON_ICON = "pdf-file";
+    public final static String ODT_FILE_ICON = "odt-file";
+    public final static String PERMANENTLY_DELETE_ICON = "clear";
+    public final static String EDIT_ICON = "edit";
 
     public SvgIcon create(String icon) {
         try {

@@ -21,13 +21,14 @@ import org.testng.annotations.Test;
 import java.sql.SQLException;
 import java.time.Duration;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class LoginTests extends BaseCrudTest {
 
     @BeforeMethod
-    public void beforeMethod(){
+    public void beforeMethod() {
         resetUsers();
     }
 
@@ -49,13 +50,11 @@ public class LoginTests extends BaseCrudTest {
     }
 
     @Test
-    public void registrationFailedPasswordDoesNotMatchTest() throws InterruptedException {
+    public void registrationFailedPasswordDoesNotMatchTest() {
 
         String userName = RandomGenerator.generateRandomOnlyLetterString();
         String password = RandomGenerator.generateRandomOnlyLetterString();
         String otherPassword = RandomGenerator.generateRandomOnlyLetterString();
-
-//        register(userName, password, otherPassword, "The passwords doesn't match!");
 
         LoginPage loginPage = LoginPage.goToLoginPage(driver, port);
         loginPage.register(userName, password, otherPassword, true, true);
@@ -73,8 +72,6 @@ public class LoginTests extends BaseCrudTest {
     @Test
     public void registrationUsernameAlreadyExists() {
         String password = RandomGenerator.generateRandomOnlyLetterString();
-//        register("admin", password, password, "Username already exists!");
-
 
         LoginPage loginPage = LoginPage.goToLoginPage(driver, port);
         loginPage.register("admin", password, password, true, true);
@@ -111,7 +108,7 @@ public class LoginTests extends BaseCrudTest {
     }
 
     @Test
-    
+
     public void forgotPassword_passwordDoesNotMatchAndUserNotFound() {
         LoginPage loginPage = LoginPage.goToLoginPage(driver, port);
         loginPage.forgotPassword("notExistingUserName", "asdf", "asd");
@@ -159,7 +156,7 @@ public class LoginTests extends BaseCrudTest {
     }
 
     @Test
-    public void loggedOutUserTryReachPage(){
+    public void loggedOutUserTryReachPage() {
         LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         EmptyLoggedInVaadinPage loggedIn = new EmptyLoggedInVaadinPage(driver, port);
         loggedIn.logout();
@@ -181,7 +178,7 @@ public class LoginTests extends BaseCrudTest {
         loggedInPage.getSideMenu().getAdminMenu().click();
         assertEquals(true, adminSubMenusVisible());
         assertEquals(false, ordersSubMenusVisible());
-        
+
         loggedInPage.getSideMenu().getAdminMenu().click();
         assertEquals(false, adminSubMenusVisible());
         assertEquals(false, ordersSubMenusVisible());
@@ -202,7 +199,7 @@ public class LoginTests extends BaseCrudTest {
     }
 
     @Test
-    
+
     public void invalidStatusCodeWhenGettingAllRoles() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
         String username = RandomGenerator.generateRandomOnlyLetterString();
@@ -232,9 +229,9 @@ public class LoginTests extends BaseCrudTest {
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
-    private boolean adminSubMenusVisible(){
+    private boolean adminSubMenusVisible() {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(200), Duration.ofMillis(5));
-        try{
+        try {
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(UIXpaths.EMPLOYEE_SUBMENU)));
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(UIXpaths.ACESS_MANAGEMENT_SUBMENU)));
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(UIXpaths.CODESTORE_SUBMENU)));
@@ -247,27 +244,25 @@ public class LoginTests extends BaseCrudTest {
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(UIXpaths.USER_SUB_MENU)));
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(UIXpaths.ADMINTOOLS_SUB_MENU)));
             return true;
-        }
-        catch (TimeoutException ex){
+        } catch (TimeoutException ex) {
             return false;
         }
     }
-    
-    private boolean ordersSubMenusVisible(){
+
+    private boolean ordersSubMenusVisible() {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(200), Duration.ofMillis(5));
-        try{
+        try {
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(UIXpaths.ORDER_ELEMENT_SUBMENU)));
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(UIXpaths.ORDER_SUBMENU)));
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(UIXpaths.ORDER_CREATE_SUBMENU)));
             return true;
-        }
-        catch (TimeoutException e){
+        } catch (TimeoutException e) {
             return false;
         }
     }
 
     @AfterClass
-    public void afterClass(){
+    public void afterClass() {
         resetUsers();
     }
 

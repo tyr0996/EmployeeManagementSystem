@@ -13,7 +13,7 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public ServletWebServerApplicationContext setupWebContext(){
+    public ServletWebServerApplicationContext setupWebContext() {
         return new ServletWebServerApplicationContext();
     }
 }
