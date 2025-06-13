@@ -12,7 +12,6 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -21,7 +20,6 @@ import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.CodeStoreIds;
-import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
@@ -33,6 +31,7 @@ import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -43,7 +42,7 @@ import org.vaadin.klaudeta.PaginatedGrid;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,14 +51,14 @@ import java.util.stream.Stream;
 @Route(value = "city/list", layout = MainView.class)
 @RolesAllowed("ROLE_CityMenuOpenPermission")
 @NeedCleanCoding
-public class CityList extends EmsFilterableGridComponent implements Creatable<City> {
+public class CityList extends EmsFilterableGridComponent implements Creatable<City>, IEmsOptionColumnBaseDialogCreationForm<City, CityList.CityVO> {
 
-    private final CityApiClient cityApi = BeanProvider.getBean(CityApiClient.class);
+    @Getter
+    private final CityApiClient apiClient = BeanProvider.getBean(CityApiClient.class);
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private boolean showDeleted = false;
     @Getter
     private PaginatedGrid<CityVO, String> grid;
-    private PaginationSetting paginationSetting;
 
     List<CityVO> cityVOS;
     List<City> cityList;
@@ -68,7 +67,6 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
     private TextFilteringHeaderCell countryCodeFilter;
     private TextFilteringHeaderCell nameFilter;
     private TextFilteringHeaderCell zipCodeFilter;
-    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<CityVO> extraData;
 
     private Grid.Column<CityVO> countryCodeColumn;
@@ -76,22 +74,15 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
     private Grid.Column<CityVO> zipCodeColumn;
     private Logger logger = LoggerFactory.getLogger(City.class);
     private Gson gson = BeanProvider.getBean(Gson.class);
-    private MainView mainView;
+
 
     @Autowired
     public CityList(PaginationSetting paginationSetting) {
-        createCityList(paginationSetting);
-    }
-
-
-    private void createCityList(PaginationSetting paginationSetting) {
-        this.paginationSetting = paginationSetting;
-
         CityVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(CityVO.class);
         setupCountries();
-        setupCities();
+        setEntities();
 
         countryCodeColumn = grid.addColumn(v -> v.countryCode);
         nameColumn = grid.addColumn(v -> v.name);
@@ -103,70 +94,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
         //region Options column
-        extraData = this.grid.addComponentColumn(city -> {
-            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
-            Button deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
-            restoreButton.addClassNames("info_button_variant");
-            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
-            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-
-            editButton.addClickListener(event -> {
-                Dialog d = getSaveOrUpdateDialog(city.original);
-                d.open();
-            });
-
-            restoreButton.addClickListener(event -> {
-                this.cityApi.restore(city.original);
-                Notification.show("City restored: " + city.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                setupCities();
-                updateGridItems();
-            });
-
-            deleteButton.addClickListener(event -> {
-                EmsResponse resp = this.cityApi.delete(city.original);
-                switch (resp.getCode()) {
-                    case 200: {
-                        Notification.show("City deleted: " + city.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        updateGridItems();
-                        break;
-                    }
-                    default: {
-                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
-                }
-                setupCities();
-                updateGridItems();
-            });
-
-            permanentDeleteButton.addClickListener(event -> {
-                EmsResponse response = this.cityApi.permanentlyDelete(city.original.getId());
-                switch (response.getCode()) {
-                    case 200: {
-                        Notification.show("City permanently deleted: " + city.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        setupCities();
-                        updateGridItems();
-                        break;
-                    }
-                    default: {
-                        Notification.show("City permanently deletion failed: " + response.getDescription());
-                    }
-                }
-
-            });
-
-            HorizontalLayout actions = new HorizontalLayout();
-            if (city.original.getDeleted() == 0) {
-                actions.add(editButton, deleteButton);
-            } else {
-                actions.add(permanentDeleteButton, restoreButton);
-            }
-            return actions;
-        });
+        extraData = this.grid.addComponentColumn(city -> createOptionColumn("City", city));
         //endregion
 
         Button create = new Button("Create");
@@ -194,8 +122,8 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
         add(hl, grid);
     }
 
-    private void setupCities() {
-        EmsResponse response = cityApi.findAllWithDeleted();
+    public void setEntities() {
+        EmsResponse response = apiClient.findAllWithDeleted();
         switch (response.getCode()) {
             case 200:
                 cityList = (List<City>) response.getResponseData();
@@ -261,7 +189,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
         d.getHeader().add(closeButton);
     }
 
-    public Dialog getSaveOrUpdateDialog(City entity) {
+    public Dialog getSaveOrUpdateDialog(CityVO entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " city");
         appendCloseButton(createDialog);
 
@@ -286,37 +214,39 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
         TextField zipCodeField = new TextField("Zip code");
 
         if (entity != null) {
-            nameField.setValue(entity.getName());
-            countryCodes.setValue(entity.getCountryCode());
-            zipCodeField.setValue(entity.getZipCode());
+            nameField.setValue(entity.original.getName());
+            countryCodes.setValue(entity.original.getCountryCode());
+            zipCodeField.setValue(entity.original.getZipCode());
         }
 
         fl.add(nameField, countryCodes, zipCodeField, saveButton);
         createDialog.add(fl);
 
         saveButton.addClickListener(event -> {
-            City city = Objects.requireNonNullElseGet(entity, City::new);
+            City city = Optional.ofNullable(entity)
+                    .map(e -> e.original)
+                    .orElseGet(City::new);
             city.setName(nameField.getValue());
             city.setCountryCode(countryCodes.getValue());
             city.setZipCode(zipCodeField.getValue());
             city.setDeleted(0L);
             EmsResponse response = null;
             if (entity != null) {
-                response = cityApi.update(city);
+                response = apiClient.update(city);
             } else {
-                response = cityApi.save(city);
+                response = apiClient.save(city);
             }
             switch (response.getCode()) {
                 case 200:
                     Notification.show("City " + (entity == null ? "saved: " : "updated: ") + city.getName())
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    setupCities();
+                    setEntities();
                     updateGridItems();
                     break;
                 default: {
                     Notification.show("City " + (entity == null ? "saving " : "modifying ") + "failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
-                    setupCities();
+                    setEntities();
                     updateGridItems();
                     return;
                 }
@@ -347,16 +277,13 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
     }
 
     @NeedCleanCoding
-    public class CityVO extends BaseVO {
-        private City original;
+    public class CityVO extends BaseVO<City> {
         private String countryCode;
         private String name;
         private String zipCode;
 
-        private LinkedHashMap<String, String> extraData;
-
         public CityVO(City city) {
-            super(city.id, city.getDeleted());
+            super(city.id, city.getDeleted(), city);
             this.original = city;
             this.id = city.getId();
             this.deleted = city.getDeleted();

@@ -123,7 +123,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
 
         LinkedHashMap<String, Object> sameUser = new LinkedHashMap<>();
 
-        String[] orderElementGridSupplierFilter = new String[]{"", "", "null", "", "", "", "", supplierName};
+        String[] orderElementGridSupplierFilter = new String[]{"", "", "", "null", "", "", "", "", supplierName};
         sameUser.put("Supplier", supplierName);
         sameUser.put("Customer", null);
         oePage.performCreate(sameUser);
@@ -340,7 +340,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         sameSupplier.put("Supplier", supplierName);
         sameSupplier.put("Customer", null);
 
-        String[] orderElementGridSupplierFilter = new String[]{"", "", "null", "", "", "", "", supplierName};
+        String[] orderElementGridSupplierFilter = new String[]{"", "", "", "null", "", "", "", "", supplierName};
         oePage.performCreate(sameSupplier);
         oePage.performCreate(sameSupplier);
         oePage.performCreate(sameSupplier);
@@ -396,7 +396,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         OrderElementPage oePage = new OrderElementPage(driver, port);
         LinkedHashMap<String, Object> sameSupplier = new LinkedHashMap<>();
 
-        String[] orderElementGridSupplierFilter = new String[]{"", "", "null", "", "", "", "", supplierName};
+        String[] orderElementGridSupplierFilter = new String[]{"", "", "", "null", "", "", "", "", supplierName};
         sameSupplier.put("Supplier", supplierName);
         sameSupplier.put("Customer", null);
         oePage.performCreate(sameSupplier);
@@ -452,7 +452,7 @@ public class OrderFromSupplierTest extends BaseCrudTest {
         sameSupplier.put("Supplier", supplierName);
         sameSupplier.put("Customer", null);
 
-        String[] orderElementGridSupplierFilter = new String[]{"", "", "null", "", "", "", "", supplierName};
+        String[] orderElementGridSupplierFilter = new String[]{"", "", "", "null", "", "", "", "", supplierName};
 
         VaadinNotificationComponent.closeAll(driver);
         oePage.performCreate(sameSupplier);

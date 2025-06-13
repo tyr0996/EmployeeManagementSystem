@@ -34,4 +34,8 @@ public interface IEmsFilterableGridPage<T> {
     default boolean filterField(TextFilteringHeaderCell filterField, String fieldValue) {
         return filterField.isEmpty() || fieldValue.toLowerCase().contains(filterField.getFilterText().toLowerCase());
     }
+
+    default boolean filterField(NumberFilteringHeaderCell filterField, Double fieldValue){
+        return filterField.isEmpty() || fieldValue.equals(filterField.getFilterNumber());
+    }
 }

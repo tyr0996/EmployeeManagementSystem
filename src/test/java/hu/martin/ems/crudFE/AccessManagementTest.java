@@ -5,6 +5,7 @@ import hu.martin.ems.pages.*;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
 import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 
@@ -81,7 +82,12 @@ public class AccessManagementTest extends BaseCrudTest {
         assertNotNull(rxpp.getSaveButton());
 
         newHeader.getRoleXPermissionButton().click();
-        assertThrows(TimeoutException.class, () -> rxpp.initWebElements());
+        //TODO megcsinálni a másik kettőt ilyenre. Vagy megcsinálni ezekre az oldalakra, hogy várjon addíg amig el nem tűnik az összes elem benne :)
+        rxpp.getRoleComboBox().getWait().until(ExpectedConditions.invisibilityOfAllElements(rxpp.getRoleComboBox().getElement(),
+                                                                                            rxpp.getPermissionsComboBox().getElement(),
+                                                                                            rxpp.getSaveButton().getElement()
+        ));
+//        assertThrows(TimeoutException.class, rxpp::initWebElements);
         newHeader.initWebElements().getRoleXPermissionButton().click();
         rxpp.initWebElements();
         assertNotNull(rxpp.getPermissionsComboBox());

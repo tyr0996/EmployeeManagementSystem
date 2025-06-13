@@ -1,5 +1,6 @@
 package hu.martin.ems.pages.core.component;
 
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
@@ -9,6 +10,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 
+@Slf4j
 public class VaadinNotificationComponent extends VaadinBaseComponent {
     private static final String notificationXpath = "/html/body/vaadin-notification-container/vaadin-notification-card";
 
@@ -53,7 +55,7 @@ public class VaadinNotificationComponent extends VaadinBaseComponent {
             waitForClose.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(notificationXpath)));
             closeAll(driver);
         } catch (TimeoutException ex) {
-            System.out.println("nem találtam új notification-t");
+            log.debug("No more notification found");
         }
     }
 }

@@ -211,14 +211,12 @@ public class DataProvider {
         try (BufferedReader reader = new BufferedReader(new FileReader(sql))) {
             line = reader.readLine();
         }
-        System.out.println("line: " + line);
         String deleteSQL = "TRUNCATE " + JsonFile.fixObjectName(getTableNameFromInsert(line)).toLowerCase() + " CASCADE;";
         executeSQL(deleteSQL);
         executeSQLFile(sql);
     }
 
     private String getTableNameFromInsert(String line) {
-        System.out.println("Line: " + line);
         Pattern pattern = Pattern.compile("INSERT\\s+INTO\\s+([a-zA-Z0-9_\\.]+)", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(line);
         matcher.find();

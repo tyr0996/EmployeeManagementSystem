@@ -5,10 +5,10 @@ import hu.martin.ems.base.selenium.ScreenshotMaker;
 import hu.martin.ems.base.selenium.WebDriverProvider;
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.config.*;
-import hu.martin.ems.core.controller.EndpointController;
 import hu.martin.ems.core.service.EmailSendingService;
 import hu.martin.ems.core.sftp.SftpSender;
 import hu.martin.ems.repository.CurrencyRepository;
+import hu.martin.ems.repository.OrderElementRepository;
 import hu.martin.ems.schedule.CurrencyScheduler;
 import hu.martin.ems.service.AdminToolsService;
 import hu.martin.ems.service.CurrencyService;
@@ -17,11 +17,10 @@ import hu.martin.ems.vaadin.api.base.WebClientProvider;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openqa.selenium.WebDriver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -67,6 +66,7 @@ import java.util.regex.Pattern;
  */
 @Listeners(BaseCrudTest.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Slf4j
 public class BaseCrudTest extends AbstractTestNGSpringContextTests implements ITestListener {
     private static AtomicInteger passedCount = new AtomicInteger(0);
     private static AtomicInteger failedCount = new AtomicInteger(0);
@@ -101,7 +101,6 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
     @SpyBean
     protected static BeanProvider spyBeanProvider;
-    private Logger logger = LoggerFactory.getLogger(BaseCrudTest.class);
 
     @Autowired
     private ConfigurableEnvironment env;
@@ -148,9 +147,6 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
     @SpyBean
     public static XDocReportRegistry spyRegistry;
-
-    @SpyBean
-    public static EndpointController spyEndpointController;
 
     @SpyBean
     public static JschConfig spyJschConfig;
@@ -231,7 +227,6 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.reset(spyOrderService);
         Mockito.reset(spyAdminToolsService);
         Mockito.reset(spyEmailSendingService);
-        Mockito.reset(spyEndpointController);
         Mockito.reset(spyJschConfig);
         Mockito.reset(spyIconProvider);
         Mockito.reset(spyCurrencyScheduler);
@@ -247,7 +242,6 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
         Mockito.clearInvocations(spyOrderService);
         Mockito.clearInvocations(spyAdminToolsService);
         Mockito.clearInvocations(spyEmailSendingService);
-        Mockito.clearInvocations(spyEndpointController);
         Mockito.clearInvocations(spyJschConfig);
         Mockito.clearInvocations(spyIconProvider);
         Mockito.clearInvocations(spyCurrencyScheduler);
@@ -385,9 +379,17 @@ public class BaseCrudTest extends AbstractTestNGSpringContextTests implements IT
 
             Transport.send(message);
 
-            System.out.println("E-mail sikeresen elküldve.");
+            logger.info("E-mail sikeresen elküldve.");
         } catch (MessagingException e) {
             e.printStackTrace();
         }
+
+    }
+
+
+    protected void resetOrderElements() throws IOException {
+        OrderElementRepository repo = BeanProvider.getBean(OrderElementRepository.class);
+        repo.customClearDatabaseTable(false);
+        dp.executeSQLFile(new File(dp.getGENERATED_SQL_FILES_PATH() + "\\orderElements.sql"));
     }
 }

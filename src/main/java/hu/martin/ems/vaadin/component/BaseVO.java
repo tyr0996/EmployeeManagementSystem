@@ -4,16 +4,21 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.*;
 
-public abstract class BaseVO {
+public abstract class BaseVO<T> {
+    @NotNull
     public Long id;
     @NotNull
     public Long deleted;
+    @NotNull
+    public T original;
+    //TODO: ez miért static? A EmployeeList-nél használom.
     public static LinkedHashMap<String, List<String>> showDeletedCheckboxFilter = new LinkedHashMap<>();
     public static LinkedHashMap<String, List<String>> extraDataFilterMap = new LinkedHashMap<>();
 
-    public BaseVO(Long id, Long deleted) {
+    public BaseVO(Long id, Long deleted, T original) {
         this.id = id;
         this.deleted = deleted;
+        this.original = original;
     }
 
     @Override

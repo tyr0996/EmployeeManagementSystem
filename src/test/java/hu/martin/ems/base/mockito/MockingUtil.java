@@ -46,6 +46,19 @@ public class MockingUtil {
     }
 
     /**
+     * This method is useful when you want to mock a REST call to throw an exception, which doesn't have @Controller
+     * or @RestController for it. Use this if you create the WebClient with WebClientProvider.initBaseUrlWebClient.
+     * For example for Actuator endpoints.
+     */
+    public <T, R> void mockBaseUrlWebClientException(WebClientProvider spyWebClientProvider,
+                                                    String uri,
+                                                    Throwable exception,
+                                                    Class<T> responseType) {
+        WebClient mockWebClient = prepareWebClientErrorMock(uri, responseType, exception);
+        doReturn(mockWebClient).when(spyWebClientProvider).initBaseUrlWebClient();
+    }
+
+    /**
      * This method is useful when you want to mock a REST call, which doesn't have @Controller or @RestController for it.
      * Use this if you create the WebClient with WebClientProvider.initBaseUrlWebClient.
      * For example for Actuator endpoints.
@@ -73,16 +86,32 @@ public class MockingUtil {
         doReturn(mockWebClient).when(spyWebClientProvider).initCsrfWebClient(entityName);
     }
 
+
     private <T> WebClient prepareWebClientResponseMock(String uri, T mockResponse, Class<T> responseType) {
+        WebClient mockWebClient = spy(WebClient.class);
+        WebClient.RequestHeadersUriSpec uriSpec = spy(WebClient.RequestHeadersUriSpec.class);
+        WebClient.RequestHeadersSpec headersSpec = spy(WebClient.RequestHeadersSpec.class);
+        WebClient.ResponseSpec responseSpec = spy(WebClient.ResponseSpec.class);
+
+        when(mockWebClient.get()).thenReturn(uriSpec);
+        when(uriSpec.uri(uri)).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(responseType)).thenReturn(Mono.just(mockResponse));
+
+        return mockWebClient;
+    }
+
+    private <T> WebClient prepareWebClientErrorMock(String requestUri, Class<T> responseType, Throwable exceptionToThrow) {
         WebClient mockWebClient = mock(WebClient.class);
         WebClient.RequestHeadersUriSpec uriSpec = mock(WebClient.RequestHeadersUriSpec.class);
         WebClient.RequestHeadersSpec headersSpec = mock(WebClient.RequestHeadersSpec.class);
         WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
 
         when(mockWebClient.get()).thenReturn(uriSpec);
-        when(uriSpec.uri(uri)).thenReturn(headersSpec);
+        when(uriSpec.uri(eq(requestUri))).thenReturn(headersSpec);
         when(headersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(responseType)).thenReturn(Mono.just(mockResponse));
+        when(responseSpec.bodyToMono(eq(responseType))).thenReturn(Mono.error(exceptionToThrow));
+
         return mockWebClient;
     }
 }

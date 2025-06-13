@@ -24,8 +24,7 @@ import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.core.EmsDialog;
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,10 +32,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Route(value = "login")
 @AnonymousAllowed
 @NeedCleanCoding
+@Slf4j
 public class LoginView extends VerticalLayout {
 
     private LoginI18n login = LoginI18n.createDefault();
@@ -49,8 +50,6 @@ public class LoginView extends VerticalLayout {
 
     @Autowired
     private AuthenticationManager authenticationManager;
-
-    Logger logger = LoggerFactory.getLogger(User.class);
 
 
     public LoginView() {
@@ -71,6 +70,7 @@ public class LoginView extends VerticalLayout {
                     break;
                 }
                 default: {
+                    log.error("NO_ROLE role not found. Code: {}, Description: {}", response.getCode(), response.getDescription());
                     Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     break;
                 }
@@ -145,7 +145,7 @@ public class LoginView extends VerticalLayout {
             case 200:
                 return (User) emsResponse.getResponseData();
             default:
-                logger.error("User findByUsernameError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
+                log.error("User findByUsernameError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
                 Notification.show("EmsError happened while getting username")
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return null;
@@ -204,7 +204,7 @@ public class LoginView extends VerticalLayout {
     }
 
     private Dialog passwordDialog(Dialog parent, String userName) {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        BCryptPasswordEncoder encoder = (BCryptPasswordEncoder) BeanProvider.getBean(PasswordEncoder.class);
         Dialog d = new Dialog("Forgot password for " + userName);
         FormLayout form = new FormLayout();
         PasswordField pw1 = new PasswordField("Password");

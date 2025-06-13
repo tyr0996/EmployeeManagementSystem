@@ -258,6 +258,7 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
         }
 
         PerformPermanentlyDeleteResult ret = new PerformPermanentlyDeleteResult();
+
         ret.setPermanentlyDeletedData(selectedData);
 
         grid.resetFilter();
@@ -269,6 +270,7 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
         String[] selectedData = grid.getRandomDataDeletedStatus(showDeletedCheckBox);
         grid.applyFilter(selectedData);
+        System.out.println("Selected data: " + Arrays.toString(selectedData));
         ElementLocation el = new ElementLocation(1, 0);
 
         VaadinButtonComponent pDeleteButton = grid.getPermanentlyDeleteButton(el.getRowIndex());

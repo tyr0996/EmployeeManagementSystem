@@ -60,7 +60,7 @@ public abstract class EmsApiClient<T> {
                     .block();
             return new EmsResponse(200, convertResponseToEntity(response), "");
         } catch (WebClientResponseException ex) {
-            logger.error("WebClient error - save - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+            logger.error("WebClient error - save - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class));
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
@@ -96,7 +96,7 @@ public abstract class EmsApiClient<T> {
                     .block();
             return new EmsResponse(200, gson.fromJson(response, entityType), "");
         } catch (WebClientResponseException ex) {
-            logger.error("WebClient error - restore - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+            logger.error("WebClient error - restore - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class));
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
@@ -113,7 +113,7 @@ public abstract class EmsApiClient<T> {
                     .block();
             return new EmsResponse(200, gson.fromJson(json, entityType), "");
         } catch (WebClientResponseException ex) {
-            logger.error("WebClient error - delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+            logger.error("WebClient error - delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class));
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }
@@ -129,7 +129,7 @@ public abstract class EmsApiClient<T> {
                     .block();
             return new EmsResponse(200, "");
         } catch (WebClientResponseException ex) {
-            logger.error("WebClient error - permanently delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
+            logger.error("WebClient error - permanently delete - Status: {}, Body: {}", ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class));
             return new EmsResponse(ex.getStatusCode().value(), ex.getResponseBodyAs(EmsError.class).getError());
         }
     }

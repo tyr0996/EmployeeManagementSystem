@@ -328,18 +328,16 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
     }
 
     @NeedCleanCoding
-    public class SupplierVO extends BaseVO {
-        private Supplier original;
+    public class SupplierVO extends BaseVO<Supplier> {
         private String address;
         private String name;
 
         public SupplierVO(Supplier supplier) {
-            super(supplier.id, supplier.getDeleted());
-            this.original = supplier;
+            super(supplier.id, supplier.getDeleted(), supplier);
             this.id = supplier.getId();
             this.deleted = supplier.getDeleted();
-            this.name = original.getName();
-            this.address = original.getAddress().getName();
+            this.name = supplier.getName();
+            this.address = supplier.getAddress().getName();
         }
     }
 }

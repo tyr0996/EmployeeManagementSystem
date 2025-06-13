@@ -12,7 +12,6 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -21,7 +20,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
@@ -33,6 +31,7 @@ import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CustomerApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -49,10 +48,11 @@ import java.util.stream.Stream;
 @RolesAllowed("ROLE_CustomerMenuOpenPermission")
 @Route(value = "customer/list", layout = MainView.class)
 @NeedCleanCoding
-public class CustomerList extends EmsFilterableGridComponent implements Creatable<Customer> {
+public class CustomerList extends EmsFilterableGridComponent implements Creatable<Customer>, IEmsOptionColumnBaseDialogCreationForm<Customer, CustomerList.CustomerVO> {
     private boolean showDeleted = false;
-    private CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
-    private AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
+    @Getter
+    private final CustomerApiClient apiClient = BeanProvider.getBean(CustomerApiClient.class);
+    private final AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
     @Getter
     private PaginatedGrid<CustomerVO, String> grid;
     List<Customer> customers;
@@ -92,59 +92,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
         //region Options column
-        extraData = this.grid.addComponentColumn(customerVO -> {
-            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
-            Button deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
-            restoreButton.addClassNames("info_button_variant");
-            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
-            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-
-            editButton.addClickListener(event -> {
-                Dialog dialog = getSaveOrUpdateDialog(customerVO.original);
-                dialog.open();
-            });
-
-            restoreButton.addClickListener(event -> {
-                this.customerApi.restore(customerVO.original);
-                Notification.show("Customer restored: " + customerVO.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                updateGridItems();
-            });
-
-            deleteButton.addClickListener(event -> {
-                EmsResponse resp = this.customerApi.delete(customerVO.original);
-                switch (resp.getCode()) {
-                    case 200: {
-                        Notification.show("Customer deleted: " + customerVO.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        updateGridItems();
-                        break;
-                    }
-                    default: {
-                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
-                }
-                setupCustomers();
-                updateGridItems();
-            });
-
-            permanentDeleteButton.addClickListener(event -> {
-                this.customerApi.permanentlyDelete(customerVO.id);
-                Notification.show("Customer permanently deleted: " + customerVO.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                updateGridItems();
-            });
-
-            HorizontalLayout actions = new HorizontalLayout();
-            if (customerVO.deleted == 0) {
-                actions.add(editButton, deleteButton);
-            } else {
-                actions.add(permanentDeleteButton, restoreButton);
-            }
-            return actions;
-        });
+        extraData = this.grid.addComponentColumn(customerVO -> createOptionColumn("Customer", customerVO));
 
 
         setFilteringHeaderRow();
@@ -175,8 +123,8 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
         add(hl, grid);
     }
 
-    private void setupCustomers() {
-        EmsResponse response = customerApi.findAllWithDeleted();
+    public void setEntities() {
+        EmsResponse response = apiClient.findAllWithDeleted();
         switch (response.getCode()) {
             case 200:
                 customers = (List<Customer>) response.getResponseData();
@@ -230,7 +178,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
 
     public void updateGridItems() {
         customers = new ArrayList<>();
-        setupCustomers();
+        setEntities();
         if (customers != null) {
             customerVOS = customers.stream().map(CustomerVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
@@ -246,7 +194,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
         d.getHeader().add(closeButton);
     }
 
-    public Dialog getSaveOrUpdateDialog(Customer entity) {
+    public Dialog getSaveOrUpdateDialog(CustomerVO entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " customer");
 
         appendCloseButton(createDialog);
@@ -281,14 +229,16 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
 
 
         if (entity != null) {
-            firstNameField.setValue(entity.getFirstName());
-            lastNameField.setValue(entity.getLastName());
-            addresses.setValue(entity.getAddress());
-            emailField.setValue(entity.getEmailAddress());
+            firstNameField.setValue(entity.original.getFirstName());
+            lastNameField.setValue(entity.original.getLastName());
+            addresses.setValue(entity.original.getAddress());
+            emailField.setValue(entity.original.getEmailAddress());
         }
 
         saveButton.addClickListener(event -> {
-            Customer customer = Objects.requireNonNullElseGet(entity, Customer::new);
+            Customer customer = Optional.ofNullable(entity)
+                    .map(e -> e.original)
+                    .orElseGet(Customer::new);
             customer.setFirstName(firstNameField.getValue());
             customer.setLastName(lastNameField.getValue());
             customer.setAddress(addresses.getValue());
@@ -296,9 +246,9 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
             customer.setDeleted(0L);
             EmsResponse response;
             if (entity != null) {
-                response = customerApi.update(customer);
+                response = apiClient.update(customer);
             } else {
-                response = customerApi.save(customer);
+                response = apiClient.save(customer);
             }
             switch (response.getCode()) {
                 case 200: {
@@ -341,8 +291,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
     }
 
     @NeedCleanCoding
-    public class CustomerVO extends BaseVO {
-        private Customer original;
+    public class CustomerVO extends BaseVO<Customer> {
         private String address;
         private String firstName;
         private String lastName;
@@ -350,13 +299,12 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
         private String name;
 
         public CustomerVO(Customer customer) {
-            super(customer.getId(), customer.getDeleted());
-            this.original = customer;
-            this.firstName = original.getFirstName();
-            this.lastName = original.getLastName();
-            this.address = original.getAddress().getName();
-            this.email = original.getEmailAddress();
-            this.name = original.getName();
+            super(customer.getId(), customer.getDeleted(), customer);
+            this.firstName = customer.getFirstName();
+            this.lastName = customer.getLastName();
+            this.address = customer.getAddress().getName();
+            this.email = customer.getEmailAddress();
+            this.name = customer.getName();
         }
     }
 }

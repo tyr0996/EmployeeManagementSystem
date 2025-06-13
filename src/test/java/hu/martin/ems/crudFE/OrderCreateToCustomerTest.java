@@ -115,7 +115,7 @@ public class OrderCreateToCustomerTest extends BaseCrudTest {
 
         LinkedHashMap<String, Object> sameUser = new LinkedHashMap<>();
 
-        String[] orderElementGridCustomerFilter = new String[]{"", "", "null", "", "", "", "", customerName};
+        String[] orderElementGridCustomerFilter = new String[]{"", "", "", "null", "", "", "", "", customerName};
         sameUser.put("Customer", customerName);
         sameUser.put("Supplier", null);
         oePage.performCreate(sameUser);
@@ -330,7 +330,7 @@ public class OrderCreateToCustomerTest extends BaseCrudTest {
 
         LinkedHashMap<String, Object> sameCustomer = new LinkedHashMap<>();
 
-        String[] orderElementGridCustomerFilter = new String[]{"", "", "null", "", "", "", "", customerName};
+        String[] orderElementGridCustomerFilter = new String[]{"", "", "", "null", "", "", "", "", customerName};
         sameCustomer.put("Customer", customerName);
         sameCustomer.put("Supplier", null);
         oePage.performCreate(sameCustomer);
@@ -387,7 +387,7 @@ public class OrderCreateToCustomerTest extends BaseCrudTest {
 
         LinkedHashMap<String, Object> sameCustomer = new LinkedHashMap<>();
 
-        String[] orderElementGridCustomerFilter = new String[]{"", "", "null", "", "", "", "", customerName};
+        String[] orderElementGridCustomerFilter = new String[]{"", "", "", "null", "", "", "", "", customerName};
         sameCustomer.put("Customer", customerName);
         sameCustomer.put("Supplier", null);
         oePage.performCreate(sameCustomer);
@@ -440,7 +440,7 @@ public class OrderCreateToCustomerTest extends BaseCrudTest {
             OrderElementPage oePage = new OrderElementPage(driver, port);
             LinkedHashMap<String, Object> sameCustomer = new LinkedHashMap<>();
 
-            String[] orderElementGridCustomerFilter = new String[]{"", "", "null", "", "", "", "", customerName};
+            String[] orderElementGridCustomerFilter = new String[]{"", "", "", "null", "", "", "", "", customerName};
             sameCustomer.put("Customer", customerName);
             sameCustomer.put("Supplier", null);
             VaadinNotificationComponent.closeAll(driver);

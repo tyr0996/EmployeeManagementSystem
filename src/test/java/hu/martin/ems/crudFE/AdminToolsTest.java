@@ -13,6 +13,7 @@ import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.vaadin.core.EmsError;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.testng.annotations.Test;
@@ -22,7 +23,6 @@ import java.time.Instant;
 
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -80,22 +80,6 @@ public class AdminToolsTest extends BaseCrudTest {
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
-    @Test
-    public void exportApisFailedTestFailedNoBean() throws Exception {
-        when(spyEndpointController.getHandlerMapping()).thenThrow(new RuntimeException());
-        EmptyLoggedInVaadinPage loggedInPage =
-                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
-        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
-
-        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
-
-        adminToolsPage.getExportApisButton().click();
-        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
-        assertEquals(notification.getText(), "Internal Server Error");
-        notification.close();
-        assertFalse(waitForDownload("ems_apis[0-9]*.json", 200, 10));
-        assertNull(VaadinNotificationComponent.hasNotification(driver));
-    }
 
     @Test
     public void healthStatusResponseUPTest() {
@@ -139,6 +123,31 @@ public class AdminToolsTest extends BaseCrudTest {
         AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
 
         assertEquals(adminToolsPage.getHealthStatus().getText(), "Inaccessible");
+        assertNull(VaadinNotificationComponent.hasNotification(driver));
+    }
+
+    @Test
+    public void exportApisFailedTest() throws Exception {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
+        EmsError emsError = new EmsError(Instant.now().toEpochMilli(), 500, "Internal Server Error", "actuator/mappings");
+        String error = BeanProvider.getBean(Gson.class).toJson(emsError);
+        WebClientResponseException responseException = WebClientResponseException.create(500, "Internal Server Error", HttpHeaders.EMPTY, error.getBytes(Charset.defaultCharset()), Charset.defaultCharset());
+        responseException.setBodyDecodeFunction(targetClass -> {
+            return BeanProvider.getBean(Gson.class).fromJson(error, EmsError.class);
+        });
+
+        MockingUtil.mockBaseUrlWebClientException(spyWebClientProvider, "actuator/mappings", responseException, String.class);
+
+        AdminToolsPage adminToolsPage = new AdminToolsPage(driver, port);
+        adminToolsPage.getExportApisButton().click();
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        assertEquals(notification.getText(), "Internal Server Error");
+        notification.close();
+
+        assertFalse(waitForDownload("ems_apis[0-9]*.json", 20, 1000));
+
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 }

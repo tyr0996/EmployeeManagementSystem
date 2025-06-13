@@ -13,7 +13,6 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -22,10 +21,10 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.NumberFilteringHeaderCell;
 import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.OrderElement;
@@ -35,6 +34,7 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -51,10 +51,10 @@ import java.util.stream.Stream;
 @RolesAllowed("ROLE_OrderElementMenuOpenPermission")
 @CssImport("./styles/grid.css")
 @NeedCleanCoding
-public class OrderElementList extends EmsFilterableGridComponent implements Creatable<OrderElement> {
+public class OrderElementList extends EmsFilterableGridComponent implements Creatable<OrderElement>, IEmsOptionColumnBaseDialogCreationForm<OrderElement, OrderElementList.OrderElementVO> {
 
-    private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);
-    private final OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
+    @Getter
+    private final OrderElementApiClient apiClient = BeanProvider.getBean(OrderElementApiClient.class);
     private final ProductApiClient productApi = BeanProvider.getBean(ProductApiClient.class);
     private final CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
     private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);
@@ -66,7 +66,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
     private List<OrderElementVO> orderElementVOS;
 
-    private final PaginationSetting paginationSetting;
+    private Grid.Column<OrderElementVO> idColumn;
     private Grid.Column<OrderElementVO> customerOrSupplierName;
     private Grid.Column<OrderElementVO> grossPriceColumn;
     private Grid.Column<OrderElementVO> netPriceColumn;
@@ -75,8 +75,6 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
     private Grid.Column<OrderElementVO> taxKeyColumn;
     private Grid.Column<OrderElementVO> unitColumn;
     private Grid.Column<OrderElementVO> unitNetPriceColumn;
-
-    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<OrderElementVO> extraData;
 
     private TextFilteringHeaderCell grossPriceFilter;
@@ -87,6 +85,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
     private TextFilteringHeaderCell unitFilter;
     private TextFilteringHeaderCell unitNetPriceFilter;
     private TextFilteringHeaderCell customerOrSupplierNameFilter;
+    private NumberFilteringHeaderCell idFilter;
 
 
     List<OrderElement> orderElementList;
@@ -94,23 +93,21 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
     List<Customer> customerList;
     List<Supplier> supplierList;
     Logger logger = LoggerFactory.getLogger(OrderElement.class);
-    private MainView mainView;
 
     @Autowired
     public OrderElementList(PaginationSetting paginationSetting) {
-        this.paginationSetting = paginationSetting;
         OrderElementVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(OrderElementVO.class);
 
-        setupOrderElements();
+        setEntities();
         if (orderElementList == null) {
             Notification.show("Getting order elements failed")
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
             orderElementList = new ArrayList<>();
         }
 
-
+        idColumn = grid.addColumn(v -> v.id);
         grossPriceColumn = grid.addColumn(v -> v.grossPrice);
         netPriceColumn = grid.addColumn(v -> v.netPrice);
         orderColumn = grid.addColumn(v -> v.order);
@@ -125,64 +122,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-
-        //region Options column
-        extraData = this.grid.addComponentColumn(orderElement -> {
-            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
-            Button deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
-            restoreButton.addClassNames("info_button_variant");
-            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
-            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-
-            editButton.addClickListener(event -> {
-                Dialog d = getSaveOrUpdateDialog(orderElement.original);
-                d.open();
-            });
-
-            restoreButton.addClickListener(event -> {
-                this.orderElementApi.restore(orderElement.original);
-                Notification.show("OrderElement restored: " + orderElement.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                setupOrderElements();
-                updateGridItems();
-            });
-
-            deleteButton.addClickListener(event -> {
-                EmsResponse resp = this.orderElementApi.delete(orderElement.original);
-                switch (resp.getCode()) {
-                    case 200: {
-                        Notification.show("OrderElement deleted: " + orderElement.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        updateGridItems();
-                        break;
-                    }
-                    default: {
-                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
-                }
-                setupOrderElements();
-                updateGridItems();
-            });
-
-            permanentDeleteButton.addClickListener(event -> {
-                this.orderElementApi.permanentlyDelete(orderElement.original.getId());
-                Notification.show("OrderElement permanently deleted: " + orderElement.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                setupOrderElements();
-                updateGridItems();
-            });
-
-            HorizontalLayout actions = new HorizontalLayout();
-            if (orderElement.original.getDeleted() == 0) {
-                actions.add(editButton, deleteButton);
-            } else {
-                actions.add(permanentDeleteButton, restoreButton);
-            }
-            return actions;
-        });
-        //endregion
+        extraData = this.grid.addComponentColumn(orderElement -> createOptionColumn("OrderElement", orderElement));
 
         Button create = new Button("Create");
         create.addClickListener(event -> {
@@ -195,7 +135,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
             showDeleted = event.getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             OrderElementVO.showDeletedCheckboxFilter.replace("deleted", newValue);
-            setupOrderElements();
+            setEntities();
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -208,9 +148,9 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
         add(hl, grid);
     }
-
-    private void setupOrderElements() {
-        EmsResponse response = orderElementApi.findAllWithDeleted();
+    
+    public void setEntities() {
+        EmsResponse response = apiClient.findAllWithDeleted();
         switch (response.getCode()) {
             case 200:
                 orderElementList = (List<OrderElement>) response.getResponseData();
@@ -224,6 +164,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
     private Stream<OrderElementVO> getFilteredStream() {
         return orderElementVOS.stream().filter(orderElementVO ->
+                filterField(idFilter, orderElementVO.id.doubleValue()) &&
                 filterField(customerOrSupplierNameFilter, orderElementVO.customerOrSupplierName) &&
                 filterField(grossPriceFilter, orderElementVO.grossPrice.toString()) &&
                 filterField(netPriceFilter, orderElementVO.netPrice.toString()) &&
@@ -245,6 +186,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
         unitFilter = new TextFilteringHeaderCell("Search unit...", this);
         unitNetPriceFilter = new TextFilteringHeaderCell("Search unit net price...", this);
         customerOrSupplierNameFilter = new TextFilteringHeaderCell("Search customer/supplier...", this);
+        idFilter = new NumberFilteringHeaderCell("Search id...", this);
 
         TextField extraDataFilter = new TextField();
         extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
@@ -260,6 +202,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
         HeaderRow filterRow = grid.appendHeaderRow();
 
+        filterRow.getCell(idColumn).setComponent(styleFilterField(idFilter, "ID"));
         filterRow.getCell(grossPriceColumn).setComponent(styleFilterField(grossPriceFilter, "Gross price"));
         filterRow.getCell(netPriceColumn).setComponent(styleFilterField(netPriceFilter, "Net price"));
         filterRow.getCell(orderColumn).setComponent(styleFilterField(orderFilter, "Order"));
@@ -288,7 +231,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
     }
 
 
-    public Dialog getSaveOrUpdateDialog(OrderElement entity) {
+    public Dialog getSaveOrUpdateDialog(OrderElementVO entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " order element");
         appendCloseButton(createDialog);
         FormLayout formLayout = new FormLayout();
@@ -342,13 +285,15 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
 
         if (entity != null) {
-            products.setValue(entity.getProduct());
+            products.setValue(entity.original.getProduct());
 //            orders.setValue(entity.getOrder());
-            unitField.setValue(entity.getUnit().doubleValue());
+            unitField.setValue(entity.original.getUnit().doubleValue());
         }
 
         saveButton.addClickListener(event -> {
-            OrderElement orderElement = Objects.requireNonNullElseGet(entity, OrderElement::new);
+            OrderElement orderElement = Optional.ofNullable(entity)
+                    .map(e -> e.original)
+                    .orElseGet(OrderElement::new);
             orderElement.setProduct(products.getValue());
             orderElement.setUnit(unitField.getValue().intValue());
             orderElement.setUnitNetPrice(products.getValue().getSellingPriceNet().intValue());
@@ -363,9 +308,9 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
             orderElement.setTaxPrice(orderElement.getGrossPrice().doubleValue() - orderElement.getNetPrice().doubleValue());
             EmsResponse response = null;
             if (entity != null) {
-                response = orderElementApi.update(orderElement);
+                response = apiClient.update(orderElement);
             } else {
-                response = orderElementApi.save(orderElement);
+                response = apiClient.save(orderElement);
             }
             switch (response.getCode()) {
                 case 200: {
@@ -384,7 +329,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
             products.setValue(null);
             unitField.setValue(null);
             createDialog.close();
-            setupOrderElements();
+            setEntities();
             updateGridItems();
         });
 
@@ -435,8 +380,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
     }
 
     @NeedCleanCoding
-    public class OrderElementVO extends BaseVO {
-        private OrderElement original;
+    public class OrderElementVO extends BaseVO<OrderElement> {
         private String product;
         private String order;
         private String taxKey;
@@ -447,15 +391,14 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
         private String customerOrSupplierName;
 
         public OrderElementVO(OrderElement orderElement) {
-            super(orderElement.id, orderElement.getDeleted());
-            this.original = orderElement;
-            this.product = original.getProduct().getName();
-            this.order = original.getOrderId() == null ? "" : original.getOrderId().toString();
-            this.unit = original.getUnit();
-            this.unitNetPrice = original.getUnitNetPrice();
-            this.taxKey = original.getTaxKey().getName() + "%";
-            this.netPrice = original.getNetPrice();
-            this.grossPrice = original.getGrossPrice();
+            super(orderElement.id, orderElement.getDeleted(), orderElement);
+            this.product = orderElement.getProduct().getName();
+            this.order = orderElement.getOrderId() == null ? "" : orderElement.getOrderId().toString();
+            this.unit = orderElement.getUnit();
+            this.unitNetPrice = orderElement.getUnitNetPrice();
+            this.taxKey = orderElement.getTaxKey().getName() + "%";
+            this.netPrice = orderElement.getNetPrice();
+            this.grossPrice = orderElement.getGrossPrice();
             this.customerOrSupplierName = generateCustomerOrSupplierName(orderElement);
         }
 

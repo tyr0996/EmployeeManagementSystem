@@ -2,6 +2,7 @@ package hu.martin.ems.crudFE;
 
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.core.config.DataProvider;
+import hu.martin.ems.core.model.BaseEntity;
 import hu.martin.ems.vaadin.component.BaseVO;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
@@ -96,25 +97,28 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
         assertEquals(true, a.equals(a));
     }
 
-    protected class TestVO extends BaseVO {
+    protected class Test_1 extends BaseEntity {
+    }
+    protected class Test_2 extends BaseEntity {
+    }
+
+    protected class TestVO extends BaseVO<Test_1> {
         public TestVO() {
-            super(1L, 0L);
+            super(1L, 0L, new Test_1());
         }
 
         public TestVO(long id, long deleted) {
-            super(id, deleted);
+            super(id, deleted, new Test_1());
         }
     }
 
-    protected class TestVO2 extends BaseVO {
+    protected class TestVO2 extends BaseVO<Test_2> {
         public TestVO2() {
-            super(1L, 0L);
+            super(1L, 0L, new Test_2());
         }
 
         public TestVO2(long id, long deleted) {
-            super(id, deleted);
+            super(id, deleted, new Test_2());
         }
     }
-
-
 }

@@ -12,7 +12,6 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -22,7 +21,6 @@ import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.CodeStoreIds;
-import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
@@ -32,6 +30,7 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -49,10 +48,11 @@ import java.util.stream.Stream;
 @CssImport("./styles/grid.css")
 @RolesAllowed("ROLE_ProductMenuOpenPermission")
 @NeedCleanCoding
-public class ProductList extends EmsFilterableGridComponent implements Creatable<Product> {
+public class ProductList extends EmsFilterableGridComponent implements Creatable<Product>, IEmsOptionColumnBaseDialogCreationForm<Product, ProductList.ProductVO> {
 
     //TODO a Unit és a nem tudom mi helyett inkább lehetne packaging (kiszerelés)
-    private final ProductApiClient productApi = BeanProvider.getBean(ProductApiClient.class);
+    @Getter
+    private final ProductApiClient apiClient = BeanProvider.getBean(ProductApiClient.class);
     private final CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
     private final OrderElementApiClient orderElementApi = BeanProvider.getBean(OrderElementApiClient.class);
     private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);
@@ -97,12 +97,10 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
     @Autowired
     public ProductList(PaginationSetting paginationSetting) {
-        this.mainView = mainView;
-
         ProductVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(ProductVO.class);
-        setupProducts();
+        setEntities();
 
 
         amountColumn = grid.addColumn(v -> v.amount);
@@ -121,65 +119,16 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
 
         //region Options column
         extraData = this.grid.addComponentColumn(productVo -> {
-            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
-            Button deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+            
             Button orderButton = new Button("Order");
             Button sellButton = new Button("Sell");
-            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
-            restoreButton.addClassNames("info_button_variant");
-            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
-            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-
             orderButton.addClickListener(event -> {
                 getOrderFromSupplierDialog(productVo).open();
             });
             sellButton.addClickListener(event -> {
                 getSellToCustomerDialog(productVo).open();
             });
-            editButton.addClickListener(event -> {
-                Dialog dialog = getSaveOrUpdateDialog(productVo.original);
-                dialog.open();
-            });
-
-            restoreButton.addClickListener(event -> {
-                this.productApi.restore(productVo.original);
-                Notification.show("Product restored: " + productVo.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                updateGridItems();
-            });
-
-            deleteButton.addClickListener(event -> {
-                EmsResponse resp = this.productApi.delete(productVo.original);
-                switch (resp.getCode()) {
-                    case 200: {
-                        Notification.show("Product deleted: " + productVo.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        updateGridItems();
-                        break;
-                    }
-                    default: {
-                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
-                }
-                setupProducts();
-                updateGridItems();
-            });
-
-            permanentDeleteButton.addClickListener(event -> {
-                this.productApi.permanentlyDelete(productVo.original.getId());
-                Notification.show("Product permanently deleted: " + productVo.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                updateGridItems();
-            });
-
-            HorizontalLayout actions = new HorizontalLayout();
-            if (productVo.original.getDeleted() == 0) {
-                actions.add(editButton, deleteButton, sellButton, orderButton);
-            } else {
-                actions.add(permanentDeleteButton, restoreButton);
-            }
-            return actions;
+            return createOptionColumn("Product", productVo, new Button[]{sellButton, orderButton});
         }).setAutoWidth(true).setFlexGrow(0);
         //endregion
 
@@ -209,8 +158,8 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         add(hl, grid);
     }
 
-    private void setupProducts() {
-        EmsResponse response = productApi.findAll();
+    public void setEntities() {
+        EmsResponse response = apiClient.findAll();
         switch (response.getCode()) {
             case 200:
                 productList = (List<Product>) response.getResponseData();
@@ -396,7 +345,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
     }
 
     public void updateGridItems() {
-        EmsResponse response = productApi.findAllWithDeleted();
+        EmsResponse response = apiClient.findAllWithDeleted();
         List<Product> products;
         switch (response.getCode()) {
             case 200:
@@ -411,7 +360,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
-    public Dialog getSaveOrUpdateDialog(Product entity) {
+    public Dialog getSaveOrUpdateDialog(ProductVO entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " product");
         appendCloseButton(createDialog);
         FormLayout formLayout = new FormLayout();
@@ -491,18 +440,20 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         NumberField amountField = new NumberField("Amount");
 
         if (entity != null) {
-            nameField.setValue(entity.getName());
-            buyingPriceNetField.setValue(entity.getBuyingPriceNet());
-            buyingPriceCurrencys.setValue(entity.getBuyingPriceCurrency());
-            sellingPriceNetField.setValue(entity.getSellingPriceNet());
-            sellingPriceCurrencies.setValue(entity.getSellingPriceCurrency());
-            amountUnits.setValue(entity.getAmountUnit());
-            amountField.setValue(entity.getAmount());
-            taxKeys.setValue(entity.getTaxKey());
+            nameField.setValue(entity.original.getName());
+            buyingPriceNetField.setValue(entity.original.getBuyingPriceNet());
+            buyingPriceCurrencys.setValue(entity.original.getBuyingPriceCurrency());
+            sellingPriceNetField.setValue(entity.original.getSellingPriceNet());
+            sellingPriceCurrencies.setValue(entity.original.getSellingPriceCurrency());
+            amountUnits.setValue(entity.original.getAmountUnit());
+            amountField.setValue(entity.original.getAmount());
+            taxKeys.setValue(entity.original.getTaxKey());
         }
 
         saveButton.addClickListener(event -> {
-            Product product = Objects.requireNonNullElseGet(entity, Product::new);
+            Product product = Optional.ofNullable(entity)
+                    .map(e -> e.original)
+                    .orElseGet(Product::new);
             product.setName(nameField.getValue());
             product.setBuyingPriceNet(buyingPriceNetField.getValue());
             product.setBuyingPriceCurrency(buyingPriceCurrencys.getValue());
@@ -514,9 +465,9 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
             product.setTaxKey(taxKeys.getValue());
             EmsResponse response = null;
             if (entity != null) {
-                response = productApi.update(product);
+                response = apiClient.update(product);
             } else {
-                response = productApi.save(product);
+                response = apiClient.save(product);
             }
             switch (response.getCode()) {
                 case 200: {
@@ -591,8 +542,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
     }
 
     @NeedCleanCoding
-    public class ProductVO extends BaseVO {
-        private Product original;
+    public class ProductVO extends BaseVO<Product> {
         private String buyingPriceCurrency;
         private String sellingPriceCurrency;
         private String amountUnit;
@@ -602,17 +552,14 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         private Double amount;
 
         public ProductVO(Product product) {
-            super(product.id, product.getDeleted());
-            this.original = product;
-            this.id = product.getId();
-            this.deleted = product.getDeleted();
-            this.name = original.getName();
-            this.buyingPriceNet = original.getBuyingPriceNet();
-            this.buyingPriceCurrency = original.getBuyingPriceCurrency().getName();
-            this.sellingPriceNet = original.getSellingPriceNet();
-            this.sellingPriceCurrency = original.getSellingPriceCurrency().getName();
-            this.amountUnit = original.getAmountUnit().getName();
-            this.amount = original.getAmount();
+            super(product.id, product.getDeleted(), product);
+            this.name = product.getName();
+            this.buyingPriceNet = product.getBuyingPriceNet();
+            this.buyingPriceCurrency = product.getBuyingPriceCurrency().getName();
+            this.sellingPriceNet = product.getSellingPriceNet();
+            this.sellingPriceCurrency = product.getSellingPriceCurrency().getName();
+            this.amountUnit = product.getAmountUnit().getName();
+            this.amount = product.getAmount();
         }
     }
 }

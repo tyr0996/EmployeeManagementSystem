@@ -1,7 +1,6 @@
 package hu.martin.ems.vaadin.component.Employee;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -12,19 +11,15 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
@@ -36,6 +31,7 @@ import hu.martin.ems.vaadin.api.EmployeeApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -52,9 +48,10 @@ import java.util.stream.Stream;
 @RolesAllowed("ROLE_EmployeeMenuOpenPermission")
 @Route(value = "employee/list", layout = MainView.class)
 @NeedCleanCoding
-public class EmployeeList extends EmsFilterableGridComponent implements Creatable<Employee> {
+public class EmployeeList extends EmsFilterableGridComponent implements Creatable<Employee>, IEmsOptionColumnBaseDialogCreationForm<Employee, EmployeeList.EmployeeVO> {
 
-    private final EmployeeApiClient employeeApi = BeanProvider.getBean(EmployeeApiClient.class);
+    @Getter
+    private final EmployeeApiClient apiClient = BeanProvider.getBean(EmployeeApiClient.class);
     private final UserApiClient userApi = BeanProvider.getBean(UserApiClient.class);
     private final Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
@@ -67,7 +64,6 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
     Grid.Column<EmployeeVO> lastNameColumn;
     Grid.Column<EmployeeVO> userColumn;
     Grid.Column<EmployeeVO> salaryColumn;
-    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<EmployeeVO> extraData;
 
     private TextFilteringHeaderCell firstNameFilter;
@@ -82,7 +78,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         EmployeeVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(EmployeeVO.class);
-        setupEmployees();
+        setEntities();
 
         firstNameColumn = this.grid.addColumn(v -> v.firstName);
         lastNameColumn = this.grid.addColumn(v -> v.lastName);
@@ -95,79 +91,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
         //region Options column
-        extraData = this.grid.addComponentColumn(employee -> {
-            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
-            Button deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
-            restoreButton.addClassNames("info_button_variant");
-            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
-            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-
-            editButton.addClickListener(event -> {
-                Dialog dialog = getSaveOrUpdateDialog(employee.original);
-                dialog.open();
-            });
-
-            restoreButton.addClickListener(event -> {
-                EmsResponse response = this.employeeApi.restore(employee.original);
-                switch (response.getCode()) {
-                    case 200:
-                        Notification.show("Employee restored: " + employee.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        setupEmployees();
-                        updateGridItems();
-                        break;
-                    default: {
-                        Notification.show(response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                        return;
-                    }
-                }
-
-            });
-
-            deleteButton.addClickListener(event -> {
-                EmsResponse resp = this.employeeApi.delete(employee.original);
-                switch (resp.getCode()) {
-                    case 200: {
-                        Notification.show("Employee deleted: " + employee.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        updateGridItems();
-                        break;
-                    }
-                    default: {
-                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
-                }
-                setupEmployees();
-                updateGridItems();
-            });
-
-            permanentDeleteButton.addClickListener(event -> {
-                EmsResponse response = this.employeeApi.permanentlyDelete(employee.original.getId());
-                switch (response.getCode()) {
-                    case 200:
-                        Notification.show("Employee permanently deleted: " + employee.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        setupEmployees();
-                        updateGridItems();
-                        break;
-                    default:
-                        Notification.show("Employee permanently deletion failed: " + response.getDescription())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        setupEmployees();
-                        updateGridItems();
-                }
-            });
-
-            HorizontalLayout actions = new HorizontalLayout();
-            if (employee.original.getDeleted() == 0) {
-                actions.add(editButton, deleteButton);
-            } else {
-                actions.add(permanentDeleteButton, restoreButton);
-            }
-            return actions;
-        });
+        extraData = this.grid.addComponentColumn(employee -> createOptionColumn("Employee", employee));
 
         setFilteringHeaderRow();
         updateGridItems();
@@ -185,7 +109,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
             showDeleted = event.getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             EmployeeVO.showDeletedCheckboxFilter.replace("deleted", newValue);
-            setupEmployees();
+            setEntities();
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
@@ -196,8 +120,8 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         add(hl, grid);
     }
 
-    private void setupEmployees() {
-        EmsResponse response = employeeApi.findAllWithDeleted();
+    public void setEntities() {
+        EmsResponse response = apiClient.findAllWithDeleted();
         switch (response.getCode()) {
             case 200:
                 employees = (List<Employee>) response.getResponseData();
@@ -210,31 +134,12 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
     }
 
     private Stream<EmployeeVO> getFilteredStream() {
-
         return employeeVOS.stream().filter(employeeVO ->
                 filterField(firstNameFilter, employeeVO.firstName) &&
                 filterField(lastNameFilter, employeeVO.lastName) &&
                 filterField(userFilter, employeeVO.user) &&
                 filterField(salaryFilter, employeeVO.salary.toString()) &&
                 employeeVO.filterExtraData());
-//                (firstNameFilter.isEmpty() || employeeVO.firstName.toLowerCase().contains(firstNameFilter.getFilterText().toLowerCase())) &&
-//                        (lastNameFilter.isEmpty() || employeeVO.lastName.toLowerCase().contains(lastNameFilter.getFilterText().toLowerCase())) &&
-//                        (userFilter.isEmpty() || employeeVO.user.toLowerCase().contains(userFilter.getFilterText().toLowerCase())) &&
-//                        (salaryFilter.isEmpty() || employeeVO.salary.toString().toLowerCase().contains(salaryFilter.getFilterText().toLowerCase())) &&
-//                        employeeVO.filterExtraData()
-    }
-
-    private Component styleFilterField(TextField filterField, String title) {
-        VerticalLayout res = new VerticalLayout();
-        res.getStyle().set("padding", "0px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center");
-        filterField.getStyle().set("display", "flex").set("width", "100%");
-        NativeLabel titleLabel = new NativeLabel(title);
-        res.add(titleLabel, filterField);
-        res.setClassName("vaadin-header-cell-content");
-        return res;
     }
 
     private void setFilteringHeaderRow() {
@@ -280,7 +185,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         d.getHeader().add(closeButton);
     }
 
-    public Dialog getSaveOrUpdateDialog(Employee entity) {
+    public Dialog getSaveOrUpdateDialog(EmployeeVO entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " employee");
         appendCloseButton(createDialog);
         FormLayout formLayout = new FormLayout();
@@ -306,14 +211,16 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         }
 
         if (entity != null) {
-            firstNameField.setValue(entity.getFirstName());
-            lastNameField.setValue(entity.getLastName());
-            salaryField.setValue(entity.getSalary().doubleValue());
-            users.setValue(entity.getUser());
+            firstNameField.setValue(entity.original.getFirstName());
+            lastNameField.setValue(entity.original.getLastName());
+            salaryField.setValue(entity.original.getSalary().doubleValue());
+            users.setValue(entity.original.getUser());
         }
 
         saveButton.addClickListener(event -> {
-            Employee employee = Objects.requireNonNullElseGet(entity, Employee::new);
+            Employee employee = Optional.ofNullable(entity)
+                    .map(e -> e.original)
+                    .orElseGet(Employee::new);
             employee.setFirstName(firstNameField.getValue());
             employee.setLastName(lastNameField.getValue());
             employee.setDeleted(0L);
@@ -321,9 +228,9 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
             employee.setUser(users.getValue());
             EmsResponse response = null;
             if (entity != null) {
-                response = employeeApi.update(employee);
+                response = apiClient.update(employee);
             } else {
-                response = employeeApi.save(employee);
+                response = apiClient.save(employee);
             }
             switch (response.getCode()) {
                 case 200: {
@@ -335,7 +242,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
                     Notification.show("Employee " + (entity == null ? "saving" : "modifying") + " failed: " + response.getDescription())
                             .addThemeVariants(NotificationVariant.LUMO_ERROR);
                     createDialog.close();
-                    setupEmployees();
+                    setEntities();
                     updateGridItems();
                     return;
                 }
@@ -346,7 +253,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
             salaryField.clear();
             users.clear();
             createDialog.close();
-            setupEmployees();
+            setEntities();
             updateGridItems();
         });
 
@@ -370,16 +277,14 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
     }
 
     @NeedCleanCoding
-    public class EmployeeVO extends BaseVO {
-        private Employee original;
+    public class EmployeeVO extends BaseVO<Employee> {
         private String firstName;
         private String lastName;
         private String user;
         private Integer salary;
 
         public EmployeeVO(Employee employee) {
-            super(employee.id, employee.getDeleted());
-            this.original = employee;
+            super(employee.id, employee.getDeleted(), employee);
             this.id = employee.getId();
             this.deleted = employee.getDeleted();
             this.firstName = original.getFirstName();

@@ -12,7 +12,6 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -21,10 +20,10 @@ import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.CodeStoreIds;
-import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.IEmsFilterableGridPage;
 import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.City;
@@ -35,6 +34,7 @@ import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -51,9 +51,10 @@ import java.util.stream.Stream;
 @CssImport("./styles/grid.css")
 @RolesAllowed("ROLE_AddressesMenuOpenPermission")
 @NeedCleanCoding
-public class AddressList extends EmsFilterableGridComponent implements Creatable<Address> {
+public class AddressList extends EmsFilterableGridComponent implements Creatable<Address>, IEmsFilterableGridPage, IEmsOptionColumnBaseDialogCreationForm<Address, AddressList.AddressVO> {
 
-    private final AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
+    @Getter
+    private final AddressApiClient apiClient = BeanProvider.getBean(AddressApiClient.class);
     private final CodeStoreApiClient codeStoreApi = BeanProvider.getBean(CodeStoreApiClient.class);
     private final CityApiClient cityApi = BeanProvider.getBean(CityApiClient.class);
     private Gson gson = BeanProvider.getBean(Gson.class);
@@ -61,7 +62,6 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
 
     @Getter
     private PaginatedGrid<AddressVO, String> grid;
-    private final PaginationSetting paginationSetting;
     List<Address> addresses;
     List<AddressVO> addressVOS;
 
@@ -71,31 +71,23 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
     Grid.Column<AddressVO> streetNameColumn;
     Grid.Column<AddressVO> streetTypeColumn;
     Grid.Column<AddressVO> extraData;
-    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
-
     private TextFilteringHeaderCell cityFilter;
     private TextFilteringHeaderCell countryCodeFilter;
     private TextFilteringHeaderCell houseNumberFilter;
     private TextFilteringHeaderCell streetNameFilter;
     private TextFilteringHeaderCell streetTypeFilter;
-
-    private Button createOrModifySaveButton = new Button("Save");
-
     private Logger logger = LoggerFactory.getLogger(Address.class);
     List<City> cityList;
     List<CodeStore> streetTypeList;
     List<CodeStore> countryList;
-
     private Button saveButton;
 
     @Autowired
     public AddressList(PaginationSetting paginationSetting) {
-        this.paginationSetting = paginationSetting;
-
         AddressVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(AddressVO.class);
-        setupAddresses();
+        setEntities();
 
         List<AddressVO> data = addresses.stream().map(AddressVO::new).collect(Collectors.toList());
         this.grid.setItems(data);
@@ -111,74 +103,9 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-
-        //region Options column
-        extraData = this.grid.addComponentColumn(address -> {
-            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
-            Button deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
-            restoreButton.addClassNames("info_button_variant");
-            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
-            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-
-            editButton.addClickListener(event -> {
-                Dialog edit = getSaveOrUpdateDialog(address.original);
-                edit.open();
-            });
-
-            restoreButton.addClickListener(event -> {
-                addressApi.restore(address.original);
-                Notification.show("Address restored: " + address.original.getName())
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                updateGridItems();
-            });
-
-            deleteButton.addClickListener(event -> {
-                EmsResponse resp = this.addressApi.delete(address.original);
-                switch (resp.getCode()) {
-                    case 200: {
-                        Notification.show("Address deleted: " + address.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        updateGridItems();
-                        break;
-                    }
-                    default: {
-                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
-                }
-                setupAddresses();
-                updateGridItems();
-            });
-
-            permanentDeleteButton.addClickListener(event -> {
-                EmsResponse response = this.addressApi.permanentlyDelete(address.original.getId());
-                switch (response.getCode()) {
-                    case 200: {
-                        Notification.show("Address permanently deleted: " + address.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        updateGridItems();
-                        break;
-                    }
-                    default: {
-                        Notification.show("Address permanently deletion failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                        break;
-                    }
-                }
-            });
-
-            HorizontalLayout actions = new HorizontalLayout();
-            if (address.original.getDeleted() == 0) {
-                actions.add(editButton, deleteButton);
-            } else {
-                actions.add(permanentDeleteButton, restoreButton);
-            }
-            return actions;
-        });
+        extraData = this.grid.addComponentColumn(address -> createOptionColumn("Address", address));
 
         setFilteringHeaderRow();
-
-        //endregion
 
         Button create = new Button("Create");
         create.addClickListener(event -> {
@@ -202,8 +129,8 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         add(hl, grid);
     }
 
-    private void setupAddresses() {
-        EmsResponse emsResponse = addressApi.findAll();
+    public void setEntities() {
+        EmsResponse emsResponse = apiClient.findAll();
         switch (emsResponse.getCode()) {
             case 200:
                 addresses = (List<Address>) emsResponse.getResponseData();
@@ -225,12 +152,6 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
                 filterField(streetTypeFilter, addressVO.streetType) &&
                 filterField(streetNameFilter, addressVO.streetName) &&
                 addressVO.filterExtraData()
-//                (cityFilter.isEmpty() || addressVO.city.toLowerCase().contains(cityFilter.getFilterText().toLowerCase())) &&
-//                (countryCodeFilter.isEmpty() || addressVO.countryCode.toLowerCase().contains(countryCodeFilter.getFilterText().toLowerCase())) &&
-//                (houseNumberFilter.isEmpty() || addressVO.houseNumber.toLowerCase().contains(houseNumberFilter.getFilterText().toLowerCase())) &&
-//                (streetTypeFilter.isEmpty() || addressVO.streetType.toLowerCase().contains(streetTypeFilter.getFilterText().toLowerCase())) &&
-//                (streetNameFilter.isEmpty() || addressVO.streetName.toLowerCase().contains(streetNameFilter.getFilterText().toLowerCase())) &&
-//                 addressVO.filterExtraData()
         );
     }
     
@@ -264,7 +185,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
 
 
     public void updateGridItems() {
-        EmsResponse response = addressApi.findAllWithDeleted();
+        EmsResponse response = apiClient.findAllWithDeleted();
         List<Address> addresses;
         switch (response.getCode()) {
             case 200:
@@ -287,7 +208,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         d.getHeader().add(closeButton);
     }
 
-    public Dialog getSaveOrUpdateDialog(Address entity) {
+    public Dialog getSaveOrUpdateDialog(AddressVO entity) {
         Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " address");
         saveButton = new Button("Save");
         FormLayout formLayout = new FormLayout();
@@ -302,15 +223,17 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         TextField houseNumberField = new TextField("House number");
 
         if (entity != null) {
-            countryCodes.setValue(entity.getCountryCode());
-            cities.setValue(entity.getCity());
-            streetNameField.setValue(entity.getStreetName());
-            streetTypes.setValue(entity.getStreetType());
-            houseNumberField.setValue(entity.getHouseNumber());
+            countryCodes.setValue(entity.original.getCountryCode());
+            cities.setValue(entity.original.getCity());
+            streetNameField.setValue(entity.original.getStreetName());
+            streetTypes.setValue(entity.original.getStreetType());
+            houseNumberField.setValue(entity.original.getHouseNumber());
         }
 
         saveButton.addClickListener(event -> {
-            Address address = Objects.requireNonNullElseGet(entity, Address::new);
+            Address address = Optional.ofNullable(entity)
+                    .map(e -> e.original)
+                    .orElseGet(Address::new);
             address.setCountryCode(countryCodes.getValue());
             address.setCity(cities.getValue());
             address.setStreetName(streetNameField.getValue());
@@ -319,9 +242,9 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
             address.setHouseNumber(houseNumberField.getValue());
             EmsResponse response = null;
             if (entity != null) {
-                response = addressApi.update(entity);
+                response = apiClient.update(entity.original);
             } else {
-                response = addressApi.save(address);
+                response = apiClient.save(address);
             }
             switch (response.getCode()) {
                 case 200:
@@ -447,8 +370,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
     }
 
     @NeedCleanCoding
-    public class AddressVO extends BaseVO {
-        private Address original;
+    public class AddressVO extends BaseVO<Address> {
         private String countryCode;
         private String city;
         private String streetType;
@@ -456,8 +378,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         private String houseNumber;
 
         public AddressVO(Address address) {
-            super(address.id, address.getDeleted());
-            this.original = address;
+            super(address.id, address.getDeleted(), address);
             this.countryCode = original.getCountryCode().getName();
             this.city = original.getCity().getName();
             this.streetName = original.getStreetName();

@@ -30,11 +30,4 @@ public class Employee extends BaseEntity {
     @Column(nullable = false)
     @Expose
     private Integer salary;
-
-    @Transient
-    private String name;
-
-    public String getName() {
-        return this.firstName + " " + this.lastName;
-    }
 }

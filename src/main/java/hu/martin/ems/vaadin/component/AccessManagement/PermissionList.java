@@ -13,7 +13,6 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -21,7 +20,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
-import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.IEmsFilterableGridPage;
@@ -33,8 +31,8 @@ import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,19 +50,18 @@ import java.util.stream.Stream;
 @RolesAllowed("ROLE_PermissionMenuOpenPermission")
 @NeedCleanCoding
 @Route(value = "/accessManagement/list/permission", layout = MainView.class)
-public class PermissionList extends AccessManagement implements Creatable<Permission>, IEmsFilterableGridPage<PermissionList.PermissionVO> {
+public class PermissionList extends AccessManagement implements Creatable<Permission>, IEmsFilterableGridPage<PermissionList.PermissionVO>, IEmsOptionColumnBaseDialogCreationForm<Permission, PermissionList.PermissionVO> {
     private boolean withDeleted = false;
     @Getter
     private PaginatedGrid<PermissionVO, String> grid;
     private final PaginationSetting paginationSetting;
-    private final PermissionApiClient permissionApi = BeanProvider.getBean(PermissionApiClient.class);
+    @Getter
+    private final PermissionApiClient apiClient = BeanProvider.getBean(PermissionApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
 
     private Grid.Column<PermissionVO> idColumn;
     private Grid.Column<PermissionVO> nameColumn;
     private Grid.Column<PermissionVO> extraData;
-    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
-
     private TextFilteringHeaderCell idFilter;
 
     private TextFilteringHeaderCell nameFilter;
@@ -102,61 +99,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-
-        extraData = this.grid.addComponentColumn(permission -> {
-            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
-            Button deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
-            restoreButton.addClassNames("info_button_variant");
-            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
-            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-
-            editButton.addClickListener(event -> {
-                Dialog dialog = getSaveOrUpdateDialog(permission.original);
-                dialog.open();
-            });
-
-            restoreButton.addClickListener(event -> {
-                permissionApi.restore(permission.original);
-                Notification.show("Permission restored: " + permission.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                updateGridItems();
-            });
-
-            deleteButton.addClickListener(event -> {
-                EmsResponse resp = this.permissionApi.delete(permission.original);
-                switch (resp.getCode()) {
-                    case 200: {
-                        Notification.show("Permission deleted: " + permission.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        updateGridItems();
-                        break;
-                    }
-                    default: {
-                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
-                }
-                setupPermissions();
-                updateGridItems();
-            });
-
-            permanentDeleteButton.addClickListener(event -> {
-                permissionApi.permanentlyDelete(permission.id);
-                Notification.show("Permission permanently deleted: " + permission.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                updateGridItems();
-            });
-
-            HorizontalLayout actions = new HorizontalLayout();
-            if (permission.deleted == 0) {
-                actions.add(editButton, deleteButton);
-            } else {
-                actions.add(permanentDeleteButton, restoreButton);
-            }
-            return actions;
-        });
-
+        extraData = this.grid.addComponentColumn(permission -> createOptionColumn("Permission", permission));
 
         Button create = new Button("Create");
         create.addClickListener(event -> {
@@ -183,8 +126,8 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         add(hl, grid);
     }
 
-    private void setupPermissions() {
-        EmsResponse response = permissionApi.findAllWithDeleted();
+    public void setEntities() {
+        EmsResponse response = apiClient.findAllWithDeleted();
         switch (response.getCode()) {
             case 200:
                 permissionList = (List<Permission>) response.getResponseData();
@@ -197,7 +140,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
     }
 
     public void updateGridItems() {
-        setupPermissions();
+        setEntities();
         if (permissionList != null) {
             permissionVOS = permissionList.stream().map(PermissionVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
@@ -214,7 +157,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         d.getHeader().add(closeButton);
     }
 
-    public Dialog getSaveOrUpdateDialog(Permission entity) {
+    public Dialog getSaveOrUpdateDialog(PermissionVO entity) {
         Button saveButton = new Button("Save");
         createDialog = new Dialog((entity == null ? "Create" : "Modify") + " permission");
         FormLayout formLayout = new FormLayout();
@@ -237,12 +180,12 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         }
 
         if (entity != null) {
-            nameField.setValue(entity.getName());
-            roles.setValue(entity.getRoles());
+            nameField.setValue(entity.original.getName());
+            roles.setValue(entity.original.getRoles());
         }
 
         saveButton.addClickListener(event -> {
-            saveRolesWithPermission(entity);
+            saveRolesWithPermission(entity == null ? null : entity.original);
             updateGridItems();
         });
 
@@ -275,7 +218,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         entity.setName(nameField.getValue());
 
 
-        EmsResponse response = isUpdate ? permissionApi.update(entity) : permissionApi.save(entity);
+        EmsResponse response = isUpdate ? apiClient.update(entity) : apiClient.save(entity);
         switch (response.getCode()) {
             case 200:
                 Notification.show("Permission " + (isUpdate ? "updated: " : "saved: ") + entity.getName())
@@ -324,14 +267,11 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
-    public class PermissionVO extends BaseVO {
-        @NotNull
-        private Permission original;
+    public class PermissionVO extends BaseVO<Permission> {
         private String name;
 
         public PermissionVO(Permission permission) {
-            super(permission.id, permission.getDeleted());
-            this.original = permission;
+            super(permission.id, permission.getDeleted(), permission);
             this.deleted = permission.getDeleted();
             this.id = permission.getId();
             this.name = permission.getName();

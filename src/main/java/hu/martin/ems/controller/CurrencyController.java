@@ -8,13 +8,10 @@ import hu.martin.ems.exception.ParsingCurrenciesException;
 import hu.martin.ems.model.Currency;
 import hu.martin.ems.repository.CurrencyRepository;
 import hu.martin.ems.service.CurrencyService;
-import hu.martin.ems.vaadin.core.EmsError;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -39,17 +36,5 @@ public class CurrencyController extends BaseController<Currency, CurrencyService
     public ResponseEntity<String> findByDate(String date) throws JsonProcessingException {
         LocalDate ld = LocalDate.parse(date);
         return new ResponseEntity<>(gson.toJson(service.findByDate(ld)), HttpStatus.OK);
-    }
-
-    @ExceptionHandler(FetchingCurrenciesException.class)
-    public ResponseEntity<String> handleFetchingCurrenciesException(FetchingCurrenciesException ex, HttpServletRequest request) {
-        EmsError emsErrorResponse = new EmsError(System.currentTimeMillis(), 502, ex.getType().getText(), request.getRequestURI());
-        return new ResponseEntity<>(gson.toJson(emsErrorResponse), HttpStatus.BAD_GATEWAY);
-    }
-
-    @ExceptionHandler(ParsingCurrenciesException.class)
-    public ResponseEntity<String> handleParsingCurrenciesException(ParsingCurrenciesException ex, HttpServletRequest request) {
-        EmsError emsErrorResponse = new EmsError(System.currentTimeMillis(), 500, ex.getType().getText(), request.getRequestURI());
-        return new ResponseEntity<>(gson.toJson(emsErrorResponse), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

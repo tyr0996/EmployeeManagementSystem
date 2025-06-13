@@ -29,7 +29,6 @@ import hu.martin.ems.vaadin.api.OrderElementApiClient;
 import hu.martin.ems.vaadin.api.SupplierApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,7 +123,6 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
 
         grid = new PaginatedGrid<>(OrderElementVO.class);
         grid.setItems(new ArrayList<>());
-        grid.removeColumnByKey("original");
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.asMultiSelect();
         grid.setPageSize(paginationSetting.getPageSize());
@@ -338,7 +336,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
 
         return orderElementVOS.stream().filter(orderElementVO ->
         {
-            OrderElement oe = orderElementVO.getOriginal();
+            OrderElement oe = orderElementVO.original;
             boolean res = showPreviously || oe.getOrderId() == null;
             Boolean filter = orderElementVO.filterExtraData();
             return res && filter;
@@ -352,7 +350,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         if (editObject != null) {
             List<OrderElementVO> selected = orderElementVOS.stream()
                     .filter(v -> {
-                        if (v.getOriginal().getOrderId() != null) {
+                        if (v.original.getOrderId() != null) {
                             return v.original.getOrderId().equals(editObject.getId());
                         } else {
                             return false;
@@ -369,10 +367,7 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
 
     @Getter
     @NeedCleanCoding
-    public class OrderElementVO extends BaseVO {
-
-        @NotNull
-        private OrderElement original;
+    public class OrderElementVO extends BaseVO<OrderElement> {
         private String product;
         private String orderNumber;
         private String taxKey;
@@ -382,15 +377,14 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         private Integer grossPrice;
 
         public OrderElementVO(OrderElement orderElement) {
-            super(orderElement.id, orderElement.getDeleted());
-            this.original = orderElement;
-            this.product = original.getProduct().getName();
-            this.orderNumber = original.getOrderId() == null ? "" : original.getOrderId().toString();
-            this.unit = original.getUnit();
-            this.unitNetPrice = original.getUnitNetPrice();
-            this.taxKey = original.getTaxKey().getName() + "%";
-            this.netPrice = original.getNetPrice();
-            this.grossPrice = original.getGrossPrice();
+            super(orderElement.id, orderElement.getDeleted(), orderElement);
+            this.product = orderElement.getProduct().getName();
+            this.orderNumber = orderElement.getOrderId() == null ? "" : orderElement.getOrderId().toString();
+            this.unit = orderElement.getUnit();
+            this.unitNetPrice = orderElement.getUnitNetPrice();
+            this.taxKey = orderElement.getTaxKey().getName() + "%";
+            this.netPrice = orderElement.getNetPrice();
+            this.grossPrice = orderElement.getGrossPrice();
         }
     }
 }

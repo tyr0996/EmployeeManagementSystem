@@ -73,7 +73,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() + 1);
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
         Assert.assertEquals(testResult.getNonDeletedRowNumberOnlyDeletableAfterMethod(), testResult.getOriginalNonDeletedOnlyDeletable() - 1);
-        assertThat(testResult.getNotificationWhenPerform()).contains("Codestore deleted: ");
+        assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore deleted: ");
 
         codeStorePage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
         Assert.assertEquals(1, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));

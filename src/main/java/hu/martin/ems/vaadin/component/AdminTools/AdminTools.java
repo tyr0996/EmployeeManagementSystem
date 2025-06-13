@@ -14,7 +14,6 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.actuator.HealthStatusResponse;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
-import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.DownloadButton;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.AdminToolsApiClient;
@@ -29,7 +28,7 @@ public class AdminTools extends VerticalLayout {
     private final AdminToolsApiClient adminToolsApiClient = BeanProvider.getBean(AdminToolsApiClient.class);
     private final Gson gson = BeanProvider.getBean(Gson.class);
 
-    public AdminTools(PaginationSetting paginationSetting) {
+    public AdminTools() {
         Button clearDatabaseButton = createClearDatabaseButton();
         DownloadButton exportEndpoints = new DownloadButton("Export APIs", "ems_apis.json", () -> adminToolsApiClient.exportApis());
         Div actuator = createActuatorDiv();

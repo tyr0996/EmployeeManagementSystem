@@ -14,10 +14,12 @@ import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
 import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.OrderElementSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +37,10 @@ public class OrderElementCrudTest extends BaseCrudTest {
     public static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
     public static final String gridXpath = contentXpath + "/vaadin-grid";
     public static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
+    @BeforeMethod
+    public void init() throws IOException {
+        resetOrderElements();
+    }
 
     @Test
     public void createOrderElementForBothCustomerAndSupplier() {
@@ -48,11 +54,11 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         OrderElementPage page = new OrderElementPage(driver, port);
         DoCreateTestData testResult = page.doCreateTest(withData);
-        String[] filter = new String[]{"", "", "", "", "", "", "", "(S) Szállító1, (C) Erdei Róbert"};
+        String[] filter = new String[]{"", "", "", "", "", "", "", "", "(S) Szállító1, (C) Erdei Róbert"};
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() + 1);
         assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saved: ");
-        page.getGrid().applyFilter(filter);
+        page.getGrid().applyFilterWithNullFiltering(filter);
         page.getGrid().waitForRefresh();
         assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
         assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
@@ -122,12 +128,12 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         SoftAssert sa = new SoftAssert();
 
-        page.getGrid().applyFilter(allFullLines.get(0));
+        page.getGrid().applyFilterWithNullFiltering(allFullLines.get(0));
         sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
         sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
         page.getGrid().resetFilter();
 
-        page.getGrid().applyFilter(allNonOrderedLines.get(0));
+        page.getGrid().applyFilterWithNullFiltering(allNonOrderedLines.get(0));
         sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
         sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
         page.getGrid().resetFilter();
@@ -153,7 +159,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         sa.assertEquals((int) testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
         sa.assertTrue(testResult.getNotificationWhenPerform().contains("OrderElement deleted: "));
 
-        page.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
+        page.getGrid().applyFilterWithNullFiltering(testResult.getResult().getOriginalDeletedData());
         sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
         sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
         page.getGrid().resetFilter();
@@ -179,6 +185,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
+
     @Test
     public void orderElementUpdateTest() {
         EmptyLoggedInVaadinPage loggedInPage =
@@ -193,7 +200,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement updated: ");
 
-        page.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
+        page.getGrid().applyFilterWithNullFiltering(testResult.getResult().getOriginalModifiedData());
         assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
         assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
         page.getGrid().resetFilter();
@@ -215,7 +222,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
         sa.assertTrue(testResult.getNotificationWhenPerform().contains("OrderElement restored: "));
 
         page = new OrderElementPage(driver, port);
-        page.getGrid().applyFilter(testResult.getResult().getRestoredData());
+        page.getGrid().applyFilterWithNullFiltering(testResult.getResult().getRestoredData());
         page.getGrid().waitForRefresh();
         sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
         sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
@@ -242,7 +249,7 @@ public class OrderElementCrudTest extends BaseCrudTest {
 
         sa.assertEquals((int) testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         sa.assertEquals((int) testResult.getNonDeletedRowNumberAfterMethod(), (int) testResult.getOriginalNonDeletedRowNumber());
-        page.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
+        page.getGrid().applyFilterWithNullFiltering(testResult.getResult().getPermanentlyDeletedData());
         sa.assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
         sa.assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
         page.getGrid().resetFilter();

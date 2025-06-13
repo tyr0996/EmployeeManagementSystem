@@ -40,6 +40,13 @@ public class WebDriverProvider {
             if (headless) {
                 options.addArguments("--headless");
             }
+            options.addArguments(
+                    "--disable-gpu",
+                    "--ignore-certificate-errors",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage"
+//                    "--headless"
+            );
 
             WebDriver d = new ChromeDriver(options);
             d.manage().window().maximize();

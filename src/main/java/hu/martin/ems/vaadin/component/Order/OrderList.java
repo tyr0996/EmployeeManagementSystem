@@ -3,13 +3,11 @@ package hu.martin.ems.vaadin.component.Order;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -31,6 +29,7 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
 import hu.martin.ems.vaadin.api.OrderApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
+import hu.martin.ems.vaadin.core.IEmsOptionColumnBase;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -51,9 +50,10 @@ import java.util.stream.Stream;
 @Route(value = "order/list", layout = MainView.class)
 @RolesAllowed("ROLE_OrderMenuOpenPermission")
 @NeedCleanCoding
-public class OrderList extends EmsFilterableGridComponent {
+public class OrderList extends EmsFilterableGridComponent implements IEmsOptionColumnBase<Order, OrderList.OrderVO> {
 
-    private OrderApiClient orderApi = BeanProvider.getBean(OrderApiClient.class);
+    @Getter
+    private OrderApiClient apiClient = BeanProvider.getBean(OrderApiClient.class);
 
     private EmailSendingApi emailSendingApi = BeanProvider.getBean(EmailSendingApi.class);
     private boolean showDeleted = false;
@@ -79,6 +79,12 @@ public class OrderList extends EmsFilterableGridComponent {
 
     Logger logger = LoggerFactory.getLogger(Order.class);
 
+    @Override
+    public void editButtonClickEvent(OrderVO element){
+        Map<String, List<String>> params = new HashMap<>();
+        params.put("orderId", List.of(String.valueOf(element.id)));
+        getUI().ifPresent(v -> v.navigate(element.customerOrSupplier.contains("(C) ") ? OrderCreateToCustomer.class : OrderFromSupplier.class, new QueryParameters(params)));
+    }
 
     @Autowired
     public OrderList(PaginationSetting paginationSetting) {
@@ -87,7 +93,7 @@ public class OrderList extends EmsFilterableGridComponent {
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        setupOrderList();
+        setEntities();
 
         DatePicker from = new DatePicker("from");
         DatePicker to = new DatePicker("to");
@@ -118,14 +124,13 @@ public class OrderList extends EmsFilterableGridComponent {
 
         Button sendSftp = new Button("Send report to accountant via SFTP");
         sendSftp.addClickListener(event -> {
-            EmsResponse response = orderApi.sendReportSFTPToAccountant(from.getValue(), to.getValue());
+            EmsResponse response = apiClient.sendReportSFTPToAccountant(from.getValue(), to.getValue());
             Notification.show(response.getDescription()).addThemeVariants(
                     response.getCode() == 200 ? NotificationVariant.LUMO_SUCCESS : NotificationVariant.LUMO_ERROR
             );
         });
         HorizontalLayout sftpLayout = new HorizontalLayout();
         sftpLayout.add(sendSftp, from, to);
-
 
         idColumn = grid.addColumn(v -> v.id);
         customerOrSupplierColumn = grid.addColumn(v -> v.customerOrSupplier);
@@ -139,20 +144,13 @@ public class OrderList extends EmsFilterableGridComponent {
 
         //region Options column
         extraData = this.grid.addComponentColumn(order -> {
-            Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
-            Button deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
-            Button restoreButton = new Button(VaadinIcon.BACKWARDS.create());
-            restoreButton.addClassNames("info_button_variant");
-            Button permanentDeleteButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).PERMANENTLY_DELETE_ICON));
-            permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
-            DownloadButton odtDownload = new DownloadButton(BeanProvider.getBean(IconProvider.class).create(IconProvider.ODT_FILE_ICON), "order_" + order.id + ".odt", () -> orderApi.createDocumentAsODT(order.original));
-            DownloadButton pdfDownload = new DownloadButton(BeanProvider.getBean(IconProvider.class).create(IconProvider.PDF_FILE_ICON_ICON), "order_" + order.id + ".pdf", () -> orderApi.createDocumentAsPDF(order.original));
+            DownloadButton odtDownload = new DownloadButton(BeanProvider.getBean(IconProvider.class).create(IconProvider.ODT_FILE_ICON), "order_" + order.id + ".odt", () -> apiClient.createDocumentAsODT(order.original));
+            DownloadButton pdfDownload = new DownloadButton(BeanProvider.getBean(IconProvider.class).create(IconProvider.PDF_FILE_ICON_ICON), "order_" + order.id + ".pdf", () -> apiClient.createDocumentAsPDF(order.original));
 
             Button sendEmail = new Button("Send email");
             sendEmail.addClickListener(event -> {
-                EmsResponse pdfDocumentResponse = orderApi.createDocumentAsPDF(order.original);
+                EmsResponse pdfDocumentResponse = apiClient.createDocumentAsPDF(order.original);
                 switch (pdfDocumentResponse.getCode()) {
                     case 200:
                         break;
@@ -160,7 +158,7 @@ public class OrderList extends EmsFilterableGridComponent {
                         Notification.show("Email sending failed: " + pdfDocumentResponse.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                 }
-                EmsResponse emailGenerationResponse = orderApi.generateEmail(order.original);
+                EmsResponse emailGenerationResponse = apiClient.generateEmail(order.original);
                 String email;
                 switch (emailGenerationResponse.getCode()) {
                     case 200:
@@ -185,55 +183,7 @@ public class OrderList extends EmsFilterableGridComponent {
                 processEmailSendingResponse(sendEmailResponse);
 
             });
-
-            editButton.addClickListener(event -> {
-                Map<String, List<String>> params = new HashMap<>();
-                params.put("orderId", List.of(String.valueOf(order.id)));
-                getUI().ifPresent(v -> v.navigate(order.customerOrSupplier.contains("(C) ") ? OrderCreateToCustomer.class : OrderFromSupplier.class, new QueryParameters(params)));
-            });
-
-            restoreButton.addClickListener(event -> {
-                this.orderApi.restore(order.original);
-                Notification.show("Order restored: " + order.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                setupOrderList();
-                updateGridItems();
-            });
-
-            deleteButton.addClickListener(event -> {
-                EmsResponse resp = this.orderApi.delete(order.original);
-                switch (resp.getCode()) {
-                    case 200: {
-                        Notification.show("Order deleted: " + order.original.getName())
-                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        updateGridItems();
-                        break;
-                    }
-                    default: {
-                        Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
-                }
-                setupOrderList();
-                updateGridItems();
-            });
-
-            permanentDeleteButton.addClickListener(event -> {
-                this.orderApi.permanentlyDelete(order.id);
-                Notification.show("Order permanently deleted: " + order.name)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                setupOrderList();
-                updateGridItems();
-            });
-
-            HorizontalLayout actions = new HorizontalLayout();
-
-            if (order.deleted == 0) {
-                actions.add(editButton, deleteButton);
-            } else {
-                actions.add(permanentDeleteButton, restoreButton);
-            }
-            actions.add(odtDownload, pdfDownload, sendEmail);
-            return actions;
+            return createOptionColumn("Order", order, new DownloadButton[]{odtDownload, pdfDownload}, new Button[]{sendEmail});
         }).setAutoWidth(true).setFlexGrow(0);
 
 
@@ -245,7 +195,7 @@ public class OrderList extends EmsFilterableGridComponent {
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
             OrderVO.showDeletedCheckboxFilter.replace("deleted", newValue);
 
-            setupOrderList();
+            setEntities();
             updateGridItems();
         });
 
@@ -263,8 +213,9 @@ public class OrderList extends EmsFilterableGridComponent {
         }
     }
 
-    private void setupOrderList() {
-        EmsResponse response = orderApi.findAllWithDeleted();
+    @Override
+    public void setEntities() {
+        EmsResponse response = apiClient.findAllWithDeleted();
         switch (response.getCode()) {
             case 200:
                 orderList = (List<Order>) response.getResponseData();
@@ -285,13 +236,6 @@ public class OrderList extends EmsFilterableGridComponent {
                         filterField(stateFilter, orderVO.state) &&
                         filterField(timeOfOrderFilter, orderVO.timeOfOrder) &&
                         orderVO.filterExtraData());
-//                (idFilter.isEmpty() || orderVO.id.toString().equals(idFilter.getFilterText())) &&
-//                (customerOrSupplierFilter.isEmpty() || orderVO.customerOrSupplier.toLowerCase().contains(customerOrSupplierFilter.getFilterText().toLowerCase())) &&
-//                (paymentTypeFilter.isEmpty() || orderVO.paymentType.toLowerCase().contains(paymentTypeFilter.getFilterText().toLowerCase())) &&
-//                (stateFilter.isEmpty() || orderVO.state.toLowerCase().contains(stateFilter.getFilterText().toLowerCase())) &&
-//                (timeOfOrderFilter.isEmpty() || orderVO.timeOfOrder.toLowerCase().contains(timeOfOrderFilter.getFilterText().toLowerCase())) &&
-//                        orderVO.filterExtraData()
-//        );
     }
 
     private void setFilteringHeaderRow() {
@@ -322,7 +266,6 @@ public class OrderList extends EmsFilterableGridComponent {
         filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
-
     public void updateGridItems() {
         if (orderList == null) {
             Notification.show("EmsError happened while getting orders")
@@ -333,8 +276,7 @@ public class OrderList extends EmsFilterableGridComponent {
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
-    public class OrderVO extends BaseVO {
-        private Order original;
+    public class OrderVO extends BaseVO<Order> {
         private String state;
         private String customerOrSupplier;
         private String paymentType;
@@ -342,10 +284,7 @@ public class OrderList extends EmsFilterableGridComponent {
         private String name;
 
         public OrderVO(Order order) {
-            super(order.id, order.getDeleted());
-            this.original = order;
-            this.id = order.getId();
-            this.deleted = order.getDeleted();
+            super(order.id, order.getDeleted(), order);
             this.state = original.getState().getName();
             this.timeOfOrder = original.getTimeOfOrder().format(DateTimeFormatter.ofPattern("yyyy. MM. dd. HH:mm:ss"));
             this.customerOrSupplier = original.getCustomer() == null ? "(S) " + original.getSupplier().getName() : "(C) " + original.getCustomer().getName();

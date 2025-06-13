@@ -6,10 +6,7 @@ import jakarta.annotation.Nullable;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class VaadinGridComponent extends VaadinBaseComponent {
 
@@ -60,7 +57,20 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         return res;
     }
 
-    public void applyFilter(String... attributes) {
+    public void applyFilterWithNullFiltering(String... attributes){
+        String[] newAttributes = new String[attributes.length];
+        for(int i = 0; i < attributes.length; i++){
+            newAttributes[i] = (attributes[i] == null || attributes[i].equals("")) ? null : attributes[i];
+        }
+        System.out.println("Applied null filter: " + Arrays.toString(newAttributes));
+        applyFilter(true, attributes);
+    }
+
+    public void applyFilter(String... attributes){
+        applyFilterWithNullFiltering(attributes);
+    }
+
+    public void applyFilter(Boolean a, String... attributes) { //TODO kivenni a boolean-t. Csak az átkötés miatt raktam be.
         List<WebElement> filterInputs = getHeaderFilterInputFields();
         int max = Math.min(filterInputs.size(), attributes.length);
         for (int i = 0; i < max; i++) {
