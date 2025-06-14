@@ -3,7 +3,6 @@ package hu.martin.ems.vaadin.component.AccessManagement;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
@@ -12,7 +11,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -34,6 +32,7 @@ import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.GridButtonSettings;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
@@ -78,14 +77,6 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
     private Logger logger = LoggerFactory.getLogger(RoleList.class);
     List<Permission> permissionList;
     private Gson gson = BeanProvider.getBean(Gson.class);
-
-
-    private void appendCloseButton(Dialog d) {
-        Button closeButton = new Button(new Icon("lumo", "cross"),
-                (e) -> d.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        d.getHeader().add(closeButton);
-    }
 
     public RoleList(PaginationSetting paginationSetting) {
         super(paginationSetting);
@@ -137,8 +128,8 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         add(buttonsLayout, grid);
     }
 
-    public Dialog getSaveOrUpdateDialog(RoleVO role) {
-        Dialog createOrModifyDialog = new Dialog((role == null ? "Create" : "Modify") + " role");
+    public EmsDialog getSaveOrUpdateDialog(RoleVO role) {
+        EmsDialog createOrModifyDialog = new EmsDialog((role == null ? "Create" : "Modify") + " role");
         FormLayout form = createSaveOrUpdateForm(role == null ? null : role.original);
         saveButton.addClickListener(event -> {
             saveRoleWithPermissions(role == null ? null : role.original);
@@ -148,7 +139,6 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
             updateGridItems();
         });
 
-        appendCloseButton(createOrModifyDialog);
         createOrModifyDialog.add(form);
         return createOrModifyDialog;
     }

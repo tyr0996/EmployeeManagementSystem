@@ -11,7 +11,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -32,6 +31,8 @@ import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.SupplierApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsDialog;
+import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -47,9 +48,10 @@ import java.util.stream.Stream;
 @CssImport("./styles/grid.css")
 @RolesAllowed("ROLE_SupplierMenuOpenPermission")
 @NeedCleanCoding
-public class SupplierList extends EmsFilterableGridComponent implements Creatable<Supplier> {
+public class SupplierList extends EmsFilterableGridComponent implements Creatable<Supplier>, IEmsOptionColumnBaseDialogCreationForm<Supplier, SupplierList.SupplierVO> {
 
-    private final SupplierApiClient supplierApi = BeanProvider.getBean(SupplierApiClient.class);
+    @Getter
+    private final SupplierApiClient apiClient = BeanProvider.getBean(SupplierApiClient.class);
     private final AddressApiClient addressApi = BeanProvider.getBean(AddressApiClient.class);
     private final Gson gson = BeanProvider.getBean(Gson.class);
     private boolean showDeleted = false;
@@ -100,19 +102,19 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
             permanentDeleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
             editButton.addClickListener(event -> {
-                Dialog dialog = getSaveOrUpdateDialog(supplier.original);
+                Dialog dialog = getSaveOrUpdateDialog(supplier);
                 dialog.open();
             });
 
             restoreButton.addClickListener(event -> {
-                this.supplierApi.restore(supplier.original);
+                this.apiClient.restore(supplier.original);
                 Notification.show("Supplier restored: " + supplier.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
             });
 
             deleteButton.addClickListener(event -> {
-                EmsResponse resp = this.supplierApi.delete(supplier.original);
+                EmsResponse resp = this.apiClient.delete(supplier.original);
                 switch (resp.getCode()) {
                     case 200: {
                         Notification.show("Supplier deleted: " + supplier.original.getName())
@@ -124,12 +126,12 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
                         Notification.show(resp.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 }
-                setupSuppliers();
+                setEntities();
                 updateGridItems();
             });
 
             permanentDeleteButton.addClickListener(event -> {
-                this.supplierApi.permanentlyDelete(supplier.id);
+                this.apiClient.permanentlyDelete(supplier.id);
                 Notification.show("Supplier permanently deleted: " + supplier.name)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridItems();
@@ -144,7 +146,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
             return actions;
         });
 
-        setupSuppliers();
+        setEntities();
         List<SupplierVO> data = supplierList.stream().map(SupplierVO::new).collect(Collectors.toList());
 
         this.grid.setItems(data);
@@ -175,8 +177,8 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
         add(hl, grid);
     }
 
-    private void setupSuppliers() {
-        EmsResponse response = supplierApi.findAll();
+    public void setEntities() {
+        EmsResponse response = apiClient.findAll();
         switch (response.getCode()) {
             case 200:
                 supplierList = (List<Supplier>) response.getResponseData();
@@ -224,7 +226,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
 
 
     public void updateGridItems() {
-        EmsResponse response = supplierApi.findAllWithDeleted();
+        EmsResponse response = apiClient.findAllWithDeleted();
         List<Supplier> suppliers;
         switch (response.getCode()) {
             case 200:
@@ -238,19 +240,12 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
         supplierVOS = suppliers.stream().map(SupplierVO::new).collect(Collectors.toList());
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
+    
 
-    private void appendCloseButton(Dialog d) {
-        Button closeButton = new Button(new Icon("lumo", "cross"),
-                (e) -> d.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        d.getHeader().add(closeButton);
-    }
-
-    public Dialog getSaveOrUpdateDialog(Supplier entity) {
-
+    public EmsDialog getSaveOrUpdateDialog(SupplierVO entity) {
         Button saveButton = new Button("Save");
-        Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " supplier");
-        appendCloseButton(createDialog);
+        EmsDialog createDialog = new EmsDialog((entity == null ? "Create" : "Modify") + " supplier");
+
         FormLayout formLayout = new FormLayout();
 
         TextField nameField = new TextField("Name");
@@ -272,21 +267,21 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
         }
 
         if (entity != null) {
-            nameField.setValue(entity.getName());
-            addresses.setValue(entity.getAddress());
+            nameField.setValue(entity.original.getName());
+            addresses.setValue(entity.original.getAddress());
         }
 
         saveButton.addClickListener(event -> {
-            Supplier supplier = Objects.requireNonNullElseGet(entity, Supplier::new);
+            Supplier supplier = entity == null ? new Supplier() : entity.original;
             supplier.setName(nameField.getValue());
             supplier.setAddress(addresses.getValue());
             supplier.setDeleted(0L);
 
             EmsResponse response = null;
             if (entity != null) {
-                response = supplierApi.update(supplier);
+                response = apiClient.update(supplier);
             } else {
-                response = supplierApi.save(supplier);
+                response = apiClient.save(supplier);
             }
 
             switch (response.getCode()) {

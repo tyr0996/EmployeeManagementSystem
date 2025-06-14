@@ -3,7 +3,6 @@ package hu.martin.ems.vaadin.component.Employee;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -11,7 +10,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -31,6 +29,7 @@ import hu.martin.ems.vaadin.api.EmployeeApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -178,16 +177,9 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
-    private void appendCloseButton(Dialog d) {
-        Button closeButton = new Button(new Icon("lumo", "cross"),
-                (e) -> d.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        d.getHeader().add(closeButton);
-    }
+    public EmsDialog getSaveOrUpdateDialog(EmployeeVO entity) {
+        EmsDialog createDialog = new EmsDialog((entity == null ? "Create" : "Modify") + " employee");
 
-    public Dialog getSaveOrUpdateDialog(EmployeeVO entity) {
-        Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " employee");
-        appendCloseButton(createDialog);
         FormLayout formLayout = new FormLayout();
 
         Button saveButton = new Button("Save");

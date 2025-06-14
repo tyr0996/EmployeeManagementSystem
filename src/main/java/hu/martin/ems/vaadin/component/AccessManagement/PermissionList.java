@@ -3,7 +3,6 @@ package hu.martin.ems.vaadin.component.AccessManagement;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
@@ -12,7 +11,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -31,6 +29,7 @@ import hu.martin.ems.vaadin.api.PermissionApiClient;
 import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -54,7 +53,6 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
     private boolean withDeleted = false;
     @Getter
     private PaginatedGrid<PermissionVO, String> grid;
-    private final PaginationSetting paginationSetting;
     @Getter
     private final PermissionApiClient apiClient = BeanProvider.getBean(PermissionApiClient.class);
     private final RoleApiClient roleApi = BeanProvider.getBean(RoleApiClient.class);
@@ -72,7 +70,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 
     private Logger logger = LoggerFactory.getLogger(PermissionList.class);
 
-    private Dialog createDialog;
+    private EmsDialog createDialog;
 
     List<Role> roleList;
     List<Permission> permissionList;
@@ -84,7 +82,6 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
     public PermissionList(PaginationSetting paginationSetting) {
         super(paginationSetting);
         this.currentView = this.getClass();
-        this.paginationSetting = paginationSetting;
 
         PermissionVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
@@ -150,20 +147,12 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         }
     }
 
-    private void appendCloseButton(Dialog d) {
-        Button closeButton = new Button(new Icon("lumo", "cross"),
-                (e) -> d.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        d.getHeader().add(closeButton);
-    }
-
-    public Dialog getSaveOrUpdateDialog(PermissionVO entity) {
+    public EmsDialog getSaveOrUpdateDialog(PermissionVO entity) {
         Button saveButton = new Button("Save");
-        createDialog = new Dialog((entity == null ? "Create" : "Modify") + " permission");
+        createDialog = new EmsDialog((entity == null ? "Create" : "Modify") + " permission");
         FormLayout formLayout = new FormLayout();
 
         nameField = new TextField("Name");
-        appendCloseButton(createDialog);
 
         roles = new MultiSelectComboBox<>("Roles");
         ComboBox.ItemFilter<Role> filterRole = (role, filterString) ->

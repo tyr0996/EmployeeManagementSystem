@@ -12,7 +12,6 @@ import hu.martin.ems.core.vaadin.DownloadButton;
 import hu.martin.ems.vaadin.component.BaseVOWithDeletable;
 
 public interface IEmsOptionColumnBaseDialogCreationFormDeletable<S extends BaseEntity, T extends BaseVOWithDeletable<S>> extends IEmsOptionColumnBaseDialogCreationForm<S, T> {
-    Dialog getSaveOrUpdateDialog(T entity);
 
     default void editButtonClickEvent(T entity){
         Dialog dialog = getSaveOrUpdateDialog(entity);
@@ -51,17 +50,6 @@ public interface IEmsOptionColumnBaseDialogCreationFormDeletable<S extends BaseE
         } else {
             actions.add(permanentDeleteButton, restoreButton);
         }
-
-//        if(downloadButtons != null){
-//            for(int i = 0; i < downloadButtons.length; i++){
-//                actions.add(downloadButtons[i]);
-//            }
-//        }
-//        if(bonusButtons != null) {
-//            for(int i = 0; i < bonusButtons.length; i++){
-//                actions.add(bonusButtons);
-//            }
-//        }
         return actions;
     }
 }

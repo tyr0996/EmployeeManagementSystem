@@ -3,7 +3,6 @@ package hu.martin.ems.vaadin.component.User;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -11,7 +10,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -32,6 +30,7 @@ import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.GridButtonSettings;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
@@ -179,16 +178,9 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         add(buttonsLayout, grid);
     }
 
-    private void appendCloseButton(Dialog d) {
-        Button closeButton = new Button(new Icon("lumo", "cross"),
-                (e) -> d.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        d.getHeader().add(closeButton);
-    }
+    public EmsDialog getSaveOrUpdateDialog(UserVO editableUser) {
+        EmsDialog createOrModifyDialog = new EmsDialog((editableUser == null ? "Create" : "Modify") + " user");
 
-    public Dialog getSaveOrUpdateDialog(UserVO editableUser) {
-        Dialog createOrModifyDialog = new Dialog((editableUser == null ? "Create" : "Modify") + " user");
-        appendCloseButton(createOrModifyDialog);
         createSaveOrUpdateForm(editableUser);
         saveButton.addClickListener(event -> {
             EmsResponse response = saveUser(createOrModifyDialog, editableUser);

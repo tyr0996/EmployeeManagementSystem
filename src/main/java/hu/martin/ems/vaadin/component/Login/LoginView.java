@@ -152,9 +152,8 @@ public class LoginView extends VerticalLayout {
         }
     }
 
-    private Dialog getRegistrationDialog(Role noRole) {
+    private EmsDialog getRegistrationDialog(Role noRole) {
         EmsDialog d = new EmsDialog("Registration");
-        d.addCloseButton();
 
         FormLayout form = new FormLayout();
         TextField userName = new TextField("Username");
@@ -189,8 +188,8 @@ public class LoginView extends VerticalLayout {
         return d;
     }
 
-    private Dialog getForgotPasswordDialog() {
-        Dialog d = new Dialog("Forgot password");
+    private EmsDialog getForgotPasswordDialog() {
+        EmsDialog d = new EmsDialog("Forgot password");
         FormLayout form = new FormLayout();
         TextField userName = new TextField("Username");
         Button next = new Button("Next");
@@ -203,9 +202,9 @@ public class LoginView extends VerticalLayout {
         return d;
     }
 
-    private Dialog passwordDialog(Dialog parent, String userName) {
+    private EmsDialog passwordDialog(Dialog parent, String userName) {
         BCryptPasswordEncoder encoder = (BCryptPasswordEncoder) BeanProvider.getBean(PasswordEncoder.class);
-        Dialog d = new Dialog("Forgot password for " + userName);
+        EmsDialog d = new EmsDialog("Forgot password for " + userName);
         FormLayout form = new FormLayout();
         PasswordField pw1 = new PasswordField("Password");
         PasswordField pw2 = new PasswordField("Password again");

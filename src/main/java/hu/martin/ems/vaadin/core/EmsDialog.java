@@ -9,6 +9,7 @@ public class EmsDialog extends Dialog {
 
     public EmsDialog(String title) {
         super(title);
+        addCloseButton();
     }
 
     public void addCloseButton() {

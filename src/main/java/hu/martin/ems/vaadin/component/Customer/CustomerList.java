@@ -3,7 +3,6 @@ package hu.martin.ems.vaadin.component.Customer;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -11,7 +10,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -31,6 +29,7 @@ import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CustomerApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -143,11 +142,6 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
                 filterField(firstNameFilter, customerVO.firstName) &&
                 filterField(lastNameFilter, customerVO.lastName) &&
                 customerVO.filterExtraData());
-//                (addressFilter.isEmpty() || customerVO.address.toLowerCase().contains(addressFilter.getFilterText().toLowerCase())) &&
-//                (emailFilter.isEmpty() || customerVO.email.toLowerCase().contains(emailFilter.getFilterText().toLowerCase())) &&
-//                (firstNameFilter.isEmpty() || customerVO.firstName.toLowerCase().contains(firstNameFilter.getFilterText().toLowerCase())) &&
-//                (lastNameFilter.isEmpty() || customerVO.lastName.toLowerCase().contains(lastNameFilter.getFilterText().toLowerCase())) &&
-//                customerVO.filterExtraData()
     }
 
     private void setFilteringHeaderRow() {
@@ -187,17 +181,9 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
         }
     }
 
-    private void appendCloseButton(Dialog d) {
-        Button closeButton = new Button(new Icon("lumo", "cross"),
-                (e) -> d.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        d.getHeader().add(closeButton);
-    }
+    public EmsDialog getSaveOrUpdateDialog(CustomerVO entity) {
+        EmsDialog createDialog = new EmsDialog((entity == null ? "Create" : "Modify") + " customer");
 
-    public Dialog getSaveOrUpdateDialog(CustomerVO entity) {
-        Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " customer");
-
-        appendCloseButton(createDialog);
         FormLayout formLayout = new FormLayout();
         Button saveButton = new Button("Save");
 

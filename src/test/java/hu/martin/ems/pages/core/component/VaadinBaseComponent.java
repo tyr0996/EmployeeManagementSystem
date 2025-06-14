@@ -44,21 +44,6 @@ public abstract class VaadinBaseComponent implements IVaadinBaseComponent {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10), Duration.ofMillis(10)); // TODO ezt visszavenni 2-re
         this.refreshWait = new WebDriverWait(driver, Duration.ofMillis(200), Duration.ofMillis(10));
     }
-//
-//    public VaadinBaseComponent(WebDriver driver, WebElement element) {
-//        this.wait = new WebDriverWait(driver, Duration.ofMillis(2000), Duration.ofMillis(10));
-//        this.refreshWait = new WebDriverWait(driver, Duration.ofMillis(200), Duration.ofMillis(10));
-//        this.element = element;
-//    }
-//    public VaadinBaseComponent(WebDriver driver, String elementXpath){
-//        this.wait = new WebDriverWait(driver, Duration.ofMillis(5000), Duration.ofMillis(10));
-//        this.refreshWait = new WebDriverWait(driver, Duration.ofMillis(200), Duration.ofMillis(10));
-//        this.element = this.wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(elementXpath)));
-//    }
-//    public VaadinBaseComponent(WebDriver driver){
-//        this.refreshWait = new WebDriverWait(driver, Duration.ofMillis(200), Duration.ofMillis(10));
-//        this.wait = new WebDriverWait(driver, Duration.ofMillis(2000), Duration.ofMillis(10));
-//    }
 
     public void init() {
         this.element = this.wait.until(ExpectedConditions.visibilityOfElementLocated(provider));

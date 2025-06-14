@@ -3,7 +3,6 @@ package hu.martin.ems.vaadin.component.CodeStore;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -11,7 +10,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -28,6 +26,7 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVOWithDeletable;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationFormDeletable;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -169,17 +168,9 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
         filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
     }
 
-    private void appendCloseButton(Dialog d) {
-        Button closeButton = new Button(new Icon("lumo", "cross"),
-                (e) -> d.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        d.getHeader().add(closeButton);
-    }
+    public EmsDialog getSaveOrUpdateDialog(CodeStoreVO entity) {
+        EmsDialog createDialog = new EmsDialog((entity == null ? "Create" : "Modify") + " codestore");
 
-    public Dialog getSaveOrUpdateDialog(CodeStoreVO entity) {
-        Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " codestore");
-
-        appendCloseButton(createDialog);
         FormLayout formLayout = new FormLayout();
 
         TextField nameTextField = new TextField("Name");

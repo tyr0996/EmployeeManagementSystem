@@ -3,7 +3,6 @@ package hu.martin.ems.vaadin.component.Product;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -11,7 +10,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -30,6 +28,7 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.*;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
 import lombok.Getter;
@@ -93,7 +92,6 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
     List<Supplier> supplierList;
 
     private final Gson gson = BeanProvider.getBean(Gson.class);
-    private MainView mainView;
 
     @Autowired
     public ProductList(PaginationSetting paginationSetting) {
@@ -116,8 +114,6 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-
-        //region Options column
         extraData = this.grid.addComponentColumn(productVo -> {
             
             Button orderButton = new Button("Order");
@@ -130,7 +126,6 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
             });
             return createOptionColumn("Product", productVo, new Button[]{sellButton, orderButton});
         }).setAutoWidth(true).setFlexGrow(0);
-        //endregion
 
         Button create = new Button("Create");
         create.addClickListener(event -> {
@@ -173,9 +168,9 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         }
     }
 
-    public Dialog getSellToCustomerDialog(ProductVO productVO) {
-        Dialog sellDialog = new Dialog("Sell to customer");
-        appendCloseButton(sellDialog);
+    public EmsDialog getSellToCustomerDialog(ProductVO productVO) {
+        EmsDialog sellDialog = new EmsDialog("Sell to customer");
+
         FormLayout formLayout = new FormLayout();
         Product p = productVO.original;
         Button sellToCustomerButton = new Button("Sell to customer");
@@ -233,16 +228,10 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         }
     }
 
-    private void appendCloseButton(Dialog d) {
-        Button closeButton = new Button(new Icon("lumo", "cross"),
-                (e) -> d.close());
-        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        d.getHeader().add(closeButton);
-    }
 
-    public Dialog getOrderFromSupplierDialog(ProductVO productVO) {
-        Dialog orderDialog = new Dialog("Order from Supplier");
-        appendCloseButton(orderDialog);
+    public EmsDialog getOrderFromSupplierDialog(ProductVO productVO) {
+        EmsDialog orderDialog = new EmsDialog("Order from Supplier");
+
         FormLayout formLayout = new FormLayout();
         Button buyFromSupplierButton = new Button("Order from Supplier");
         ComboBox<Supplier> suppliers = new ComboBox<>("Supplier");
@@ -360,9 +349,9 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
     }
 
-    public Dialog getSaveOrUpdateDialog(ProductVO entity) {
-        Dialog createDialog = new Dialog((entity == null ? "Create" : "Modify") + " product");
-        appendCloseButton(createDialog);
+    public EmsDialog getSaveOrUpdateDialog(ProductVO entity) {
+        EmsDialog createDialog = new EmsDialog((entity == null ? "Create" : "Modify") + " product");
+
         FormLayout formLayout = new FormLayout();
 
         Button saveButton = new Button("Save");
