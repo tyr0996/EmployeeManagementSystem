@@ -3,6 +3,7 @@ package hu.martin.ems.model;
 import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
+import hu.martin.ems.vaadin.core.NamedObject;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NeedCleanCoding
-public class Address extends BaseEntity {
+public class Address extends BaseEntity implements NamedObject {
     @ManyToOne
     @JoinColumn(name = "countryCode_codestore_id")
     @Expose

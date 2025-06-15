@@ -82,6 +82,6 @@ public class OrderElement extends BaseEntity {
 
     @Override
     public String toString() {
-        return this.getName() + " (" + this.unit + " " + this.product.getAmountUnit().getName() + ")";
+        return this.getName() + " (" + this.unit + " " + this.product.getPackingUnit().getName() + ")";
     }
 }

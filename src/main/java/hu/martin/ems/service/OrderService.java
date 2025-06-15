@@ -97,7 +97,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
 
                     line.add(buyingPriceGross + " " + oe.getProduct().getBuyingPriceCurrency().getName());
                     line.add(sellingPriceGross + " " + oe.getProduct().getSellingPriceCurrency().getName());
-                    line.add((oe.getUnit() * oe.getProduct().getAmount()) + " " + oe.getProduct().getAmountUnit().getName());
+                    line.add((oe.getUnit() * oe.getProduct().getAmount()) + " " + oe.getProduct().getPackingUnit().getName());
                     line.add(profit.toString());
                     linesOfOrder.add(line);
                 }

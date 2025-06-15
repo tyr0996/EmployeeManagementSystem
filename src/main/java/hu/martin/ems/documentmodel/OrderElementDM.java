@@ -9,7 +9,7 @@ import lombok.Getter;
 public class OrderElementDM extends AbstractDM {
     private String product;
     private String amount;
-    private String amountUnit;
+    private String packingUnit;
     private String unitNetPrice;
     private String netPrice;
     private String taxKey;
@@ -20,7 +20,7 @@ public class OrderElementDM extends AbstractDM {
         super();
         this.product = oe.getProduct().getName();
         this.amount = oe.getUnit().toString();
-        this.amountUnit = oe.getProduct().getAmountUnit().getName();
+        this.packingUnit = oe.getProduct().getPackingUnit().getName();
         this.unitNetPrice = null;
         this.netPrice = null;
         this.taxKey = oe.getTaxKey().getName() + "%";

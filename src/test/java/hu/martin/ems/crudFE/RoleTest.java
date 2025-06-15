@@ -1,6 +1,5 @@
 package hu.martin.ems.crudFE;
 
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.pages.AccessManagementHeader;
@@ -132,7 +131,6 @@ public class RoleTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void roleRestoreTest() throws IOException {
         resetRolesAndPermissions();
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));
@@ -161,7 +159,6 @@ public class RoleTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void rolePermanentlyDeleteTest() throws IOException {
         resetRolesAndPermissions();
         EmptyLoggedInVaadinPage loggedIn = (EmptyLoggedInVaadinPage) (LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true));

@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -35,6 +34,7 @@ import hu.martin.ems.vaadin.api.ProductApiClient;
 import hu.martin.ems.vaadin.api.SupplierApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsComboBox;
 import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
@@ -232,48 +232,9 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
 
         Button saveButton = new Button("Save");
 
-        setupProducts();
-        ComboBox<Product> products = new ComboBox<>("Product");
-        ComboBox.ItemFilter<Product> productFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if (productList == null) {
-            products.setInvalid(true);
-            products.setEnabled(false);
-            products.setErrorMessage("EmsError happened while getting products");
-            saveButton.setEnabled(false);
-        } else {
-            products.setItems(productFilter, productList);
-            products.setItemLabelGenerator(Product::getName);
-        }
-
-        setupCustomers();
-        ComboBox<Customer> customer = new ComboBox<>("Customer");
-        ComboBox.ItemFilter<Customer> customerFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-
-        if (customerList == null) {
-            customer.setInvalid(true);
-            customer.setEnabled(false);
-            customer.setErrorMessage("EmsError happened while getting customers");
-            saveButton.setEnabled(false);
-        } else {
-            customer.setItems(customerFilter, customerList);
-            customer.setItemLabelGenerator(Customer::getName);
-        }
-
-        setupSuppliers();
-        ComboBox<Supplier> supplier = new ComboBox<>("Supplier");
-        ComboBox.ItemFilter<Supplier> supplierFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if (supplierList == null) {
-            supplier.setInvalid(true);
-            supplier.setEnabled(false);
-            supplier.setErrorMessage("EmsError happened while getting suppliers");
-            saveButton.setEnabled(false);
-        } else {
-            supplier.setItems(supplierFilter, supplierList);
-            supplier.setItemLabelGenerator(Supplier::getName);
-        }
+        EmsComboBox<Product> products = new EmsComboBox<>("Product", this::setupProducts, saveButton, "EmsError happened while getting products");
+        EmsComboBox<Customer> customer = new EmsComboBox<>("Customer", this::setupCustomers, saveButton, "EmsError happened while getting customers");
+        EmsComboBox<Supplier> supplier = new EmsComboBox<>("Supplier", this::setupSuppliers, saveButton, "EmsError happened while getting suppliers");
 
         NumberField unitField = new NumberField("Unit");
 
@@ -332,7 +293,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
         return createDialog;
     }
 
-    private void setupSuppliers() {
+    private List<Supplier> setupSuppliers() {
         EmsResponse response = supplierApi.findAll();
         switch (response.getCode()) {
             case 200:
@@ -345,9 +306,10 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 break;
         }
+        return supplierList;
     }
 
-    private void setupCustomers() {
+    private List<Customer> setupCustomers() {
         EmsResponse response = customerApi.findAll();
         switch (response.getCode()) {
             case 200:
@@ -358,9 +320,10 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
                 logger.error("Customers findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
+        return customerList;
     }
 
-    private void setupProducts() {
+    private List<Product> setupProducts() {
         EmsResponse response = productApi.findAll();
         switch (response.getCode()) {
             case 200:
@@ -371,6 +334,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
                 logger.error("Product findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
+        return productList;
     }
 
     @NeedCleanCoding

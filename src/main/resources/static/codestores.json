@@ -12,9 +12,9 @@
     {
       "deleted": 0,
       "parentcodestore_codestore_id": null,
-      "name": "Amount units",
+      "name": "Packing units",
       "deletable": false,
-      "linkname": "Amount units"
+      "linkname": "Packing units"
     },
     {
       "deleted": 0,

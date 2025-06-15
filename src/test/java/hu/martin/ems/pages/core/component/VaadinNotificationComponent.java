@@ -21,7 +21,7 @@ public class VaadinNotificationComponent extends VaadinBaseComponent {
     public VaadinNotificationComponent(WebDriver driver, Duration duration) {
         super(driver);
         this.provider = By.xpath(notificationXpath);
-        this.scope = driver.findElement(By.xpath("/html")); //TODO: lehet, hogy ide kell a /body a html után.
+        this.scope = driver.findElement(By.xpath("/html"));
         wait = new WebDriverWait(driver, duration, Duration.ofMillis(10));
         this.element = wait.until(ExpectedConditions.visibilityOfElementLocated(provider));
     }
@@ -37,7 +37,7 @@ public class VaadinNotificationComponent extends VaadinBaseComponent {
 
     public static String hasNotification(WebDriver driver) {
         try {
-            VaadinNotificationComponent notification = new VaadinNotificationComponent(driver, Duration.ofMillis(1000));
+            VaadinNotificationComponent notification = new VaadinNotificationComponent(driver, Duration.ofMillis(10));
             return notification.getText();
         } catch (TimeoutException ex) {
             return null;

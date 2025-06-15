@@ -30,6 +30,7 @@ import hu.martin.ems.vaadin.api.RoleApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsComboBox;
 import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.GridButtonSettings;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
@@ -58,7 +59,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
     private TextField usernameField;
     private PasswordField passwordField;
     private PasswordField passwordAgainField;
-    private ComboBox<Role> roles;
+    private EmsComboBox<Role> roles;
     private FormLayout createOrModifyForm;
     private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
 
@@ -215,19 +216,20 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         usernameField = new TextField("Username");
         passwordField = new PasswordField("Password");
         passwordAgainField = new PasswordField("Password again");
-        roles = new ComboBox<>("Role");
-        ComboBox.ItemFilter<Role> filterUser = (role, filterString) ->
-                role.getName().toLowerCase().contains(filterString.toLowerCase());
-        setupRoles();
-        if (roleList != null) {
-            roles.setItems(filterUser, roleList);
-            roles.setItemLabelGenerator(Role::getName);
-        } else {
-            roles.setEnabled(false);
-            roles.setInvalid(true);
-            saveButton.setEnabled(false);
-            roles.setErrorMessage("EmsError happened while getting roles");
-        }
+        roles = new EmsComboBox<Role>("Role", this::setupRoles, saveButton, "EmsError happened while getting roles");
+//        roles = new ComboBox<>("Role");
+//        ComboBox.ItemFilter<Role> filterUser = (role, filterString) ->
+//                role.getName().toLowerCase().contains(filterString.toLowerCase());
+//        setupRoles();
+//        if (roleList != null) {
+//            roles.setItems(filterUser, roleList);
+//            roles.setItemLabelGenerator(Role::getName);
+//        } else {
+//            roles.setEnabled(false);
+//            roles.setInvalid(true);
+//            saveButton.setEnabled(false);
+//            roles.setErrorMessage("EmsError happened while getting roles");
+//        }
 
         if (editableUser != null) {
             usernameField.setValue(editableUser.original.getUsername());
@@ -238,7 +240,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         createOrModifyForm.add(usernameField, passwordField, passwordAgainField, roles, saveButton);
     }
 
-    private void setupRoles() {
+    private List<Role> setupRoles() {
         EmsResponse response = roleApi.findAll();
         switch (response.getCode()) {
             case 200:
@@ -249,6 +251,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
                 logger.error("Role findAllByIds. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
+        return roleList;
     }
 
     private EmsResponse saveUser(Dialog dialog, UserVO editableUser) {

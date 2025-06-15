@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.internal.LinkedTreeMap;
 import hu.martin.ems.core.config.BeanProvider;
+import org.springframework.http.HttpMethod;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -20,17 +20,13 @@ public class MappingsResult {
         LinkedTreeMap<String, Object> mappings = (LinkedTreeMap<String, Object>) ems.get("mappings");
         LinkedTreeMap<String, Object> dispatcherServlets = (LinkedTreeMap<String, Object>) mappings.get("dispatcherServlets");
         List<LinkedTreeMap<String, Object>> dispatcherServlet = (List<LinkedTreeMap<String, Object>>) dispatcherServlets.get("dispatcherServlet");
-        this.endpointDetails = new ArrayList<>();
-        for(int i = 0; i < dispatcherServlet.size(); i++){
-            String row = ((String) dispatcherServlet.get(i).get("predicate")).split(", produces")[0];
-            String trimmedRow = row.substring(1, row.length() - 1);
-            System.out.println("Trimmed row: " + trimmedRow);
-            if(!trimmedRow.equals("*")){ //TODO ezt az esetet egy kicsit jobban meg kellene oldani (tehát már korábban kiszűrni)
-                this.endpointDetails.add(new EndpointDetail(
-                        trimmedRow.split("\\[")[0],
-                        trimmedRow.split("\\[")[1])
-                );
-            }
-        }
+        this.endpointDetails = dispatcherServlet.stream()
+                .map(entry -> ((String) entry.get("predicate")).split(", produces")[0])
+                .map(row -> row.substring(1, row.length() - 1))
+                .filter(trimmedRow -> !trimmedRow.equals("*"))
+                .map(trimmedRow -> {
+                    String[] parts = trimmedRow.split("\\[");
+                    return new EndpointDetail(parts[1], HttpMethod.valueOf(parts[0]));
+                }).toList();
     }
 }

@@ -1,12 +1,16 @@
 package hu.martin.ems.core.actuator;
 
 import com.google.gson.annotations.Expose;
-import lombok.AllArgsConstructor;
+import org.springframework.http.HttpMethod;
 
-@AllArgsConstructor
 public class EndpointDetail {
     @Expose
-    private String method; //TODO lehetne enum
-    @Expose
     private String path;
+    @Expose
+    private String method;
+
+    public EndpointDetail(String path, HttpMethod method){
+        this.path = path;
+        this.method = method.name().trim();
+    }
 }

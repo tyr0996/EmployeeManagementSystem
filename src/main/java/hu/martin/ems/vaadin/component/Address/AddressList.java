@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -32,6 +31,7 @@ import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsComboBox;
 import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
@@ -205,11 +205,10 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         saveButton = new Button("Save");
         FormLayout formLayout = new FormLayout();
 
-        ComboBox<CodeStore> countryCodes = createCountryCodesComboBox();
+        EmsComboBox<CodeStore> countryCodes = new EmsComboBox<>("Country code", this::setupCountries, saveButton, "EmsError happened while getting countries");
         TextField streetNameField = new TextField("Street name");
-        ComboBox<City> cities = createCitiesComboBox();
-        ComboBox<CodeStore> streetTypes = createStreetTypesComboBox();
-
+        EmsComboBox<City> cities = new EmsComboBox<>("City", this::setupCities, saveButton, "EmsError happened while getting cities");
+        EmsComboBox<CodeStore> streetTypes = new EmsComboBox<>("Street type", this::setupStreetTypes, saveButton, "EmsError happened while getting street types");
         TextField houseNumberField = new TextField("House number");
 
         if (entity != null) {
@@ -262,65 +261,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         return createDialog;
     }
 
-    private ComboBox<CodeStore> createStreetTypesComboBox() {
-        setupStreetTypes();
-        ComboBox<CodeStore> streetTypes = new ComboBox<>("Street type");
-        ComboBox.ItemFilter<CodeStore> streetTypeFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if (streetTypeList == null) {
-            streetTypes.setInvalid(true);
-            streetTypes.setErrorMessage("EmsError happened while getting street types");
-            streetTypes.setEnabled(false);
-            saveButton.setEnabled(false);
-        } else {
-            streetTypes.setInvalid(false);
-            streetTypes.setEnabled(true);
-            streetTypes.setItems(streetTypeFilter, streetTypeList);
-            streetTypes.setItemLabelGenerator(CodeStore::getName);
-        }
-
-        return streetTypes;
-    }
-
-    private ComboBox<City> createCitiesComboBox() {
-        setupCities();
-        ComboBox<City> cities = new ComboBox<>("City");
-        ComboBox.ItemFilter<City> cityFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if (cityList == null) {
-            cities.setInvalid(true);
-            cities.setErrorMessage("EmsError happened while getting cities");
-            cities.setEnabled(false);
-            saveButton.setEnabled(false);
-        } else {
-            cities.setInvalid(false);
-            cities.setEnabled(true);
-            cities.setItems(cityFilter, cityList);
-            cities.setItemLabelGenerator(City::getName);
-        }
-        return cities;
-    }
-
-    private ComboBox<CodeStore> createCountryCodesComboBox() {
-        setupCountries();
-        ComboBox<CodeStore> countryCodes = new ComboBox<>("Country code");
-        ComboBox.ItemFilter<CodeStore> countryCodeFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if (countryList == null) {
-            countryCodes.setInvalid(true);
-            countryCodes.setErrorMessage("EmsError happened while getting countries");
-            countryCodes.setEnabled(false);
-            saveButton.setEnabled(false);
-        } else {
-            countryCodes.setInvalid(false);
-            countryCodes.setEnabled(true);
-            countryCodes.setItems(countryCodeFilter, countryList);
-            countryCodes.setItemLabelGenerator(CodeStore::getName);
-        }
-        return countryCodes;
-    }
-
-    private void setupCities() {
+    private List<City> setupCities() {
         EmsResponse response = cityApi.findAll();
         switch (response.getCode()) {
             case 200:
@@ -331,9 +272,10 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
                 logger.error("City findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
+        return cityList;
     }
 
-    private void setupCountries() {
+    private List<CodeStore> setupCountries() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.COUNTRIES_CODESTORE_ID);
         switch (response.getCode()) {
             case 200:
@@ -344,9 +286,10 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
                 logger.error("CodeStore getChildrenError [country]. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
+        return countryList;
     }
 
-    private void setupStreetTypes() {
+    private List<CodeStore> setupStreetTypes() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.STREET_TYPES_CODESTORE_ID);
         switch (response.getCode()) {
             case 200:
@@ -357,6 +300,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
                 logger.error("CodeStore getChildrenError [street type]. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
+        return streetTypeList;
     }
 
     @NeedCleanCoding

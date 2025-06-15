@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
+import hu.martin.ems.vaadin.core.NamedObject;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.List;
 @NeedCleanCoding
 @NoArgsConstructor
 @Setter
-public class User extends BaseEntity {
+public class User extends BaseEntity implements NamedObject {
     @Expose
     private String username;
 
@@ -45,4 +46,8 @@ public class User extends BaseEntity {
 
     @Expose
     private boolean enabled;
+
+    public String getName(){
+        return getUsername();
+    }
 }

@@ -1,7 +1,6 @@
 package hu.martin.ems.crudFE;
 
 import com.automation.remarks.testng.UniversalVideoListener;
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.base.RandomGenerator;
@@ -40,7 +39,6 @@ import static org.testng.AssertJUnit.assertFalse;
 @Listeners(UniversalVideoListener.class)
 public class CurrencyCrudTest extends BaseCrudTest {
     @Test
-    @Video
     public void selectDateRetroactively_NotSavedDate() {
         clearCurrencyDatabaseTable();
 
@@ -67,7 +65,6 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void tryToEnterAllPossibleGoodDateFormats() {
         clearCurrencyDatabaseTable();
         EmptyLoggedInVaadinPage loggedInPage =
@@ -131,7 +128,6 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void fetchingCurrenciesFailedThenSuccessTest() {
         clearCurrencyDatabaseTable();
         Object originalCurrency = BeanProvider.getBean(RestTemplate.class).getForObject(fetchingCurrencyApiUrl + baseCurrency, Object.class);
@@ -162,7 +158,6 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void fetchingCurrenciesSuccessTest() {
         clearCurrencyDatabaseTable();
 
@@ -180,7 +175,6 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void checkRetroCurrenciesTest() throws IOException {
         clearCurrencyDatabaseTable();
         dp.executeSQLFile(new File(dp.getGENERATED_SQL_FILES_PATH() + "\\currencies.sql"));
@@ -215,7 +209,6 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void fetchingCurrenciesNotCorrectResponseTest() {
         clearCurrencyDatabaseTable();
         LinkedHashMap<String, Object> badResponse = new LinkedHashMap<>();
@@ -249,7 +242,6 @@ public class CurrencyCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void nullResponseWhenFetchAndSaveRates() throws SQLException {
         clearCurrencyDatabaseTable();
         MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(4));
@@ -266,9 +258,7 @@ public class CurrencyCrudTest extends BaseCrudTest {
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
-
     @Test
-    @Video
     public void databaseNotAvailableWhileFindCurrencyByDate() throws SQLException {
         clearCurrencyDatabaseTable();
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 2);
@@ -284,6 +274,4 @@ public class CurrencyCrudTest extends BaseCrudTest {
         assertEquals(0, page.getGrid().getPaginationData().getTotalElements().intValue());
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
-
-
 }

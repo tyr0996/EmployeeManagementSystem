@@ -3,6 +3,7 @@ package hu.martin.ems.model;
 import com.google.gson.annotations.Expose;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.model.BaseEntity;
+import hu.martin.ems.vaadin.core.NamedObject;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,7 @@ import java.util.Set;
 @Setter
 @NeedCleanCoding
 @NoArgsConstructor
-public class Role extends BaseEntity {
+public class Role extends BaseEntity implements NamedObject {
 
     @Column(nullable = false)
     @Expose

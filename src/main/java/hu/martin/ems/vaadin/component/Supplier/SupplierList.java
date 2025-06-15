@@ -5,7 +5,6 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -31,6 +30,7 @@ import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.SupplierApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsComboBox;
 import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
@@ -40,7 +40,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.klaudeta.PaginatedGrid;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -249,22 +252,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
         FormLayout formLayout = new FormLayout();
 
         TextField nameField = new TextField("Name");
-
-        ComboBox<Address> addresses = new ComboBox<>("Address");
-        ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        setupAddresses();
-        if (addressList == null) {
-            addresses.setInvalid(true);
-            addresses.setErrorMessage("EmsError happened while getting addresses");
-            addresses.setEnabled(false);
-            saveButton.setEnabled(false);
-        } else {
-            addresses.setInvalid(false);
-            addresses.setEnabled(true);
-            addresses.setItems(addressFilter, addressList);
-            addresses.setItemLabelGenerator(Address::getName);
-        }
+        EmsComboBox<Address> addresses = new EmsComboBox<>("Address", this::setupAddresses, saveButton, "EmsError happened while getting addresses");
 
         if (entity != null) {
             nameField.setValue(entity.original.getName());
@@ -309,7 +297,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
         return createDialog;
     }
 
-    private void setupAddresses() {
+    private List<Address> setupAddresses() {
         EmsResponse response = addressApi.findAll();
         switch (response.getCode()) {
             case 200:
@@ -320,6 +308,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
                 logger.error("Address findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
+        return addressList;
     }
 
     @NeedCleanCoding

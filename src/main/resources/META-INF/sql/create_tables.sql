@@ -119,7 +119,7 @@ CREATE TABLE "public"."product" (
                                     "amount" DOUBLE PRECISION NOT NULL,
                                     "buyingpricenet" DOUBLE PRECISION NOT NULL,
                                     "sellingpricenet" DOUBLE PRECISION NOT NULL,
-                                    "amountunit_codestore_id" SERIAL,
+                                    "packingunit_codestore_id" SERIAL,
                                     "buyingpricecurrency_codestore_id" SERIAL,
                                     "deleted" BIGINT NOT NULL DEFAULT 0,
                                     "id" SERIAL,
@@ -191,7 +191,7 @@ ALTER TABLE "public"."address" ADD CONSTRAINT "fkb0x23bk9qu5dlnfq1jqa9rd1q" FORE
 ALTER TABLE "public"."address" ADD CONSTRAINT "fkayrykt91hnih8a18mf0wluyw7" FOREIGN KEY ("countrycode_codestore_id") REFERENCES "public"."codestore" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "public"."address" ADD CONSTRAINT "fkt94ghcs4cpl0bdypyc2mhisa0" FOREIGN KEY ("streettype_codestore_id") REFERENCES "public"."codestore" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "public"."loginuser" ADD CONSTRAINT "fk892riipyya5iucf4eroyvyijt" FOREIGN KEY ("role_role_id") REFERENCES "public"."role" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
-ALTER TABLE "public"."product" ADD CONSTRAINT "fkig1cgusdeokyu9gl8ti3l4pf2" FOREIGN KEY ("amountunit_codestore_id") REFERENCES "public"."codestore" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE "public"."product" ADD CONSTRAINT "fkig1cgusdeokyu9gl8ti3l4pf2" FOREIGN KEY ("packingunit_codestore_id") REFERENCES "public"."codestore" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "public"."product" ADD CONSTRAINT "fk7a4f2emy0uj1qdi66log9isro" FOREIGN KEY ("buyingpricecurrency_codestore_id") REFERENCES "public"."codestore" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "public"."product" ADD CONSTRAINT "fkko49qtapgcbuf7c5lkh98jkyh" FOREIGN KEY ("sellingpricecurrency_codestore_id") REFERENCES "public"."codestore" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "public"."product" ADD CONSTRAINT "fkdgtgmvh79i15cv6mc0yqa4oys" FOREIGN KEY ("taxkey_codestore_id") REFERENCES "public"."codestore" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION;

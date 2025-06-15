@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -29,6 +28,7 @@ import hu.martin.ems.vaadin.api.AddressApiClient;
 import hu.martin.ems.vaadin.api.CustomerApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsComboBox;
 import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
@@ -191,21 +191,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
 
         TextField lastNameField = new TextField("Last name");
 
-        setupAddresses();
-
-        ComboBox<Address> addresses = new ComboBox<>("Address");
-        ComboBox.ItemFilter<Address> addressFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        if (addressList != null) {
-            addresses.setItems(addressFilter, addressList);
-            addresses.setItemLabelGenerator(Address::getName);
-        } else {
-            addresses.setEnabled(false);
-            addresses.setInvalid(true);
-            addresses.setErrorMessage("EmsError happened while getting addresses");
-            saveButton.setEnabled(false);
-        }
-
+        EmsComboBox<Address> addresses = new EmsComboBox<>("Address", this::setupAddresses, saveButton, "EmsError happened while getting addresses");
 
         EmailField emailField = new EmailField();
         emailField.setLabel("Email address");
@@ -263,7 +249,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
         return createDialog;
     }
 
-    private void setupAddresses() {
+    private List<Address> setupAddresses() {
         EmsResponse emsResponse = addressApi.findAll();
         switch (emsResponse.getCode()) {
             case 200:
@@ -274,6 +260,7 @@ public class CustomerList extends EmsFilterableGridComponent implements Creatabl
                 logger.error("Address findAllError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
                 break;
         }
+        return addressList;
     }
 
     @NeedCleanCoding

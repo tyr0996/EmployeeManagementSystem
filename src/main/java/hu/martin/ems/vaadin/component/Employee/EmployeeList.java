@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -29,6 +28,7 @@ import hu.martin.ems.vaadin.api.EmployeeApiClient;
 import hu.martin.ems.vaadin.api.UserApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsComboBox;
 import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
@@ -187,20 +187,20 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         TextField firstNameField = new TextField("First Name");
         TextField lastNameField = new TextField("Last Name");
         NumberField salaryField = new NumberField("Salary");
-
-        setupUsers();
-        ComboBox<User> users = new ComboBox<>("User");
-        ComboBox.ItemFilter<User> filter = (user, filterString) ->
-                user.getUsername().toLowerCase().contains(filterString.toLowerCase());
-        if (userList == null) {
-            users.setEnabled(false);
-            users.setErrorMessage("EmsError happened while getting users");
-            users.setInvalid(true);
-            saveButton.setEnabled(false);
-        } else {
-            users.setItems(filter, userList);
-            users.setItemLabelGenerator(User::getUsername);
-        }
+        EmsComboBox<User> users = new EmsComboBox<>("User", this::setupUsers, saveButton, "EmsError happened while getting users");
+//        setupUsers();
+//        ComboBox<User> users = new ComboBox<>("User");
+//        ComboBox.ItemFilter<User> filter = (user, filterString) ->
+//                user.getUsername().toLowerCase().contains(filterString.toLowerCase());
+//        if (userList == null) {
+//            users.setEnabled(false);
+//            users.setErrorMessage("EmsError happened while getting users");
+//            users.setInvalid(true);
+//            saveButton.setEnabled(false);
+//        } else {
+//            users.setItems(filter, userList);
+//            users.setItemLabelGenerator(User::getUsername);
+//        }
 
         if (entity != null) {
             firstNameField.setValue(entity.original.getFirstName());
@@ -255,7 +255,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         return createDialog;
     }
 
-    private void setupUsers() {
+    private List<User> setupUsers() {
         EmsResponse emsResponse = userApi.findAll();
         switch (emsResponse.getCode()) {
             case 200:
@@ -266,6 +266,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
                 logger.error("User findAllError. Code: {}, Description: {}", emsResponse.getCode(), emsResponse.getDescription());
                 break;
         }
+        return userList;
     }
 
     @NeedCleanCoding

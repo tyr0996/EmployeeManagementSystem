@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -29,6 +28,7 @@ import hu.martin.ems.vaadin.api.CityApiClient;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVO;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsComboBox;
 import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationForm;
 import jakarta.annotation.security.RolesAllowed;
@@ -184,19 +184,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
         FormLayout fl = new FormLayout();
         TextField nameField = new TextField("Name");
 
-        ComboBox<CodeStore> countryCodes = new ComboBox<>("Country code");
-        ComboBox.ItemFilter<CodeStore> countryCodeFilter = (element, filterString) ->
-                element.getName().toLowerCase().contains(filterString.toLowerCase());
-        setupCountries();
-        if (countries == null) {
-            countryCodes.setErrorMessage("EmsError happened while getting countries");
-            countryCodes.setEnabled(false);
-            countryCodes.setInvalid(true);
-            saveButton.setEnabled(false);
-        } else {
-            countryCodes.setItems(countryCodeFilter, countries);
-            countryCodes.setItemLabelGenerator(CodeStore::getName);
-        }
+        EmsComboBox<CodeStore> countryCodes = new EmsComboBox<>("Country code", this::setupCountries, saveButton, "EmsError happened while getting countries");
 
         TextField zipCodeField = new TextField("Zip code");
 
@@ -250,7 +238,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
         return createDialog;
     }
 
-    private void setupCountries() {
+    private List<CodeStore> setupCountries() {
         EmsResponse response = codeStoreApi.getChildren(CodeStoreIds.COUNTRIES_CODESTORE_ID);
         switch (response.getCode()) {
             case 200:
@@ -261,6 +249,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
                 logger.error("CodeStore getChildrenError [countries]. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
+        return countries;
     }
 
     @NeedCleanCoding

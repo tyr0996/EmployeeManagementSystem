@@ -310,7 +310,7 @@ public class ProductCrudTest extends BaseCrudTest {
 
     @Test
     public void unexpectedResponseCodeWhenGettingCurrenciesNames() throws SQLException {
-        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 3);
+        MockingUtil.mockDatabaseNotAvailableWhen(spyDataSource, Arrays.asList(3, 6));
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.PRODUCT_SUBMENU);
@@ -355,7 +355,7 @@ public class ProductCrudTest extends BaseCrudTest {
     }
 
     @Test
-    public void unexpectedResponseCodeWhenGettingAmountUnits() throws SQLException {
+    public void unexpectedResponseCodeWhenGettingPackingUnits() throws SQLException {
         MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 5);
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -368,8 +368,8 @@ public class ProductCrudTest extends BaseCrudTest {
         dialog.initWebElements();
         assertEquals(dialog.getFailedComponents().size(), 1);
         SoftAssert sa = new SoftAssert();
-        sa.assertFalse(dialog.getAmountUnitComponent().isEnabled());
-        sa.assertEquals(dialog.getAmountUnitComponent().getErrorMessage(), "EmsError happened while getting amount units");
+        sa.assertFalse(dialog.getPackingUnitComponent().isEnabled());
+        sa.assertEquals(dialog.getPackingUnitComponent().getErrorMessage(), "EmsError happened while getting packing units");
         sa.assertFalse(dialog.getSaveButton().isEnabled());
 
         sa.assertAll();

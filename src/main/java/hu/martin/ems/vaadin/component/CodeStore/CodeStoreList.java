@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -26,6 +25,7 @@ import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.CodeStoreApiClient;
 import hu.martin.ems.vaadin.component.BaseVOWithDeletable;
 import hu.martin.ems.vaadin.component.Creatable;
+import hu.martin.ems.vaadin.core.EmsComboBox;
 import hu.martin.ems.vaadin.core.EmsDialog;
 import hu.martin.ems.vaadin.core.IEmsOptionColumnBaseDialogCreationFormDeletable;
 import jakarta.annotation.security.RolesAllowed;
@@ -114,6 +114,10 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
     }
 
     public void setEntities() {
+        setCodeStores();
+    }
+
+    public List<CodeStore> setCodeStores(){
         EmsResponse response = apiClient.findAllWithDeleted();
         switch (response.getCode()) {
             case 200:
@@ -124,6 +128,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
                 logger.error("CodeStore findAllError. Code: {}, Description: {}", response.getCode(), response.getDescription());
                 break;
         }
+        return codeStores;
     }
 
     public void updateGridItems() {
@@ -172,13 +177,10 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
         EmsDialog createDialog = new EmsDialog((entity == null ? "Create" : "Modify") + " codestore");
 
         FormLayout formLayout = new FormLayout();
+        Button saveButton = new Button("Save");
 
         TextField nameTextField = new TextField("Name");
-        ComboBox<CodeStore> parentCodeStore = new ComboBox<>("Parent");
-        ComboBox.ItemFilter<CodeStore> filter = (codeStore, filterString) ->
-                codeStore.getName().toLowerCase().contains(filterString.toLowerCase());
-        parentCodeStore.setItems(filter, codeStores);
-        parentCodeStore.setItemLabelGenerator(CodeStore::getName);
+        EmsComboBox<CodeStore> parentCodeStore = new EmsComboBox<>("Parent", this::setCodeStores, saveButton, "EmsError happened while getting codestores");
 
         Checkbox deletable = new Checkbox("Deletable");
 
@@ -188,7 +190,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
             deletable.setValue(entity.original.getDeletable());
         }
 
-        Button saveButton = new Button("Save");
+
 
         saveButton.addClickListener(event -> {
             CodeStore codeStore = new CodeStore();

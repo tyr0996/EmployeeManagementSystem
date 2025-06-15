@@ -1,7 +1,6 @@
 package hu.martin.ems.crudFE;
 
 import com.automation.remarks.testng.UniversalVideoListener;
-import com.automation.remarks.video.annotations.Video;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.base.mockito.MockingUtil;
 import hu.martin.ems.pages.AdminToolsPage;
@@ -143,7 +142,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void orderElementDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
@@ -233,7 +231,6 @@ public class OrderElementCrudTest extends BaseCrudTest {
     }
 
     @Test
-    @Video
     public void orderElementPermanentlyDeleteTest() {
         EmptyLoggedInVaadinPage loggedInPage =
                 (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);

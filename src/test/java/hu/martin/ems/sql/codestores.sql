@@ -1,6 +1,6 @@
 INSERT INTO CodeStore (deleted, parentcodestore_codestore_id, name, deletable, linkname) VALUES
 	('0', NULL, 'Currencies', 'false', 'Currencies'),
-	('0', NULL, 'Amount units', 'false', 'Amount units'),
+	('0', NULL, 'Packing units', 'false', 'Packing units'),
 	('0', NULL, 'Order states', 'false', 'Order states'),
 	('0', NULL, 'Tax keys', 'false', 'Tax keys'),
 	('0', NULL, 'Street types', 'false', 'Street types'),

@@ -227,9 +227,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         return permissionVOS.stream().filter(permissionVO ->
                 filterField(idFilter, permissionVO.id.toString()) &&
                 filterField(nameFilter, permissionVO.name) &&
-//                (idFilter.isEmpty() || permissionVO.id.toString().toLowerCase().contains(idFilter.getFilterText().toLowerCase())) &&
-//                (nameFilter.isEmpty() || permissionVO.name.toLowerCase().contains(nameFilter.getFilterText().toLowerCase())) &&
-                        permissionVO.filterExtraData()
+                permissionVO.filterExtraData()
         );
     }
 
