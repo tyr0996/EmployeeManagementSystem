@@ -2,10 +2,7 @@ package hu.martin.ems.pages.core;
 
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.base.mockito.MockingUtil;
-import hu.martin.ems.pages.core.component.VaadinButtonComponent;
-import hu.martin.ems.pages.core.component.VaadinCheckboxComponent;
-import hu.martin.ems.pages.core.component.VaadinGridComponent;
-import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.component.*;
 import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.VaadinSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
 import hu.martin.ems.pages.core.performResult.*;
@@ -24,31 +21,30 @@ import java.util.List;
 
 public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISimpleVaadinGridPage<T> {
     @Getter
-    protected VaadinCheckboxComponent showDeletedCheckBox;
+    protected VaadinSwitchComponent showDeletedSwitch;
+
     @Getter
     protected VaadinButtonComponent createButton;
     @Getter
     protected VaadinGridComponent grid;
     @Getter
     protected VaadinSaveOrUpdateDialog saveOrUpdateDialog;
+    @Getter
+    protected SideMenu sideMenu;
 
     @Getter
     private String className;
 
     @Nullable
     @Getter
-    private VaadinCheckboxComponent showOnlyDeletable;
+    private VaadinSwitchComponent showOnlyDeletable;
 
     public SimpleVaadinGridPage(WebDriver driver, int port, String className, @Nullable String showOnlyDeletable) {
         super(driver, port);
         this.className = className;
-        this.showOnlyDeletable = showOnlyDeletable == null ? null : new VaadinCheckboxComponent(driver, By.xpath(showOnlyDeletable));
-//        this.showOnlyDeletable = showOnlyDeletable;
-//        this.saveOrUpdateDialog = saveOrUpdateDialog;
-    }
+        this.showOnlyDeletable = showOnlyDeletable == null ? null : new VaadinSwitchComponent(driver, By.xpath(showOnlyDeletable));
+        this.sideMenu = new SideMenu(driver);
 
-    public void setShowOnlyDeletable(String xpath) {
-        showOnlyDeletable = new VaadinCheckboxComponent(getDriver(), By.xpath(xpath));
     }
 
     @Override
@@ -94,7 +90,7 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
     }
 
     private PerformDeleteFailedResult performDelete(DataSource spyDataSource) throws SQLException {
-        if (grid.getTotalNonDeletedRowNumber(showDeletedCheckBox) == 0) {
+        if (grid.getTotalNonDeletedRowNumber(showDeletedSwitch) == 0) {
             performCreate(null);
             VaadinNotificationComponent.closeAll(getDriver());
         }
@@ -113,7 +109,7 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
             }
             grid.goToPage(rowLocation.getPageNumber());
 
-            showDeletedCheckBox.setStatus(false);
+            showDeletedSwitch.setStatus(false);
 
             String[] tempDeletedData = grid.getDataFromRowLocation(rowLocation, true);
 
@@ -140,8 +136,8 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
             withData = new LinkedHashMap<>();
             withData.put("Deletable", true);
         }
-        showDeletedCheckBox.init();
-        if (grid.getTotalNonDeletedRowNumber(showDeletedCheckBox) == 0) {
+        showDeletedSwitch.init();
+        if (grid.getTotalNonDeletedRowNumber(showDeletedSwitch) == 0) {
             performCreate(withData);
             VaadinNotificationComponent.closeAll(getDriver());
         }
@@ -156,12 +152,12 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
             }
             grid.goToPage(rowLocation.getPageNumber());
 
-            showDeletedCheckBox.setStatus(false);
+            showDeletedSwitch.setStatus(false);
 
             String[] tempDeletedData = grid.getDataFromRowLocation(rowLocation, true);
 
             VaadinButtonComponent tempDeleteButton = grid.getDeleteButton(rowLocation.getRowIndex());
-            if (tempDeleteButton.isEnabled()) {
+            if (tempDeleteButton != null && tempDeleteButton.isEnabled()) {
                 deleteButton = tempDeleteButton.getElement();
                 deletedData = tempDeletedData;
             }
@@ -186,17 +182,17 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
     @Override
     public PerformRestoreFailedResult performRestoreFailed(DataSource spyDataSource) throws SQLException {
         if (createButton != null && !createButton.isNull() &&
-                grid.getTotalNonDeletedRowNumber(showDeletedCheckBox) == 0 &&
-                grid.getTotalDeletedRowNumber(showDeletedCheckBox) == 0) {
+                grid.getTotalNonDeletedRowNumber(showDeletedSwitch) == 0 &&
+                grid.getTotalDeletedRowNumber(showDeletedSwitch) == 0) {
             performCreate(null);
             VaadinNotificationComponent.closeAll(getDriver());
             performDelete();
             VaadinNotificationComponent.closeAll(getDriver());
         }
 
-        showDeletedCheckBox.setStatus(true);
+        showDeletedSwitch.setStatus(true);
 
-        String[] deletedData = grid.getRandomDataDeletedStatus(showDeletedCheckBox);
+        String[] deletedData = grid.getRandomDataDeletedStatus(showDeletedSwitch);
         grid.applyFilter(deletedData);
         ElementLocation deleted = new ElementLocation(1, 0);
 
@@ -212,16 +208,16 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
     @Override
     public PerformRestoreResult performRestore() {
         if (createButton != null && !createButton.isNull() &&
-                grid.getTotalNonDeletedRowNumber(showDeletedCheckBox) == 0 &&
-                grid.getTotalDeletedRowNumber(showDeletedCheckBox) == 0) {
+                grid.getTotalNonDeletedRowNumber(showDeletedSwitch) == 0 &&
+                grid.getTotalDeletedRowNumber(showDeletedSwitch) == 0) {
             performCreate(null);
             VaadinNotificationComponent.closeAll(getDriver());
             performDelete();
         }
 
-        showDeletedCheckBox.setStatus(true);
+        showDeletedSwitch.setStatus(true);
 
-        String[] deletedData = (Arrays.asList(grid.getRandomDataDeletedStatus(showDeletedCheckBox)).stream().map(v -> v.equals("") ? null : v).toList()).toArray(new String[0]);
+        String[] deletedData = (Arrays.asList(grid.getRandomDataDeletedStatus(showDeletedSwitch)).stream().map(v -> v.equals("") ? null : v).toList()).toArray(new String[0]);
         grid.applyFilter(deletedData);
         ElementLocation deleted = new ElementLocation(1, 0);
 
@@ -235,18 +231,19 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
     @Override
     public PerformPermanentlyDeleteResult performPermanentlyDelete() {
-        if (grid.getTotalDeletedRowNumber(showDeletedCheckBox) == 0 && grid.getTotalNonDeletedRowNumber(showDeletedCheckBox) == 0) {
+        if (grid.getTotalDeletedRowNumber(showDeletedSwitch) == 0 && grid.getTotalNonDeletedRowNumber(showDeletedSwitch) == 0) {
             performCreate(null);
             performDelete();
-        } else if (grid.getTotalDeletedRowNumber(showDeletedCheckBox) == 0) {
+        } else if (grid.getTotalDeletedRowNumber(showDeletedSwitch) == 0) {
             performDelete();
         }
 
         VaadinNotificationComponent.closeAll(getDriver());
 
-        showDeletedCheckBox.setStatus(true);
+        showDeletedSwitch.setStatus(true);
+        this.initWebElements();
 
-        String[] selectedData = grid.getRandomDataDeletedStatus(showDeletedCheckBox);
+        String[] selectedData = grid.getRandomDataDeletedStatus(showDeletedSwitch);
         grid.applyFilter(selectedData);
         ElementLocation el = new ElementLocation(1, 0);
 
@@ -266,9 +263,9 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
     }
 
     private PerformPermanentlyDeleteFailedResult performPermanentlyDelete(DataSource spyDatasource) throws SQLException {
-        showDeletedCheckBox.setStatus(true);
+        showDeletedSwitch.setStatus(true);
 
-        String[] selectedData = grid.getRandomDataDeletedStatus(showDeletedCheckBox);
+        String[] selectedData = grid.getRandomDataDeletedStatus(showDeletedSwitch);
         grid.applyFilter(selectedData);
         System.out.println("Selected data: " + Arrays.toString(selectedData));
         ElementLocation el = new ElementLocation(1, 0);
@@ -334,13 +331,13 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
             showOnlyDeletable.setStatus(false);
         }
         DoCreateTestData ret = new DoCreateTestData();
-        ret.setOriginalDeletedRowNumber(grid.getTotalDeletedRowNumber(showDeletedCheckBox));
-        ret.setOriginalNonDeletedRowNumber(grid.getTotalNonDeletedRowNumber(showDeletedCheckBox));
+        ret.setOriginalDeletedRowNumber(grid.getTotalDeletedRowNumber(showDeletedSwitch));
+        ret.setOriginalNonDeletedRowNumber(grid.getTotalNonDeletedRowNumber(showDeletedSwitch));
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            ret.setOriginalNonDeletedOnlyDeletable(grid.getTotalNonDeletedRowNumber(showDeletedCheckBox));
-            ret.setOriginalDeletedOnlyDeletable(grid.getTotalDeletedRowNumber(showDeletedCheckBox));
+            ret.setOriginalNonDeletedOnlyDeletable(grid.getTotalNonDeletedRowNumber(showDeletedSwitch));
+            ret.setOriginalDeletedOnlyDeletable(grid.getTotalDeletedRowNumber(showDeletedSwitch));
             showOnlyDeletable.setStatus(false);
         }
 
@@ -350,14 +347,14 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
         ret.setNotificationWhenPerform(pcRes.getNotification());
 //        notification.close();
 
-        showDeletedCheckBox.setStatus(false);
+        showDeletedSwitch.setStatus(false);
 
-        ret.setDeletedRowNumberAfterMethod(grid.getTotalDeletedRowNumber(showDeletedCheckBox));
-        ret.setNonDeletedRowNumberAfterMethod(grid.getTotalNonDeletedRowNumber(showDeletedCheckBox));
+        ret.setDeletedRowNumberAfterMethod(grid.getTotalDeletedRowNumber(showDeletedSwitch));
+        ret.setNonDeletedRowNumberAfterMethod(grid.getTotalNonDeletedRowNumber(showDeletedSwitch));
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            ret.setDeletedRowNumberOnlyDeletableAfterMethod(grid.getTotalDeletedRowNumber(showDeletedCheckBox));
-            ret.setNonDeletedRowNumberOnlyDeletableAfterMethod(grid.getTotalNonDeletedRowNumber(showDeletedCheckBox));
+            ret.setDeletedRowNumberOnlyDeletableAfterMethod(grid.getTotalDeletedRowNumber(showDeletedSwitch));
+            ret.setNonDeletedRowNumberOnlyDeletableAfterMethod(grid.getTotalNonDeletedRowNumber(showDeletedSwitch));
             showOnlyDeletable.setStatus(false);
         }
 
@@ -417,21 +414,21 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
     public DoDeleteTestData doDeleteTest(LinkedHashMap<String, Object> withDataCreate) {
 //        DoDeleteTestData ret = new DoDeleteTestData();
 
-        int originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+        int originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
         if (originalNonDeletedRowNumber == 0) {
             performCreate(withDataCreate);
         }
 
-        originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        Integer originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        Integer originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         Integer originalNonDeletedOnlyDeletable = originalNonDeletedRowNumber;
         Integer originalDeletedOnlyDeletable = originalDeletedRowNumber;
 
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         }
 
 
@@ -448,21 +445,21 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
         grid.resetFilter();
 
-        showDeletedCheckBox.setStatus(false);
+        showDeletedSwitch.setStatus(false);
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(false);
         }
 
-        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         Integer deletedRowNumberOnlyDeletableAfterMethod = null;
         Integer nonDeletedRowNumberOnlyDeletableAfterMethod = null;
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
-            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-            showDeletedCheckBox.setStatus(false);
+            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
+            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+            showDeletedSwitch.setStatus(false);
             showOnlyDeletable.setStatus(false);
         }
 
@@ -481,8 +478,8 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
     @Override
     public DoRestoreFailedTestData doRestoreFailedTest(DataSource spyDataSource) throws SQLException {
-        Integer originalDeleted = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
-        Integer originalNonDeleted = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+        Integer originalDeleted = grid.getTotalDeletedRowNumber(showDeletedSwitch);
+        Integer originalNonDeleted = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
         Integer originalDeletedOnlyDeletable = originalDeleted;
         Integer originalNonDeletedOnlyDeletable = originalNonDeleted;
 
@@ -491,15 +488,15 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
             grid.waitForRefresh();
             VaadinNotificationComponent.closeAll(getDriver());
 
-            originalNonDeleted = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+            originalNonDeleted = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
             originalDeletedOnlyDeletable = originalDeleted;
-            originalDeleted = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+            originalDeleted = grid.getTotalDeletedRowNumber(showDeletedSwitch);
             originalNonDeletedOnlyDeletable = originalNonDeleted;
         }
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
-            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedSwitch);
+            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
             showOnlyDeletable.setStatus(false);
         }
 
@@ -511,14 +508,14 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
         notificationWhenPerform = notification.getText();
         notification.close();
 
-        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         Integer deletedRowNumberOnlyDeletableAfterMethod = deletedRowNumberAfterMethod;
         Integer nonDeletedRowNumberOnlyDeletableAfterMethod = nonDeletedRowNumberAfterMethod;
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
-            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
+            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
             showOnlyDeletable.setStatus(false);
         }
 
@@ -536,8 +533,8 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
     @Override
     public DoRestoreTestData doRestoreTest() {
-        Integer originalDeleted = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
-        Integer originalNonDeleted = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+        Integer originalDeleted = grid.getTotalDeletedRowNumber(showDeletedSwitch);
+        Integer originalNonDeleted = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
         Integer originalDeletedOnlyDeletable = originalDeleted;
         Integer originalNonDeletedOnlyDeletable = originalNonDeleted;
 
@@ -546,15 +543,15 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
             grid.waitForRefresh();
             VaadinNotificationComponent.closeAll(getDriver());
 
-            originalNonDeleted = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+            originalNonDeleted = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
             originalDeletedOnlyDeletable = originalDeleted;
-            originalDeleted = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+            originalDeleted = grid.getTotalDeletedRowNumber(showDeletedSwitch);
             originalNonDeletedOnlyDeletable = originalNonDeleted;
         }
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
-            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedSwitch);
+            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
             showOnlyDeletable.setStatus(false);
         }
 
@@ -566,14 +563,14 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
         notificationWhenPerform = notification.getText();
         notification.close();
 
-        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         Integer deletedRowNumberOnlyDeletableAfterMethod = deletedRowNumberAfterMethod;
         Integer nonDeletedRowNumberOnlyDeletableAfterMethod = nonDeletedRowNumberAfterMethod;
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
-            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
+            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
             showOnlyDeletable.setStatus(false);
         }
 
@@ -591,8 +588,9 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
     @Override
     public DoPermanentlyDeleteTestData doPermanentlyDeleteTest() {
-        Integer originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        Integer originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+
+        Integer originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        Integer originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         Integer originalNonDeletedOnlyDeletable = originalNonDeletedRowNumber;
         Integer originalDeletedOnlyDeletable = originalDeletedRowNumber;
 
@@ -605,13 +603,13 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedSwitch);
             showOnlyDeletable.setStatus(false);
         }
 
-        originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedSwitch);
 
         PerformPermanentlyDeleteResult ppdr = performPermanentlyDelete();
 
@@ -619,22 +617,22 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
         String notificationWhenPerform = notification.getText();
         notification.close();
 
-        showDeletedCheckBox.setStatus(false);
+        showDeletedSwitch.setStatus(false);
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(false);
         }
 
         grid.waitForRefresh();
-        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         Integer deletedRowNumberOnlyDeletableAfterMethod = null;
         Integer nonDeletedRowNumberOnlyDeletableAfterMethod = null;
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
-            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
+            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
             showOnlyDeletable.setStatus(false);
         }
 
@@ -653,7 +651,7 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
     }
 
     @Override
-    public DoReadTestData doReadTest(String extraDataFilter, boolean withInDeleted) {
+    public DoReadTestData doReadTest(boolean withInDeleted) {
         String notification = null;
         if (VaadinNotificationComponent.hasNotification(getDriver()) != null) {
             VaadinNotificationComponent notificationComponent = new VaadinNotificationComponent(getDriver());
@@ -663,15 +661,15 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
         ElementLocation randomLocation = grid.getRandomLocation();
         String[] data = grid.getDataFromRowLocation(randomLocation, true);
 
-        int originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        int originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        int originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        int originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         int originalNonDeletedOnlyDeletable = originalNonDeletedRowNumber;
         int originalDeletedOnlyDeletable = originalDeletedRowNumber;
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedSwitch);
             showOnlyDeletable.setStatus(false);
         }
 
@@ -681,24 +679,15 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
             originalNonDeletedOnlyDeletable++;
         }
 
-        Boolean originalDeleted = showDeletedCheckBox.getStatus();
+        Boolean originalDeleted = showDeletedSwitch.getStatus();
 
         if (withInDeleted) {
-            showDeletedCheckBox.setStatus(true);
-//            gridTestingUtil.setCheckboxStatus(showDeletedCheckBoxXpath, true);
+            showDeletedSwitch.setStatus(true);
         }
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(false);
         }
-        if (extraDataFilter != null) {
-            grid.setExtraDataFilter(extraDataFilter);
-//            gridTestingUtil.setExtraDataFilterValue(gridXpath, extraDataFilter, notificationCheck);
-        }
-
-        if (extraDataFilter != null) {
-            grid.clearExtraDataFilter();
-        }
-        showDeletedCheckBox.setStatus(originalDeleted);
+        showDeletedSwitch.setStatus(originalDeleted);
 
         DoReadTestData ret = new DoReadTestData(
                 originalNonDeletedRowNumber,
@@ -725,27 +714,27 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
         }
 
         DoCreateFailedTestData ret = new DoCreateFailedTestData();
-        ret.setOriginalDeletedRowNumber(grid.getTotalDeletedRowNumber(showDeletedCheckBox));
-        ret.setOriginalNonDeletedRowNumber(grid.getTotalNonDeletedRowNumber(showDeletedCheckBox));
+        ret.setOriginalDeletedRowNumber(grid.getTotalDeletedRowNumber(showDeletedSwitch));
+        ret.setOriginalNonDeletedRowNumber(grid.getTotalNonDeletedRowNumber(showDeletedSwitch));
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            ret.setOriginalNonDeletedOnlyDeletable(grid.getTotalNonDeletedRowNumber(showDeletedCheckBox));
-            ret.setOriginalDeletedOnlyDeletable(grid.getTotalDeletedRowNumber(showDeletedCheckBox));
+            ret.setOriginalNonDeletedOnlyDeletable(grid.getTotalNonDeletedRowNumber(showDeletedSwitch));
+            ret.setOriginalDeletedOnlyDeletable(grid.getTotalDeletedRowNumber(showDeletedSwitch));
             showOnlyDeletable.setStatus(false);
         }
 
         PerformCreateFailedResult failedResult = performCreate(withData, spyDatasource, null, preSuccessMock);
         ret.setNotificationWhenPerform(failedResult.getNotificationText());
 
-        showDeletedCheckBox.setStatus(false);
+        showDeletedSwitch.setStatus(false);
 
-        ret.setDeletedRowNumberAfterMethod(grid.getTotalDeletedRowNumber(showDeletedCheckBox));
-        ret.setNonDeletedRowNumberAfterMethod(grid.getTotalNonDeletedRowNumber(showDeletedCheckBox));
+        ret.setDeletedRowNumberAfterMethod(grid.getTotalDeletedRowNumber(showDeletedSwitch));
+        ret.setNonDeletedRowNumberAfterMethod(grid.getTotalNonDeletedRowNumber(showDeletedSwitch));
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            ret.setDeletedRowNumberOnlyDeletableAfterMethod(grid.getTotalDeletedRowNumber(showDeletedCheckBox));
-            ret.setNonDeletedRowNumberOnlyDeletableAfterMethod(grid.getTotalNonDeletedRowNumber(showDeletedCheckBox));
+            ret.setDeletedRowNumberOnlyDeletableAfterMethod(grid.getTotalDeletedRowNumber(showDeletedSwitch));
+            ret.setNonDeletedRowNumberOnlyDeletableAfterMethod(grid.getTotalNonDeletedRowNumber(showDeletedSwitch));
             showOnlyDeletable.setStatus(false);
         }
         ret.setResult(failedResult);
@@ -793,13 +782,13 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
     @Override
     public DoPermanentlyDeleteFailedTestData doDatabaseNotAvailableWhenPermanentlyDeleteTest(DataSource spyDataSource) throws SQLException {
 
-        int originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        int originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        int originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        int originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         if (originalNonDeletedRowNumber == 0) {
             performCreate(null);
         }
 
-        originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+        originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
 
         if (originalDeletedRowNumber == 0 && originalNonDeletedRowNumber == 0) {
             performCreate(null);
@@ -810,16 +799,16 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
         VaadinNotificationComponent.closeAll(getDriver());
 
 
-        originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         Integer originalNonDeletedOnlyDeletable = originalNonDeletedRowNumber;
         Integer originalDeletedOnlyDeletable = originalDeletedRowNumber;
 
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         }
 
         PerformPermanentlyDeleteFailedResult pdr = performPermanentlyDelete(spyDataSource);
@@ -834,21 +823,21 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
         grid.resetFilter();
 
-        showDeletedCheckBox.setStatus(false);
+        showDeletedSwitch.setStatus(false);
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(false);
         }
 
-        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         Integer deletedRowNumberOnlyDeletableAfterMethod = null;
         Integer nonDeletedRowNumberOnlyDeletableAfterMethod = null;
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
-            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-            showDeletedCheckBox.setStatus(false);
+            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
+            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+            showDeletedSwitch.setStatus(false);
             showOnlyDeletable.setStatus(false);
         }
 
@@ -868,21 +857,21 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
     @Override
     public DoDeleteFailedTestData doDatabaseNotAvailableWhenDeleteTest(DataSource spyDataSource) throws SQLException {
-        int originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
+        int originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
         if (originalNonDeletedRowNumber == 0) {
             performCreate(null);
         }
 
-        originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        Integer originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        originalNonDeletedRowNumber = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        Integer originalDeletedRowNumber = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         Integer originalNonDeletedOnlyDeletable = originalNonDeletedRowNumber;
         Integer originalDeletedOnlyDeletable = originalDeletedRowNumber;
 
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+            originalNonDeletedOnlyDeletable = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+            originalDeletedOnlyDeletable = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         }
 
         PerformDeleteResult pdr = performDelete(spyDataSource);
@@ -897,21 +886,21 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
         grid.resetFilter();
 
-        showDeletedCheckBox.setStatus(false);
+        showDeletedSwitch.setStatus(false);
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(false);
         }
 
-        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
+        Integer nonDeletedRowNumberAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+        Integer deletedRowNumberAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
         Integer deletedRowNumberOnlyDeletableAfterMethod = null;
         Integer nonDeletedRowNumberOnlyDeletableAfterMethod = null;
 
         if (showOnlyDeletable != null && !showOnlyDeletable.isNull()) {
             showOnlyDeletable.setStatus(true);
-            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedCheckBox);
-            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedCheckBox);
-            showDeletedCheckBox.setStatus(false);
+            deletedRowNumberOnlyDeletableAfterMethod = grid.getTotalDeletedRowNumber(showDeletedSwitch);
+            nonDeletedRowNumberOnlyDeletableAfterMethod = grid.getTotalNonDeletedRowNumber(showDeletedSwitch);
+            showDeletedSwitch.setStatus(false);
             showOnlyDeletable.setStatus(false);
         }
 
@@ -930,6 +919,9 @@ public abstract class SimpleVaadinGridPage<T> extends VaadinPage implements ISim
 
     @Override
     public void logout() {
-        //TODO
+        if (!getDriver().getCurrentUrl().contains("http://localhost:" + getPort() + "/login") &&
+                !getDriver().getCurrentUrl().contains("data:,")) {
+            getSideMenu().logout();
+        }
     }
 }

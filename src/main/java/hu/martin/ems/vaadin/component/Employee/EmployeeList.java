@@ -1,9 +1,7 @@
 package hu.martin.ems.vaadin.component.Employee;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -21,6 +19,8 @@ import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.ExtraDataFilterField;
+import hu.martin.ems.core.vaadin.Switch;
 import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Employee;
 import hu.martin.ems.vaadin.MainView;
@@ -69,12 +69,15 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
     private TextFilteringHeaderCell lastNameFilter;
     private TextFilteringHeaderCell userFilter;
     private TextFilteringHeaderCell salaryFilter;
+    private ExtraDataFilterField extraDataFilter;
     private Logger logger = LoggerFactory.getLogger(Employee.class);
     List<User> userList;
+    private LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
 
     @Autowired
     public EmployeeList(PaginationSetting paginationSetting) {
-        EmployeeVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(EmployeeVO.class);
         setEntities();
@@ -89,13 +92,10 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
-        //region Options column
         extraData = this.grid.addComponentColumn(employee -> createOptionColumn("Employee", employee));
 
         setFilteringHeaderRow();
         updateGridItems();
-
-        //endregion
 
         Button create = new Button("Create");
         create.addClickListener(event -> {
@@ -103,18 +103,23 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
             d.open();
         });
 
-        Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
-        showDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+            showDeleted = event.getSource().getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            EmployeeVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
             setEntities();
             updateGridItems();
         });
+
         HorizontalLayout hl = new HorizontalLayout();
-        hl.add(showDeletedCheckbox, create);
-        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.add(showDeletedSwitch, create);
+//        hl.add(showDeletedCheckbox, create);
+//        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.setAlignSelf(Alignment.CENTER, showDeletedSwitch);
         hl.setAlignSelf(Alignment.CENTER, create);
+
+
 
         add(hl, grid);
     }
@@ -138,7 +143,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
                 filterField(lastNameFilter, employeeVO.lastName) &&
                 filterField(userFilter, employeeVO.user) &&
                 filterField(salaryFilter, employeeVO.salary.toString()) &&
-                employeeVO.filterExtraData());
+                filterExtraData(extraDataFilter, employeeVO, showDeletedCheckboxFilter));
     }
 
     private void setFilteringHeaderRow() {
@@ -146,18 +151,7 @@ public class EmployeeList extends EmsFilterableGridComponent implements Creatabl
         lastNameFilter = new TextFilteringHeaderCell("Search last name...", this);
         userFilter = new TextFilteringHeaderCell("Search user...", this);
         salaryFilter = new TextFilteringHeaderCell("Search salary...", this);
-
-        TextField extraDataFilter = new TextField();
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                EmployeeVO.extraDataFilterMap.clear();
-            } else {
-                EmployeeVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        extraDataFilter = new ExtraDataFilterField("", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(firstNameColumn).setComponent(styleFilterField(firstNameFilter, "First name"));

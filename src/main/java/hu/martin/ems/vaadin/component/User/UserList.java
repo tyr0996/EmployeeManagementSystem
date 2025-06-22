@@ -1,10 +1,9 @@
 package hu.martin.ems.vaadin.component.User;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -23,6 +22,8 @@ import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.ExtraDataFilterField;
+import hu.martin.ems.core.vaadin.Switch;
 import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Role;
 import hu.martin.ems.vaadin.MainView;
@@ -61,7 +62,6 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
     private PasswordField passwordAgainField;
     private EmsComboBox<Role> roles;
     private FormLayout createOrModifyForm;
-    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
 
     Grid.Column<UserVO> userNameColumn;
     Grid.Column<UserVO> passwordHashColumn;
@@ -84,12 +84,15 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
     private TextFilteringHeaderCell usernameFilter;
     private TextFilteringHeaderCell passwordHashFilter;
     private TextFilteringHeaderCell enabledFilter;
+    private ExtraDataFilterField extraDataFilter;
     private String roleFilter = "";
 
     private Logger logger = LoggerFactory.getLogger(UserList.class);
+    LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
 
     public UserList(PaginationSetting paginationSetting) {
-        UserVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
         this.paginationSetting = paginationSetting;
         this.users = new ArrayList<>();
         this.createOrModifyForm = new FormLayout();
@@ -135,18 +138,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
             updateGridItems();
         });
 
-        TextField extraDataFilter = new TextField();
-
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                UserVO.extraDataFilterMap.clear();
-            } else {
-                UserVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        extraDataFilter = new ExtraDataFilterField("", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(extraData).setComponent(styleFilterField(extraDataFilter, ""));
@@ -163,18 +155,19 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
             dialog.open();
         });
 
-        Checkbox withDeletedCheckbox = new Checkbox("Show deleted");
-        withDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+            showDeleted = !showDeleted;
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            UserVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
             userVOS = users.stream().map(UserVO::new).collect(Collectors.toList());
             this.grid.setItems(getFilteredStream().collect(Collectors.toList()));
         });
 
         buttonsLayout = new HorizontalLayout();
-        buttonsLayout.add(create, withDeletedCheckbox);
+        buttonsLayout.add(showDeletedSwitch, create);
         buttonsLayout.setAlignSelf(Alignment.CENTER, create);
+        buttonsLayout.setAlignSelf(Alignment.CENTER, showDeletedSwitch);
 
         add(buttonsLayout, grid);
     }
@@ -217,19 +210,6 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         passwordField = new PasswordField("Password");
         passwordAgainField = new PasswordField("Password again");
         roles = new EmsComboBox<Role>("Role", this::setupRoles, saveButton, "EmsError happened while getting roles");
-//        roles = new ComboBox<>("Role");
-//        ComboBox.ItemFilter<Role> filterUser = (role, filterString) ->
-//                role.getName().toLowerCase().contains(filterString.toLowerCase());
-//        setupRoles();
-//        if (roleList != null) {
-//            roles.setItems(filterUser, roleList);
-//            roles.setItemLabelGenerator(Role::getName);
-//        } else {
-//            roles.setEnabled(false);
-//            roles.setInvalid(true);
-//            saveButton.setEnabled(false);
-//            roles.setErrorMessage("EmsError happened while getting roles");
-//        }
 
         if (editableUser != null) {
             usernameField.setValue(editableUser.original.getUsername());
@@ -277,11 +257,15 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
         user.setUsername(usernameField.getValue());
         user.setRoleRole(roles.getValue());
         user.setEnabled(true);
+        return saveUser(user);
+    }
+
+    private EmsResponse saveUser(User editableUser){
         EmsResponse response = null;
-        if (editableUser != null) {
-            response = apiClient.update(user);
+        if (editableUser.getId() != null) {
+            response = apiClient.update(editableUser);
         } else {
-            response = apiClient.save(user);
+            response = apiClient.save(editableUser);
         }
         return response;
     }
@@ -298,8 +282,47 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
     private void setGridColumns() {
         userNameColumn = this.grid.addColumn(v -> v.username);
         passwordHashColumn = this.grid.addColumn(v -> v.passwordHash);
-        enabledColumn = this.grid.addColumn(v -> v.enabled);
         roleColumn = this.grid.addColumn(v -> v.role);
+        enabledColumn = this.grid.addComponentColumn(v -> {
+            Switch s = new Switch("", true, Switch.Size.MEDIUM, v.enabled.equals("true"));
+            s.addClickListener(event -> {
+                ConfirmDialog dialog = new ConfirmDialog();
+                dialog.setHeader("Confirmation");
+                String text = event.getSource().getValue() ? "enable" : "disable";
+                dialog.setText("Are you sure to " + text + " the user " + v.username + "?");
+
+                dialog.setCancelable(true);
+                dialog.addCancelListener(cancelEvent -> {
+                    s.setValue(v.enabled.equals("true"));
+                    dialog.close();
+                });
+
+                dialog.setRejectable(true);
+                dialog.addRejectListener(e -> {
+                    s.setValue(v.enabled.equals("true"));
+                    dialog.close();
+                });
+
+                dialog.setConfirmText(text.substring(0, 1).toUpperCase() + text.substring(1));
+                dialog.addConfirmListener(e -> {
+                    v.original.setEnabled(event.getSource().getValue());
+                    EmsResponse response = saveUser(v.original);
+                    switch (response.getCode()) {
+                        case 200:
+                            Notification.show("User " + v.username + " " + text + "d successfully")
+                                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                            break;
+                        default:
+                            Notification.show("User " + v.username + " " + text.substring(0, text.length() - 1) + "ing failed: " + response.getDescription()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                            updateGridItems();
+                            v.original.setEnabled(!event.getSource().getValue());
+                            break;
+                    }
+                });
+                dialog.open();
+            });
+            return s;
+        });
 
         addOptionsColumn();
     }
@@ -318,7 +341,6 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
                 break;
             }
         }
-
 
         extraData = this.grid.addComponentColumn(entity -> {
             boolean editable = !(loggedInUserVO == null || loggedInUserVO.equals(entity));
@@ -355,7 +377,7 @@ public class UserList extends EmsFilterableGridComponent implements Creatable<Us
                         (passwordHashFilter.isEmpty() || userVO.passwordHash.toLowerCase().contains(passwordHashFilter.getFilterText().toLowerCase())) &&
                         (enabledFilter.isEmpty() || userVO.enabled.toLowerCase().equals(enabledFilter.getFilterText().toLowerCase())) &&
                         (roleFilter.isEmpty() || userVO.role.toLowerCase().equals(roleFilter.toLowerCase())) &&
-                        userVO.filterExtraData()
+                        filterExtraData(extraDataFilter, userVO, showDeletedCheckboxFilter)
         );
     }
 

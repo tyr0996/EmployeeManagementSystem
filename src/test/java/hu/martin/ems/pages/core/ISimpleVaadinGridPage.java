@@ -2,8 +2,8 @@ package hu.martin.ems.pages.core;
 
 import hu.martin.ems.UITests.ElementLocation;
 import hu.martin.ems.pages.core.component.VaadinButtonComponent;
-import hu.martin.ems.pages.core.component.VaadinCheckboxComponent;
 import hu.martin.ems.pages.core.component.VaadinGridComponent;
+import hu.martin.ems.pages.core.component.VaadinSwitchComponent;
 import hu.martin.ems.pages.core.doTestData.*;
 import hu.martin.ems.pages.core.performResult.*;
 import jakarta.validation.constraints.NotNull;
@@ -13,14 +13,14 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 
 public interface ISimpleVaadinGridPage<T> extends ILoggedInPage<T> {
-    String showDeletedCheckBoxXpath = contentLayoutXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    String showDeletedSwitchXpath = contentLayoutXpath + "/vaadin-horizontal-layout/switch";
     String gridXpath = contentLayoutXpath + "/vaadin-grid";
     String createButtonXpath = contentLayoutXpath + "/vaadin-horizontal-layout/vaadin-button";
 
     @Override
     T initWebElements();
 
-    VaadinCheckboxComponent getShowDeletedCheckBox();
+    VaadinSwitchComponent getShowDeletedSwitch();
 
     VaadinButtonComponent getCreateButton();
 
@@ -61,7 +61,7 @@ public interface ISimpleVaadinGridPage<T> extends ILoggedInPage<T> {
 
     DoPermanentlyDeleteTestData doPermanentlyDeleteTest();
 
-    DoReadTestData doReadTest(String extraDataFilter, boolean withInDeleted);
+    DoReadTestData doReadTest(boolean withInDeleted);
 
 
     DoFailedTestData doDatabaseNotAvailableWhenCreateTest(DataSource spyDatasource) throws SQLException;

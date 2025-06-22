@@ -1,9 +1,7 @@
 package hu.martin.ems.vaadin.component.City;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -20,6 +18,8 @@ import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.ExtraDataFilterField;
+import hu.martin.ems.core.vaadin.Switch;
 import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.City;
 import hu.martin.ems.model.CodeStore;
@@ -66,6 +66,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
     private TextFilteringHeaderCell countryCodeFilter;
     private TextFilteringHeaderCell nameFilter;
     private TextFilteringHeaderCell zipCodeFilter;
+    private ExtraDataFilterField extraDataFilter;
     private Grid.Column<CityVO> extraData;
 
     private Grid.Column<CityVO> countryCodeColumn;
@@ -74,10 +75,12 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
     private Logger logger = LoggerFactory.getLogger(City.class);
     private Gson gson = BeanProvider.getBean(Gson.class);
 
+    private LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
 
     @Autowired
     public CityList(PaginationSetting paginationSetting) {
-        CityVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(CityVO.class);
         setupCountries();
@@ -102,17 +105,17 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
             d.open();
         });
 
-        Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
-        showDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+            showDeleted = event.getSource().getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            CityVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
 
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
-        hl.add(showDeletedCheckbox, create);
-        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.add(showDeletedSwitch, create);
+        hl.setAlignSelf(Alignment.CENTER, showDeletedSwitch);
         hl.setAlignSelf(Alignment.CENTER, create);
 
 
@@ -139,7 +142,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
                 filterField(zipCodeFilter, cityVO.zipCode) &&
                 filterField(countryCodeFilter, cityVO.countryCode) &&
                 filterField(nameFilter, cityVO.name) &&
-                cityVO.filterExtraData());
+                filterExtraData(extraDataFilter, cityVO, showDeletedCheckboxFilter));
     }
 
     private void setFilteringHeaderRow() {
@@ -147,17 +150,7 @@ public class CityList extends EmsFilterableGridComponent implements Creatable<Ci
         nameFilter = new TextFilteringHeaderCell("Search name...", this);
         zipCodeFilter = new TextFilteringHeaderCell("Search zip code...", this);
 
-        TextField extraDataFilter = new TextField();
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                CityVO.extraDataFilterMap.clear();
-            } else {
-                CityVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        extraDataFilter = new ExtraDataFilterField("", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(countryCodeColumn).setComponent(styleFilterField(countryCodeFilter, "Country code"));

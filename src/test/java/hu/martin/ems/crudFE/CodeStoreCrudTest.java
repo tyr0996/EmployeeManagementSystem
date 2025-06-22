@@ -49,7 +49,7 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CODESTORE_SUBMENU);
 
         CodeStorePage codeStorePage = new CodeStorePage(driver, port);
-        DoReadTestData testResult = codeStorePage.doReadTest(null, true);
+        DoReadTestData testResult = codeStorePage.doReadTest(true);
 
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -76,8 +76,8 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore deleted: ");
 
         codeStorePage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        Assert.assertEquals(1, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
-        Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
+        Assert.assertEquals(1, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedSwitch()));
+        Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedSwitch()));
         codeStorePage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -98,8 +98,8 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("CodeStore updated: ");
 
         codeStorePage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
-        Assert.assertEquals(0, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
-        Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
+        Assert.assertEquals(0, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedSwitch()));
+        Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedSwitch()));
         codeStorePage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -120,8 +120,8 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         codeStorePage = new CodeStorePage(driver, port);
         codeStorePage.getGrid().applyFilter(testResult.getResult().getRestoredData());
         codeStorePage.getGrid().waitForRefresh();
-        Assert.assertEquals(codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
-        Assert.assertEquals(codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 1);
+        Assert.assertEquals(codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedSwitch()), 0);
+        Assert.assertEquals(codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedSwitch()), 1);
         codeStorePage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
 
@@ -141,8 +141,8 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         Assert.assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         Assert.assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         codeStorePage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        Assert.assertEquals(0, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
-        Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()));
+        Assert.assertEquals(0, codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedSwitch()));
+        Assert.assertEquals(0, codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedSwitch()));
         codeStorePage.getGrid().resetFilter();
 
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -249,11 +249,11 @@ public class CodeStoreCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification.getText(), "EmsError happened while getting codestores");
         notification.close();
-        sa.assertEquals(codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(codeStorePage.getGrid().getTotalDeletedRowNumber(codeStorePage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification2.getText(), "EmsError happened while getting codestores");
         notification2.close();
-        sa.assertEquals(codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(codeStorePage.getGrid().getTotalNonDeletedRowNumber(codeStorePage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification3.getText(), "EmsError happened while getting codestores");
         notification3.close();

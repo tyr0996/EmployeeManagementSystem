@@ -338,7 +338,8 @@ public class OrderFromSupplier extends VerticalLayout implements BeforeEnterObse
         {
             OrderElement oe = orderElementVO.original;
             boolean res = showPreviously || oe.getOrderId() == null;
-            Boolean filter = orderElementVO.filterExtraData();
+//            Boolean filter = orderElementVO.filterExtraData();
+            Boolean filter = oe.getDeleted() == 0;
             return res && filter;
         });
     }

@@ -4,13 +4,11 @@ import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.pages.*;
 import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.SideMenu;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertThrows;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AccessManagementTest extends BaseCrudTest {
@@ -28,15 +26,18 @@ public class AccessManagementTest extends BaseCrudTest {
         assertNotNull(newHeader.getRoleXPermissionButton());
         assertNotNull(rp.getGrid());
         assertNotNull(rp.getCreateButton());
-        assertNotNull(rp.getShowDeletedCheckBox());
+        assertNotNull(rp.getShowDeletedSwitch());
 
         newHeader.getRoleButton().click();
-        assertThrows(TimeoutException.class, () -> rp.initWebElements());
+        rp.getWait().until(ExpectedConditions.invisibilityOfAllElements(
+                rp.getCreateButton().getElement(),
+                rp.getGrid().getElement()
+        ));
         newHeader.initWebElements().getRoleButton().click();
         rp.initWebElements();
         assertNotNull(rp.getGrid());
         assertNotNull(rp.getCreateButton());
-        assertNotNull(rp.getShowDeletedCheckBox());
+        assertNotNull(rp.getShowDeletedSwitch());
 
     }
 
@@ -54,15 +55,18 @@ public class AccessManagementTest extends BaseCrudTest {
         assertNotNull(newHeader.getRoleXPermissionButton());
         assertNotNull(pp.getGrid());
         assertNotNull(pp.getCreateButton());
-        assertNotNull(pp.getShowDeletedCheckBox());
+        assertNotNull(pp.getShowDeletedSwitch());
 
         newHeader.getPermissionButton().click();
-        assertThrows(TimeoutException.class, () -> pp.initWebElements());
+        pp.getWait().until(ExpectedConditions.invisibilityOfAllElements(
+                pp.getCreateButton().getElement(),
+                pp.getGrid().getElement()
+                ));
         newHeader.initWebElements().getRoleButton().click();
         pp.initWebElements();
         assertNotNull(pp.getGrid());
         assertNotNull(pp.getCreateButton());
-        assertNotNull(pp.getShowDeletedCheckBox());
+        assertNotNull(pp.getShowDeletedSwitch());
     }
 
     @Test
@@ -82,7 +86,6 @@ public class AccessManagementTest extends BaseCrudTest {
         assertNotNull(rxpp.getSaveButton());
 
         newHeader.getRoleXPermissionButton().click();
-        //TODO megcsinálni a másik kettőt ilyenre. Vagy megcsinálni ezekre az oldalakra, hogy várjon addíg amig el nem tűnik az összes elem benne :)
         rxpp.getRoleComboBox().getWait().until(ExpectedConditions.invisibilityOfAllElements(rxpp.getRoleComboBox().getElement(),
                                                                                             rxpp.getPermissionsComboBox().getElement(),
                                                                                             rxpp.getSaveButton().getElement()

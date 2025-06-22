@@ -34,20 +34,9 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         return headers.size();
     }
 
-    /**
-     * Counts all elements in grid (not only the current page)
-     *
-     * @return
-     */
-    protected int getCurrentRowNumber() {
-        return getPaginationData().getTotalElements();
-    }
-
-    public String[] getRandomDataDeletedStatus(VaadinCheckboxComponent showDeleted) {
+    public String[] getRandomDataDeletedStatus(VaadinSwitchComponent showDeleted) {
         boolean originalShowDeleted = showDeleted.getStatus();
         showDeleted.setStatus(true);
-//        LinkedHashMap<String, List<String>> extraFilter = new LinkedHashMap<>();
-//        extraFilter.put("deleted", Arrays.asList("1"));
         setExtraDataFilter("{\"deleted\":[\"1\"]}");
         List<ElementLocation> deletedRows = getDeletedRows();
         ElementLocation e = deletedRows.get(new Random().nextInt(0, deletedRows.size()));
@@ -62,15 +51,10 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         for(int i = 0; i < attributes.length; i++){
             newAttributes[i] = (attributes[i] == null || attributes[i].equals("")) ? null : attributes[i];
         }
-        System.out.println("Applied null filter: " + Arrays.toString(newAttributes));
-        applyFilter(true, attributes);
+        applyFilter(attributes);
     }
 
-    public void applyFilter(String... attributes){
-        applyFilterWithNullFiltering(attributes);
-    }
-
-    public void applyFilter(Boolean a, String... attributes) { //TODO kivenni a boolean-t. Csak az átkötés miatt raktam be.
+    public void applyFilter(String... attributes) {
         List<WebElement> filterInputs = getHeaderFilterInputFields();
         int max = Math.min(filterInputs.size(), attributes.length);
         for (int i = 0; i < max; i++) {
@@ -143,39 +127,33 @@ public class VaadinGridComponent extends VaadinBaseComponent {
      * @return
      */
     public int getTotalRowNumber() {
-        return getCurrentRowNumber();
-//        boolean originalStatus = showDeleted.getStatus();
-//        showDeleted.setStatus(true);
-//        int result = getCurrentRowNumber();
-//        showDeleted.setStatus(originalStatus);
-//        return result;
-
+        return getPaginationData().getTotalElements();
     }
 
-    public int getTotalDeletedRowNumber(VaadinCheckboxComponent showDeleted) {
+    public int getTotalDeletedRowNumber(VaadinSwitchComponent showDeleted) {
         assert showDeleted != null : "getTotalDeletedRowNumber is incomprehensible when showDeleted is null!";
         boolean originalStatus = showDeleted.getStatus();
         showDeleted.setStatus(false);
         waitForRefresh();
-        int nonDeleted = getCurrentRowNumber();
+        int nonDeleted = getTotalRowNumber();
         showDeleted.setStatus(true);
         waitForRefresh();
-        int withDeleted = getCurrentRowNumber();
+        int withDeleted = getTotalRowNumber();
         showDeleted.setStatus(originalStatus);
         return withDeleted - nonDeleted;
     }
 
-    public int getTotalNonDeletedRowNumber(@Nullable VaadinCheckboxComponent showDeleted) {
+    public int getTotalNonDeletedRowNumber(@Nullable VaadinSwitchComponent showDeleted) {
         if (showDeleted != null) {
             boolean originalStatus = showDeleted.getStatus();
             showDeleted.setStatus(false);
             waitForRefresh();
-            int result = getCurrentRowNumber();
+            int result = getTotalRowNumber();
             showDeleted.setStatus(originalStatus);
             waitForRefresh();
             return result;
         } else {
-            return getCurrentRowNumber();
+            return getTotalRowNumber();
         }
     }
 
@@ -184,10 +162,10 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         Random random = new Random();
 
         List<Integer> numbers = new ArrayList<>();
-        for (int i = 0; i < getCurrentRowNumber(); i++) {
+        for (int i = 0; i < getTotalRowNumber(); i++) {
             numbers.add(i);
         }
-        if (count > getCurrentRowNumber()) {
+        if (count > getTotalRowNumber()) {
             return numbers;
         }
         Collections.shuffle(numbers, random);
@@ -196,7 +174,15 @@ public class VaadinGridComponent extends VaadinBaseComponent {
 
     public void goToPage(int requiredNumber) {
         JavascriptExecutor js = (JavascriptExecutor) getDriver();
-        js.executeScript("arguments[0].parentNode.querySelectorAll('span')[0].querySelectorAll('lit-pagination')[0].page=" + requiredNumber, element);
+        js.executeScript(
+                "const spans = arguments[0].parentNode.querySelectorAll('span');" +
+                        "for (const span of spans) {" +
+                        "  const pagination = span.querySelector('lit-pagination');" +
+                        "  if (pagination) {" +
+                        "    pagination.page = arguments[1];" +
+                        "  }" +
+                        "}", element, requiredNumber
+        );
     }
 
     public WebElement getVisibleRow(int rowIndex) {
@@ -308,15 +294,15 @@ public class VaadinGridComponent extends VaadinBaseComponent {
      */
     public VaadinButtonComponent getOptionAnchorButton(ElementLocation el, int index) {
         int optionsColumnIndex = getColumnNumber() - 1;
-//            2*oszlopok (üres) + 1*oszlopok (fejléc) + sorindex * oszlopok + oszlopindex + 1
-//
         int gridCellIndex = (3 + el.getRowIndex()) * getColumnNumber() + optionsColumnIndex + 1;
-//        WebElement buttonElement = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(element, By.xpath("./vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/a[" + index + "]/vaadin-button"))).get(0);
-
         return new VaadinButtonComponent(getDriver(), element, By.xpath("./vaadin-grid-cell-content[" + gridCellIndex + "]/vaadin-horizontal-layout/a[" + index + "]/vaadin-button"), 0);
+    }
 
-        //return findClickableElementWithXpathWithWaiting("/html/body/div[1]/flow-container-root-2521314/vaadin-horizontal-layout/vaadin-vertical-layout[2]/vaadin-grid/vaadin-grid-cell-content[" + gridCellIndex  + "]/vaadin-horizontal-layout/vaadin-button[2]");
-        //return null;
+    public WebElement getCellAsVaadinGridCellContent(ElementLocation el, int columnIndex) {
+        int gridCellIndex = (3 + el.getRowIndex()) * getColumnNumber() + columnIndex + 1;
+        WebElement we = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(element, By.xpath("./vaadin-grid-cell-content[" + gridCellIndex + "]"))).get(0);
+        return we;
+//        return new VaadinButtonComponent(getDriver(), element, By.xpath("./vaadin-grid-cell-content[" + gridCellIndex + "]/vaadin-horizontal-layout/a[" + index + "]/vaadin-button"), 0);
     }
 
     public VaadinButtonComponent getOptionColumnButton(ElementLocation el, int index) {
@@ -341,8 +327,6 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         try {
             int optionsColumnIndex = getColumnNumber() - 1;
             WebElement optionsCell = getVisibleCell(rowIndex, optionsColumnIndex);
-//            WebElement permanentlyDeleteButton = optionsCell.findElements(By.xpath("//vaadin-icon[contains(@src, 'clear')]")).get(0);
-//            WebElement permanentlyDeleteButton = getWait().until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(optionsCell, By.xpath("//vaadin-icon[contains(@src, 'clear')]"))).get(rowIndex);
             return new VaadinButtonComponent(getDriver(), optionsCell, By.xpath("//vaadin-icon[contains(@src, 'clear')]"), rowIndex);
         } catch (Exception e) {
             return null;
@@ -393,7 +377,17 @@ public class VaadinGridComponent extends VaadinBaseComponent {
         }
 
         for (int i = 0; i < dataColumnNumber; i++) {
-            result[i] = getVisibleCell(location.getRowIndex(), i).getText();
+            WebElement cell = getVisibleCell(location.getRowIndex(), i);
+
+            if(cell.getText().equals("O")){
+                result[i] = "false";
+            }
+            else if(cell.getText().equals("I")){
+                result[i] = "true";
+            }
+            else{
+                result[i] = cell.getText();
+            }
         }
         return result;
     }

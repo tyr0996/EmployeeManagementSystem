@@ -47,7 +47,7 @@ public class CityCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CITY_SUBMENU);
 
         CityPage cityPage = new CityPage(driver, port);
-        DoReadTestData testResult = cityPage.doReadTest(null, true);
+        DoReadTestData testResult = cityPage.doReadTest(true);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -68,8 +68,8 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber() - 1);
 
         cityPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(1, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
-        assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
+        assertEquals(1, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedSwitch()));
+        assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedSwitch()));
         cityPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -88,8 +88,8 @@ public class CityCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("City updated: ");
 
         cityPage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
-        assertEquals(0, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
-        assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
+        assertEquals(0, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedSwitch()));
+        assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedSwitch()));
         cityPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -110,8 +110,8 @@ public class CityCrudTest extends BaseCrudTest {
         cityPage = new CityPage(driver, port);
         cityPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
         cityPage.getGrid().waitForRefresh();
-        assertEquals(cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 0);
-        assertEquals(cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 1);
+        assertEquals(cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedSwitch()), 0);
+        assertEquals(cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedSwitch()), 1);
         cityPage.getGrid().resetFilter();
 
         assertNull(VaadinNotificationComponent.hasNotification(driver));
@@ -131,8 +131,8 @@ public class CityCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         cityPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
-        assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()));
+        assertEquals(0, cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedSwitch()));
+        assertEquals(0, cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedSwitch()));
         cityPage.getGrid().resetFilter();
 
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -240,11 +240,11 @@ public class CityCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification.getText(), "Getting cities failed");
         notification.close();
-        sa.assertEquals(cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(cityPage.getGrid().getTotalDeletedRowNumber(cityPage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification2.getText(), "Getting cities failed");
         notification2.close();
-        sa.assertEquals(cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(cityPage.getGrid().getTotalNonDeletedRowNumber(cityPage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification3.getText(), "Getting cities failed");
         notification3.close();

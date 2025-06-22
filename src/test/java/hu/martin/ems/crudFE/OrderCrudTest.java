@@ -18,6 +18,7 @@ import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinButtonComponent;
 import hu.martin.ems.pages.core.component.VaadinDatePickerComponent;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.component.VaadinSwitchComponent;
 import hu.martin.ems.pages.core.doTestData.DoDeleteFailedTestData;
 import hu.martin.ems.pages.core.doTestData.DoDeleteTestData;
 import hu.martin.ems.pages.core.doTestData.DoRestoreTestData;
@@ -767,8 +768,8 @@ public class OrderCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Order deleted: ");
 
         page.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(1, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
-        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(1, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()));
+        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()));
         page.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -796,7 +797,7 @@ public class OrderCrudTest extends BaseCrudTest {
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         }
 
-        int original = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox());
+        int original = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch());
         String[] originalData = page.getGrid().getDataFromRowLocation(rowLocation, true);
 
         page.getGrid().goToPage(rowLocation.getPageNumber());
@@ -822,7 +823,7 @@ public class OrderCrudTest extends BaseCrudTest {
         page.getGrid().applyFilter(originalData);
         assertEquals(needSuccess ? 0 : 1, page.getGrid().getTotalRowNumber());
         page.getGrid().resetFilter();
-        assertEquals(original, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(original, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()));
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
@@ -852,13 +853,13 @@ public class OrderCrudTest extends BaseCrudTest {
         //region orders menuben ha nincs elem, akkor létrehozunk egyet.
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
         OrderPage page = new OrderPage(driver, port);
-        int originalVisibleRows = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox());
+        int originalVisibleRows = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch());
         if(originalVisibleRows == 0) {
             loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
             OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
             ocPage.performCreate(null);
             ocPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
-            originalVisibleRows = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox());
+            originalVisibleRows = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch());
         }
         VaadinButtonComponent deleteButton = page.getGrid().getDeleteButton(0);
         //endregion
@@ -868,7 +869,7 @@ public class OrderCrudTest extends BaseCrudTest {
             new VaadinNotificationComponent(driver).close();
             deleteButton = page.getGrid().getDeleteButton(0);
         }
-        page.getShowDeletedCheckBox().setStatus(true);
+        page.getShowDeletedSwitch().setStatus(true);
         VaadinButtonComponent permanentlyDeleteButton = page.getGrid().getPermanentlyDeleteButton(0);
         while(permanentlyDeleteButton != null && !permanentlyDeleteButton.isNull()){
             permanentlyDeleteButton.click();
@@ -886,7 +887,7 @@ public class OrderCrudTest extends BaseCrudTest {
             new VaadinNotificationComponent(driver).close();
             oeDeleteButton = oePage.getGrid().getDeleteButton(0);
         }
-        oePage.getShowDeletedCheckBox().setStatus(true);
+        oePage.getShowDeletedSwitch().setStatus(true);
 
         VaadinButtonComponent oePermanentlyDeleteButton = oePage.getGrid().getPermanentlyDeleteButton(0);
         while(oePermanentlyDeleteButton != null && !oePermanentlyDeleteButton.isNull()){
@@ -922,7 +923,7 @@ public class OrderCrudTest extends BaseCrudTest {
         page.initWebElements();
         page.getGrid().getModifyButton(0).click(); //TODO megcsinálni, hogy előtte nézze meg a szerkesztésben, hogy látja-e őket.
         OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
-        assertEquals(ocPage.getGrid().getTotalNonDeletedRowNumber(null), 0);
+        assertEquals(ocPage.getGrid().getTotalNonDeletedRowNumber((VaadinSwitchComponent) null), 0);
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
@@ -933,7 +934,7 @@ public class OrderCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_SUBMENU);
 
         OrderPage page = new OrderPage(driver, port);
-        int originalDeleted = page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox());
+        int originalDeleted = page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch());
         if(originalDeleted == 0){
             loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
             OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
@@ -952,8 +953,8 @@ public class OrderCrudTest extends BaseCrudTest {
 
         page.getGrid().applyFilter(testResult.getResult().getRestoredData());
         page.getGrid().waitForRefresh();
-        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
-//        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0);
+//        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 1);
         page.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -966,7 +967,7 @@ public class OrderCrudTest extends BaseCrudTest {
 
         OrderPage page = new OrderPage(driver, port);
 
-        int originalDeleted = page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox());
+        int originalDeleted = page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch());
         if(originalDeleted == 0){
             loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
             OrderCreateToCustomerPage ocPage = new OrderCreateToCustomerPage(driver, port);
@@ -1044,12 +1045,12 @@ public class OrderCrudTest extends BaseCrudTest {
         sa.assertEquals(notification.getText(), "EmsError happened while getting orders");
         notification.close();
 
-        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification2.getText(), "EmsError happened while getting orders");
         notification2.close();
 
-        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification3.getText(), "EmsError happened while getting orders");
         notification3.close();

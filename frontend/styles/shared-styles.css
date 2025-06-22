@@ -1,16 +1,19 @@
 :root {
-    --side-menu-width: 250px;
+    /* Side menü szélességét inkább rem-ben definiáljuk, hogy skálázódjon a betűmérettel. */
+    --side-menu-width: 15.625rem; /* Eredetileg 250px (250/16 = 15.625) */
 }
 
 .menu-layout {
     background-color: #f7f7f7;
-    padding: 10px;
-    border-right: 1px solid #ddd;
+    /* Padding is rem-ben, hogy a tartalomhoz képest skálázódjon */
+    padding: 0.625rem; /* Eredetileg 10px (10/16 = 0.625) */
+    border-right: 1px solid #ddd; /* A borderek általában maradhatnak px-ben, nem szoktak skálázódni */
 }
 
 .content-layout {
-    padding: 20px;
-    flex-grow: 1;
+    /* Padding is rem-ben */
+    padding: 1.25rem; /* Eredetileg 20px (20/16 = 1.25) */
+    flex-grow: 1; /* Ez már reszponzív, a rendelkezésre álló helyet használja fel */
     overflow: auto;
     margin-left: 0;
     transition: margin-left 0.3s ease;
@@ -19,9 +22,10 @@
 .side-menu {
     position: fixed;
     top: 0;
-    left: -250px !important;
-    width: 250px !important;
-    height: 100%;
+    /* Itt a bal pozíciót is rem-ben adjuk meg */
+    left: calc(-1 * var(--side-menu-width)) !important; /* Számolás a CSS változóval */
+    width: var(--side-menu-width) !important; /* A változó használata */
+    height: 100vh; /* 100% helyett 100vh (viewport height) a biztos magasságért, ha a szülő nem 100% magas */
     background-color: #f8f9fa;
     transition: left 0.3s ease;
     z-index: 1000;
@@ -33,18 +37,18 @@
 }
 
 .content-layout.shifted {
-    margin-left: var(--side-menu-width);
+    margin-left: var(--side-menu-width); /* A változó használata */
 }
 
+/* Duplikált szabály, de a biztonság kedvéért itt is 0 rem */
 .side-menu.show {
-    left: 0px!important; /* Menü megjelenése */
+    left: 0 !important;
 }
 
 /* Menü megjelenítése, amikor az egér az oldalra kerül */
 .side-menu:hover {
-    left: 0px!important; /* Megjelenik */
+    left: 0 !important; /* Megjelenik */
 }
-
 
 /* Menüelem háttérszín változása hover esetén */
 .side-menu > *:hover {
@@ -53,36 +57,27 @@
 
 .logout-button {
     position: absolute;
-    bottom: 0;        /* Az alsó sarokhoz */
-    left: 0;          /* A bal oldalhoz */
+    bottom: 0.625rem; /* 10px (10/16 = 0.625) */
+    left: 0.625rem;   /* 10px */
     background-color: #ff4d4f;
     color: white;
-    margin: 10px;
-
+    margin: 0.625rem; /* 10px */
     text-align: center;
 }
 
 .register-button{
-    width: 100%;
+    width: 100%; /* Ez már reszponzív */
 }
 
 .main-view {
-    display: flex;
+    display: flex; /* Ez is reszponzív */
 }
-
-/*.side-menu {*/
-/*    width: 250px;*/
-/*    background-color: #ffffff;*/
-/*    border-right: 1px solid #e0e0e0;*/
-/*    padding: 20px;*/
-/*    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);*/
-/*}*/
 
 .side-menu > span {
     font-weight: bold;
     color: #333;
     cursor: pointer;
-    padding: 10px;
+    padding: 0.625rem; /* 10px (10/16 = 0.625) */
 }
 
 .side-menu > span:hover {
@@ -91,12 +86,12 @@
 
 .side-menu .list-menu {
     display: none;
-    padding-left: 15px;
+    padding-left: 0.9375rem; /* 15px (15/16 = 0.9375) */
 }
 
 .side-menu .list-menu span {
     display: block;
-    padding: 8px;
+    padding: 0.5rem; /* 8px (8/16 = 0.5) */
     color: #007BFF;
     cursor: pointer;
 }
@@ -104,4 +99,3 @@
 .side-menu .list-menu span:hover {
     background-color: #e0e0e0;
 }
-

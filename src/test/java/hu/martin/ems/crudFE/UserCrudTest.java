@@ -11,8 +11,11 @@ import hu.martin.ems.pages.core.EmptyLoggedInVaadinPage;
 import hu.martin.ems.pages.core.FailedVaadinFillableComponent;
 import hu.martin.ems.pages.core.SideMenu;
 import hu.martin.ems.pages.core.component.VaadinNotificationComponent;
+import hu.martin.ems.pages.core.component.VaadinSwitchComponent;
+import hu.martin.ems.pages.core.dialog.ConfirmationDialog.UserStatusChangingConfirmationDialog;
 import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.UserSaveOrUpdateDialog;
 import hu.martin.ems.pages.core.doTestData.*;
+import org.openqa.selenium.By;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
@@ -25,8 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserCrudTest extends BaseCrudTest {
@@ -63,13 +65,148 @@ public class UserCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
-        DoReadTestData testResult = userPage.doReadTest(null, true);
+        DoReadTestData testResult = userPage.doReadTest(true);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         assertNull(testResult.getNotificationWhenPerform());
 
         assertNull(VaadinNotificationComponent.hasNotification(driver));
+    }
+
+    @Test
+    public void userChangeStatusTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        ElementLocation location = userPage.getGrid().getRandomLocation();
+
+        String[] data = userPage.getGrid().getDataFromRowLocation(location, true);
+
+        VaadinSwitchComponent switchComponent = new VaadinSwitchComponent(driver, userPage.getGrid().getCellAsVaadinGridCellContent(location, 3), By.xpath("./switch"), 0);
+        switchComponent.setStatus(!switchComponent.getStatus());
+
+        UserStatusChangingConfirmationDialog dialog = new UserStatusChangingConfirmationDialog(driver);
+        dialog.getEnterButtonComponent().click();
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        if(data[3].equals("true")){
+            assertThat(notification.getText()).contains("disabled successfully");
+        }
+        else{
+            assertThat(notification.getText()).contains("enabled successfully");
+        }
+        notification.close();
+
+        userPage.getGrid().waitForRefresh();
+
+        userPage.getGrid().applyFilter(data);
+        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        userPage.getGrid().resetFilter();
+        data[3] = data[3].equals("true") ? "false" : "true";
+        userPage.getGrid().applyFilter(data);
+        assertEquals(1, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
+    }
+
+    @Test
+    public void userChangeStatusRejectTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        ElementLocation location = userPage.getGrid().getRandomLocation();
+
+        String[] data = userPage.getGrid().getDataFromRowLocation(location, true);
+
+        VaadinSwitchComponent switchComponent = new VaadinSwitchComponent(driver, userPage.getGrid().getCellAsVaadinGridCellContent(location, 3), By.xpath("./switch"), 0);
+        switchComponent.setStatus(!switchComponent.getStatus());
+
+        UserStatusChangingConfirmationDialog dialog = new UserStatusChangingConfirmationDialog(driver);
+        dialog.getRejectButtonComponent().click();
+
+        userPage.getGrid().waitForRefresh();
+
+        userPage.getGrid().applyFilter(data);
+        assertEquals(1, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        userPage.getGrid().resetFilter();
+        data[3] = data[3].equals("true") ? "false" : "true";
+        userPage.getGrid().applyFilter(data);
+        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
+    }
+
+    @Test
+    public void userChangeStatusCancelTest() {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        ElementLocation location = userPage.getGrid().getRandomLocation();
+
+        String[] data = userPage.getGrid().getDataFromRowLocation(location, true);
+
+        VaadinSwitchComponent switchComponent = new VaadinSwitchComponent(driver, userPage.getGrid().getCellAsVaadinGridCellContent(location, 3), By.xpath("./switch"), 0);
+        switchComponent.setStatus(!switchComponent.getStatus());
+
+        UserStatusChangingConfirmationDialog dialog = new UserStatusChangingConfirmationDialog(driver);
+        dialog.getCancelButtonComponent().click();
+
+        userPage.getGrid().waitForRefresh();
+
+        userPage.getGrid().applyFilter(data);
+        assertEquals(1, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        userPage.getGrid().resetFilter();
+        data[3] = data[3].equals("true") ? "false" : "true";
+        userPage.getGrid().applyFilter(data);
+        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
+    }
+
+    @Test
+    public void userChangeStatusDatabaseNotAvailableTest() throws SQLException {
+        EmptyLoggedInVaadinPage loggedInPage =
+                (EmptyLoggedInVaadinPage) LoginPage.goToLoginPage(driver, port).logIntoApplication("admin", "29b{}'f<0V>Z", true);
+        loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
+
+        UserPage userPage = new UserPage(driver, port);
+        ElementLocation location = userPage.getGrid().getRandomLocation();
+
+        String[] data = userPage.getGrid().getDataFromRowLocation(location, true);
+
+        VaadinSwitchComponent switchComponent = new VaadinSwitchComponent(driver, userPage.getGrid().getCellAsVaadinGridCellContent(location, 3), By.xpath("./switch"), 0);
+        switchComponent.setStatus(!switchComponent.getStatus());
+
+        UserStatusChangingConfirmationDialog dialog = new UserStatusChangingConfirmationDialog(driver);
+        MockingUtil.mockDatabaseNotAvailableOnlyOnce(spyDataSource, 0);
+        dialog.getEnterButtonComponent().click();
+
+        userPage.getGrid().waitForRefresh();
+
+        VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
+        if(data[3].equals("true")){
+            assertThat(notification.getText()).contains("disabling failed: Database error");
+        }
+        else{
+            assertThat(notification.getText()).contains("enabling failed: Database error");
+        }
+        notification.close();
+
+        userPage.getGrid().applyFilter(data);
+        assertEquals(1, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        userPage.getGrid().resetFilter();
+        data[3] = data[3].equals("true") ? "false" : "true";
+        userPage.getGrid().applyFilter(data);
+        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
     }
 
     @Test
@@ -86,8 +223,8 @@ public class UserCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("User deleted: ");
 
         userPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(1, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()));
-        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()));
+        assertEquals(1, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
         userPage.getGrid().resetFilter();
 
         assertNull(VaadinNotificationComponent.hasNotification(driver));
@@ -127,8 +264,8 @@ public class UserCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("User updated: ");
 
         userPage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
-        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()));
-        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()));
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
         userPage.getGrid().resetFilter();
 
         assertNull(VaadinNotificationComponent.hasNotification(driver));
@@ -148,8 +285,8 @@ public class UserCrudTest extends BaseCrudTest {
         notification.close();
 
         UserPage userPage = new UserPage(driver, port);
-        sa.assertNotEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0, "2-es");
-        for (int i = 0; i < userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()); i++) {
+        sa.assertNotEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()), 0, "2-es");
+        for (int i = 0; i < userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()); i++) {
             sa.assertFalse(userPage.getGrid().getModifyButton(i).isEnabled(), "4-es");
             sa.assertFalse(userPage.getGrid().getDeleteButton(i).isEnabled(), "5-ös");
         }
@@ -171,8 +308,8 @@ public class UserCrudTest extends BaseCrudTest {
         notification.close();
 
         UserPage userPage = new UserPage(driver, port);
-        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
-        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()), 0);
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()), 0);
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
 
@@ -183,6 +320,7 @@ public class UserCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
+        userPage.initWebElements();
         DoRestoreTestData testResult = userPage.doRestoreTest();
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
@@ -192,8 +330,8 @@ public class UserCrudTest extends BaseCrudTest {
         userPage = new UserPage(driver, port);
         userPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
         userPage.getGrid().waitForRefresh();
-        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
-        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 1);
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()), 0);
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()), 1);
         userPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -212,8 +350,8 @@ public class UserCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         userPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()));
-        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()));
+        assertEquals(0, userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()));
+        assertEquals(0, userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()));
         userPage.getGrid().resetFilter();
 
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -256,15 +394,15 @@ public class UserCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.USER_SUB_MENU);
 
         UserPage userPage = new UserPage(driver, port);
-        userPage.getGrid().applyFilter("Erzsi", "$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy", "false");
+        userPage.getGrid().applyFilter("Erzsi", "$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy", "Martin", "false");
         DoUpdateTestData testData = userPage.doUpdateTest(withData);
         userPage.getGrid().resetFilter();
         assertEquals(testData.getDeletedRowNumberAfterMethod(), testData.getOriginalDeletedRowNumber());
         assertEquals(testData.getNonDeletedRowNumberAfterMethod(), testData.getOriginalNonDeletedRowNumber());
         assertEquals(testData.getNotificationWhenPerform(), "Username already exists!");
-        userPage.getGrid().applyFilter("Erzsi", "$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy", "false");
-        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 1);
-        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        userPage.getGrid().applyFilter("Erzsi", "$2a$12$XGHOnxr5AyfmOoIjKEEP7.JXIXZgNiB53uf2AhbpwdAFztqi8FqCy", "Martin", "false");
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()), 1);
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()), 0);
         userPage.getGrid().resetFilter();
 
         assertNull(VaadinNotificationComponent.hasNotification(driver));
@@ -339,7 +477,7 @@ public class UserCrudTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         assertEquals(notification.getText(), "Getting users failed");
         notification.close();
-        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()), 0);
 
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -364,13 +502,13 @@ public class UserCrudTest extends BaseCrudTest {
 
         userPage.getGrid().resetFilter();
         userPage.getGrid().applyFilter("robi", "", "", "", "");
-        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 1);
-        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()), 1);
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()), 0);
         userPage.getGrid().resetFilter();
 
         userPage.getGrid().applyFilter(original);
-        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
-        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedCheckBox()), 0);
+        assertEquals(userPage.getGrid().getTotalNonDeletedRowNumber(userPage.getShowDeletedSwitch()), 0);
+        assertEquals(userPage.getGrid().getTotalDeletedRowNumber(userPage.getShowDeletedSwitch()), 0);
         userPage.getGrid().resetFilter();
 
         assertNull(VaadinNotificationComponent.hasNotification(driver));
@@ -408,8 +546,8 @@ public class UserCrudTest extends BaseCrudTest {
 
         SoftAssert sa = new SoftAssert();
 
-        sa.assertFalse(userPage.getGrid().getHeaderFilterInputFields().get(3).isEnabled());
-        sa.assertEquals(userPage.getGrid().getHeaderFilterInputFieldErrorMessage(3), "EmsError happened while getting permissions");
+        sa.assertFalse(userPage.getGrid().getHeaderFilterInputFields().get(2).isEnabled());
+        sa.assertEquals(userPage.getGrid().getHeaderFilterInputFieldErrorMessage(2), "EmsError happened while getting permissions");
         sa.assertNull(VaadinNotificationComponent.hasNotification(driver));
 
         sa.assertAll();

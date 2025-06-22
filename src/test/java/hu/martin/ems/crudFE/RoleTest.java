@@ -45,8 +45,8 @@ public class RoleTest extends BaseCrudTest {
         page.getGrid().applyFilter("", "This permission not used - only for testing");
         page.getGrid().waitForRefresh();
         SoftAssert sa = new SoftAssert();
-        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
-        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 0);
 
         sa.assertAll();
         page.getGrid().resetFilter();
@@ -78,7 +78,7 @@ public class RoleTest extends BaseCrudTest {
         header.getRoleButton().click();
 
         RolePage page = new RolePage(driver, port);
-        DoReadTestData testResult = page.doReadTest(null, true);
+        DoReadTestData testResult = page.doReadTest(true);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -102,8 +102,8 @@ public class RoleTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Role deleted: ");
 
         page.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
-        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 1);
+        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()));
         page.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -124,8 +124,8 @@ public class RoleTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Role updated: ");
 
         page.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
-        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
-        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()));
+        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()));
         page.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -150,8 +150,8 @@ public class RoleTest extends BaseCrudTest {
         page = new RolePage(driver, port);
         page.getGrid().applyFilter(testResult.getResult().getRestoredData());
         page.getGrid().waitForRefresh();
-        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0, "Restored element not found in deleted elements (filtered)");
-        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1, "Restored element not found in Non deleted elements (filtered)");
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0, "Restored element not found in deleted elements (filtered)");
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 1, "Restored element not found in Non deleted elements (filtered)");
         page.getGrid().resetFilter();
         sa.assertNull(VaadinNotificationComponent.hasNotification(driver), "There were at least one notification after test");
 
@@ -176,8 +176,8 @@ public class RoleTest extends BaseCrudTest {
         sa.assertEquals((int) testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1, "Total deleted row number (after perform) not decressed");
         sa.assertEquals((int) testResult.getNonDeletedRowNumberAfterMethod(), (int) testResult.getOriginalNonDeletedRowNumber(), "Total non deleted row number (after perform) changed");
         page.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        sa.assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), "Total deleted row number is not 0 (filtered)");
-        sa.assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), "Total non deleted row number is not 0 (filtered)");
+        sa.assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), "Total deleted row number is not 0 (filtered)");
+        sa.assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), "Total non deleted row number is not 0 (filtered)");
         page.getGrid().resetFilter();
 
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -319,7 +319,7 @@ public class RoleTest extends BaseCrudTest {
         SoftAssert sa = new SoftAssert();
         int countElements = page.getGrid().getPaginationData().getTotalElements();
         sa.assertNotEquals(countElements, 0);
-        page.getShowDeletedCheckBox().setStatus(true);
+        page.getShowDeletedSwitch().setStatus(true);
         page.getGrid().waitForRefresh();
 
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);

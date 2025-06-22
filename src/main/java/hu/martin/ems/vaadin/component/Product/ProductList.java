@@ -1,9 +1,6 @@
 package hu.martin.ems.vaadin.component.Product;
 
-import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -21,6 +18,8 @@ import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.ExtraDataFilterField;
+import hu.martin.ems.core.vaadin.Switch;
 import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.*;
 import hu.martin.ems.vaadin.MainView;
@@ -48,8 +47,6 @@ import java.util.stream.Stream;
 @RolesAllowed("ROLE_ProductMenuOpenPermission")
 @NeedCleanCoding
 public class ProductList extends EmsFilterableGridComponent implements Creatable<Product>, IEmsOptionColumnBaseDialogCreationForm<Product, ProductList.ProductVO> {
-
-    //TODO a Unit és a nem tudom mi helyett inkább lehetne packaging (kiszerelés)
     @Getter
     private final ProductApiClient apiClient = BeanProvider.getBean(ProductApiClient.class);
     private final CustomerApiClient customerApi = BeanProvider.getBean(CustomerApiClient.class);
@@ -70,6 +67,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
     private TextFilteringHeaderCell nameFilter;
     private TextFilteringHeaderCell sellingPriceCurrencyFilter;
     private TextFilteringHeaderCell sellingPriceNetFilter;
+    private ExtraDataFilterField extraDataFilter;
 
 
     private Grid.Column<ProductVO> amountColumn;
@@ -89,11 +87,12 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
     List<CodeStore> taxKeyList;
     List<Supplier> supplierList;
 
-    private final Gson gson = BeanProvider.getBean(Gson.class);
+    private LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
 
     @Autowired
     public ProductList(PaginationSetting paginationSetting) {
-        ProductVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(ProductVO.class);
         setEntities();
@@ -129,17 +128,17 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
             d.open();
         });
 
-        Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
-        showDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+            showDeleted = event.getSource().getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            ProductVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
 
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
-        hl.add(showDeletedCheckbox, create);
-        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.add(showDeletedSwitch, create);
+        hl.setAlignSelf(Alignment.CENTER, showDeletedSwitch);
         hl.setAlignSelf(Alignment.CENTER, create);
 
         setFilteringHeaderRow();
@@ -265,7 +264,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
                 filterField(nameFilter, productVO.name.toString()) &&
                 filterField(sellingPriceCurrencyFilter, productVO.sellingPriceCurrency.toString()) &&
                 filterField(sellingPriceNetFilter, productVO.sellingPriceNet.toString()) &&
-                productVO.filterExtraData());
+                filterExtraData(extraDataFilter, productVO, showDeletedCheckboxFilter));
     }
 
     private void setFilteringHeaderRow() {
@@ -276,18 +275,7 @@ public class ProductList extends EmsFilterableGridComponent implements Creatable
         nameFilter = new TextFilteringHeaderCell("Search name...", this);
         sellingPriceCurrencyFilter = new TextFilteringHeaderCell("Search selling price currency...", this);
         sellingPriceNetFilter = new TextFilteringHeaderCell("Search selling price net...", this);
-
-        TextField extraDataFilter = new TextField();
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                ProductVO.extraDataFilterMap.clear();
-            } else {
-                ProductVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        extraDataFilter = new ExtraDataFilterField("", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
 

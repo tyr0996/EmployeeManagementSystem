@@ -1,9 +1,6 @@
 package hu.martin.ems.vaadin.component.AccessManagement;
 
-import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -20,7 +17,9 @@ import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
+import hu.martin.ems.core.vaadin.ExtraDataFilterField;
 import hu.martin.ems.core.vaadin.IEmsFilterableGridPage;
+import hu.martin.ems.core.vaadin.Switch;
 import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
@@ -61,6 +60,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
     private Grid.Column<PermissionVO> nameColumn;
     private Grid.Column<PermissionVO> extraData;
     private TextFilteringHeaderCell idFilter;
+    private ExtraDataFilterField extraDataFilter;
 
     private TextFilteringHeaderCell nameFilter;
     List<PermissionVO> permissionVOS;
@@ -74,16 +74,14 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
 
     List<Role> roleList;
     List<Permission> permissionList;
-
-    private Gson gson = BeanProvider.getBean(Gson.class);
-
+    private LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
 
     @Autowired
     public PermissionList(PaginationSetting paginationSetting) {
         super(paginationSetting);
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
         this.currentView = this.getClass();
-
-        PermissionVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(PermissionVO.class);
 
@@ -104,17 +102,17 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
             d.open();
         });
 
-        Checkbox withDeletedCheckbox = new Checkbox("Show deleted");
-        withDeletedCheckbox.addValueChangeListener(event -> {
-            withDeleted = event.getValue();
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+            withDeleted = event.getSource().getValue();
             List<String> newValue = withDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            PermissionVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
 
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
-        hl.add(withDeletedCheckbox, create);
-        hl.setAlignSelf(Alignment.CENTER, withDeletedCheckbox);
+        hl.add(showDeletedSwitch, create);
+        hl.setAlignSelf(Alignment.CENTER, showDeletedSwitch);
         hl.setAlignSelf(Alignment.CENTER, create);
 
         setFilteringHeaderRow();
@@ -227,7 +225,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         return permissionVOS.stream().filter(permissionVO ->
                 filterField(idFilter, permissionVO.id.toString()) &&
                 filterField(nameFilter, permissionVO.name) &&
-                permissionVO.filterExtraData()
+                filterExtraData(extraDataFilter, permissionVO, showDeletedCheckboxFilter)
         );
     }
 
@@ -235,17 +233,7 @@ public class PermissionList extends AccessManagement implements Creatable<Permis
         idFilter = new TextFilteringHeaderCell("Search id...", this);
         nameFilter = new TextFilteringHeaderCell("Search name...", this);
 
-        TextField extraDataFilter = new TextField();
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                PermissionVO.extraDataFilterMap.clear();
-            } else {
-                PermissionVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        extraDataFilter = new ExtraDataFilterField("", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
 

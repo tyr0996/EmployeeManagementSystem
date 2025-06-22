@@ -1,9 +1,7 @@
 package hu.martin.ems.vaadin.component.AccessManagement;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -22,7 +20,9 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.model.User;
+import hu.martin.ems.core.vaadin.ExtraDataFilterField;
 import hu.martin.ems.core.vaadin.IEmsFilterableGridPage;
+import hu.martin.ems.core.vaadin.Switch;
 import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Permission;
 import hu.martin.ems.model.Role;
@@ -69,6 +69,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
     private final UserApiClient userApiClient = BeanProvider.getBean(UserApiClient.class);
 
     private TextFilteringHeaderCell roleFilter;
+    private ExtraDataFilterField extraDataFilter;
     private Set<Permission> permissionsFilterSet = new HashSet<>();
     private Grid.Column<RoleVO> extraData;
     private Grid.Column<RoleVO> roleColumn;
@@ -77,14 +78,16 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
     private Logger logger = LoggerFactory.getLogger(RoleList.class);
     List<Permission> permissionList;
     private Gson gson = BeanProvider.getBean(Gson.class);
+    private LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
 
     public RoleList(PaginationSetting paginationSetting) {
         super(paginationSetting);
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
         this.currentView = this.getClass();
         setLoggedInUserRole();
         this.paginationSetting = paginationSetting;
 
-        RoleVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.roles = new ArrayList<>();
         createRoleXPermissionGrid();
@@ -112,18 +115,19 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
             createOrModifyDialog.open();
         });
 
-        Checkbox withDeletedCheckbox = new Checkbox("Show deleted");
-        withDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+            showDeleted = event.getSource().getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            RoleVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
             setEntities();
             updateGridItems();
         });
 
         buttonsLayout = new HorizontalLayout();
-        buttonsLayout.add(create, withDeletedCheckbox);
+        buttonsLayout.add(create, showDeletedSwitch);
         buttonsLayout.setAlignSelf(Alignment.CENTER, create);
+        buttonsLayout.setAlignSelf(Alignment.CENTER, showDeletedSwitch);
 
         add(buttonsLayout, grid);
     }
@@ -241,17 +245,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
             updateGridItems();
         });
 
-        TextField extraDataFilter = new TextField();
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                RoleVO.extraDataFilterMap.clear();
-            } else {
-                RoleVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        extraDataFilter = new ExtraDataFilterField("", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(roleColumn).setComponent(styleFilterField(roleFilter, "Role"));
@@ -304,7 +298,7 @@ public class RoleList extends AccessManagement implements Creatable<Role>, IEmsF
         boolean roleFilterResult = filterField(roleFilter, groupedRoleXPermissionVO.role);
         HashSet<String> rowPermissions = new HashSet<>(groupedRoleXPermissionVO.permissionSet.stream().map(Permission::getName).toList());
         boolean permissionFilterResult = permissionsFilterSet.isEmpty() || rowPermissions.containsAll(permissionsFilterSet.stream().map(Permission::getName).toList());
-        return roleFilterResult && permissionFilterResult && groupedRoleXPermissionVO.filterExtraData();
+        return roleFilterResult && permissionFilterResult && filterExtraData(extraDataFilter, groupedRoleXPermissionVO, showDeletedCheckboxFilter);
     }
 
     public void setEntities() {

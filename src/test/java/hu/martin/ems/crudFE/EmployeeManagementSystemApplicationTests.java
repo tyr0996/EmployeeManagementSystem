@@ -3,9 +3,11 @@ package hu.martin.ems.crudFE;
 import hu.martin.ems.BaseCrudTest;
 import hu.martin.ems.core.config.DataProvider;
 import hu.martin.ems.core.model.BaseEntity;
+import hu.martin.ems.core.vaadin.IEmsFilterableGridPage;
 import hu.martin.ems.vaadin.component.BaseVO;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.Test;
+import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -67,11 +69,15 @@ public class EmployeeManagementSystemApplicationTests extends BaseCrudTest {
         LinkedHashMap<String, List<String>> b = new LinkedHashMap<>();
         b.put("deleted", Arrays.asList("1"));
         b.put("username", Arrays.asList("developer"));
-        Method mergeMaps = BaseVO.class.getDeclaredMethod("mergeMaps", LinkedHashMap.class, LinkedHashMap.class);
+        Method mergeMaps = IEmsFilterableGridPage.class.getDeclaredMethod("mergeMaps", LinkedHashMap.class, LinkedHashMap.class);
         mergeMaps.setAccessible(true);
-        Object o = new TestVO();
-        LinkedHashMap<String, List<String>> aMergedB = (LinkedHashMap<String, List<String>>) mergeMaps.invoke(o, a, b);
-        LinkedHashMap<String, List<String>> bMergedA = (LinkedHashMap<String, List<String>>) mergeMaps.invoke(o, b, a);
+        IEmsFilterableGridPage instance = new IEmsFilterableGridPage() {
+            @Override public PaginatedGrid getGrid() { return null; }
+            @Override public void updateGridItems() {}
+        };
+//        Object o = new TestVO();
+        LinkedHashMap<String, List<String>> aMergedB = (LinkedHashMap<String, List<String>>) mergeMaps.invoke(instance, a, b);
+        LinkedHashMap<String, List<String>> bMergedA = (LinkedHashMap<String, List<String>>) mergeMaps.invoke(instance, b, a);
         mergeMaps.setAccessible(false);
         assertEquals(aMergedB, bMergedA);
     }

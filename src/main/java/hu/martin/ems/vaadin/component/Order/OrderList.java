@@ -1,9 +1,7 @@
 package hu.martin.ems.vaadin.component.Order;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
@@ -11,7 +9,6 @@ import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
@@ -21,9 +18,7 @@ import hu.martin.ems.core.model.EmailAttachment;
 import hu.martin.ems.core.model.EmailProperties;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.core.vaadin.DownloadButton;
-import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
-import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
+import hu.martin.ems.core.vaadin.*;
 import hu.martin.ems.model.Order;
 import hu.martin.ems.vaadin.MainView;
 import hu.martin.ems.vaadin.api.EmailSendingApi;
@@ -76,8 +71,10 @@ public class OrderList extends EmsFilterableGridComponent implements IEmsOptionC
     private TextFilteringHeaderCell paymentTypeFilter;
     private TextFilteringHeaderCell stateFilter;
     private TextFilteringHeaderCell timeOfOrderFilter;
+    private ExtraDataFilterField extraDataFilter;
 
     Logger logger = LoggerFactory.getLogger(Order.class);
+    LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
 
     @Override
     public void editButtonClickEvent(OrderVO element){
@@ -88,7 +85,8 @@ public class OrderList extends EmsFilterableGridComponent implements IEmsOptionC
 
     @Autowired
     public OrderList(PaginationSetting paginationSetting) {
-        OrderVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
         this.grid = new PaginatedGrid<>(OrderVO.class);
         grid.setPageSize(paginationSetting.getPageSize());
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
@@ -189,11 +187,11 @@ public class OrderList extends EmsFilterableGridComponent implements IEmsOptionC
 
         //endregion
 
-        Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
-        showDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = !showDeleted;
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+            showDeleted = event.getSource().getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            OrderVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
 
             setEntities();
             updateGridItems();
@@ -202,7 +200,7 @@ public class OrderList extends EmsFilterableGridComponent implements IEmsOptionC
         setFilteringHeaderRow();
         updateGridItems();
 
-        add(sftpLayout, sendSftp, showDeletedCheckbox, grid);
+        add(sftpLayout, sendSftp, showDeletedSwitch, grid);
     }
 
     private void processEmailSendingResponse(EmsResponse emailSendingResponse) {
@@ -235,7 +233,7 @@ public class OrderList extends EmsFilterableGridComponent implements IEmsOptionC
                         filterField(paymentTypeFilter, orderVO.paymentType) &&
                         filterField(stateFilter, orderVO.state) &&
                         filterField(timeOfOrderFilter, orderVO.timeOfOrder) &&
-                        orderVO.filterExtraData());
+                        filterExtraData(extraDataFilter, orderVO, showDeletedCheckboxFilter));
     }
 
     private void setFilteringHeaderRow() {
@@ -244,18 +242,7 @@ public class OrderList extends EmsFilterableGridComponent implements IEmsOptionC
         paymentTypeFilter = new TextFilteringHeaderCell("Search payment type...", this);
         stateFilter = new TextFilteringHeaderCell("Search state...", this);
         timeOfOrderFilter = new TextFilteringHeaderCell("Search time of order...", this);
-
-        TextField extraDataFilter = new TextField();
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                OrderVO.extraDataFilterMap.clear();
-            } else {
-                OrderVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        extraDataFilter = new ExtraDataFilterField("", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(idColumn).setComponent(styleFilterField(idFilter, "ID"));

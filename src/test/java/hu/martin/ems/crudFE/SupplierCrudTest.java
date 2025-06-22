@@ -76,7 +76,7 @@ public class SupplierCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.SUPPLIER_SUBMENU);
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
-        DoReadTestData testResult = supplierPage.doReadTest(null, true);
+        DoReadTestData testResult = supplierPage.doReadTest(true);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -98,8 +98,8 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Supplier deleted: ");
 
         supplierPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(1, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
-        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        assertEquals(1, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedSwitch()));
+        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedSwitch()));
         supplierPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -118,8 +118,8 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Supplier updated: ");
 
         supplierPage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
-        assertEquals(0, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
-        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        assertEquals(0, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedSwitch()));
+        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedSwitch()));
         supplierPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -140,8 +140,8 @@ public class SupplierCrudTest extends BaseCrudTest {
         supplierPage = new SupplierPage(driver, port);
         supplierPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
         supplierPage.getGrid().waitForRefresh();
-        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
-        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 1);
+        assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedSwitch()), 0);
+        assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedSwitch()), 1);
         supplierPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -160,8 +160,8 @@ public class SupplierCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         supplierPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
-        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()));
+        assertEquals(0, supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedSwitch()));
+        assertEquals(0, supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedSwitch()));
         supplierPage.getGrid().resetFilter();
 
 
@@ -223,12 +223,12 @@ public class SupplierCrudTest extends BaseCrudTest {
         notification.close();
 
         SupplierPage supplierPage = new SupplierPage(driver, port);
-        sa.assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(supplierPage.getGrid().getTotalDeletedRowNumber(supplierPage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification1 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification1.getText(), "EmsError happened while getting suppliers: Database error");
         notification1.close();
 
-        sa.assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(supplierPage.getGrid().getTotalNonDeletedRowNumber(supplierPage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification2.getText(), "EmsError happened while getting suppliers: Database error");
         notification2.close();

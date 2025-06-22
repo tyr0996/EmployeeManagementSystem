@@ -33,7 +33,7 @@ import static org.testng.Assert.assertNull;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OrderElementCrudTest extends BaseCrudTest {
 
-    public static final String showDeletedCheckBoxXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
+    public static final String showDeletedSwitchXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-checkbox";
     public static final String gridXpath = contentXpath + "/vaadin-grid";
     public static final String createButtonXpath = contentXpath + "/vaadin-horizontal-layout/vaadin-button";
     @BeforeMethod
@@ -59,8 +59,8 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement saved: ");
         page.getGrid().applyFilterWithNullFiltering(filter);
         page.getGrid().waitForRefresh();
-        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
-        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0);
+        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 1);
 
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -128,13 +128,13 @@ public class OrderElementCrudTest extends BaseCrudTest {
         SoftAssert sa = new SoftAssert();
 
         page.getGrid().applyFilterWithNullFiltering(allFullLines.get(0));
-        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
-        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 1);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0);
         page.getGrid().resetFilter();
 
         page.getGrid().applyFilterWithNullFiltering(allNonOrderedLines.get(0));
-        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
-        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 1);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0);
         page.getGrid().resetFilter();
 
         sa.assertAll();
@@ -158,8 +158,8 @@ public class OrderElementCrudTest extends BaseCrudTest {
         sa.assertTrue(testResult.getNotificationWhenPerform().contains("OrderElement deleted: "));
 
         page.getGrid().applyFilterWithNullFiltering(testResult.getResult().getOriginalDeletedData());
-        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
-        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 1);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 0);
         page.getGrid().resetFilter();
         sa.assertNull(VaadinNotificationComponent.hasNotification(driver));
 
@@ -199,8 +199,8 @@ public class OrderElementCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("OrderElement updated: ");
 
         page.getGrid().applyFilterWithNullFiltering(testResult.getResult().getOriginalModifiedData());
-        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
-        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()));
+        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()));
         page.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -222,8 +222,8 @@ public class OrderElementCrudTest extends BaseCrudTest {
         page = new OrderElementPage(driver, port);
         page.getGrid().applyFilterWithNullFiltering(testResult.getResult().getRestoredData());
         page.getGrid().waitForRefresh();
-        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
-        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 1);
         page.getGrid().resetFilter();
 
         sa.assertAll();
@@ -247,8 +247,8 @@ public class OrderElementCrudTest extends BaseCrudTest {
         sa.assertEquals((int) testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         sa.assertEquals((int) testResult.getNonDeletedRowNumberAfterMethod(), (int) testResult.getOriginalNonDeletedRowNumber());
         page.getGrid().applyFilterWithNullFiltering(testResult.getResult().getPermanentlyDeletedData());
-        sa.assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
-        sa.assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        sa.assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()));
+        sa.assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()));
         page.getGrid().resetFilter();
 
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -273,17 +273,17 @@ public class OrderElementCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
 
         OrderElementPage page = new OrderElementPage(driver, port);
-        int elements = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox());
+        int elements = page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch());
         sa.assertNotEquals(elements, 0);
-        page.getShowDeletedCheckBox().setStatus(true);
+        page.getShowDeletedSwitch().setStatus(true);
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification.getText(), "Getting order elements failed");
         notification.close();
-        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification1 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification1.getText(), "Getting order elements failed");
         notification1.close();
-        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), elements);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), elements);
 
 
         sa.assertAll();
@@ -305,12 +305,12 @@ public class OrderElementCrudTest extends BaseCrudTest {
         sa.assertEquals(notification.getText(), "Getting order elements failed");
         notification.close();
 
-        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification2.getText(), "Getting order elements failed");
         notification2.close();
 
-        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification3.getText(), "Getting order elements failed");
         notification3.close();

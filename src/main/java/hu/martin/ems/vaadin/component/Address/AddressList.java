@@ -1,9 +1,7 @@
 package hu.martin.ems.vaadin.component.Address;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -19,9 +17,7 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.config.CodeStoreIds;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
-import hu.martin.ems.core.vaadin.IEmsFilterableGridPage;
-import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
+import hu.martin.ems.core.vaadin.*;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.City;
 import hu.martin.ems.model.CodeStore;
@@ -75,15 +71,18 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
     private TextFilteringHeaderCell houseNumberFilter;
     private TextFilteringHeaderCell streetNameFilter;
     private TextFilteringHeaderCell streetTypeFilter;
+    private ExtraDataFilterField extraDataFilter;
     private Logger logger = LoggerFactory.getLogger(Address.class);
     List<City> cityList;
     List<CodeStore> streetTypeList;
     List<CodeStore> countryList;
     private Button saveButton;
+    private LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
 
     @Autowired
     public AddressList(PaginationSetting paginationSetting) {
-        AddressVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(AddressVO.class);
         setEntities();
@@ -112,17 +111,17 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
             d.open();
         });
 
-        Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
-        showDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+            showDeleted = event.getSource().getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            AddressVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
 
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
-        hl.add(showDeletedCheckbox, create);
-        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.add(showDeletedSwitch, create);
+        hl.setAlignSelf(Alignment.CENTER, showDeletedSwitch);
         hl.setAlignSelf(Alignment.CENTER, create);
 
         add(hl, grid);
@@ -150,7 +149,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
                 filterField(houseNumberFilter, addressVO.houseNumber) &&
                 filterField(streetTypeFilter, addressVO.streetType) &&
                 filterField(streetNameFilter, addressVO.streetName) &&
-                addressVO.filterExtraData()
+                filterExtraData(extraDataFilter, addressVO, showDeletedCheckboxFilter)
         );
     }
     
@@ -160,18 +159,7 @@ public class AddressList extends EmsFilterableGridComponent implements Creatable
         streetNameFilter = new TextFilteringHeaderCell("Search street name...", this);
         streetTypeFilter = new TextFilteringHeaderCell("Search street type...", this);
         houseNumberFilter = new TextFilteringHeaderCell("Search street type...", this);
-
-        TextField extraDataFilter = new TextField();
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                AddressVO.extraDataFilterMap.clear();
-            } else {
-                AddressVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        extraDataFilter = new ExtraDataFilterField("", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(cityColumn).setComponent(styleFilterField(cityFilter, "City"));

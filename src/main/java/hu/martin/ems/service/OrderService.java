@@ -126,7 +126,7 @@ public class OrderService extends BaseService<Order, OrderRepository> {
     }
 
 
-    public byte[] getOrderDocumentExport(Order o, OutputStream out, OrderDocumentFileType fileType) throws XDocReportException, CurrencyException, IOException { //TODO FileType can be enum
+    public byte[] getOrderDocumentExport(Order o, OutputStream out, OrderDocumentFileType fileType) throws XDocReportException, CurrencyException, IOException {
         InputStream in = new OrderDM(o).getTemplate();
         IXDocReport report = registry.loadReport(in, TemplateEngineKind.Freemarker);
 

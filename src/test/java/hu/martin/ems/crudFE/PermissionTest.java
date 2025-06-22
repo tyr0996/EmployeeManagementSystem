@@ -92,7 +92,7 @@ public class PermissionTest extends BaseCrudTest {
         header.getPermissionButton().click();
 
         PermissionPage page = new PermissionPage(driver, port);
-        DoReadTestData testResult = page.doReadTest(null, true);
+        DoReadTestData testResult = page.doReadTest(true);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -115,8 +115,8 @@ public class PermissionTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Permission deleted: ");
 
         page.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(1, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
-        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(1, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()));
+        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()));
         page.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -137,8 +137,8 @@ public class PermissionTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Permission updated: ");
 
         page.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
-        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
-        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()));
+        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()));
         page.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -161,8 +161,8 @@ public class PermissionTest extends BaseCrudTest {
         page = new PermissionPage(driver, port);
         page.getGrid().applyFilter(testResult.getResult().getRestoredData());
         page.getGrid().waitForRefresh();
-        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()), 0);
-        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()), 1);
+        assertEquals(page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()), 0);
+        assertEquals(page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()), 1);
         page.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -182,8 +182,8 @@ public class PermissionTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         page.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedCheckBox()));
-        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedCheckBox()));
+        assertEquals(0, page.getGrid().getTotalDeletedRowNumber(page.getShowDeletedSwitch()));
+        assertEquals(0, page.getGrid().getTotalNonDeletedRowNumber(page.getShowDeletedSwitch()));
         page.getGrid().resetFilter();
 
         loggedIn.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -266,7 +266,7 @@ public class PermissionTest extends BaseCrudTest {
         sa.assertEquals(notification.getText(), "EmsError happened while getting permissions");
         notification.close();
 
-        page.getShowDeletedCheckBox().setStatus(true);
+        page.getShowDeletedSwitch().setStatus(true);
         page.getGrid().waitForRefresh();
         sa.assertEquals((int) page.getGrid().getPaginationData().getTotalElements(), 0);
         VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
@@ -274,7 +274,7 @@ public class PermissionTest extends BaseCrudTest {
         notification2.close();
         sa.assertEquals((int) page.getGrid().getPaginationData().getTotalElements(), countElements);
 
-        page.getShowDeletedCheckBox().setStatus(false);
+        page.getShowDeletedSwitch().setStatus(false);
         page.getGrid().waitForRefresh();
         sa.assertEquals((int) page.getGrid().getPaginationData().getTotalElements(), 0);
         VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);

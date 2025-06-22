@@ -29,7 +29,7 @@ public abstract class VaadinBaseComponent implements IVaadinBaseComponent {
     public VaadinBaseComponent(WebDriver driver, By provider) {
         this(driver);
         this.provider = provider;
-        this.scope = driver.findElement(By.xpath("/html")); //TODO: lehet, hogy ide kell a /body a html után.
+        this.scope = driver.findElement(By.xpath("/html"));
         init();
     }
 
@@ -41,8 +41,8 @@ public abstract class VaadinBaseComponent implements IVaadinBaseComponent {
     }
 
     public VaadinBaseComponent(WebDriver driver) {
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10), Duration.ofMillis(10)); // TODO ezt visszavenni 2-re
-        this.refreshWait = new WebDriverWait(driver, Duration.ofMillis(200), Duration.ofMillis(10));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(2), Duration.ofMillis(10));
+        this.refreshWait = new WebDriverWait(driver, Duration.ofMillis(200), Duration.ofNanos(100));
     }
 
     public void init() {

@@ -63,7 +63,7 @@ public class CustomerCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.CUSTOMER_SUBMENU);
 
         CustomerPage customerPage = new CustomerPage(driver, port);
-        DoReadTestData testResult = customerPage.doReadTest(null, true);
+        DoReadTestData testResult = customerPage.doReadTest(true);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -85,8 +85,8 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Customer deleted: ");
 
         customerPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(1, customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedCheckBox()));
-        assertEquals(0, customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedCheckBox()));
+        assertEquals(1, customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedSwitch()));
+        assertEquals(0, customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedSwitch()));
         customerPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -105,8 +105,8 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Customer updated: ");
 
         customerPage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
-        assertEquals(0, customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedCheckBox()));
-        assertEquals(0, customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedCheckBox()));
+        assertEquals(0, customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedSwitch()));
+        assertEquals(0, customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedSwitch()));
         customerPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -127,8 +127,8 @@ public class CustomerCrudTest extends BaseCrudTest {
         customerPage = new CustomerPage(driver, port);
         customerPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
         customerPage.getGrid().waitForRefresh();
-        assertEquals(customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedCheckBox()), 0);
-        assertEquals(customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedCheckBox()), 1);
+        assertEquals(customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedSwitch()), 0);
+        assertEquals(customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedSwitch()), 1);
         customerPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -147,8 +147,8 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         customerPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedCheckBox()));
-        assertEquals(0, customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedCheckBox()));
+        assertEquals(0, customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedSwitch()));
+        assertEquals(0, customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedSwitch()));
         customerPage.getGrid().resetFilter();
 
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -207,12 +207,12 @@ public class CustomerCrudTest extends BaseCrudTest {
         assertEquals(notification.getText(), "EmsError happened while getting customers");
         notification.close();
 
-        assertEquals(customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedCheckBox()), 0);
+        assertEquals(customerPage.getGrid().getTotalDeletedRowNumber(customerPage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
         assertEquals(notification2.getText(), "EmsError happened while getting customers");
         notification2.close();
 
-        assertEquals(customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedCheckBox()), 0);
+        assertEquals(customerPage.getGrid().getTotalNonDeletedRowNumber(customerPage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
         assertEquals(notification3.getText(), "EmsError happened while getting customers");
         notification3.close();

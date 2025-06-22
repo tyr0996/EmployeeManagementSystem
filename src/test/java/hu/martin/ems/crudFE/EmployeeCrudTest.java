@@ -47,7 +47,7 @@ public class EmployeeCrudTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.EMPLOYEE_SUBMENU);
 
         EmployeePage employeePage = new EmployeePage(driver, port);
-        DoReadTestData testResult = employeePage.doReadTest(null, true);
+        DoReadTestData testResult = employeePage.doReadTest(true);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -71,8 +71,8 @@ public class EmployeeCrudTest extends BaseCrudTest {
         employeePage = new EmployeePage(driver, port);
         employeePage.getGrid().applyFilter(testResult.getResult().getDeletedData());
         employeePage.getGrid().waitForRefresh();
-        assertEquals(employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 1);
-        assertEquals(employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 0);
+        assertEquals(employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedSwitch()), 1);
+        assertEquals(employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedSwitch()), 0);
         employeePage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -91,8 +91,8 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Employee deleted: ");
 
         employeePage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(1, employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()));
-        assertEquals(0, employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()));
+        assertEquals(1, employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedSwitch()));
+        assertEquals(0, employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedSwitch()));
         employeePage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -111,8 +111,8 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Employee updated: ");
 
         employeePage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
-        assertEquals(0, employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()));
-        assertEquals(0, employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()));
+        assertEquals(0, employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedSwitch()));
+        assertEquals(0, employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedSwitch()));
         employeePage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -133,8 +133,8 @@ public class EmployeeCrudTest extends BaseCrudTest {
         employeePage = new EmployeePage(driver, port);
         employeePage.getGrid().applyFilter(testResult.getResult().getRestoredData());
         employeePage.getGrid().waitForRefresh();
-        assertEquals(employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 0);
-        assertEquals(employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 1);
+        assertEquals(employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedSwitch()), 0);
+        assertEquals(employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedSwitch()), 1);
         employeePage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
 
@@ -154,8 +154,8 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         employeePage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()));
-        assertEquals(0, employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()));
+        assertEquals(0, employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedSwitch()));
+        assertEquals(0, employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedSwitch()));
         employeePage.getGrid().resetFilter();
 
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -200,11 +200,11 @@ public class EmployeeCrudTest extends BaseCrudTest {
         assertEquals(notification.getText(), "EmsError happened while getting employees");
         notification.close();
 
-        assertEquals(employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 0);
+        assertEquals(employeePage.getGrid().getTotalDeletedRowNumber(employeePage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
         assertEquals(notification2.getText(), "EmsError happened while getting employees");
         notification2.close();
-        assertEquals(employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedCheckBox()), 0);
+        assertEquals(employeePage.getGrid().getTotalNonDeletedRowNumber(employeePage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
         assertEquals(notification3.getText(), "EmsError happened while getting employees");
         notification3.close();

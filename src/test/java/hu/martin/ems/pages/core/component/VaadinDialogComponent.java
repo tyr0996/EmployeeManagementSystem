@@ -31,15 +31,6 @@ public abstract class VaadinDialogComponent extends VaadinBaseComponent implemen
         super(driver, provider);
     }
 
-
-//    public VaadinDialogComponent(WebDriver driver, WebElement element) {
-//        super(driver, element);
-//    }
-//
-//    public VaadinDialogComponent(WebDriver driver, String elementXpath) {
-//        super(driver, elementXpath);
-//    }
-
     public VaadinDialogComponent(WebDriver driver) {
         super(driver);
     }

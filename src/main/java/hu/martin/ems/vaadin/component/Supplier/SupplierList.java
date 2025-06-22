@@ -1,10 +1,8 @@
 package hu.martin.ems.vaadin.component.Supplier;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -22,6 +20,8 @@ import hu.martin.ems.core.config.IconProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.ExtraDataFilterField;
+import hu.martin.ems.core.vaadin.Switch;
 import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.Address;
 import hu.martin.ems.model.Supplier;
@@ -61,26 +61,24 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
     @Getter
     private PaginatedGrid<SupplierVO, String> grid;
 
-    private List<Supplier> suppliers;
     private List<SupplierVO> supplierVOS;
-    private LinkedHashMap<String, List<String>> mergedFilterMap = new LinkedHashMap<>();
     private Grid.Column<SupplierVO> extraData;
 
     Grid.Column<SupplierVO> addressColumn;
     Grid.Column<SupplierVO> nameColumn;
     private TextFilteringHeaderCell addressFilter;
     private TextFilteringHeaderCell nameFilter;
+    private ExtraDataFilterField extraDataFilter;
 
     private Logger logger = LoggerFactory.getLogger(Supplier.class);
     List<Supplier> supplierList;
     List<Address> addressList;
-
-    @Autowired
-
+    LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
     //TODO nagyon ki kell javítani a update grid elements-et.
+    @Autowired
     public SupplierList(PaginationSetting paginationSetting) {
-
-        SupplierVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(SupplierVO.class);
         grid.addClassName("styling");
@@ -94,7 +92,7 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
         grid.setPaginationLocation(paginationSetting.getPaginationLocation());
 
 
-        //region Options column
+        //region Options column //TODO: ezt nem lehet megcsinálni normálisra?
         extraData = this.grid.addComponentColumn(supplier -> {
             Button editButton = new Button(BeanProvider.getBean(IconProvider.class).create(BeanProvider.getBean(IconProvider.class).EDIT_ICON));
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
@@ -163,17 +161,17 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
             d.open();
         });
 
-        Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
-        showDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+            showDeleted = event.getSource().getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            SupplierVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
 
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
-        hl.add(showDeletedCheckbox, create);
-        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.add(showDeletedSwitch, create);
+        hl.setAlignSelf(Alignment.CENTER, showDeletedSwitch);
         hl.setAlignSelf(Alignment.CENTER, create);
 
 
@@ -199,25 +197,14 @@ public class SupplierList extends EmsFilterableGridComponent implements Creatabl
         return supplierVOS.stream().filter(supplierVO ->
                 filterField(addressFilter, supplierVO.address) &&
                 filterField(nameFilter, supplierVO.name) &&
-                supplierVO.filterExtraData()
+                filterExtraData(extraDataFilter, supplierVO, showDeletedCheckboxFilter)
         );
     }
 
     private void setFilteringHeaderRow() {
         addressFilter = new TextFilteringHeaderCell("Search address...", this);
         nameFilter = new TextFilteringHeaderCell("Search name...", this);
-
-        TextField extraDataFilter = new TextField();
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                SupplierVO.extraDataFilterMap.clear();
-            } else {
-                SupplierVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        extraDataFilter = new ExtraDataFilterField("", this);
 
 
         HeaderRow filterRow = grid.appendHeaderRow();

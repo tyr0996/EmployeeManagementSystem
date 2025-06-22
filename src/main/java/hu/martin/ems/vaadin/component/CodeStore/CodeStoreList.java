@@ -1,9 +1,7 @@
 package hu.martin.ems.vaadin.component.CodeStore;
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -19,6 +17,8 @@ import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
 import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
+import hu.martin.ems.core.vaadin.ExtraDataFilterField;
+import hu.martin.ems.core.vaadin.Switch;
 import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
 import hu.martin.ems.model.CodeStore;
 import hu.martin.ems.vaadin.MainView;
@@ -46,7 +46,7 @@ import java.util.stream.Stream;
 @Route(value = "codestore/list", layout = MainView.class)
 @RolesAllowed("ROLE_CodeStoreMenuOpenPermission")
 @NeedCleanCoding
-public class CodeStoreList extends EmsFilterableGridComponent implements Creatable<CodeStore>, IEmsOptionColumnBaseDialogCreationFormDeletable<CodeStore, CodeStoreList.CodeStoreVO> {
+public class CodeStoreList extends EmsFilterableGridComponent<CodeStoreList.CodeStoreVO> implements Creatable<CodeStore>, IEmsOptionColumnBaseDialogCreationFormDeletable<CodeStore, CodeStoreList.CodeStoreVO> {
 
     @Getter
     private final CodeStoreApiClient apiClient = BeanProvider.getBean(CodeStoreApiClient.class);
@@ -65,11 +65,15 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
 
     private TextFilteringHeaderCell nameFilter;
     private TextFilteringHeaderCell parentFilter;
+    private ExtraDataFilterField extraDataFilter;
     private Logger logger = LoggerFactory.getLogger(CodeStore.class);
+
+    private LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
 
     @Autowired
     public CodeStoreList(PaginationSetting paginationSetting) {
-        CodeStoreVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(CodeStoreVO.class);
         this.grid.setId("page-grid");
@@ -93,21 +97,23 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
             Dialog d = getSaveOrUpdateDialog(null);
             d.open();
         });
-        Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
-        showDeletedCheckbox.addValueChangeListener(event -> {
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+//            showDeleted = event.getSource().getValue();
             showDeleted = !showDeleted;
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            CodeStoreVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
+            setEntities();
             updateGridItems();
         });
-        Checkbox showOnlyDeletableCodeStores = new Checkbox("Show only deletable codestores");
-        showOnlyDeletableCodeStores.addValueChangeListener(event -> {
+        Switch showOnlyDeletableCodeStores = new Switch("Show only deletable codestores");
+        showOnlyDeletableCodeStores.addClickListener(event -> {
             showOnlyDeletable = !showOnlyDeletable;
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
-        hl.add(showDeletedCheckbox, create);
-        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.add(showDeletedSwitch, create);
+        hl.setAlignSelf(Alignment.CENTER, showDeletedSwitch);
         hl.setAlignSelf(Alignment.CENTER, create);
 
         add(hl, showOnlyDeletableCodeStores, grid);
@@ -145,27 +151,14 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
         return codeStoreVOS.stream().filter(codeStoreVO ->
                 filterField(nameFilter, codeStoreVO.name) &&
                 filterField(parentFilter, codeStoreVO.parentName) &&
-                codeStoreVO.filterExtraData() && (showOnlyDeletable ? codeStoreVO.deletable : true)
+                filterExtraData(extraDataFilter, codeStoreVO, showDeletedCheckboxFilter) && (showOnlyDeletable ? codeStoreVO.deletable : true)
         );
     }
 
     private void setFilteringHeaderRow() {
         nameFilter = new TextFilteringHeaderCell("Search name...", this);
         parentFilter = new TextFilteringHeaderCell("Search parent...", this);
-
-        TextField extraDataFilter = new TextField();
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                CodeStoreVO.extraDataFilterMap.clear();
-            } else {
-                System.out.println(extraDataFilter.getValue());
-                CodeStoreVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
-
+        extraDataFilter = new ExtraDataFilterField("", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
         filterRow.getCell(nameColumn).setComponent(styleFilterField(nameFilter, "Name"));
@@ -182,7 +175,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
         TextField nameTextField = new TextField("Name");
         EmsComboBox<CodeStore> parentCodeStore = new EmsComboBox<>("Parent", this::setCodeStores, saveButton, "EmsError happened while getting codestores");
 
-        Checkbox deletable = new Checkbox("Deletable");
+        Switch deletable = new Switch("Deletable");
 
         if (entity != null) {
             nameTextField.setValue(entity.original.getName());
@@ -228,7 +221,7 @@ public class CodeStoreList extends EmsFilterableGridComponent implements Creatab
             updateGridItems();
 
             nameTextField.clear();
-            deletable.clear();
+            deletable.setValue(false);
             parentCodeStore.clear();
             createDialog.close();
         });

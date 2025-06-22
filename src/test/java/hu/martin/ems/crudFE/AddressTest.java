@@ -53,7 +53,7 @@ public class AddressTest extends BaseCrudTest {
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADDRESS_SUBMENU);
 
         AddressPage addressPage = new AddressPage(driver, port);
-        DoReadTestData testResult = addressPage.doReadTest(null, true);
+        DoReadTestData testResult = addressPage.doReadTest(true);
 
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber());
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
@@ -75,8 +75,8 @@ public class AddressTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Address deleted: ");
 
         addressPage.getGrid().applyFilter(testResult.getResult().getOriginalDeletedData());
-        assertEquals(1, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
-        assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
+        assertEquals(1, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedSwitch()));
+        assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedSwitch()));
         addressPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -95,8 +95,8 @@ public class AddressTest extends BaseCrudTest {
         assertThat(testResult.getNotificationWhenPerform()).contains("Address updated: ");
 
         addressPage.getGrid().applyFilter(testResult.getResult().getOriginalModifiedData());
-        assertEquals(0, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
-        assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
+        assertEquals(0, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedSwitch()));
+        assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedSwitch()));
         addressPage.getGrid().resetFilter();
         assertNull(VaadinNotificationComponent.hasNotification(driver));
     }
@@ -117,8 +117,8 @@ public class AddressTest extends BaseCrudTest {
         addressPage = new AddressPage(driver, port);
         addressPage.getGrid().applyFilter(testResult.getResult().getRestoredData());
         addressPage.getGrid().waitForRefresh();
-        assertEquals(addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 0);
-        assertEquals(addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 1);
+        assertEquals(addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedSwitch()), 0);
+        assertEquals(addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedSwitch()), 1);
         addressPage.getGrid().resetFilter();
 
         assertNull(VaadinNotificationComponent.hasNotification(driver));
@@ -138,8 +138,8 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         addressPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
-        assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
+        assertEquals(0, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedSwitch()));
+        assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedSwitch()));
         addressPage.getGrid().resetFilter();
 
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -167,8 +167,8 @@ public class AddressTest extends BaseCrudTest {
         assertEquals(testResult.getDeletedRowNumberAfterMethod(), testResult.getOriginalDeletedRowNumber() - 1);
         assertEquals(testResult.getNonDeletedRowNumberAfterMethod(), testResult.getOriginalNonDeletedRowNumber());
         addressPage.getGrid().applyFilter(testResult.getResult().getPermanentlyDeletedData());
-        assertEquals(0, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
-        assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()));
+        assertEquals(0, addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedSwitch()));
+        assertEquals(0, addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedSwitch()));
         addressPage.getGrid().resetFilter();
 
         loggedInPage.getSideMenu().navigate(SideMenu.ADMIN_MENU, SideMenu.ADMINTOOLS_SUB_MENU);
@@ -313,11 +313,11 @@ public class AddressTest extends BaseCrudTest {
         VaadinNotificationComponent notification = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification.getText(), "EmsError happened while getting addresses");
         notification.close();
-        sa.assertEquals(addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(addressPage.getGrid().getTotalDeletedRowNumber(addressPage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification2 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification2.getText(), "Refresh grid failed: Database error");
         notification2.close();
-        sa.assertEquals(addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedCheckBox()), 0);
+        sa.assertEquals(addressPage.getGrid().getTotalNonDeletedRowNumber(addressPage.getShowDeletedSwitch()), 0);
         VaadinNotificationComponent notification3 = new VaadinNotificationComponent(driver);
         sa.assertEquals(notification3.getText(), "Refresh grid failed: Database error");
         notification3.close();

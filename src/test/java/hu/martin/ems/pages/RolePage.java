@@ -3,7 +3,7 @@ package hu.martin.ems.pages;
 import hu.martin.ems.pages.core.ISimpleVaadinGridPage;
 import hu.martin.ems.pages.core.SimpleVaadinGridPage;
 import hu.martin.ems.pages.core.component.VaadinButtonComponent;
-import hu.martin.ems.pages.core.component.VaadinCheckboxComponent;
+import hu.martin.ems.pages.core.component.VaadinSwitchComponent;
 import hu.martin.ems.pages.core.component.VaadinGridComponent;
 import hu.martin.ems.pages.core.dialog.saveOrUpdateDialog.RoleSaveOrUpdateDialog;
 import lombok.Getter;
@@ -17,7 +17,7 @@ public class RolePage extends SimpleVaadinGridPage<RolePage> implements ISimpleV
         initWebElements();
     }
 
-    private static final String showDeletedCheckBoxXpath = contentLayoutXpath + "/vaadin-horizontal-layout[2]/vaadin-checkbox";
+    private static final String showDeletedSwitchXpath = contentLayoutXpath + "/vaadin-horizontal-layout[2]/switch";
     private static final String createButtonXpath = contentLayoutXpath + "/vaadin-horizontal-layout[2]/vaadin-button";
     private static final String gridXpath = contentLayoutXpath + "/vaadin-grid";
 
@@ -26,7 +26,7 @@ public class RolePage extends SimpleVaadinGridPage<RolePage> implements ISimpleV
 
     @Override
     public RolePage initWebElements() {
-        this.showDeletedCheckBox = new VaadinCheckboxComponent(getDriver(), By.xpath(showDeletedCheckBoxXpath));
+        this.showDeletedSwitch = new VaadinSwitchComponent(getDriver(), By.xpath(showDeletedSwitchXpath));
         this.createButton = new VaadinButtonComponent(getDriver(), By.xpath(createButtonXpath));
         this.grid = new VaadinGridComponent(getDriver(), By.xpath(gridXpath));
         this.saveOrUpdateDialog = new RoleSaveOrUpdateDialog(getDriver());

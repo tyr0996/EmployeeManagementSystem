@@ -2,9 +2,7 @@ package hu.martin.ems.vaadin.component.OrderElement;
 
 
 import com.google.gson.Gson;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -14,15 +12,12 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import hu.martin.ems.annotations.NeedCleanCoding;
 import hu.martin.ems.core.config.BeanProvider;
 import hu.martin.ems.core.model.EmsResponse;
 import hu.martin.ems.core.model.PaginationSetting;
-import hu.martin.ems.core.vaadin.EmsFilterableGridComponent;
-import hu.martin.ems.core.vaadin.NumberFilteringHeaderCell;
-import hu.martin.ems.core.vaadin.TextFilteringHeaderCell;
+import hu.martin.ems.core.vaadin.*;
 import hu.martin.ems.model.Customer;
 import hu.martin.ems.model.OrderElement;
 import hu.martin.ems.model.Product;
@@ -87,6 +82,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
     private TextFilteringHeaderCell unitFilter;
     private TextFilteringHeaderCell unitNetPriceFilter;
     private TextFilteringHeaderCell customerOrSupplierNameFilter;
+    private ExtraDataFilterField extraDataFilter;
     private NumberFilteringHeaderCell idFilter;
 
 
@@ -96,9 +92,12 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
     List<Supplier> supplierList;
     Logger logger = LoggerFactory.getLogger(OrderElement.class);
 
+    private LinkedHashMap<String, List<String>> showDeletedCheckboxFilter;
+
     @Autowired
     public OrderElementList(PaginationSetting paginationSetting) {
-        OrderElementVO.showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
+        showDeletedCheckboxFilter = new LinkedHashMap<>();
+        showDeletedCheckboxFilter.put("deleted", Arrays.asList("0"));
 
         this.grid = new PaginatedGrid<>(OrderElementVO.class);
 
@@ -132,17 +131,17 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
             d.open();
         });
 
-        Checkbox showDeletedCheckbox = new Checkbox("Show deleted");
-        showDeletedCheckbox.addValueChangeListener(event -> {
-            showDeleted = event.getValue();
+        Switch showDeletedSwitch = new Switch("Show deleted");
+        showDeletedSwitch.addClickListener(event -> {
+            showDeleted = event.getSource().getValue();
             List<String> newValue = showDeleted ? Arrays.asList("1", "0") : Arrays.asList("0");
-            OrderElementVO.showDeletedCheckboxFilter.replace("deleted", newValue);
+            showDeletedCheckboxFilter.replace("deleted", newValue);
             setEntities();
             updateGridItems();
         });
         HorizontalLayout hl = new HorizontalLayout();
-        hl.add(showDeletedCheckbox, create);
-        hl.setAlignSelf(Alignment.CENTER, showDeletedCheckbox);
+        hl.add(showDeletedSwitch, create);
+        hl.setAlignSelf(Alignment.CENTER, showDeletedSwitch);
         hl.setAlignSelf(Alignment.CENTER, create);
 
         setFilteringHeaderRow();
@@ -175,7 +174,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
                 filterField(taxKeyFilter, orderElementVO.taxKey) &&
                 filterField(unitFilter, orderElementVO.unit.toString()) &&
                 filterField(unitNetPriceFilter, orderElementVO.unitNetPrice.toString()) &&
-                orderElementVO.filterExtraData()
+                filterExtraData(extraDataFilter, orderElementVO, showDeletedCheckboxFilter)
         );
     }
 
@@ -189,18 +188,7 @@ public class OrderElementList extends EmsFilterableGridComponent implements Crea
         unitNetPriceFilter = new TextFilteringHeaderCell("Search unit net price...", this);
         customerOrSupplierNameFilter = new TextFilteringHeaderCell("Search customer/supplier...", this);
         idFilter = new NumberFilteringHeaderCell("Search id...", this);
-
-        TextField extraDataFilter = new TextField();
-        extraDataFilter.addKeyDownListener(Key.ENTER, event -> {
-            if (extraDataFilter.getValue().isEmpty()) {
-                OrderElementVO.extraDataFilterMap.clear();
-            } else {
-                OrderElementVO.extraDataFilterMap = gson.fromJson(extraDataFilter.getValue().trim(), LinkedHashMap.class);
-            }
-
-            grid.getDataProvider().refreshAll();
-            updateGridItems();
-        });
+        extraDataFilter = new ExtraDataFilterField("", this);
 
         HeaderRow filterRow = grid.appendHeaderRow();
 

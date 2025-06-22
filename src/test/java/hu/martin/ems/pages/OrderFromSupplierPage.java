@@ -51,15 +51,12 @@ public class OrderFromSupplierPage extends EmptyLoggedInVaadinPage implements IL
                 supplierComboBox.fillWith(supplierName);
             }
             grid.waitForRefresh();
-//            System.out.println("i: " + i + "     totalRowNumber: " + grid.getTotalRowNumber());
-            int totalRow = grid.getTotalRowNumber();
-            if (totalRow == 0) { //TODO kicserélni a grid-esre.
+            if (grid.getTotalRowNumber() == 0) {
                 LinkedHashMap<String, Object> withData = new LinkedHashMap<>();
                 withData.put("Customer", supplierComboBox.getSelectedElement());
                 getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_ELEMENT_SUBMENU);
                 OrderElementPage oePage = new OrderElementPage(getDriver(), getPort());
                 oePage.performCreate(withData);
-//                new VaadinNotificationComponent(getDriver()).close();
                 getSideMenu().navigate(SideMenu.ORDERS_MENU, SideMenu.ORDER_CREATE_TO_CUSTOMER_SUBMENU);
                 this.initWebElements();
                 return performCreate(withData.get("Customer").toString());
